@@ -1,89 +1,81 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// Define types for our mock data
-type Pharmaceutical = {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  ingredients: string[];
-  benefits: string[];
-};
-
-type NaturalRemedy = {
-  id: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-  matchingNutrients: string[];
-  similarityScore: number;
-};
+import { fuzzySearch } from "@/lib/fuzzy-search";
+import { searchFdaDrugs, ProcessedDrug } from "@/lib/openFDA";
+import { findNaturalRemediesForDrug, NaturalRemedy } from "@/lib/remedyMapping";
 
 // Mock pharmaceutical data
-const MOCK_PHARMACEUTICALS: Pharmaceutical[] = [
+const MOCK_PHARMACEUTICALS: ProcessedDrug[] = [
   {
     id: "1",
+    fdaId: "mock-1",
     name: "Vitamin D3 Supplement",
     description: "Helps with calcium absorption and bone health",
     category: "Vitamin Supplement",
     ingredients: ["Vitamin D3", "Calcium", "Magnesium"],
-    benefits: ["Bone health", "Immune support", "Mood regulation"]
+    benefits: ["Bone health", "Immune support", "Mood regulation"],
+    similarityScore: 1.0
   },
   {
     id: "2",
+    fdaId: "mock-2",
     name: "Ibuprofen",
     description: "Non-steroidal anti-inflammatory drug (NSAID) used for pain relief and reducing inflammation",
     category: "Pain Reliever",
     ingredients: ["Ibuprofen"],
-    benefits: ["Pain relief", "Reduces inflammation", "Fever reduction"]
+    benefits: ["Pain relief", "Reduces inflammation", "Fever reduction"],
+    similarityScore: 1.0
   },
   {
     id: "3",
+    fdaId: "mock-3",
     name: "Melatonin",
     description: "Hormone that regulates sleep cycles",
     category: "Sleep Aid",
     ingredients: ["Melatonin"],
-    benefits: ["Sleep regulation", "Jet lag treatment"]
+    benefits: ["Sleep regulation", "Jet lag treatment"],
+    similarityScore: 1.0
   },
   {
     id: "4",
+    fdaId: "mock-4",
     name: "Fish Oil Supplement",
     description: "Rich in omega-3 fatty acids",
     category: "Nutritional Supplement",
     ingredients: ["EPA", "DHA", "Omega-3 fatty acids"],
-    benefits: ["Heart health", "Brain function", "Reduces inflammation"]
+    benefits: ["Heart health", "Brain function", "Reduces inflammation"],
+    similarityScore: 1.0
   },
   {
     id: "5",
+    fdaId: "mock-5",
     name: "Omeprazole",
     description: "Proton pump inhibitor used to treat acid reflux and heartburn",
     category: "Digestive Health",
     ingredients: ["Omeprazole"],
-    benefits: ["Reduces stomach acid", "Heartburn relief", "Treats acid reflux"]
+    benefits: ["Reduces stomach acid", "Heartburn relief", "Treats acid reflux"],
+    similarityScore: 1.0
   },
   {
     id: "6",
+    fdaId: "mock-6",
     name: "Tylenol (Acetaminophen)",
     description: "Pain reliever and fever reducer",
     category: "Pain Reliever",
     ingredients: ["Acetaminophen"],
-    benefits: ["Pain relief", "Fever reduction", "Headache relief"]
+    benefits: ["Pain relief", "Fever reduction", "Headache relief"],
+    similarityScore: 1.0
   }
 ];
 
-// Define the mapping type with index signature
-type RemedyMappings = {
-  [key: string]: NaturalRemedy[];
-};
-
 // Mock natural remedy mappings
-const MOCK_REMEDY_MAPPINGS: RemedyMappings = {
+const MOCK_REMEDY_MAPPINGS: { [key: string]: NaturalRemedy[] } = {
   "1": [ // Vitamin D3 Supplement
     {
       id: "101",
       name: "Sunlight Exposure",
       description: "Natural way to boost vitamin D production",
       imageUrl: "https://images.unsplash.com/photo-1501862700950-18382cd41497?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+      category: "Lifestyle Change",
       matchingNutrients: ["Vitamin D"],
       similarityScore: 0.95
     },
@@ -92,6 +84,7 @@ const MOCK_REMEDY_MAPPINGS: RemedyMappings = {
       name: "Fatty Fish",
       description: "Natural source of vitamin D and omega-3 fatty acids",
       imageUrl: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+      category: "Food Source",
       matchingNutrients: ["Vitamin D", "Calcium"],
       similarityScore: 0.8
     }
@@ -102,6 +95,7 @@ const MOCK_REMEDY_MAPPINGS: RemedyMappings = {
       name: "Turmeric",
       description: "Natural anti-inflammatory spice containing curcumin",
       imageUrl: "https://images.unsplash.com/photo-1615485500704-8e990f9900f7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+      category: "Herbal Remedy",
       matchingNutrients: ["Anti-inflammatory compounds"],
       similarityScore: 0.75
     },
@@ -110,6 +104,7 @@ const MOCK_REMEDY_MAPPINGS: RemedyMappings = {
       name: "Ginger",
       description: "Root with anti-inflammatory and digestive properties",
       imageUrl: "https://images.unsplash.com/photo-1573414404380-7cccfbd3c123?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+      category: "Herbal Remedy",
       matchingNutrients: ["Anti-inflammatory compounds"],
       similarityScore: 0.7
     }
@@ -120,6 +115,7 @@ const MOCK_REMEDY_MAPPINGS: RemedyMappings = {
       name: "Tart Cherry Juice",
       description: "Natural source of melatonin and anti-inflammatory compounds",
       imageUrl: "https://images.unsplash.com/photo-1596413801212-81206c300da2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+      category: "Food Source",
       matchingNutrients: ["Melatonin"],
       similarityScore: 0.85
     },
@@ -128,6 +124,7 @@ const MOCK_REMEDY_MAPPINGS: RemedyMappings = {
       name: "Chamomile Tea",
       description: "Herb tea with calming properties",
       imageUrl: "https://images.unsplash.com/photo-1594631252845-29fc4cc8cde9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+      category: "Herbal Remedy",
       matchingNutrients: ["Sleep-promoting compounds"],
       similarityScore: 0.65
     }
@@ -138,6 +135,7 @@ const MOCK_REMEDY_MAPPINGS: RemedyMappings = {
       name: "Fatty Fish",
       description: "Natural source of vitamin D and omega-3 fatty acids",
       imageUrl: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+      category: "Food Source",
       matchingNutrients: ["Omega-3 fatty acids", "EPA", "DHA"],
       similarityScore: 0.9
     }
@@ -148,6 +146,7 @@ const MOCK_REMEDY_MAPPINGS: RemedyMappings = {
       name: "Aloe Vera",
       description: "Plant with soothing and healing properties",
       imageUrl: "https://images.unsplash.com/photo-1596276021663-0c3a68ce627d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+      category: "Herbal Remedy",
       matchingNutrients: ["Digestive soothing compounds"],
       similarityScore: 0.6
     },
@@ -156,6 +155,7 @@ const MOCK_REMEDY_MAPPINGS: RemedyMappings = {
       name: "Apple Cider Vinegar",
       description: "Fermented apple product with digestive benefits",
       imageUrl: "https://images.unsplash.com/photo-1598704710590-4dcf6e59836e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+      category: "Supplement",
       matchingNutrients: ["Digestive regulation compounds"],
       similarityScore: 0.55
     }
@@ -166,6 +166,7 @@ const MOCK_REMEDY_MAPPINGS: RemedyMappings = {
       name: "White Willow Bark",
       description: "Natural ingredient that contains salicin, a compound similar to aspirin",
       imageUrl: "https://images.unsplash.com/photo-1502467722427-648b2980717e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+      category: "Herbal Remedy",
       matchingNutrients: ["Anti-inflammatory compounds", "Pain-relieving properties"],
       similarityScore: 0.75
     },
@@ -174,6 +175,7 @@ const MOCK_REMEDY_MAPPINGS: RemedyMappings = {
       name: "Peppermint Oil",
       description: "Essential oil used for pain relief and headaches",
       imageUrl: "https://images.unsplash.com/photo-1559135081-9a065a1c7df3?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+      category: "Herbal Remedy",
       matchingNutrients: ["Menthol", "Pain-relieving compounds"],
       similarityScore: 0.7
     }
@@ -186,7 +188,6 @@ export async function GET(req: NextRequest) {
     const query = searchParams.get("query");
 
     console.log("API received search query:", query);
-    console.log("Available pharmaceuticals:", MOCK_PHARMACEUTICALS.map(p => p.name));
 
     if (!query) {
       console.log("No query provided");
@@ -225,65 +226,71 @@ export async function GET(req: NextRequest) {
     processedQuery = processedQuery.trim();
     console.log("Processed query:", processedQuery);
 
-    // Find pharmaceutical by name (case insensitive)
-    // Make the search more flexible by checking if query is included anywhere in name,
-    // category, ingredients, or benefits
-    const pharmaceutical = MOCK_PHARMACEUTICALS.find(p => {
-      const lowerName = p.name.toLowerCase();
-      const lowerCategory = p.category.toLowerCase();
-      const lowerIngredients = p.ingredients.map(i => i.toLowerCase());
-      const lowerBenefits = p.benefits.map(b => b.toLowerCase());
+    // First, try to fetch drug data from OpenFDA
+    const drugResults: ProcessedDrug[] = await searchFdaDrugs(processedQuery);
+    let pharmaceutical: ProcessedDrug | undefined;
+    
+    // If no results from FDA API, fall back to mock data
+    if (drugResults.length === 0) {
+      console.log("No results from FDA API, falling back to mock data");
       
-      // Check name - split by words for partial matching
-      const nameWords = processedQuery.split(/\s+/);
-      const nameMatch = nameWords.some(word => {
-        return word.length > 2 && lowerName.includes(word);
-      }) || lowerName.includes(processedQuery);
-      
-      // Check category
-      const categoryMatch = lowerCategory.includes(processedQuery);
-      
-      // Check ingredients - more lenient matching
-      const ingredientMatch = lowerIngredients.some(ingredient => {
-        // Try to match by word parts
-        return processedQuery.split(/\s+/).some(word => 
-          word.length > 2 && ingredient.includes(word)
-        );
-      });
-      
-      // Check benefits
-      const benefitMatch = lowerBenefits.some(benefit => {
-        return processedQuery.split(/\s+/).some(word => 
-          word.length > 2 && benefit.includes(word)
-        );
-      });
-      
-      console.log(`Checking ${p.name}: name=${nameMatch}, category=${categoryMatch}, ingredients=${ingredientMatch}, benefits=${benefitMatch}`);
-      
-      return nameMatch || categoryMatch || ingredientMatch || benefitMatch;
-    });
+      // Use fuzzy search on mock data as fallback
+      const searchablePharmaceuticals = MOCK_PHARMACEUTICALS.map(p => ({
+        ...p,
+        searchText: `${p.name} ${p.category} ${p.ingredients.join(' ')} ${p.benefits.join(' ')}`
+      }));
 
-    console.log("Found pharmaceutical:", pharmaceutical);
-
-    if (!pharmaceutical) {
-      console.log("No pharmaceutical found for query:", query);
-      // Let's attempt to find a close match for a helpful error
-      const allNames = MOCK_PHARMACEUTICALS.map(p => p.name.toLowerCase());
-      const closeMatches = allNames.filter(name => {
-        // Check if any part of the query matches any part of the name
-        return processedQuery.split(/\s+/).some(word => 
-          word.length > 2 && name.includes(word)
-        );
+      // Perform fuzzy search
+      const matchedPharmaceuticals = fuzzySearch(
+        processedQuery,
+        searchablePharmaceuticals,
+        (item) => item.searchText
+      );
+      
+      if (matchedPharmaceuticals.length === 0) {
+        console.log("No pharmaceutical found for query:", query);
+        return NextResponse.json([]);
+      }
+      
+      pharmaceutical = matchedPharmaceuticals[0];
+      console.log("Best match from mock data:", pharmaceutical.name);
+      
+      // Find natural remedies for the pharmaceutical from mock data
+      const remedies = MOCK_REMEDY_MAPPINGS[pharmaceutical.id] || [];
+      
+      // Add similarity score to remedies based on matching nutrients
+      const scoredRemedies = remedies.map(remedy => {
+        const matchScore = remedy.matchingNutrients.length / 
+          Math.max(pharmaceutical!.ingredients.length, 1);
+        
+        return {
+          ...remedy,
+          similarityScore: Number((matchScore * (pharmaceutical?.similarityScore || 1.0)).toFixed(2))
+        };
       });
       
-      console.log("Close matches:", closeMatches);
+      // Sort by similarity score (highest first)
+      const sortedRemedies = scoredRemedies.sort(
+        (a, b) => b.similarityScore - a.similarityScore
+      );
+      
+      console.log(`Found ${sortedRemedies.length} remedies from mock data`);
+      return NextResponse.json(sortedRemedies);
+    }
+    
+    // Use the best matching pharmaceutical from FDA API
+    pharmaceutical = drugResults[0];
+    console.log("Best match from FDA API:", pharmaceutical.name);
+    
+    // Find natural remedies for the pharmaceutical
+    const remedies = await findNaturalRemediesForDrug(pharmaceutical);
+    
+    if (remedies.length === 0) {
+      console.log("No natural remedies found for:", pharmaceutical.name);
       return NextResponse.json([]);
     }
-
-    // Find natural remedies for the pharmaceutical
-    const remedies = MOCK_REMEDY_MAPPINGS[pharmaceutical.id] || [];
-    console.log(`Found ${remedies.length} remedies for ${pharmaceutical.name}:`, remedies);
-
+    
+    console.log(`Found ${remedies.length} remedies for ${pharmaceutical.name}`);
     return NextResponse.json(remedies);
   } catch (error) {
     console.error("Error in search API:", error);
