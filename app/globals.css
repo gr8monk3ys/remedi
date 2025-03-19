@@ -11,13 +11,10 @@
   --blue-500: #3b82f6;
   --indigo-300: #a5b4fc;
   --violet-200: #ddd6fe;
-}
-
-@theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-roboto-mono);
 }
 
 @media (prefers-color-scheme: dark) {

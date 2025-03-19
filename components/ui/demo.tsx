@@ -4,12 +4,17 @@ import { motion } from "framer-motion";
 import React from "react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { SearchComponent } from "@/components/ui/search";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function AuroraBackgroundDemo() {
   // We'll use the onSearch handler from SearchComponent directly
   
   return (
     <AuroraBackground>
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle />
+      </div>
+
       <motion.div
         initial={{ opacity: 0.0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
