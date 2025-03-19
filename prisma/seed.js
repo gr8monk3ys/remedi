@@ -1,42 +1,7 @@
+// @ts-check
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
-
-// Define types based on our schema
-type Pharmaceutical = {
-  id: string;
-  fdaId: string | null;
-  name: string;
-  description: string | null;
-  category: string;
-  ingredients: string; // JSON string
-  benefits: string; // JSON string
-  usage: string | null;
-  warnings: string | null;
-  interactions: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-type NaturalRemedy = {
-  id: string;
-  name: string;
-  description: string | null;
-  category: string;
-  ingredients: string; // JSON string
-  benefits: string; // JSON string
-  imageUrl: string | null;
-  usage: string | null;
-  dosage: string | null;
-  precautions: string | null;
-  scientificInfo: string | null;
-  references: string | null; // JSON string
-  relatedRemedies: string | null; // JSON string
-  sourceUrl: string | null;
-  evidenceLevel: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
 
 async function main() {
   console.log('🌱 Seeding database...');
@@ -48,7 +13,7 @@ async function main() {
   
   console.log('Creating pharmaceuticals...');
   
-  const pharmaceuticals: Omit<Pharmaceutical, 'id' | 'createdAt' | 'updatedAt'>[] = [
+  const pharmaceuticals = [
     {
       fdaId: 'mock-1',
       name: 'Vitamin D3 Supplement',
@@ -108,7 +73,7 @@ async function main() {
   
   console.log('Creating natural remedies...');
   
-  const naturalRemedies: Omit<NaturalRemedy, 'id' | 'createdAt' | 'updatedAt'>[] = [
+  const naturalRemedies = [
     {
       name: 'Sunlight Exposure',
       description: 'Natural way to boost vitamin D production',

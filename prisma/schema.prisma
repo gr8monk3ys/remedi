@@ -9,18 +9,22 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 // Pharmaceutical drugs or supplements
 model Pharmaceutical {
   id          String   @id @default(uuid())
+  fdaId       String?  // ID from the FDA database
   name        String   @unique
   description String?
   category    String
-  ingredients String[]
-  benefits    String[]
+  ingredients String   // JSON string for SQLite compatibility
+  benefits    String   // JSON string for SQLite compatibility
+  usage       String?
+  warnings    String?
+  interactions String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   remedies    NaturalRemedyMapping[]
@@ -28,29 +32,36 @@ model Pharmaceutical {
 
 // Natural remedies
 model NaturalRemedy {
-  id           String   @id @default(uuid())
-  name         String   @unique
-  description  String?
-  category     String
-  ingredients  String[]
-  benefits     String[]
-  imageUrl     String?
-  sourceUrl    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(uuid())
+  name           String   @unique
+  description    String?
+  category       String
+  ingredients    String   // JSON string for SQLite compatibility
+  benefits       String   // JSON string for SQLite compatibility
+  imageUrl       String?
+  usage          String?
+  dosage         String?
+  precautions    String?
+  scientificInfo String?
+  references     String?  // JSON string for SQLite compatibility
+  relatedRemedies String? // JSON string for SQLite compatibility
+  sourceUrl      String?  // URL of the source information
+  evidenceLevel  String?  // Level of scientific evidence: Strong, Moderate, Limited, Traditional
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   pharmaceuticals NaturalRemedyMapping[]
 }
 
 // Many-to-many relationship between pharmaceuticals and natural remedies
-// Includes similarity score and matching nutrients
 model NaturalRemedyMapping {
   id               String         @id @default(uuid())
   pharmaceutical   Pharmaceutical @relation(fields: [pharmaceuticalId], references: [id])
   pharmaceuticalId String
   naturalRemedy    NaturalRemedy  @relation(fields: [naturalRemedyId], references: [id])
   naturalRemedyId  String
-  similarityScore  Float?         // Similarity score between the pharmaceutical and remedy (0-1)
-  matchingNutrients String[]       // List of matching nutrients/compounds
+  similarityScore  Float          // Similarity score between the pharmaceutical and remedy (0-1)
+  matchingNutrients String        // JSON string for SQLite compatibility
+  replacementType  String?        // Type of replacement: Alternative, Complementary, Supportive
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
