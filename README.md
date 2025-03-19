@@ -1,76 +1,143 @@
 # RemediFind
 
-A web application that helps users find natural alternatives to pharmaceutical drugs and supplements. This application allows users to search for medications and discover natural remedies with similar ingredients and benefits.
+A modern web application designed to help users find natural alternatives to pharmaceutical drugs and supplements.
 
 ## Features
 
-- Search for pharmaceutical drugs and vitamin supplements
-- View natural alternatives with matching nutrients
-- Learn about the benefits of natural remedies
-- User-friendly interface with responsive design
-- Support for common spelling variants and flexible search
+- **Fast Search**: Find natural alternatives to common pharmaceuticals quickly
+- **Dark/Light Mode**: Toggle between light and dark themes for comfortable viewing
+- **Search History**: Keep track of your recent searches for easy reference
+- **Fuzzy Search**: Find results even when your spelling isn't perfect
+- **Filtering**: Filter results by category or matching nutrients
+- **Pagination**: Navigate through results easily
+- **Mobile-Friendly Design**: Works on all devices
 
 ## Tech Stack
 
-- **Next.js** - React framework for server-rendered applications
-- **TypeScript** - Type-safe JavaScript
-- **Tailwind CSS** - Utility-first CSS framework
-- **Framer Motion** - Animation library for React
+- **React**: For building the user interface
+- **Next.js**: For server-side rendering and API routes
+- **TypeScript**: For type safety
+- **TailwindCSS**: For styling
+- **Levenshtein Algorithm**: For fuzzy search functionality
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 14.x or higher
+- Node.js 18+
 - npm or yarn
 
 ### Installation
 
 1. Clone the repository
-   ```bash
-   git clone https://github.com/yourusername/remedi.git
-   cd remedi
-   ```
+```bash
+git clone https://github.com/yourusername/remedi.git
+cd remedi
+```
 
 2. Install dependencies
-   ```bash
-   npm install
-   # or
-   yarn
-   ```
+```bash
+npm install
+# or
+yarn install
+```
 
 3. Run the development server
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## Project Structure
 
-- `/app` - Application routes and API endpoints
-- `/components` - Reusable React components
-- `/public` - Static assets
-- `/styles` - Global styles
+```
+├── app/                    # Next.js app directory
+│   ├── api/                # API routes
+│   │   └── search/         # Search API
+│   ├── layout.tsx          # Root layout with ThemeProvider
+│   └── page.tsx            # Home page
+├── components/             # React components
+│   ├── theme-provider.tsx  # Manages theme state
+│   └── ui/                 # UI components
+│       ├── demo.tsx        # Demo component
+│       ├── filter.tsx      # Filter component
+│       ├── header.tsx      # Header component
+│       ├── pagination.tsx  # Pagination component
+│       ├── search.tsx      # Search component
+│       └── theme-toggle.tsx # Theme toggle button
+├── hooks/                  # Custom React hooks
+│   └── use-local-storage.ts # localStorage hook
+├── lib/                    # Utility functions
+│   ├── fuzzy-search.ts     # Fuzzy search implementation
+│   └── utils.ts            # General utilities
+├── public/                 # Static assets
+├── styles/                 # Global styles
+├── next.config.js          # Next.js configuration
+├── package.json            # Project dependencies
+├── tailwind.config.js      # Tailwind CSS configuration
+└── tsconfig.json           # TypeScript configuration
+```
 
 ## API Routes
 
-- `/api/search` - Search for pharmaceuticals and their natural alternatives
+### GET /api/search
 
-## Future Enhancements
+Search for natural alternatives to a pharmaceutical.
 
-- User authentication for saving favorite remedies
-- Expanded database of pharmaceuticals and natural alternatives
-- Detailed information pages for each remedy
-- User reviews and ratings for natural remedies
-- Mobile application
+**Parameters:**
+- `query` (string): The name of the pharmaceutical to search for
 
-## Disclaimer
+**Example Response:**
+```json
+[
+  {
+    "id": "b1",
+    "name": "Turmeric",
+    "description": "Contains curcumin which has anti-inflammatory properties.",
+    "imageUrl": "https://example.com/turmeric.jpg",
+    "category": "Herbal Remedy",
+    "matchingNutrients": ["Curcumin"],
+    "similarityScore": 0.85
+  }
+]
+```
 
-The information provided by RemediFind is for educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
+## Implemented Features
+
+### Dark/Light Mode
+- System preference detection
+- Manual toggle option
+- Persistent theme selection
+
+### Search Functionality
+- Fuzzy matching with Levenshtein distance algorithm
+- Relevance scoring for results
+- Search history tracking
+- Suggested searches
+
+### Filtering System
+- Filter by category (Food Source, Herbal Remedy, etc.)
+- Filter by matching nutrients
+- Multiple filter selection
+- Filter counts display
+
+### User Interface
+- Responsive design for all screen sizes
+- Modern, clean aesthetic
+- Accessible color schemes
+- Loading states and error handling
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Disclaimer
+
+This application is for informational purposes only. Always consult with a healthcare professional before making changes to your medication regimen.
