@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Pharmaceutical drugs or supplements
+model Pharmaceutical {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  category    String
+  ingredients String[]
+  benefits    String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  remedies    NaturalRemedyMapping[]
+}
+
+// Natural remedies
+model NaturalRemedy {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  description  String?
+  category     String
+  ingredients  String[]
+  benefits     String[]
+  imageUrl     String?
+  sourceUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  pharmaceuticals NaturalRemedyMapping[]
+}
+
+// Many-to-many relationship between pharmaceuticals and natural remedies
+// Includes similarity score and matching nutrients
+model NaturalRemedyMapping {
+  id               String         @id @default(uuid())
+  pharmaceutical   Pharmaceutical @relation(fields: [pharmaceuticalId], references: [id])
+  pharmaceuticalId String
+  naturalRemedy    NaturalRemedy  @relation(fields: [naturalRemedyId], references: [id])
+  naturalRemedyId  String
+  similarityScore  Float?         // Similarity score between the pharmaceutical and remedy (0-1)
+  matchingNutrients String[]       // List of matching nutrients/compounds
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@unique([pharmaceuticalId, naturalRemedyId])
+}
