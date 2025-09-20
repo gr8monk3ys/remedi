@@ -1,0 +1,111 @@
+/**
+ * Start Trial API
+ *
+ * POST /api/trial/start
+ * Starts a 7-day premium trial for the authenticated user.
+ */
+
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { startTrial, isTrialEligible, TRIAL_CONFIG } from "@/lib/trial";
+import {
+  trackTrialStarted,
+  EVENT_SOURCES,
+} from "@/lib/analytics/conversion-events";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-trial-start");
+
+export async function POST(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.trialStart,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    const user = await getCurrentUser();
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "UNAUTHORIZED",
+            message: "You must be signed in to start a trial",
+          },
+        },
+        { status: 401 },
+      );
+    }
+
+    // Check eligibility
+    const eligible = await isTrialEligible(user.id);
+    if (!eligible) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "TRIAL_NOT_ELIGIBLE",
+            message: "You have already used your free trial",
+          },
+        },
+        { status: 400 },
+      );
+    }
+
+    // Start the trial
+    const result = await startTrial(user.id);
+
+    // Track the conversion event
+    await trackTrialStarted({
+      userId: user.id,
+      source: EVENT_SOURCES.API,
+      metadata: {
+        daysInTrial: TRIAL_CONFIG.durationDays,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        message: "Trial started successfully",
+        trialEndDate: result.trialEndDate,
+        daysRemaining: result.daysRemaining,
+        plan: TRIAL_CONFIG.plan,
+        features: TRIAL_CONFIG.features,
+      },
+    });
+  } catch (error) {
+    logger.error("Error starting trial", error);
+
+    // Handle specific error cases
+    if (error instanceof Error && error.message.includes("not eligible")) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "TRIAL_NOT_ELIGIBLE",
+            message: error.message,
+          },
+        },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "Failed to start trial",
+        },
+      },
+      { status: 500 },
+    );
+  }
+}
