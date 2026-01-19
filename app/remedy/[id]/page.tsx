@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ArrowLeft, ExternalLink, Heart, BookOpen, Pill, AlertCircle, Beaker, Calendar } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Heart, BookOpen, Pill, AlertCircle, Beaker, Calendar, MessageSquare, PenSquare } from 'lucide-react';
+import { useFavorites } from '@/hooks/use-favorites';
+import { ReviewForm, ReviewsList } from '@/components/remedy';
 
 // Define the Remedy type that we'll use for this page
 interface Remedy {
@@ -22,26 +24,42 @@ interface Remedy {
   relatedRemedies: { id: string; name: string }[];
 }
 
-export default function RemedyDetail({ params }: { params: { id: string } }) {
+export default function RemedyDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const { isFavorite, addFavorite, removeFavorite, isLoading: favoritesLoading } = useFavorites();
   const [remedy, setRemedy] = useState<Remedy | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [remedyId, setRemedyId] = useState<string | null>(null);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewRefreshTrigger, setReviewRefreshTrigger] = useState(0);
+
+  useEffect(() => {
+    params.then(({ id }) => setRemedyId(id));
+  }, [params]);
 
   useEffect(() => {
     const fetchRemedyDetails = async () => {
+      if (!remedyId) return;
+
       try {
         setLoading(true);
-        // In a real application, you would fetch this data from an API
-        const response = await fetch(`/api/remedy/${params.id}`);
-        
+        const response = await fetch(`/api/remedy/${remedyId}`);
+
         if (!response.ok) {
           throw new Error('Failed to fetch remedy details');
         }
-        
-        const data = await response.json();
+
+        const apiResponse = await response.json();
+
+        // Handle standardized API response format
+        if (apiResponse.success === false) {
+          setError(apiResponse.error?.message || "Failed to load remedy details");
+          return;
+        }
+
+        const data = apiResponse.data || apiResponse; // Support both old and new format
         setRemedy(data);
       } catch (err) {
         console.error('Error fetching remedy details:', err);
@@ -51,43 +69,26 @@ export default function RemedyDetail({ params }: { params: { id: string } }) {
       }
     };
 
-    if (params.id) {
+    if (remedyId) {
       fetchRemedyDetails();
     }
-  }, [params.id]);
-
-  useEffect(() => {
-    // Check if remedy is in favorites
-    if (remedy) {
-      const savedFavorites = localStorage.getItem('favoriteRemedies');
-      const favorites = savedFavorites ? JSON.parse(savedFavorites) : [];
-      setIsFavorite(favorites.some((fav: {id: string}) => fav.id === remedy.id));
-    }
-  }, [remedy]);
+  }, [remedyId]);
 
   const handleBack = () => {
     router.back();
   };
 
-  const toggleFavorite = () => {
+  const toggleFavorite = async () => {
     if (!remedy) return;
-    
-    const savedFavorites = localStorage.getItem('favoriteRemedies');
-    const favorites = savedFavorites ? JSON.parse(savedFavorites) : [];
-    
-    if (isFavorite) {
-      // Remove from favorites
-      const updatedFavorites = favorites.filter((fav: {id: string}) => fav.id !== remedy.id);
-      localStorage.setItem('favoriteRemedies', JSON.stringify(updatedFavorites));
-      setIsFavorite(false);
-    } else {
-      // Add to favorites
-      const updatedFavorites = [
-        ...favorites,
-        { id: remedy.id, name: remedy.name, category: remedy.category }
-      ];
-      localStorage.setItem('favoriteRemedies', JSON.stringify(updatedFavorites));
-      setIsFavorite(true);
+
+    try {
+      if (isFavorite(remedy.id)) {
+        await removeFavorite(remedy.id);
+      } else {
+        await addFavorite(remedy.id, remedy.name);
+      }
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
     }
   };
   
@@ -185,12 +186,13 @@ export default function RemedyDetail({ params }: { params: { id: string } }) {
                 </span>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{remedy.name}</h1>
               </div>
-              <button 
-                className={`p-2 rounded-full ${isFavorite ? 'bg-red-100 dark:bg-red-900/30 text-red-500' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}
+              <button
+                className={`p-2 rounded-full ${isFavorite(remedy.id) ? 'bg-red-100 dark:bg-red-900/30 text-red-500' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'} ${favoritesLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={toggleFavorite}
-                title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                disabled={favoritesLoading}
+                title={isFavorite(remedy.id) ? "Remove from favorites" : "Add to favorites"}
               >
-                <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+                <Heart className={`h-5 w-5 ${isFavorite(remedy.id) ? 'fill-current' : ''}`} />
               </button>
             </div>
             <p className="mt-2 text-gray-600 dark:text-gray-300">{remedy.description}</p>
@@ -313,6 +315,48 @@ export default function RemedyDetail({ params }: { params: { id: string } }) {
               This information is for educational purposes only and is not intended as a substitute for medical advice.
               Always consult a qualified healthcare provider before using any natural remedy or making changes to your treatment plan.
             </p>
+          </div>
+
+          {/* Reviews Section */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden mb-6">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center">
+                  <MessageSquare className="h-5 w-5 text-primary mr-2" />
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Reviews</h2>
+                </div>
+                {!showReviewForm && (
+                  <button
+                    onClick={() => setShowReviewForm(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    <PenSquare className="w-4 h-4" />
+                    Write a Review
+                  </button>
+                )}
+              </div>
+
+              {showReviewForm && remedyId && (
+                <div className="mb-6">
+                  <ReviewForm
+                    remedyId={remedyId}
+                    remedyName={remedy.name}
+                    onReviewSubmitted={() => {
+                      setShowReviewForm(false);
+                      setReviewRefreshTrigger(prev => prev + 1);
+                    }}
+                    onCancel={() => setShowReviewForm(false)}
+                  />
+                </div>
+              )}
+
+              {remedyId && (
+                <ReviewsList
+                  remedyId={remedyId}
+                  refreshTrigger={reviewRefreshTrigger}
+                />
+              )}
+            </div>
           </div>
         </div>
 
