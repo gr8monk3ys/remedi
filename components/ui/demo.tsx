@@ -26,7 +26,7 @@ export function AuroraBackgroundDemo() {
         className="relative flex flex-col gap-4 items-center justify-center px-4 py-10"
       >
         <div className="text-3xl md:text-7xl font-bold dark:text-white text-center">
-          RemediFind
+          Remedi
         </div>
         <div className="text-xl md:text-3xl font-medium dark:text-white text-center mb-2">
           Natural Alternatives to Pharmaceuticals

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PaginationProps {
@@ -10,7 +10,7 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export function Pagination({ 
+export const Pagination = memo(function Pagination({ 
   totalItems, 
   itemsPerPage, 
   currentPage, 
@@ -117,4 +117,4 @@ export function Pagination({
       </button>
     </div>
   );
-}
+});

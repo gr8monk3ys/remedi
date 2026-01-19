@@ -3,8 +3,13 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
+import { SignInButton, UserMenu } from "@/components/auth";
 
 export function Header() {
+  const { data: session, status } = useSession();
+  const isLoading = status === "loading";
+
   return (
     <motion.header
       initial={{ opacity: 0 }}
@@ -13,7 +18,7 @@ export function Header() {
     >
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link href="/" className="font-bold text-xl">
-          RemediFind
+          Remedi
         </Link>
         <nav className="flex items-center space-x-6">
           <Link href="/" className="text-sm hover:underline">
@@ -22,9 +27,20 @@ export function Header() {
           <Link href="#about" className="text-sm hover:underline">
             About
           </Link>
-          <Link href="#faq" className="text-sm hover:underline">
+          <Link href="/faq" className="text-sm hover:underline">
             FAQ
           </Link>
+
+          {/* Authentication UI */}
+          <div className="ml-4 flex items-center">
+            {isLoading ? (
+              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-zinc-700 animate-pulse" />
+            ) : session ? (
+              <UserMenu session={session} />
+            ) : (
+              <SignInButton />
+            )}
+          </div>
         </nav>
       </div>
     </motion.header>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { memo, useState, useEffect, useCallback } from "react";
 import { Check, ChevronDown } from "lucide-react";
 
 interface FilterOption {
@@ -16,7 +16,7 @@ interface FilterProps {
   onChange: (values: string[]) => void;
 }
 
-export function Filter({ title, options, selectedValues, onChange }: FilterProps) {
+export const Filter = memo(function Filter({ title, options, selectedValues, onChange }: FilterProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [localSelectedValues, setLocalSelectedValues] = useState<string[]>(selectedValues);
 
@@ -25,31 +25,36 @@ export function Filter({ title, options, selectedValues, onChange }: FilterProps
     setLocalSelectedValues(selectedValues);
   }, [selectedValues]);
 
-  const handleOptionChange = (value: string) => {
-    const newValues = localSelectedValues.includes(value)
-      ? localSelectedValues.filter((v) => v !== value)
-      : [...localSelectedValues, value];
-    
-    setLocalSelectedValues(newValues);
-    onChange(newValues);
-  };
+  const handleOptionChange = useCallback((value: string) => {
+    setLocalSelectedValues((prev) => {
+      const newValues = prev.includes(value)
+        ? prev.filter((v) => v !== value)
+        : [...prev, value];
+      onChange(newValues);
+      return newValues;
+    });
+  }, [onChange]);
 
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     setLocalSelectedValues([]);
     onChange([]);
-  };
+  }, [onChange]);
 
-  const handleSelectAll = () => {
+  const handleSelectAll = useCallback(() => {
     const allValues = options.map(option => option.value);
     setLocalSelectedValues(allValues);
     onChange(allValues);
-  };
+  }, [options, onChange]);
+
+  const toggleExpanded = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
 
   return (
     <div className="mb-6 border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
-      <div 
+      <div
         className="flex items-center justify-between cursor-pointer py-1"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={toggleExpanded}
       >
         <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100">{title}</h3>
         <ChevronDown 
@@ -111,4 +116,4 @@ export function Filter({ title, options, selectedValues, onChange }: FilterProps
       )}
     </div>
   );
-}
+});
