@@ -1,21 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getNaturalRemedyById, toDetailedRemedy } from '@/lib/db';
+import { remedyIdSchema } from '@/lib/validations/api';
+import { successResponse, errorResponse, errorResponseFromError, getStatusCode } from '@/lib/api/response';
+import { createLogger } from '@/lib/logger';
+import type { DetailedRemedy } from '@/lib/types';
 
-// Extended type for detailed remedy information
-interface DetailedRemedy {
-  id: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-  category: string;
-  matchingNutrients: string[];
-  similarityScore: number;
-  usage: string;
-  dosage: string;
-  precautions: string;
-  scientificInfo: string;
-  references: { title: string; url: string }[];
-  relatedRemedies: { id: string; name: string }[];
-}
+const log = createLogger('remedy-api');
 
 // Mock database of detailed remedy information
 const DETAILED_REMEDIES: Record<string, DetailedRemedy> = {
@@ -135,26 +125,67 @@ const DETAILED_REMEDIES: Record<string, DetailedRemedy> = {
 };
 
 export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = context.params.id;
-  console.log(`Fetching detailed information for remedy with ID: ${id}`);
+  const startTime = Date.now();
 
-  // Simulate database lookup
-  const remedy = DETAILED_REMEDIES[id];
+  try {
+    const { id } = await params;
+    log.debug('Fetching remedy details', { id });
 
-  if (!remedy) {
-    console.log(`Remedy with ID ${id} not found`);
+    // Validate ID parameter
+    const validation = remedyIdSchema.safeParse(id);
+    if (!validation.success) {
+      const errorMessage = validation.error.issues[0]?.message || "Invalid remedy ID";
+      log.debug('Validation failed', { error: errorMessage });
+      return NextResponse.json(
+        errorResponse("INVALID_INPUT", errorMessage, { issues: validation.error.issues }),
+        { status: getStatusCode("INVALID_INPUT") }
+      );
+    }
+
+    // First try to fetch from database
+    const dbRemedy = await getNaturalRemedyById(id);
+
+    if (dbRemedy) {
+      const detailedRemedy = toDetailedRemedy(dbRemedy);
+      log.info('Returning remedy from database', { name: detailedRemedy.name });
+      const processingTime = Date.now() - startTime;
+      return NextResponse.json(
+        successResponse(detailedRemedy, {
+          processingTime,
+          apiVersion: "1.0",
+        }),
+        { status: 200 }
+      );
+    }
+
+    // Fallback to mock data if not in database
+    const mockRemedy = DETAILED_REMEDIES[id];
+
+    if (!mockRemedy) {
+      log.info('Remedy not found', { id });
+      return NextResponse.json(
+        errorResponse("RESOURCE_NOT_FOUND", `Remedy with ID ${id} not found`),
+        { status: getStatusCode("RESOURCE_NOT_FOUND") }
+      );
+    }
+
+    log.info('Returning remedy from mock data', { name: mockRemedy.name });
+    const processingTime = Date.now() - startTime;
     return NextResponse.json(
-      { error: 'Remedy not found' },
-      { status: 404 }
+      successResponse(mockRemedy, {
+        processingTime,
+        apiVersion: "1.0",
+      }),
+      { status: 200 }
+    );
+  } catch (error) {
+    log.error('Error fetching remedy details', error);
+    return NextResponse.json(
+      errorResponseFromError(error, "INTERNAL_ERROR"),
+      { status: getStatusCode("INTERNAL_ERROR") }
     );
   }
-
-  // Simulate a slight delay as would happen with a real database query
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  console.log(`Returning detailed information for: ${remedy.name}`);
-  return NextResponse.json(remedy);
 }
