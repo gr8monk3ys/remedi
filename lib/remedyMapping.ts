@@ -3,26 +3,7 @@
  * Maps pharmaceutical ingredients and categories to natural alternatives
  */
 
-import { ProcessedDrug } from './openFDA';
-
-export interface NaturalRemedy {
-  id: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-  category: string;
-  matchingNutrients: string[];
-  similarityScore: number;
-}
-
-export interface DetailedRemedy extends NaturalRemedy {
-  usage: string;
-  dosage: string;
-  precautions: string;
-  scientificInfo: string;
-  references: { title: string; url: string }[];
-  relatedRemedies: { id: string; name: string }[];
-}
+import type { ProcessedDrug, NaturalRemedy, DetailedRemedy } from './types';
 
 // Base ingredients to remedy mappings
 const INGREDIENT_MAPPINGS: Record<string, string[]> = {

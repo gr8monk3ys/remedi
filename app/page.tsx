@@ -1,9 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { SearchComponent } from '@/components/ui/search';
+import dynamic from 'next/dynamic';
 import { Heart, ExternalLink } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useFirstVisit } from '@/hooks/use-first-visit';
+import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
+import { TutorialOverlay } from '@/components/onboarding/TutorialOverlay';
+
+// Code splitting: Load SearchComponent dynamically
+const SearchComponent = dynamic(
+  () => import('@/components/ui/search').then((mod) => ({ default: mod.SearchComponent })),
+  {
+    loading: () => (
+      <div className="animate-pulse">
+        <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"></div>
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 interface FavoriteRemedy {
   id: string;
@@ -15,14 +31,51 @@ export default function Home() {
   const router = useRouter();
   const [favorites, setFavorites] = useState<FavoriteRemedy[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  const { isFirstVisit, loading, dismissFirstVisit, completeTutorial } = useFirstVisit();
 
   useEffect(() => {
     setMounted(true);
     const savedFavorites = localStorage.getItem('favoriteRemedies');
     if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites));
+      try {
+        setFavorites(JSON.parse(savedFavorites));
+      } catch {
+        // Invalid JSON in localStorage, clear it
+        localStorage.removeItem('favoriteRemedies');
+      }
     }
   }, []);
+
+  // Show welcome modal on first visit
+  useEffect(() => {
+    if (!loading && isFirstVisit) {
+      setShowWelcomeModal(true);
+    }
+  }, [loading, isFirstVisit]);
+
+  const handleCloseWelcomeModal = () => {
+    setShowWelcomeModal(false);
+    dismissFirstVisit();
+  };
+
+  const handleStartTutorial = () => {
+    setShowWelcomeModal(false);
+    dismissFirstVisit();
+    setShowTutorial(true);
+  };
+
+  const handleCompleteTutorial = () => {
+    setShowTutorial(false);
+    completeTutorial();
+  };
+
+  const handleSkipTutorial = () => {
+    setShowTutorial(false);
+    completeTutorial();
+  };
 
   const clearFavorites = () => {
     localStorage.removeItem('favoriteRemedies');
@@ -34,10 +87,25 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 md:p-24">
+    <>
+      {/* Onboarding Components */}
+      {showWelcomeModal && (
+        <WelcomeModal
+          onClose={handleCloseWelcomeModal}
+          onStartTutorial={handleStartTutorial}
+        />
+      )}
+      {showTutorial && (
+        <TutorialOverlay
+          onComplete={handleCompleteTutorial}
+          onSkip={handleSkipTutorial}
+        />
+      )}
+
+      <main className="flex min-h-screen flex-col items-center p-4 md:p-24">
       <div className="z-10 max-w-5xl w-full flex justify-center mb-16">
         <h1 className="text-4xl md:text-6xl font-bold text-center bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">
-          RemediFind
+          Remedi
         </h1>
       </div>
 
@@ -86,5 +154,6 @@ export default function Home() {
         )}
       </div>
     </main>
+    </>
   );
 }

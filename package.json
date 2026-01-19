@@ -7,36 +7,78 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
+    "import:fda": "npx ts-node scripts/import-openfda-data.ts",
+    "import:fda:dry": "npx ts-node scripts/import-openfda-data.ts --dry-run",
+    "import:fda:quick": "npx ts-node scripts/import-openfda-data.ts --limit 50",
+    "type-check": "tsc --noEmit",
+    "prepare": "husky"
   },
   "prisma": {
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed-extended.js"
   },
   "dependencies": {
-    "@prisma/client": "^6.5.0",
+    "@auth/prisma-adapter": "^2.11.1",
+    "@prisma/client": "^6.18.0",
+    "@sentry/nextjs": "^10.27.0",
+    "@upstash/ratelimit": "^2.0.7",
+    "@upstash/redis": "^1.35.7",
     "clsx": "^2.1.1",
     "framer-motion": "^12.5.0",
     "init": "^0.1.2",
     "lucide-react": "^0.483.0",
     "next": "15.2.4",
+    "next-auth": "^5.0.0-beta.29",
+    "next-pwa": "^5.6.0",
     "next-themes": "^0.4.6",
     "openai": "^4.87.4",
-    "prisma": "^6.5.0",
+    "prisma": "^6.18.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "shadcn": "^2.4.0-canary.16",
-    "tailwind-merge": "^3.0.2"
+    "tailwind-merge": "^3.0.2",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
+    "@next/bundle-analyzer": "^16.1.1",
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.0.14",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@types/minimatch": "^6.0.0",
     "@types/node": "^22.13.10",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^5.1.0",
+    "@vitest/ui": "^4.0.3",
     "eslint": "^9.22.0",
     "eslint-config-next": "15.2.3",
+    "husky": "^9.1.7",
+    "jsdom": "^27.0.1",
+    "lint-staged": "^16.2.6",
+    "playwright": "^1.56.1",
     "tailwindcss": "^4.0.14",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^4.0.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "vitest related --run"
+    ],
+    "*.{js,jsx,ts,tsx,json,css,md}": [
+      "prettier --write"
+    ]
   }
 }

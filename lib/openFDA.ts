@@ -1,69 +1,83 @@
 /**
  * OpenFDA API integration service
  * Provides utilities for fetching drug data from the OpenFDA API
+ *
+ * Rate Limits:
+ * - Without API key: 240 requests per minute, 120,000 per day
+ * - With API key: 240 requests per minute, 120,000 per day (higher limits available)
  */
 
+import type { DrugSearchResult, FdaDrugResult, ProcessedDrug } from './types';
+
 const FDA_BASE_URL = 'https://api.fda.gov';
+const FDA_API_KEY = process.env.OPENFDA_API_KEY;
 
-export interface DrugSearchResult {
-  meta: {
-    disclaimer: string;
-    terms: string;
-    license: string;
-    last_updated: string;
-    results: {
-      skip: number;
-      limit: number;
-      total: number;
-    };
-  };
-  results: FdaDrugResult[];
-}
+// Retry configuration
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000; // 1 second
+const RATE_LIMIT_DELAY_MS = 60000; // 60 seconds
 
-export interface FdaDrugResult {
-  openfda: {
-    brand_name?: string[];
-    generic_name?: string[];
-    manufacturer_name?: string[];
-    product_type?: string[];
-    route?: string[];
-    substance_name?: string[];
-    rxcui?: string[];
-    spl_id?: string[];
-    spl_set_id?: string[];
-    package_ndc?: string[];
-    ndc?: string[];
-    application_number?: string[];
-    unii?: string[];
-  };
-  purpose?: string[];
-  indications_and_usage?: string[];
-  active_ingredient?: string[];
-  inactive_ingredient?: string[];
-  warnings?: string[];
-  dosage_and_administration?: string[];
-  drug_interactions?: string[];
-  contraindications?: string[];
-  adverse_reactions?: string[];
-  id: string;
-}
-
-export interface ProcessedDrug {
-  id: string;
-  fdaId: string;
-  name: string;
-  description: string;
-  category: string;
-  ingredients: string[];
-  benefits: string[];
-  usage?: string;
-  warnings?: string;
-  interactions?: string;
-  similarityScore?: number;
+/**
+ * Sleep for a specified duration
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
- * Search for drugs in the FDA database
+ * Fetch from FDA API with retry logic and rate limit handling
+ * @param url Full URL to fetch
+ * @param retries Number of retries remaining
+ * @returns Response object
+ */
+async function fetchWithRetry(url: string, retries = MAX_RETRIES): Promise<Response> {
+  try {
+    const response = await fetch(url);
+
+    // Handle rate limiting (429 Too Many Requests)
+    if (response.status === 429) {
+      console.warn('FDA API rate limit reached. Waiting before retry...');
+      if (retries > 0) {
+        await sleep(RATE_LIMIT_DELAY_MS);
+        return fetchWithRetry(url, retries - 1);
+      }
+      throw new Error('FDA API rate limit exceeded. Please try again later.');
+    }
+
+    // Handle server errors (5xx) with retry
+    if (response.status >= 500 && retries > 0) {
+      console.warn(`FDA API server error (${response.status}). Retrying in ${RETRY_DELAY_MS}ms...`);
+      await sleep(RETRY_DELAY_MS);
+      return fetchWithRetry(url, retries - 1);
+    }
+
+    return response;
+  } catch (error) {
+    // Handle network errors with retry
+    if (retries > 0) {
+      console.warn(`Network error fetching from FDA API. Retrying in ${RETRY_DELAY_MS}ms...`);
+      await sleep(RETRY_DELAY_MS);
+      return fetchWithRetry(url, retries - 1);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Build FDA API URL with optional API key
+ * @param endpoint API endpoint
+ * @returns Full URL with API key if available
+ */
+function buildFdaUrl(endpoint: string): string {
+  const url = new URL(endpoint, FDA_BASE_URL);
+  if (FDA_API_KEY) {
+    url.searchParams.set('api_key', FDA_API_KEY);
+  }
+  return url.toString();
+}
+
+/**
+ * Search for drugs in the FDA database with retry logic and error handling
  * @param query Search term
  * @param limit Number of results to return
  * @returns Processed drug results
@@ -72,9 +86,10 @@ export async function searchFdaDrugs(query: string, limit = 5): Promise<Processe
   try {
     const searchQuery = encodeURIComponent(query);
     const endpoint = `/drug/label.json?search=${searchQuery}&limit=${limit}`;
-    
-    const response = await fetch(`${FDA_BASE_URL}${endpoint}`);
-    
+    const url = buildFdaUrl(endpoint);
+
+    const response = await fetchWithRetry(url);
+
     if (!response.ok) {
       if (response.status === 404) {
         console.log(`No results found for "${query}"`);
@@ -82,28 +97,30 @@ export async function searchFdaDrugs(query: string, limit = 5): Promise<Processe
       }
       throw new Error(`FDA API error: ${response.status} ${response.statusText}`);
     }
-    
+
     const data: DrugSearchResult = await response.json();
-    
+
     // Process the FDA API results into our application format
     return processFdaResults(data.results);
   } catch (error) {
     console.error('Error searching FDA drugs:', error);
+    // Return empty array instead of throwing to allow fallback to mock data
     return [];
   }
 }
 
 /**
- * Get detailed information about a specific drug by FDA ID
+ * Get detailed information about a specific drug by FDA ID with retry logic
  * @param fdaId FDA ID of the drug
  * @returns Detailed drug information
  */
 export async function getFdaDrugById(fdaId: string): Promise<ProcessedDrug | null> {
   try {
     const endpoint = `/drug/label.json?search=id:${fdaId}`;
-    
-    const response = await fetch(`${FDA_BASE_URL}${endpoint}`);
-    
+    const url = buildFdaUrl(endpoint);
+
+    const response = await fetchWithRetry(url);
+
     if (!response.ok) {
       if (response.status === 404) {
         console.log(`Drug with ID "${fdaId}" not found`);
@@ -111,13 +128,13 @@ export async function getFdaDrugById(fdaId: string): Promise<ProcessedDrug | nul
       }
       throw new Error(`FDA API error: ${response.status} ${response.statusText}`);
     }
-    
+
     const data: DrugSearchResult = await response.json();
-    
+
     if (data.results.length === 0) {
       return null;
     }
-    
+
     // Process the FDA API result into our application format
     const processedDrugs = processFdaResults(data.results);
     return processedDrugs[0] || null;
