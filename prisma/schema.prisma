@@ -285,22 +285,28 @@ model UserEvent {
 
 // User subscription management
 model Subscription {
-  id        String    @id @default(uuid())
-  userId    String    @unique
-  plan      String    @default("free") // free, basic, premium, enterprise
-  status    String    @default("active") // active, cancelled, expired, suspended
-  interval  String?   // monthly, yearly
-  priceId   String?   // Stripe price ID or similar
-  customerId String?  // Stripe customer ID or similar
-  startedAt DateTime  @default(now())
-  expiresAt DateTime?
-  cancelledAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  plan            String    @default("free") // free, basic, premium, enterprise
+  status          String    @default("active") // active, cancelled, expired, suspended
+  interval        String?   // monthly, yearly
+  stripeSubscriptionId String? @unique // Stripe subscription ID
+  priceId         String?   // Stripe price ID
+  customerId      String?   // Stripe customer ID
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  startedAt       DateTime  @default(now())
+  expiresAt       DateTime?
+  cancelledAt     DateTime?
+  cancelAtPeriodEnd Boolean @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([plan])
   @@index([expiresAt])
+  @@index([customerId])
+  @@index([stripeSubscriptionId])
 }
