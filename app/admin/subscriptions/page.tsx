@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/db";
 import { SubscriptionTable } from "@/components/admin/SubscriptionTable";
 
+interface SubscriptionGroupStat {
+  plan: string;
+  status: string;
+  _count: { plan: number };
+}
+
 async function getSubscriptions() {
   const [subscriptions, stats] = await Promise.all([
     prisma.subscription.findMany({
@@ -19,7 +25,7 @@ async function getSubscriptions() {
 
   // Calculate stats
   const planCounts = stats.reduce(
-    (acc, s) => {
+    (acc: Record<string, { total: number; active: number }>, s: SubscriptionGroupStat) => {
       if (!acc[s.plan]) acc[s.plan] = { total: 0, active: 0 };
       acc[s.plan].total += s._count.plan;
       if (s.status === "active") acc[s.plan].active += s._count.plan;

@@ -8,10 +8,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '@/app/api/remedy/[id]/route';
 import { NextRequest } from 'next/server';
 
+// Type for remedy mock
+interface MockRemedy {
+  id?: string;
+  name?: string;
+  usage?: string;
+  dosage?: string;
+  precautions?: string;
+  scientificInfo?: string;
+  references?: string[];
+  relatedRemedies?: string[];
+  [key: string]: unknown;
+}
+
 // Mock the database functions
 vi.mock('@/lib/db', () => ({
   getNaturalRemedyById: vi.fn(),
-  toDetailedRemedy: vi.fn((remedy) => ({
+  toDetailedRemedy: vi.fn((remedy: MockRemedy) => ({
     ...remedy,
     usage: remedy.usage || '',
     dosage: remedy.dosage || '',

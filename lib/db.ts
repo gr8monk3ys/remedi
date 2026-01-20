@@ -13,6 +13,36 @@ import type {
   ParsedRemedyMapping,
 } from './types';
 
+// Helper types for Prisma query results (when Prisma types aren't available)
+interface RemedyMappingWithRemedy {
+  naturalRemedy: {
+    id: string;
+    name: string;
+    description: string | null;
+    imageUrl: string | null;
+    category: string;
+  };
+  matchingNutrients: string;
+  similarityScore: number;
+}
+
+interface CategoryResult {
+  category: string;
+}
+
+interface EvidenceLevelResult {
+  evidenceLevel: string | null;
+}
+
+interface SearchGroupResult {
+  query: string;
+  _count: { query: number };
+}
+
+interface CollectionResult {
+  collectionName: string | null;
+}
+
 // PrismaClient is attached to the `global` object in development to prevent
 // exhausting your database connection limit.
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
@@ -269,7 +299,7 @@ export async function getNaturalRemediesForPharmaceutical(
     },
   });
 
-  return mappings.map((mapping) => ({
+  return mappings.map((mapping: RemedyMappingWithRemedy) => ({
     id: mapping.naturalRemedy.id,
     name: mapping.naturalRemedy.name,
     description: mapping.naturalRemedy.description || '',
@@ -337,7 +367,7 @@ export async function getAllCategories(): Promise<string[]> {
     distinct: ['category'],
   });
 
-  return categories.map((c) => c.category);
+  return categories.map((c: CategoryResult) => c.category);
 }
 
 /**
@@ -352,7 +382,7 @@ export async function getAllEvidenceLevels(): Promise<string[]> {
     distinct: ['evidenceLevel'],
   });
 
-  return levels.map((l) => l.evidenceLevel).filter((l): l is string => l !== null);
+  return levels.map((l: EvidenceLevelResult) => l.evidenceLevel).filter((l): l is string => l !== null);
 }
 
 // ============================================================================
@@ -429,7 +459,7 @@ export async function getPopularSearches(limit = 5): Promise<Array<{ query: stri
     take: limit,
   });
 
-  return searches.map((s) => ({
+  return searches.map((s: SearchGroupResult) => ({
     query: s.query,
     count: s._count.query,
   }));
@@ -606,7 +636,7 @@ export async function getCollectionNames(sessionId?: string, userId?: string): P
   });
 
   return collections
-    .map((c) => c.collectionName)
+    .map((c: CollectionResult) => c.collectionName)
     .filter((name): name is string => name !== null);
 }
 
