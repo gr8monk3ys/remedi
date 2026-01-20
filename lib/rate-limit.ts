@@ -43,6 +43,12 @@ export const RATE_LIMITS = {
   // Auth: 5 requests per minute (prevent brute force)
   auth: { limit: 5, window: 60, identifier: "auth" },
 
+  // Checkout: 10 requests per minute (prevent payment abuse)
+  checkout: { limit: 10, window: 60, identifier: "checkout" },
+
+  // Billing portal: 5 requests per minute
+  billingPortal: { limit: 5, window: 60, identifier: "billing-portal" },
+
   // General API: 60 requests per minute
   general: { limit: 60, window: 60, identifier: "general" },
 } as const;
