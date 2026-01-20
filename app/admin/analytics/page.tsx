@@ -1,6 +1,44 @@
 import { prisma } from "@/lib/db";
 
-async function getAnalytics() {
+interface SearchStat {
+  query: string;
+  count: number;
+}
+
+interface EventStat {
+  type: string;
+  count: number;
+}
+
+interface RemedyStat {
+  id: string;
+  name: string;
+  count: number;
+}
+
+interface Analytics {
+  users: {
+    total: number;
+    newDay: number;
+    newWeek: number;
+    newMonth: number;
+    activeDay: number;
+    activeWeek: number;
+  };
+  searches: {
+    total: number;
+    day: number;
+    week: number;
+    top: SearchStat[];
+  };
+  events: EventStat[];
+  remedies: {
+    total: number;
+    topViewed: RemedyStat[];
+  };
+}
+
+async function getAnalytics(): Promise<Analytics> {
   const now = new Date();
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -101,18 +139,18 @@ async function getAnalytics() {
       total: totalSearches,
       day: searchesDay,
       week: searchesWeek,
-      top: topSearches.map((s) => ({
+      top: topSearches.map((s: { query: string; _count: { query: number } }) => ({
         query: s.query,
         count: s._count.query,
       })),
     },
-    events: eventsByType.map((e) => ({
+    events: eventsByType.map((e: { eventType: string; _count: { eventType: number } }) => ({
       type: e.eventType,
       count: e._count.eventType,
     })),
     remedies: {
       total: totalRemedies,
-      topViewed: topViewedRemedies.map((r) => ({
+      topViewed: topViewedRemedies.map((r: { remedyId: string; remedyName: string; _count: { remedyId: number } }) => ({
         id: r.remedyId,
         name: r.remedyName,
         count: r._count.remedyId,

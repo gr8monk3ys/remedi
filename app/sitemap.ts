@@ -31,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
 
     // Add remedy pages to sitemap
-    const remedyRoutes: MetadataRoute.Sitemap = remedies.map((remedy) => ({
+    const remedyRoutes: MetadataRoute.Sitemap = remedies.map((remedy: { id: string; updatedAt: Date }) => ({
       url: `${baseUrl}/remedy/${remedy.id}`,
       lastModified: remedy.updatedAt,
       changeFrequency: 'weekly',

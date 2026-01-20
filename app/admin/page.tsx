@@ -1,6 +1,26 @@
 import { prisma } from "@/lib/db";
 import { Users, FileText, Search, Heart, TrendingUp, Clock } from "lucide-react";
 
+interface RecentSearch {
+  query: string;
+  createdAt: Date;
+  resultsCount: number;
+}
+
+interface RecentContribution {
+  id: string;
+  name: string;
+  user: {
+    name: string | null;
+    email: string;
+  };
+}
+
+interface RecentActivity {
+  recentSearches: RecentSearch[];
+  recentContributions: RecentContribution[];
+}
+
 async function getStats() {
   const [
     userCount,
@@ -34,7 +54,7 @@ async function getStats() {
   };
 }
 
-async function getRecentActivity() {
+async function getRecentActivity(): Promise<RecentActivity> {
   const [recentSearches, recentContributions] = await Promise.all([
     prisma.searchHistory.findMany({
       take: 5,

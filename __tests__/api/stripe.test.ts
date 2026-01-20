@@ -47,10 +47,22 @@ vi.stubEnv('STRIPE_BASIC_YEARLY_PRICE_ID', 'price_basic_yearly')
 vi.stubEnv('STRIPE_PREMIUM_MONTHLY_PRICE_ID', 'price_premium_monthly')
 vi.stubEnv('STRIPE_PREMIUM_YEARLY_PRICE_ID', 'price_premium_yearly')
 
+// Session type for NextAuth mock
+interface MockSession {
+  user: { id: string; email: string; name?: string };
+  expires: string;
+}
+
 // Mock auth
 vi.mock('@/lib/auth', () => ({
   auth: vi.fn(),
 }))
+
+// Helper to type the auth mock
+const mockAuth = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return vi.mocked(async () => null as MockSession | null) as any
+}
 
 // Mock database
 vi.mock('@/lib/db', () => ({
@@ -183,7 +195,7 @@ describe('POST /api/checkout', () => {
 
   it('should return 401 when not authenticated', async () => {
     const { auth } = await import('@/lib/auth')
-    vi.mocked(auth).mockResolvedValue(null)
+    vi.mocked(auth as () => Promise<MockSession | null>).mockResolvedValue(null)
 
     const { POST } = await import('@/app/api/checkout/route')
     const { NextRequest } = await import('next/server')
@@ -195,16 +207,16 @@ describe('POST /api/checkout', () => {
     })
 
     const response = await POST(request)
-    const data = await response.json()
+    const data = await response!.json()
 
-    expect(response.status).toBe(401)
+    expect(response!.status).toBe(401)
     expect(data.success).toBe(false)
     expect(data.error.code).toBe('UNAUTHORIZED')
   })
 
   it('should return 400 for invalid price ID', async () => {
     const { auth } = await import('@/lib/auth')
-    vi.mocked(auth).mockResolvedValue({
+    vi.mocked(auth as () => Promise<MockSession | null>).mockResolvedValue({
       user: { id: 'user_123', email: 'test@example.com', name: 'Test User' },
       expires: new Date(Date.now() + 86400000).toISOString(),
     })
@@ -219,9 +231,9 @@ describe('POST /api/checkout', () => {
     })
 
     const response = await POST(request)
-    const data = await response.json()
+    const data = await response!.json()
 
-    expect(response.status).toBe(400)
+    expect(response!.status).toBe(400)
     expect(data.success).toBe(false)
     expect(data.error.code).toBe('VALIDATION_ERROR')
   })
@@ -234,7 +246,7 @@ describe('POST /api/billing-portal', () => {
 
   it('should return 401 when not authenticated', async () => {
     const { auth } = await import('@/lib/auth')
-    vi.mocked(auth).mockResolvedValue(null)
+    vi.mocked(auth as () => Promise<MockSession | null>).mockResolvedValue(null)
 
     const { POST } = await import('@/app/api/billing-portal/route')
     const { NextRequest } = await import('next/server')
@@ -244,16 +256,16 @@ describe('POST /api/billing-portal', () => {
     })
 
     const response = await POST(request)
-    const data = await response.json()
+    const data = await response!.json()
 
-    expect(response.status).toBe(401)
+    expect(response!.status).toBe(401)
     expect(data.success).toBe(false)
     expect(data.error.code).toBe('UNAUTHORIZED')
   })
 
   it('should return 404 when user has no customer ID', async () => {
     const { auth } = await import('@/lib/auth')
-    vi.mocked(auth).mockResolvedValue({
+    vi.mocked(auth as () => Promise<MockSession | null>).mockResolvedValue({
       user: { id: 'user_123', email: 'test@example.com' },
       expires: new Date(Date.now() + 86400000).toISOString(),
     })
@@ -269,9 +281,9 @@ describe('POST /api/billing-portal', () => {
     })
 
     const response = await POST(request)
-    const data = await response.json()
+    const data = await response!.json()
 
-    expect(response.status).toBe(404)
+    expect(response!.status).toBe(404)
     expect(data.success).toBe(false)
     expect(data.error.code).toBe('NO_CUSTOMER')
   })
