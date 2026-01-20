@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import { memo } from "react";
 import Image from "next/image";
 import { ExternalLink, Heart } from "lucide-react";
 import type { SearchResult } from "./types";

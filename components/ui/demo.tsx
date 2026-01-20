@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import React from "react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { SearchComponent } from "@/components/ui/search";
 import { ThemeToggle } from "@/components/ui/theme-toggle";

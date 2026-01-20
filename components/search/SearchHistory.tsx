@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import { memo } from "react";
 import type { SearchHistoryItem } from "./types";
 
 interface SearchHistoryProps {
