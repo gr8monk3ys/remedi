@@ -7,32 +7,60 @@
  * @see https://next-auth.js.org/
  */
 
-import NextAuth from 'next-auth';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import Google from 'next-auth/providers/google';
-import GitHub from 'next-auth/providers/github';
-import type { NextAuthConfig } from 'next-auth';
-import { prisma } from '@/lib/db';
+import NextAuth from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import Google from "next-auth/providers/google";
+import GitHub from "next-auth/providers/github";
+import type { NextAuthConfig } from "next-auth";
+import { prisma } from "@/lib/db";
+import {
+  getAuthSecret,
+  getGoogleOAuthCredentials,
+  getGitHubOAuthCredentials,
+  hasGoogleOAuth,
+  hasGitHubOAuth,
+} from "@/lib/env";
+
+/**
+ * Build providers array based on configured OAuth credentials
+ * Only includes providers that have valid credentials configured
+ */
+function buildProviders(): NextAuthConfig["providers"] {
+  const providers: NextAuthConfig["providers"] = [];
+
+  if (hasGoogleOAuth()) {
+    const { clientId, clientSecret } = getGoogleOAuthCredentials();
+    providers.push(
+      Google({
+        clientId: clientId!,
+        clientSecret: clientSecret!,
+      }),
+    );
+  }
+
+  if (hasGitHubOAuth()) {
+    const { clientId, clientSecret } = getGitHubOAuthCredentials();
+    providers.push(
+      GitHub({
+        clientId: clientId!,
+        clientSecret: clientSecret!,
+      }),
+    );
+  }
+
+  return providers;
+}
 
 /**
  * NextAuth configuration
  */
 export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    GitHub({
-      clientId: process.env.GITHUB_ID!,
-      clientSecret: process.env.GITHUB_SECRET!,
-    }),
-  ],
+  providers: buildProviders(),
   pages: {
-    signIn: '/auth/signin',
-    error: '/auth/error',
-    verifyRequest: '/auth/verify',
+    signIn: "/auth/signin",
+    error: "/auth/error",
+    verifyRequest: "/auth/verify",
   },
   callbacks: {
     /**
@@ -41,7 +69,7 @@ export const authConfig: NextAuthConfig = {
     async session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;
-        session.user.role = user.role || 'user';
+        session.user.role = user.role || "user";
       }
       return session;
     },
@@ -51,18 +79,18 @@ export const authConfig: NextAuthConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role || 'user';
+        token.role = user.role || "user";
       }
       return token;
     },
   },
   session: {
-    strategy: 'database',
+    strategy: "database",
     maxAge: 30 * 24 * 60 * 60, // 30 days
     updateAge: 24 * 60 * 60, // 24 hours
   },
   // NextAuth.js v5 uses AUTH_SECRET (falls back to NEXTAUTH_SECRET for compatibility)
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  secret: getAuthSecret(),
 };
 
 /**
@@ -99,12 +127,12 @@ export async function isAuthenticated(): Promise<boolean> {
  * Check if user is admin
  */
 export async function isAdmin(): Promise<boolean> {
-  return checkUserRole(['admin']);
+  return checkUserRole(["admin"]);
 }
 
 /**
  * Check if user is moderator or admin
  */
 export async function isModerator(): Promise<boolean> {
-  return checkUserRole(['moderator', 'admin']);
+  return checkUserRole(["moderator", "admin"]);
 }

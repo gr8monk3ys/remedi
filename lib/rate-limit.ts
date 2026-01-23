@@ -10,6 +10,7 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { NextRequest, NextResponse } from "next/server";
+import { hasUpstashRedis, getUpstashRedisCredentials } from "@/lib/env";
 
 // Types for rate limit configuration
 export interface RateLimitConfig {
@@ -57,9 +58,7 @@ export const RATE_LIMITS = {
  * Check if Upstash Redis is configured
  */
 export function isRateLimitEnabled(): boolean {
-  return !!(
-    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-  );
+  return hasUpstashRedis();
 }
 
 /**
@@ -70,10 +69,12 @@ function createRedisClient(): Redis | null {
     return null;
   }
 
-  return new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-  });
+  const { url, token } = getUpstashRedisCredentials();
+  if (!url || !token) {
+    return null;
+  }
+
+  return new Redis({ url, token });
 }
 
 /**
@@ -125,7 +126,7 @@ export interface RateLimitResult {
  */
 export async function checkRateLimit(
   request: NextRequest,
-  config: RateLimitConfig = RATE_LIMITS.general
+  config: RateLimitConfig = RATE_LIMITS.general,
 ): Promise<RateLimitResult> {
   const ratelimiter = createRateLimiter(config);
 
@@ -147,14 +148,18 @@ export async function checkRateLimit(
     limit: result.limit,
     remaining: result.remaining,
     reset: result.reset,
-    retryAfter: result.success ? undefined : Math.ceil((result.reset - Date.now()) / 1000),
+    retryAfter: result.success
+      ? undefined
+      : Math.ceil((result.reset - Date.now()) / 1000),
   };
 }
 
 /**
  * Create rate limit exceeded response
  */
-export function rateLimitExceededResponse(result: RateLimitResult): NextResponse {
+export function rateLimitExceededResponse(
+  result: RateLimitResult,
+): NextResponse {
   return NextResponse.json(
     {
       success: false,
@@ -172,7 +177,7 @@ export function rateLimitExceededResponse(result: RateLimitResult): NextResponse
         "X-RateLimit-Reset": result.reset.toString(),
         "Retry-After": result.retryAfter?.toString() || "60",
       },
-    }
+    },
   );
 }
 
@@ -181,7 +186,7 @@ export function rateLimitExceededResponse(result: RateLimitResult): NextResponse
  */
 export function addRateLimitHeaders(
   response: NextResponse,
-  result: RateLimitResult
+  result: RateLimitResult,
 ): NextResponse {
   response.headers.set("X-RateLimit-Limit", result.limit.toString());
   response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
@@ -204,8 +209,12 @@ export function addRateLimitHeaders(
  */
 export async function withRateLimit(
   request: NextRequest,
-  config: RateLimitConfig = RATE_LIMITS.general
-): Promise<{ allowed: boolean; response?: NextResponse; result: RateLimitResult }> {
+  config: RateLimitConfig = RATE_LIMITS.general,
+): Promise<{
+  allowed: boolean;
+  response?: NextResponse;
+  result: RateLimitResult;
+}> {
   const result = await checkRateLimit(request, config);
 
   if (!result.success) {
