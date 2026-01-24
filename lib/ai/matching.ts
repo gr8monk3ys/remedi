@@ -86,7 +86,12 @@ export async function enhanceRemedyMatching(
 
     const remediesContext = allRemedies
       .map(
-        (r) =>
+        (r: {
+          name: string;
+          category: string;
+          description: string | null;
+          ingredients: string;
+        }) =>
           `- ${r.name} (${r.category}): ${r.description} | Ingredients: ${r.ingredients}`,
       )
       .join("\n");

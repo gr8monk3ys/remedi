@@ -80,7 +80,7 @@ export async function getPopularSearches(
     take: limit,
   });
 
-  return searches.map((s) => ({
+  return searches.map((s: { query: string; _count: { query: number } }) => ({
     query: s.query,
     count: s._count.query,
   }));

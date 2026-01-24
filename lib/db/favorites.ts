@@ -156,6 +156,6 @@ export async function getCollectionNames(
   });
 
   return collections
-    .map((c) => c.collectionName)
-    .filter((name): name is string => name !== null);
+    .map((c: { collectionName: string | null }) => c.collectionName)
+    .filter((name: string | null): name is string => name !== null);
 }

@@ -78,15 +78,27 @@ export async function getNaturalRemediesForPharmaceutical(
     },
   });
 
-  return mappings.map((mapping) => ({
-    id: mapping.naturalRemedy.id,
-    name: mapping.naturalRemedy.name,
-    description: mapping.naturalRemedy.description || "",
-    imageUrl: mapping.naturalRemedy.imageUrl || "",
-    category: mapping.naturalRemedy.category,
-    matchingNutrients: parseJsonArray(mapping.matchingNutrients),
-    similarityScore: mapping.similarityScore,
-  }));
+  return mappings.map(
+    (mapping: {
+      naturalRemedy: {
+        id: string;
+        name: string;
+        description: string | null;
+        imageUrl: string | null;
+        category: string;
+      };
+      matchingNutrients: string;
+      similarityScore: number;
+    }) => ({
+      id: mapping.naturalRemedy.id,
+      name: mapping.naturalRemedy.name,
+      description: mapping.naturalRemedy.description || "",
+      imageUrl: mapping.naturalRemedy.imageUrl || "",
+      category: mapping.naturalRemedy.category,
+      matchingNutrients: parseJsonArray(mapping.matchingNutrients),
+      similarityScore: mapping.similarityScore,
+    }),
+  );
 }
 
 /**
@@ -146,7 +158,7 @@ export async function getAllCategories(): Promise<string[]> {
     distinct: ["category"],
   });
 
-  return categories.map((c) => c.category);
+  return categories.map((c: { category: string }) => c.category);
 }
 
 /**
@@ -162,6 +174,6 @@ export async function getAllEvidenceLevels(): Promise<string[]> {
   });
 
   return levels
-    .map((l) => l.evidenceLevel)
-    .filter((l): l is string => l !== null);
+    .map((l: { evidenceLevel: string | null }) => l.evidenceLevel)
+    .filter((l: string | null): l is string => l !== null);
 }
