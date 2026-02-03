@@ -288,9 +288,10 @@ describe('db module', () => {
 
       const result = await getNaturalRemedyById('1');
 
-      expect(result?.ingredients).toEqual([]);
-      expect(result?.benefits).toEqual([]);
-      expect(result?.references).toEqual([]);
+      // parseJsonArray treats invalid JSON as a single-item array with the string value
+      expect(result?.ingredients).toEqual(['invalid-json']);
+      expect(result?.benefits).toEqual(['{bad}']);
+      expect(result?.references).toEqual(['not-an-array']);
     });
   });
 

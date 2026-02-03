@@ -133,7 +133,7 @@ export default function Home() {
       {showWelcomeModal && (
         <WelcomeModal
           onClose={handleCloseWelcomeModal}
-          onStartTutorial={handleStartTutorial}
+          onStartTour={handleStartTutorial}
         />
       )}
       {showTutorial && (

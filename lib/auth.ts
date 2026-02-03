@@ -4,9 +4,12 @@
  * Provides authentication using NextAuth.js v5 with Prisma adapter.
  * Supports multiple OAuth providers and email authentication.
  *
+ * IMPORTANT: This module is server-only (uses Prisma and auth secrets).
+ *
  * @see https://next-auth.js.org/
  */
 
+import "server-only";
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Google from "next-auth/providers/google";

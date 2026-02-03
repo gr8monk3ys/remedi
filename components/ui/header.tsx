@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
+import { GitCompare } from "lucide-react";
 import { SignInButton, UserMenu } from "@/components/auth";
+import { useCompare } from "@/context/CompareContext";
 
 export function Header() {
   const { data: session, status } = useSession();
+  const { items, getCompareUrl } = useCompare();
   const isLoading = status === "loading";
 
   return (
@@ -28,6 +31,21 @@ export function Header() {
           </Link>
           <Link href="/faq" className="text-sm hover:underline">
             FAQ
+          </Link>
+
+          {/* Compare link with badge */}
+          <Link
+            href={getCompareUrl()}
+            className="relative flex items-center gap-1 text-sm hover:underline"
+            aria-label={`Compare remedies${items.length > 0 ? ` (${items.length} selected)` : ''}`}
+          >
+            <GitCompare size={16} />
+            <span className="hidden sm:inline">Compare</span>
+            {items.length > 0 && (
+              <span className="absolute -top-2 -right-2 sm:relative sm:top-0 sm:right-0 sm:ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-primary rounded-full">
+                {items.length}
+              </span>
+            )}
           </Link>
 
           {/* Authentication UI */}

@@ -77,3 +77,100 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Print styles for comparison feature */
+@media print {
+  /* Hide non-essential elements */
+  .print\:hidden,
+  header,
+  nav,
+  footer,
+  .comparison-bar,
+  button[data-compare-button],
+  button[data-favorite-button] {
+    display: none !important;
+  }
+
+  /* Reset backgrounds for printing */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Ensure comparison content is visible */
+  .print\:block {
+    display: block !important;
+  }
+
+  /* Page break handling */
+  .print\:break-before {
+    page-break-before: always;
+  }
+
+  .print\:break-after {
+    page-break-after: always;
+  }
+
+  .print\:break-inside-avoid {
+    page-break-inside: avoid;
+  }
+
+  /* Comparison grid for print */
+  .comparison-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    gap: 1rem !important;
+  }
+
+  /* Evidence badges for print */
+  .evidence-badge {
+    border: 1px solid currentColor !important;
+    background: transparent !important;
+  }
+
+  /* Links for print */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  /* Ensure images print */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* Disclaimer styling for print */
+  .disclaimer {
+    border: 1px solid #996600 !important;
+    background: #fffbeb !important;
+    padding: 1rem !important;
+    margin-top: 2rem !important;
+  }
+}
+
+/* Line clamp utility for text truncation */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

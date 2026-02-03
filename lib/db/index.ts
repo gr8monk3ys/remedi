@@ -3,10 +3,14 @@
  *
  * Centralized database operations for the Remedi application.
  * Re-exports all domain-specific operations for convenient access.
+ *
+ * IMPORTANT: This module is server-only and cannot be imported in client components.
  */
 
+import "server-only";
+
 // Client
-export { prisma, disconnect } from "./client";
+export { prisma, disconnect, isConnected, withTransaction } from "./client";
 
 // Parsers (for internal/advanced use)
 export {
@@ -15,6 +19,9 @@ export {
   parsePharmaceutical,
   parseNaturalRemedy,
   parseRemedyMapping,
+  serializeArray,
+  isPostgres,
+  isSqlite,
 } from "./parsers";
 export type {
   RawPharmaceutical,
