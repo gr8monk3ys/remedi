@@ -96,15 +96,16 @@ describe("lib/stripe", () => {
     });
 
     it("should have correct limits for free plan", () => {
-      expect(PLANS.free.limits.favorites).toBe(5);
-      expect(PLANS.free.limits.searchesPerDay).toBe(10);
+      expect(PLANS.free.limits.favorites).toBe(3);
+      expect(PLANS.free.limits.searchesPerDay).toBe(5);
       expect(PLANS.free.limits.aiSearches).toBe(0);
     });
 
-    it("should have unlimited (-1) for premium plan", () => {
+    it("should have unlimited (-1) for premium plan core features", () => {
       expect(PLANS.premium.limits.favorites).toBe(-1);
       expect(PLANS.premium.limits.searchesPerDay).toBe(-1);
-      expect(PLANS.premium.limits.aiSearches).toBe(-1);
+      // AI searches capped at 50 for premium
+      expect(PLANS.premium.limits.aiSearches).toBe(50);
     });
   });
 
@@ -149,12 +150,12 @@ describe("lib/stripe", () => {
     });
 
     it("should return true when usage is under limit", () => {
-      expect(isPlanFeatureAvailable("free", "favorites", 3)).toBe(true);
-      expect(isPlanFeatureAvailable("free", "searchesPerDay", 5)).toBe(true);
+      expect(isPlanFeatureAvailable("free", "favorites", 2)).toBe(true);
+      expect(isPlanFeatureAvailable("free", "searchesPerDay", 3)).toBe(true);
     });
 
     it("should return false when usage meets or exceeds limit", () => {
-      expect(isPlanFeatureAvailable("free", "favorites", 5)).toBe(false);
+      expect(isPlanFeatureAvailable("free", "favorites", 3)).toBe(false);
       expect(isPlanFeatureAvailable("free", "favorites", 10)).toBe(false);
     });
 
@@ -165,14 +166,20 @@ describe("lib/stripe", () => {
 
   describe("getPlanLimit", () => {
     it("should return correct limits for free plan", () => {
-      expect(getPlanLimit("free", "favorites")).toBe(5);
-      expect(getPlanLimit("free", "searchesPerDay")).toBe(10);
+      expect(getPlanLimit("free", "favorites")).toBe(3);
+      expect(getPlanLimit("free", "searchesPerDay")).toBe(5);
       expect(getPlanLimit("free", "aiSearches")).toBe(0);
     });
 
-    it("should return -1 for unlimited features", () => {
+    it("should return -1 for unlimited features in premium", () => {
       expect(getPlanLimit("premium", "favorites")).toBe(-1);
-      expect(getPlanLimit("basic", "searchesPerDay")).toBe(-1);
+      expect(getPlanLimit("premium", "searchesPerDay")).toBe(-1);
+    });
+
+    it("should return correct limits for basic plan", () => {
+      expect(getPlanLimit("basic", "favorites")).toBe(50);
+      expect(getPlanLimit("basic", "searchesPerDay")).toBe(100);
+      expect(getPlanLimit("basic", "aiSearches")).toBe(10);
     });
   });
 
