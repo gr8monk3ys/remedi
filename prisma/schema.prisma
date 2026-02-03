@@ -1,114 +1,143 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// ============================================================================
+// MIGRATION GUIDE: SQLite to PostgreSQL
+// ============================================================================
+//
+// This schema is configured for PostgreSQL (production-ready).
+//
+// To migrate from SQLite to PostgreSQL:
+// 1. Start PostgreSQL: docker-compose up -d postgres
+// 2. Update DATABASE_URL in .env to use PostgreSQL connection string
+// 3. Run: npx prisma migrate dev --name init_postgres
+// 4. Seed data: npm run prisma db seed
+//
+// Key changes from SQLite:
+// - Array fields now use native PostgreSQL String[] type instead of JSON strings
+// - Connection pooling is enabled via Prisma Data Proxy or pgbouncer
+// - Full-text search indexes can be added for better search performance
+//
+// For local development without Docker:
+// - Use Neon (neon.tech) or Supabase free tier for a hosted PostgreSQL instance
+// - Or keep using SQLite by switching provider back to "sqlite"
+// ============================================================================
 
 generator client {
   provider = "prisma-client-js"
+  // Enable native database types for PostgreSQL
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // For connection pooling in serverless environments (Vercel, etc.)
+  // directUrl is used for migrations, url for queries via pooler
+  directUrl = env("DIRECT_URL")
 }
 
 // Pharmaceutical drugs or supplements
 model Pharmaceutical {
-  id          String   @id @default(uuid())
-  fdaId       String?  // ID from the FDA database
+  id          String   @id @default(uuid()) @db.Uuid
+  fdaId       String?  @unique // ID from the FDA database
   name        String   @unique
-  description String?
+  description String?  @db.Text
   category    String
-  ingredients String   // JSON string for SQLite compatibility
-  benefits    String   // JSON string for SQLite compatibility
-  usage       String?
-  warnings    String?
-  interactions String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  ingredients String[] // Native PostgreSQL array
+  benefits    String[] // Native PostgreSQL array
+  usage       String?  @db.Text
+  warnings    String?  @db.Text
+  interactions String? @db.Text
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
   remedies    NaturalRemedyMapping[]
 
   // Indexes for performance
   @@index([name])
   @@index([category])
   @@index([fdaId])
+  // GIN index for array containment queries
+  @@index([ingredients], type: Gin)
 }
 
 // Natural remedies
 model NaturalRemedy {
-  id             String   @id @default(uuid())
+  id             String   @id @default(uuid()) @db.Uuid
   name           String   @unique
-  description    String?
+  description    String?  @db.Text
   category       String
-  ingredients    String   // JSON string for SQLite compatibility
-  benefits       String   // JSON string for SQLite compatibility
+  ingredients    String[] // Native PostgreSQL array
+  benefits       String[] // Native PostgreSQL array
   imageUrl       String?
-  usage          String?
+  usage          String?  @db.Text
   dosage         String?
-  precautions    String?
-  scientificInfo String?
-  references     String?  // JSON string for SQLite compatibility
-  relatedRemedies String? // JSON string for SQLite compatibility
+  precautions    String?  @db.Text
+  scientificInfo String?  @db.Text
+  references     String[] // Native PostgreSQL array (URLs/citations)
+  relatedRemedies String[] // Native PostgreSQL array (remedy IDs or names)
   sourceUrl      String?  // URL of the source information
   evidenceLevel  String?  // Level of scientific evidence: Strong, Moderate, Limited, Traditional
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now()) @db.Timestamptz
+  updatedAt      DateTime @updatedAt @db.Timestamptz
   pharmaceuticals NaturalRemedyMapping[]
 
   // Indexes for performance
   @@index([name])
   @@index([category])
   @@index([evidenceLevel])
+  // GIN indexes for array containment queries
+  @@index([ingredients], type: Gin)
+  @@index([benefits], type: Gin)
 }
 
 // Many-to-many relationship between pharmaceuticals and natural remedies
 model NaturalRemedyMapping {
-  id               String         @id @default(uuid())
-  pharmaceutical   Pharmaceutical @relation(fields: [pharmaceuticalId], references: [id])
-  pharmaceuticalId String
-  naturalRemedy    NaturalRemedy  @relation(fields: [naturalRemedyId], references: [id])
-  naturalRemedyId  String
+  id               String         @id @default(uuid()) @db.Uuid
+  pharmaceutical   Pharmaceutical @relation(fields: [pharmaceuticalId], references: [id], onDelete: Cascade)
+  pharmaceuticalId String         @db.Uuid
+  naturalRemedy    NaturalRemedy  @relation(fields: [naturalRemedyId], references: [id], onDelete: Cascade)
+  naturalRemedyId  String         @db.Uuid
   similarityScore  Float          // Similarity score between the pharmaceutical and remedy (0-1)
-  matchingNutrients String        // JSON string for SQLite compatibility
+  matchingNutrients String[]      // Native PostgreSQL array
   replacementType  String?        // Type of replacement: Alternative, Complementary, Supportive
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  createdAt        DateTime       @default(now()) @db.Timestamptz
+  updatedAt        DateTime       @updatedAt @db.Timestamptz
 
   @@unique([pharmaceuticalId, naturalRemedyId])
   // Indexes for performance
   @@index([pharmaceuticalId])
   @@index([naturalRemedyId])
-  @@index([similarityScore])
+  @@index([similarityScore(sort: Desc)])
 }
 
 // Search history tracking
 model SearchHistory {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @db.Uuid
   query       String   // The search query
   resultsCount Int     @default(0) // Number of results found
   sessionId   String?  // Optional session identifier for anonymous users
-  userId      String?  // Future: user ID when authentication is added
-  createdAt   DateTime @default(now())
+  userId      String?  @db.Uuid // Future: user ID when authentication is added
+  createdAt   DateTime @default(now()) @db.Timestamptz
 
   // Indexes for performance
   @@index([query])
   @@index([sessionId])
   @@index([userId])
-  @@index([createdAt])
+  @@index([createdAt(sort: Desc)])
 }
 
 // User favorites (currently sessionId-based, will use userId when auth is added)
 model Favorite {
-  id            String   @id @default(uuid())
-  remedyId      String   // ID of the natural remedy
+  id            String   @id @default(uuid()) @db.Uuid
+  remedyId      String   @db.Uuid // ID of the natural remedy
   remedyName    String   // Cached name for quick display
   sessionId     String?  // Session identifier for anonymous users
-  userId        String?  // Future: user ID when authentication is added
-  notes         String?  // User's personal notes about the remedy
+  userId        String?  @db.Uuid // Future: user ID when authentication is added
+  notes         String?  @db.Text // User's personal notes about the remedy
   collectionName String? // Optional collection/folder name
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
 
   // Indexes for performance
   @@index([remedyId])
@@ -120,21 +149,20 @@ model Favorite {
 
 // Filter preferences (persisted filter state)
 model FilterPreference {
-  id             String   @id @default(uuid())
-  sessionId      String?  // Session identifier for anonymous users
-  userId         String?  // Future: user ID when authentication is added
-  categories     String?  // JSON array of selected categories
-  nutrients      String?  // JSON array of selected nutrients
-  evidenceLevels String?  // JSON array of selected evidence levels
+  id             String   @id @default(uuid()) @db.Uuid
+  sessionId      String?  @unique // Session identifier for anonymous users
+  userId         String?  @unique @db.Uuid // Future: user ID when authentication is added
+  categories     String[] // Native PostgreSQL array
+  nutrients      String[] // Native PostgreSQL array
+  evidenceLevels String[] // Native PostgreSQL array
   sortBy         String?  // Sort preference: similarity, name, category
   sortOrder      String?  // Sort order: asc, desc
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now()) @db.Timestamptz
+  updatedAt      DateTime @updatedAt @db.Timestamptz
 
   // Indexes for performance
   @@index([sessionId])
   @@index([userId])
-  @@unique([sessionId]) // One preference set per session
 }
 
 // ============================================================================
@@ -142,41 +170,42 @@ model FilterPreference {
 // ============================================================================
 
 model User {
-  id            String    @id @default(uuid())
+  id            String    @id @default(uuid()) @db.Uuid
   name          String?
   email         String    @unique
-  emailVerified DateTime?
+  emailVerified DateTime? @db.Timestamptz
   image         String?
   role          String    @default("user") // user, moderator, admin
-  bio           String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  bio           String?   @db.Text
+  createdAt     DateTime  @default(now()) @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @db.Timestamptz
 
-  accounts      Account[]
-  sessions      Session[]
-  reviews       RemedyReview[]
-  contributions RemedyContribution[]
-  subscription  Subscription?
+  accounts         Account[]
+  sessions         Session[]
+  reviews          RemedyReview[]
+  contributions    RemedyContribution[]
+  subscription     Subscription?
+  emailPreferences EmailPreference?
 
   @@index([email])
   @@index([role])
 }
 
 model Account {
-  userId            String
+  userId            String  @db.Uuid
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -186,22 +215,24 @@ model Account {
 
 model Session {
   sessionToken String   @unique
-  userId       String
-  expires      DateTime
+  userId       String   @db.Uuid
+  expires      DateTime @db.Timestamptz
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
 
   @@index([userId])
+  @@index([expires])
 }
 
 model VerificationToken {
   identifier String
   token      String
-  expires    DateTime
+  expires    DateTime @db.Timestamptz
 
   @@id([identifier, token])
+  @@index([expires])
 }
 
 // ============================================================================
@@ -210,53 +241,55 @@ model VerificationToken {
 
 // User reviews and ratings for remedies
 model RemedyReview {
-  id          String   @id @default(uuid())
-  remedyId    String   // ID of the natural remedy being reviewed
+  id          String   @id @default(uuid()) @db.Uuid
+  remedyId    String   @db.Uuid // ID of the natural remedy being reviewed
   remedyName  String   // Cached remedy name for display
-  userId      String
+  userId      String   @db.Uuid
   rating      Int      // 1-5 stars
   title       String?
-  comment     String
+  comment     String   @db.Text
   helpful     Int      @default(0) // Helpful vote count
   verified    Boolean  @default(false) // Verified purchase/usage
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([remedyId])
   @@index([userId])
   @@index([rating])
-  @@index([createdAt])
+  @@index([createdAt(sort: Desc)])
+  @@index([helpful(sort: Desc)])
 }
 
 // User-contributed remedies (pending moderation)
 model RemedyContribution {
-  id             String   @id @default(uuid())
-  userId         String
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @db.Uuid
   name           String
-  description    String
+  description    String   @db.Text
   category       String
-  ingredients    String   // JSON string
-  benefits       String   // JSON string
-  usage          String?
+  ingredients    String[] // Native PostgreSQL array
+  benefits       String[] // Native PostgreSQL array
+  usage          String?  @db.Text
   dosage         String?
-  precautions    String?
-  scientificInfo String?
-  references     String?  // JSON string
+  precautions    String?  @db.Text
+  scientificInfo String?  @db.Text
+  references     String[] // Native PostgreSQL array
   imageUrl       String?
   status         String   @default("pending") // pending, approved, rejected
-  moderatorNote  String?
-  moderatedBy    String?
-  moderatedAt    DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  moderatorNote  String?  @db.Text
+  moderatedBy    String?  @db.Uuid
+  moderatedAt    DateTime? @db.Timestamptz
+  createdAt      DateTime @default(now()) @db.Timestamptz
+  updatedAt      DateTime @updatedAt @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
-  @@index([createdAt])
+  @@index([createdAt(sort: Desc)])
+  @@index([category])
 }
 
 // ============================================================================
@@ -265,42 +298,42 @@ model RemedyContribution {
 
 // User event tracking for analytics
 model UserEvent {
-  id        String   @id @default(uuid())
-  userId    String?  // Null for anonymous users
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @db.Uuid // Null for anonymous users
   sessionId String?  // Session ID for anonymous users
   eventType String   // search, view_remedy, add_favorite, remove_favorite, etc.
-  eventData String?  // JSON string with event-specific data
+  eventData Json?    // Native PostgreSQL JSON type for event-specific data
   page      String?  // Page where event occurred
   referrer  String?  // Referrer URL if applicable
-  userAgent String?  // Browser/device info
+  userAgent String?  @db.Text // Browser/device info
   ipHash    String?  // Hashed IP for privacy-preserving analytics
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz
 
   @@index([userId])
   @@index([sessionId])
   @@index([eventType])
-  @@index([createdAt])
+  @@index([createdAt(sort: Desc)])
   @@index([page])
 }
 
 // User subscription management
 model Subscription {
-  id              String    @id @default(uuid())
-  userId          String    @unique
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @unique @db.Uuid
   plan            String    @default("free") // free, basic, premium, enterprise
   status          String    @default("active") // active, cancelled, expired, suspended
   interval        String?   // monthly, yearly
   stripeSubscriptionId String? @unique // Stripe subscription ID
   priceId         String?   // Stripe price ID
   customerId      String?   // Stripe customer ID
-  currentPeriodStart DateTime?
-  currentPeriodEnd   DateTime?
-  startedAt       DateTime  @default(now())
-  expiresAt       DateTime?
-  cancelledAt     DateTime?
+  currentPeriodStart DateTime? @db.Timestamptz
+  currentPeriodEnd   DateTime? @db.Timestamptz
+  startedAt       DateTime  @default(now()) @db.Timestamptz
+  expiresAt       DateTime? @db.Timestamptz
+  cancelledAt     DateTime? @db.Timestamptz
   cancelAtPeriodEnd Boolean @default(false)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime  @default(now()) @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @db.Timestamptz
 
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -309,4 +342,43 @@ model Subscription {
   @@index([expiresAt])
   @@index([customerId])
   @@index([stripeSubscriptionId])
+}
+
+// ============================================================================
+// Email Preference Models
+// ============================================================================
+
+// User email preferences for managing email subscriptions
+model EmailPreference {
+  id                     String   @id @default(uuid()) @db.Uuid
+  userId                 String   @unique @db.Uuid
+  weeklyDigest           Boolean  @default(true) // Receive weekly digest emails
+  marketingEmails        Boolean  @default(false) // Receive marketing/promotional emails
+  productUpdates         Boolean  @default(true) // Receive product update announcements
+  subscriptionReminders  Boolean  @default(true) // Receive subscription expiry reminders
+  createdAt              DateTime @default(now()) @db.Timestamptz
+  updatedAt              DateTime @updatedAt @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Track sent emails for rate limiting and analytics
+model EmailLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @db.Uuid // Null for non-user emails
+  email      String   // Recipient email address
+  emailType  String   // Type of email sent (welcome, subscription_confirmed, etc.)
+  messageId  String?  // Resend message ID
+  status     String   @default("sent") // sent, failed, bounced
+  errorMsg   String?  @db.Text // Error message if failed
+  metadata   Json?    // Additional metadata
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  @@index([userId])
+  @@index([email])
+  @@index([emailType])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
 }

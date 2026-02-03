@@ -1,0 +1,201 @@
+'use client'
+
+import { Check, Sparkles, Zap, Crown } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import type { PlanType } from '@/lib/stripe'
+
+interface PlanCardProps {
+  plan: PlanType
+  name: string
+  description: string
+  price: number
+  yearlyPrice?: number
+  features: string[]
+  isCurrentPlan?: boolean
+  isPopular?: boolean
+  interval?: 'monthly' | 'yearly'
+  onSelect?: () => void
+  onManage?: () => void
+  isLoading?: boolean
+  className?: string
+}
+
+const planIcons = {
+  free: Sparkles,
+  basic: Zap,
+  premium: Crown,
+  enterprise: Crown,
+}
+
+const planColors = {
+  free: 'border-gray-200 dark:border-gray-700',
+  basic: 'border-blue-200 dark:border-blue-800',
+  premium: 'border-purple-200 dark:border-purple-800',
+  enterprise: 'border-yellow-200 dark:border-yellow-800',
+}
+
+const planBgColors = {
+  free: 'bg-gray-50 dark:bg-gray-800/50',
+  basic: 'bg-blue-50 dark:bg-blue-900/20',
+  premium: 'bg-purple-50 dark:bg-purple-900/20',
+  enterprise: 'bg-yellow-50 dark:bg-yellow-900/20',
+}
+
+/**
+ * Plan Card Component
+ *
+ * Displays a subscription plan with features and pricing.
+ */
+export function PlanCard({
+  plan,
+  name,
+  description,
+  price,
+  yearlyPrice,
+  features,
+  isCurrentPlan = false,
+  isPopular = false,
+  interval = 'monthly',
+  onSelect,
+  onManage,
+  isLoading = false,
+  className,
+}: PlanCardProps) {
+  const Icon = planIcons[plan] || Sparkles
+  const displayPrice = interval === 'yearly' && yearlyPrice ? yearlyPrice : price
+  const monthlyEquivalent = interval === 'yearly' && yearlyPrice ? yearlyPrice / 12 : price
+
+  if (isLoading) {
+    return <PlanCardSkeleton className={className} />
+  }
+
+  return (
+    <div
+      className={cn(
+        'relative rounded-xl border-2 p-6 transition-all',
+        planColors[plan],
+        isCurrentPlan && 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900',
+        isPopular && !isCurrentPlan && 'shadow-lg',
+        className
+      )}
+    >
+      {isPopular && !isCurrentPlan && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary text-white">
+            Most Popular
+          </span>
+        </div>
+      )}
+
+      {isCurrentPlan && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500 text-white">
+            Current Plan
+          </span>
+        </div>
+      )}
+
+      <div className={cn('rounded-lg p-3 w-fit mb-4', planBgColors[plan])}>
+        <Icon
+          className={cn(
+            'h-6 w-6',
+            plan === 'free' && 'text-gray-600 dark:text-gray-400',
+            plan === 'basic' && 'text-blue-600 dark:text-blue-400',
+            plan === 'premium' && 'text-purple-600 dark:text-purple-400',
+            plan === 'enterprise' && 'text-yellow-600 dark:text-yellow-400'
+          )}
+        />
+      </div>
+
+      <h3 className="text-xl font-bold text-gray-900 dark:text-white">{name}</h3>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{description}</p>
+
+      <div className="mt-4 mb-6">
+        {price === 0 ? (
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">Free</p>
+        ) : (
+          <>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white">
+              ${monthlyEquivalent.toFixed(2)}
+              <span className="text-sm font-normal text-gray-500 dark:text-gray-400">/mo</span>
+            </p>
+            {interval === 'yearly' && yearlyPrice && (
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                ${yearlyPrice.toFixed(2)} billed annually
+              </p>
+            )}
+          </>
+        )}
+      </div>
+
+      <ul className="space-y-3 mb-6" role="list">
+        {features.map((feature, index) => (
+          <li key={index} className="flex items-start gap-2">
+            <Check
+              className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5"
+              aria-hidden="true"
+            />
+            <span className="text-sm text-gray-600 dark:text-gray-300">{feature}</span>
+          </li>
+        ))}
+      </ul>
+
+      {isCurrentPlan ? (
+        onManage ? (
+          <button
+            onClick={onManage}
+            className="w-full py-2.5 px-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          >
+            Manage Subscription
+          </button>
+        ) : (
+          <div className="w-full py-2.5 px-4 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-center font-medium">
+            Current Plan
+          </div>
+        )
+      ) : (
+        <button
+          onClick={onSelect}
+          disabled={!onSelect}
+          className={cn(
+            'w-full py-2.5 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+            plan === 'free'
+              ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              : 'bg-primary text-white hover:bg-primary/90',
+            !onSelect && 'opacity-50 cursor-not-allowed'
+          )}
+        >
+          {plan === 'free' ? 'Downgrade' : 'Upgrade'}
+        </button>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Skeleton loader for plan card
+ */
+export function PlanCardSkeleton({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        'rounded-xl border-2 border-gray-200 dark:border-gray-700 p-6 animate-pulse',
+        className
+      )}
+    >
+      <div className="h-12 w-12 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4" />
+      <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
+      <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded mb-4" />
+      <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded mb-6" />
+      <div className="space-y-3 mb-6">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center gap-2">
+            <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded" />
+            <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded" />
+          </div>
+        ))}
+      </div>
+      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-lg" />
+    </div>
+  )
+}

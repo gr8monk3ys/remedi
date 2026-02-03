@@ -38,6 +38,10 @@ interface EnvSchema {
   // Optional: Error tracking (e.g., Sentry)
   NEXT_PUBLIC_SENTRY_DSN?: string;
 
+  // Optional: Email (Resend)
+  RESEND_API_KEY?: string;
+  EMAIL_FROM?: string;
+
   // Node environment
   NODE_ENV: "development" | "production" | "test";
 }
@@ -251,6 +255,27 @@ export function getUpstashRedisCredentials(): {
     url: getEnv("UPSTASH_REDIS_REST_URL"),
     token: getEnv("UPSTASH_REDIS_REST_TOKEN"),
   };
+}
+
+/**
+ * Check if Resend email is configured
+ */
+export function hasResendEmail(): boolean {
+  return !!getEnv("RESEND_API_KEY");
+}
+
+/**
+ * Get Resend API key if available
+ */
+export function getResendApiKey(): string | undefined {
+  return getEnv("RESEND_API_KEY");
+}
+
+/**
+ * Get email from address
+ */
+export function getEmailFrom(): string {
+  return getEnv("EMAIL_FROM") || "Remedi <noreply@remedi.com>";
 }
 
 // Validate environment on module load in non-test environments

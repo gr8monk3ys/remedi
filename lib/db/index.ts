@@ -6,7 +6,7 @@
  */
 
 // Client
-export { prisma, disconnect } from "./client";
+export { prisma, disconnect, isConnected, withTransaction } from "./client";
 
 // Parsers (for internal/advanced use)
 export {
@@ -15,6 +15,9 @@ export {
   parsePharmaceutical,
   parseNaturalRemedy,
   parseRemedyMapping,
+  serializeArray,
+  isPostgres,
+  isSqlite,
 } from "./parsers";
 export type {
   RawPharmaceutical,

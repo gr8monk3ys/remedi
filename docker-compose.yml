@@ -1,25 +1,101 @@
 version: '3.8'
 
 services:
+  # ==========================================================================
+  # PostgreSQL Database (Production-ready)
+  # ==========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: remedi-postgres
+    environment:
+      POSTGRES_USER: remedi
+      POSTGRES_PASSWORD: remedi_dev
+      POSTGRES_DB: remedi
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Optional: Initialize with custom SQL
+      # - ./prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U remedi -d remedi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ==========================================================================
+  # PgBouncer Connection Pooler (Optional - for production)
+  # ==========================================================================
+  pgbouncer:
+    image: edoburu/pgbouncer:1.22.1
+    container_name: remedi-pgbouncer
+    environment:
+      DATABASE_URL: postgres://remedi:remedi_dev@postgres:5432/remedi
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 100
+      DEFAULT_POOL_SIZE: 20
+      MIN_POOL_SIZE: 5
+      RESERVE_POOL_SIZE: 5
+    ports:
+      - "6432:5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - pooler
+    restart: unless-stopped
+
+  # ==========================================================================
+  # pgAdmin (Database Management UI)
+  # ==========================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: remedi-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@remedi.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    profiles:
+      - admin
+    restart: unless-stopped
+
+  # ==========================================================================
+  # Production Application
+  # ==========================================================================
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: remedi-app
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://remedi:remedi_dev@postgres:5432/remedi
     env_file:
       - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
-  # Development service with hot reload
+  # ==========================================================================
+  # Development Application (with hot reload)
+  # ==========================================================================
   dev:
     build:
       context: .
       dockerfile: Dockerfile
       target: deps
-    command: sh -c "npx prisma generate && npm run dev"
+    container_name: remedi-dev
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
     ports:
       - "3000:3000"
     volumes:
@@ -27,7 +103,17 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - DATABASE_URL=postgresql://remedi:remedi_dev@postgres:5432/remedi
     env_file:
       - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
     profiles:
       - dev
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local

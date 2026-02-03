@@ -10,9 +10,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
-import { stripe, getPlanByPriceId } from '@/lib/stripe'
+import { stripe, getPlanByPriceId, PLANS } from '@/lib/stripe'
 import { prisma } from '@/lib/db'
 import { createLogger } from '@/lib/logger'
+import {
+  sendSubscriptionConfirmation,
+  sendSubscriptionCancelled,
+} from '@/lib/email'
 
 const log = createLogger('stripe-webhook')
 
@@ -104,6 +108,40 @@ async function handleCheckoutSessionCompleted(
   })
 
   log.info('Subscription created', { userId, subscriptionId, plan: plan || 'basic' })
+
+  // Send confirmation email (fire and forget - don't fail webhook if email fails)
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, name: true },
+    })
+
+    if (user?.email) {
+      const planKey = (plan || 'basic') as keyof typeof PLANS
+      const planConfig = PLANS[planKey]
+      const interval = subscriptionItem?.price.recurring?.interval || 'month'
+
+      await sendSubscriptionConfirmation(
+        user.email,
+        {
+          name: user.name || 'there',
+          plan: planConfig.name,
+          interval: interval === 'year' ? 'yearly' : 'monthly',
+          price: `$${interval === 'year' ? (planConfig as typeof PLANS.basic).yearlyPrice : planConfig.price}`,
+          nextBillingDate: currentPeriodEnd.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          }),
+        },
+        userId
+      )
+      log.info('Subscription confirmation email sent', { userId })
+    }
+  } catch (emailError) {
+    // Log but don't fail the webhook
+    log.error('Failed to send subscription confirmation email', emailError, { userId })
+  }
 }
 
 /**
