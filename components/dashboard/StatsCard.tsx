@@ -1,19 +1,20 @@
-'use client'
+"use client";
 
-import { cn } from '@/lib/utils'
-import type { LucideIcon } from 'lucide-react'
+import { cn } from "@/lib/utils";
+import { Activity } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface StatsCardProps {
-  title: string
-  value: string | number
-  subtitle?: string
-  icon: LucideIcon
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  icon: LucideIcon;
   trend?: {
-    value: number
-    isPositive: boolean
-  }
-  className?: string
-  isLoading?: boolean
+    value: number;
+    isPositive: boolean;
+  };
+  className?: string;
+  isLoading?: boolean;
 }
 
 /**
@@ -35,8 +36,8 @@ export function StatsCard({
     return (
       <div
         className={cn(
-          'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6',
-          className
+          "bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6",
+          className,
         )}
       >
         <div className="animate-pulse">
@@ -48,18 +49,20 @@ export function StatsCard({
           <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div
       className={cn(
-        'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-all hover:shadow-md',
-        className
+        "bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-all hover:shadow-md",
+        className,
       )}
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</h3>
+        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          {title}
+        </h3>
         <div className="p-2 bg-primary/10 rounded-lg">
           <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
         </div>
@@ -67,36 +70,42 @@ export function StatsCard({
 
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+            {value}
+          </p>
           {subtitle && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {subtitle}
+            </p>
           )}
         </div>
 
         {trend && (
           <div
             className={cn(
-              'flex items-center text-sm font-medium',
-              trend.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+              "flex items-center text-sm font-medium",
+              trend.isPositive
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400",
             )}
           >
-            <span aria-hidden="true">{trend.isPositive ? '+' : ''}</span>
+            <span aria-hidden="true">{trend.isPositive ? "+" : ""}</span>
             <span>{trend.value}%</span>
             <span className="sr-only">
-              {trend.isPositive ? 'increase' : 'decrease'} from last period
+              {trend.isPositive ? "increase" : "decrease"} from last period
             </span>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
 
 /**
  * Skeleton loader for stats cards
  */
 export function StatsCardSkeleton() {
-  return <StatsCard title="" value="" icon={() => null} isLoading />
+  return <StatsCard title="" value="" icon={Activity} isLoading />;
 }
 
 /**
@@ -109,5 +118,5 @@ export function StatsGridSkeleton({ count = 4 }: { count?: number }) {
         <StatsCardSkeleton key={i} />
       ))}
     </div>
-  )
+  );
 }

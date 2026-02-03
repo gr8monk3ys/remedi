@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Feature Gate Component
@@ -7,79 +7,79 @@
  * Shows a blur/lock overlay for non-subscribers with an upgrade prompt.
  */
 
-import { useState, useEffect, type ReactNode } from 'react'
-import { Lock, Sparkles, Loader2 } from 'lucide-react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import { type PlanType, PLAN_LIMITS } from '@/lib/stripe'
-import { UpgradeModal } from './UpgradeModal'
+import { useState, useEffect, type ReactNode } from "react";
+import { Lock, Sparkles, Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { type PlanType, PLAN_LIMITS } from "@/lib/stripe-config";
+import { UpgradeModal } from "./UpgradeModal";
 
 type FeatureKey =
-  | 'canExport'
-  | 'canCompare'
-  | 'canAccessHistory'
-  | 'prioritySupport'
+  | "canExport"
+  | "canCompare"
+  | "canAccessHistory"
+  | "prioritySupport";
 
 interface FeatureGateProps {
   /**
    * The feature to check access for
    */
-  feature: FeatureKey
+  feature: FeatureKey;
   /**
    * The minimum plan required for this feature
    */
-  requiredPlan?: PlanType
+  requiredPlan?: PlanType;
   /**
    * Children to render when access is granted
    */
-  children: ReactNode
+  children: ReactNode;
   /**
    * Fallback content when access is denied (optional)
    * If not provided, shows a locked overlay
    */
-  fallback?: ReactNode
+  fallback?: ReactNode;
   /**
    * Custom message to show in the locked state
    */
-  lockedMessage?: string
+  lockedMessage?: string;
   /**
    * Whether to show a blurred preview of the content
    */
-  showBlurredPreview?: boolean
+  showBlurredPreview?: boolean;
   /**
    * Callback when the upgrade button is clicked
    */
-  onUpgradeClick?: () => void
+  onUpgradeClick?: () => void;
   /**
    * Custom className for the wrapper
    */
-  className?: string
+  className?: string;
 }
 
 // Feature display names
 const featureNames: Record<FeatureKey, string> = {
-  canExport: 'Export Data',
-  canCompare: 'Compare Remedies',
-  canAccessHistory: 'Search History',
-  prioritySupport: 'Priority Support',
-}
+  canExport: "Export Data",
+  canCompare: "Compare Remedies",
+  canAccessHistory: "Search History",
+  prioritySupport: "Priority Support",
+};
 
 // Feature descriptions
 const featureDescriptions: Record<FeatureKey, string> = {
-  canExport: 'Export your saved remedies and search data',
-  canCompare: 'Compare multiple remedies side by side',
-  canAccessHistory: 'Access your complete search history',
-  prioritySupport: 'Get priority customer support',
-}
+  canExport: "Export your saved remedies and search data",
+  canCompare: "Compare multiple remedies side by side",
+  canAccessHistory: "Access your complete search history",
+  prioritySupport: "Get priority customer support",
+};
 
 // Minimum plan required for each feature
 const featureMinPlan: Record<FeatureKey, PlanType> = {
-  canExport: 'basic',
-  canCompare: 'basic',
-  canAccessHistory: 'basic',
-  prioritySupport: 'premium',
-}
+  canExport: "basic",
+  canCompare: "basic",
+  canAccessHistory: "basic",
+  prioritySupport: "premium",
+};
 
 export function FeatureGate({
   feature,
@@ -89,78 +89,82 @@ export function FeatureGate({
   lockedMessage,
   showBlurredPreview = true,
   onUpgradeClick,
-  className = '',
+  className = "",
 }: FeatureGateProps) {
-  const { status } = useSession()
-  const router = useRouter()
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null)
-  const [currentPlan, setCurrentPlan] = useState<PlanType>('free')
-  const [isLoading, setIsLoading] = useState(true)
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
+  const { status } = useSession();
+  const router = useRouter();
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<PlanType>("free");
+  const [isLoading, setIsLoading] = useState(true);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Check access when session changes
   useEffect(() => {
     const checkAccess = async () => {
       // Not logged in - no access to premium features
-      if (status === 'unauthenticated') {
-        setHasAccess(false)
-        setCurrentPlan('free')
-        setIsLoading(false)
-        return
+      if (status === "unauthenticated") {
+        setHasAccess(false);
+        setCurrentPlan("free");
+        setIsLoading(false);
+        return;
       }
 
       // Still loading auth
-      if (status === 'loading') {
-        return
+      if (status === "loading") {
+        return;
       }
 
       // User is authenticated - check their plan (session used for auth status above)
       try {
-        const response = await fetch('/api/usage')
-        const data = await response.json()
+        const response = await fetch("/api/usage");
+        const data = await response.json();
 
         if (data.success) {
-          const userPlan = data.data.plan as PlanType
-          setCurrentPlan(userPlan)
+          const userPlan = data.data.plan as PlanType;
+          setCurrentPlan(userPlan);
 
           // Check if user's plan has access to this feature
-          const planLimits = PLAN_LIMITS[userPlan.toUpperCase() as keyof typeof PLAN_LIMITS]
-          const hasFeatureAccess = planLimits[feature] === true
+          const planLimits =
+            PLAN_LIMITS[userPlan.toUpperCase() as keyof typeof PLAN_LIMITS];
+          const hasFeatureAccess = planLimits[feature] === true;
 
           // Also check minimum plan requirement
-          const minPlan = requiredPlan || featureMinPlan[feature]
-          const planOrder: PlanType[] = ['free', 'basic', 'premium']
-          const userPlanIndex = planOrder.indexOf(userPlan)
-          const requiredPlanIndex = planOrder.indexOf(minPlan)
-          const meetsMinPlan = userPlanIndex >= requiredPlanIndex
+          const minPlan = requiredPlan || featureMinPlan[feature];
+          const planOrder: PlanType[] = ["free", "basic", "premium"];
+          const userPlanIndex = planOrder.indexOf(userPlan);
+          const requiredPlanIndex = planOrder.indexOf(minPlan);
+          const meetsMinPlan = userPlanIndex >= requiredPlanIndex;
 
-          setHasAccess(hasFeatureAccess && meetsMinPlan)
+          setHasAccess(hasFeatureAccess && meetsMinPlan);
         } else {
-          setHasAccess(false)
+          setHasAccess(false);
         }
       } catch {
-        setHasAccess(false)
+        setHasAccess(false);
       }
 
-      setIsLoading(false)
-    }
+      setIsLoading(false);
+    };
 
-    checkAccess()
-  }, [status, feature, requiredPlan])
+    checkAccess();
+  }, [status, feature, requiredPlan]);
 
   const handleUpgradeClick = () => {
     if (onUpgradeClick) {
-      onUpgradeClick()
+      onUpgradeClick();
     }
 
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname))
-      return
+    if (status === "unauthenticated") {
+      router.push(
+        "/auth/signin?callbackUrl=" +
+          encodeURIComponent(window.location.pathname),
+      );
+      return;
     }
 
-    setShowUpgradeModal(true)
-  }
+    setShowUpgradeModal(true);
+  };
 
   // Still checking access
   if (isLoading) {
@@ -170,22 +174,24 @@ export function FeatureGate({
           <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
         </div>
       </div>
-    )
+    );
   }
 
   // User has access
   if (hasAccess) {
-    return <>{children}</>
+    return <>{children}</>;
   }
 
   // Custom fallback provided
   if (fallback) {
-    return <>{fallback}</>
+    return <>{fallback}</>;
   }
 
   // Default locked overlay
-  const minPlan = requiredPlan || featureMinPlan[feature]
-  const message = lockedMessage || `${featureNames[feature]} requires a ${minPlan} plan or higher`
+  const minPlan = requiredPlan || featureMinPlan[feature];
+  const message =
+    lockedMessage ||
+    `${featureNames[feature]} requires a ${minPlan} plan or higher`;
 
   return (
     <>
@@ -236,7 +242,7 @@ export function FeatureGate({
                 Unlock Feature
               </motion.button>
 
-              {status === 'unauthenticated' && (
+              {status === "unauthenticated" && (
                 <p className="text-xs text-gray-500 dark:text-gray-500 mt-3">
                   Sign in required
                 </p>
@@ -267,59 +273,60 @@ export function FeatureGate({
         featureName={featureNames[feature]}
       />
     </>
-  )
+  );
 }
 
 /**
  * Hook to check feature access
  */
 export function useFeatureAccess(feature: FeatureKey): {
-  hasAccess: boolean | null
-  isLoading: boolean
-  currentPlan: PlanType
+  hasAccess: boolean | null;
+  isLoading: boolean;
+  currentPlan: PlanType;
 } {
-  const { status } = useSession()
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null)
-  const [currentPlan, setCurrentPlan] = useState<PlanType>('free')
-  const [isLoading, setIsLoading] = useState(true)
+  const { status } = useSession();
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<PlanType>("free");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAccess = async () => {
-      if (status === 'unauthenticated') {
-        setHasAccess(false)
-        setCurrentPlan('free')
-        setIsLoading(false)
-        return
+      if (status === "unauthenticated") {
+        setHasAccess(false);
+        setCurrentPlan("free");
+        setIsLoading(false);
+        return;
       }
 
-      if (status === 'loading') {
-        return
+      if (status === "loading") {
+        return;
       }
 
       try {
-        const response = await fetch('/api/usage')
-        const data = await response.json()
+        const response = await fetch("/api/usage");
+        const data = await response.json();
 
         if (data.success) {
-          const userPlan = data.data.plan as PlanType
-          setCurrentPlan(userPlan)
+          const userPlan = data.data.plan as PlanType;
+          setCurrentPlan(userPlan);
 
-          const planLimits = PLAN_LIMITS[userPlan.toUpperCase() as keyof typeof PLAN_LIMITS]
-          setHasAccess(planLimits[feature] === true)
+          const planLimits =
+            PLAN_LIMITS[userPlan.toUpperCase() as keyof typeof PLAN_LIMITS];
+          setHasAccess(planLimits[feature] === true);
         } else {
-          setHasAccess(false)
+          setHasAccess(false);
         }
       } catch {
-        setHasAccess(false)
+        setHasAccess(false);
       }
 
-      setIsLoading(false)
-    }
+      setIsLoading(false);
+    };
 
-    checkAccess()
-  }, [status, feature])
+    checkAccess();
+  }, [status, feature]);
 
-  return { hasAccess, isLoading, currentPlan }
+  return { hasAccess, isLoading, currentPlan };
 }
 
-export default FeatureGate
+export default FeatureGate;

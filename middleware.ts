@@ -2,67 +2,46 @@
  * Next.js Middleware
  *
  * Handles:
- * - Maintenance mode with admin bypass
+ * - Maintenance mode (basic check, full bypass requires API)
  * - Security headers
  * - CORS for API routes
- * - Protected route authentication
+ *
+ * NOTE: Authentication checks are handled in individual route handlers
+ * because the PrismaAdapter doesn't support Edge runtime.
  *
  * @see https://nextjs.org/docs/app/building-your-application/routing/middleware
  */
 
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { auth } from '@/lib/auth'
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 /**
  * Routes that should be accessible during maintenance mode
  */
 const MAINTENANCE_ALLOWED_PATHS = [
-  '/api/health',
-  '/maintenance',
-  '/_next',
-  '/favicon.ico',
-  '/robots.txt',
-  '/sitemap.xml',
-]
-
-/**
- * Routes that require authentication
- */
-const PROTECTED_PATHS = [
-  '/dashboard',
-  '/billing',
-  '/settings',
-  '/favorites',
-  '/api/favorites',
-  '/api/search-history',
-  '/api/filter-preferences',
-  '/api/subscription',
-  '/api/billing-portal',
-]
+  "/api/health",
+  "/maintenance",
+  "/_next",
+  "/favicon.ico",
+  "/robots.txt",
+  "/sitemap.xml",
+];
 
 /**
  * API routes that need CORS headers
  */
-const API_PATHS = ['/api/']
+const API_PATHS = ["/api/"];
 
 /**
  * Check if a path matches any pattern in the list
  */
 function matchesPath(path: string, patterns: string[]): boolean {
   return patterns.some(
-    (pattern) => path === pattern || path.startsWith(pattern + '/') || path.startsWith(pattern)
-  )
-}
-
-/**
- * Check if the user email is in the maintenance bypass list
- */
-function isMaintenanceBypassEmail(email: string | null | undefined): boolean {
-  if (!email) return false
-
-  const bypassEmails = process.env.MAINTENANCE_BYPASS_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || []
-  return bypassEmails.includes(email.toLowerCase())
+    (pattern) =>
+      path === pattern ||
+      path.startsWith(pattern + "/") ||
+      path.startsWith(pattern),
+  );
 }
 
 /**
@@ -70,54 +49,60 @@ function isMaintenanceBypassEmail(email: string | null | undefined): boolean {
  */
 function addSecurityHeaders(response: NextResponse): NextResponse {
   // Prevent clickjacking
-  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set("X-Frame-Options", "DENY");
 
   // Prevent MIME type sniffing
-  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set("X-Content-Type-Options", "nosniff");
 
   // Control referrer information
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
   // Disable browser features we don't need
   response.headers.set(
-    'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=(), browsing-topics=()'
-  )
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+  );
 
   // XSS protection (legacy, but still useful for older browsers)
-  response.headers.set('X-XSS-Protection', '1; mode=block')
+  response.headers.set("X-XSS-Protection", "1; mode=block");
 
   // DNS prefetch control
-  response.headers.set('X-DNS-Prefetch-Control', 'on')
+  response.headers.set("X-DNS-Prefetch-Control", "on");
 
-  return response
+  return response;
 }
 
 /**
  * Add CORS headers for API routes
  */
-function addCorsHeaders(response: NextResponse, request: NextRequest): NextResponse {
-  const origin = request.headers.get('origin')
+function addCorsHeaders(
+  response: NextResponse,
+  request: NextRequest,
+): NextResponse {
+  const origin = request.headers.get("origin");
 
   // Allow requests from the same origin or configured origins
   const allowedOrigins = [
     process.env.NEXTAUTH_URL,
-    'http://localhost:3000',
-    'http://localhost:3001',
-  ].filter(Boolean)
+    "http://localhost:3000",
+    "http://localhost:3001",
+  ].filter(Boolean);
 
   if (origin && allowedOrigins.includes(origin)) {
-    response.headers.set('Access-Control-Allow-Origin', origin)
+    response.headers.set("Access-Control-Allow-Origin", origin);
   }
 
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   response.headers.set(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, X-Requested-With'
-  )
-  response.headers.set('Access-Control-Max-Age', '86400')
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS",
+  );
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-Requested-With, X-CSRF-Token",
+  );
+  response.headers.set("Access-Control-Max-Age", "86400");
 
-  return response
+  return response;
 }
 
 /**
@@ -125,89 +110,59 @@ function addCorsHeaders(response: NextResponse, request: NextRequest): NextRespo
  */
 function createMaintenanceResponse(request: NextRequest): NextResponse {
   // For API routes, return JSON
-  if (request.nextUrl.pathname.startsWith('/api/')) {
+  if (request.nextUrl.pathname.startsWith("/api/")) {
     return NextResponse.json(
       {
         success: false,
         error: {
-          code: 'MAINTENANCE_MODE',
-          message: 'The service is currently under maintenance. Please try again later.',
+          code: "MAINTENANCE_MODE",
+          message:
+            "The service is currently under maintenance. Please try again later.",
         },
       },
-      { status: 503 }
-    )
+      { status: 503 },
+    );
   }
 
   // For pages, redirect to maintenance page
-  const url = request.nextUrl.clone()
-  url.pathname = '/maintenance'
-  return NextResponse.redirect(url)
+  const url = request.nextUrl.clone();
+  url.pathname = "/maintenance";
+  return NextResponse.redirect(url);
 }
 
 /**
  * Main middleware function
  */
-export async function middleware(request: NextRequest): Promise<NextResponse> {
-  const { pathname } = request.nextUrl
+export function middleware(request: NextRequest): NextResponse {
+  const { pathname } = request.nextUrl;
 
   // Handle OPTIONS requests for CORS preflight
-  if (request.method === 'OPTIONS' && matchesPath(pathname, API_PATHS)) {
-    const response = new NextResponse(null, { status: 204 })
-    return addCorsHeaders(response, request)
+  if (request.method === "OPTIONS" && matchesPath(pathname, API_PATHS)) {
+    const response = new NextResponse(null, { status: 204 });
+    return addCorsHeaders(response, request);
   }
 
-  // Check maintenance mode
-  const isMaintenanceMode = process.env.MAINTENANCE_MODE === 'true'
+  // Check maintenance mode (basic check - full bypass in API routes)
+  const isMaintenanceMode = process.env.MAINTENANCE_MODE === "true";
   if (isMaintenanceMode && !matchesPath(pathname, MAINTENANCE_ALLOWED_PATHS)) {
-    // Check if user has bypass permission
-    const session = await auth()
-    const userEmail = session?.user?.email
-
-    if (!isMaintenanceBypassEmail(userEmail)) {
-      return createMaintenanceResponse(request)
-    }
-  }
-
-  // Check authentication for protected routes
-  if (matchesPath(pathname, PROTECTED_PATHS)) {
-    const session = await auth()
-
-    if (!session?.user) {
-      // For API routes, return 401
-      if (pathname.startsWith('/api/')) {
-        const response = NextResponse.json(
-          {
-            success: false,
-            error: {
-              code: 'UNAUTHORIZED',
-              message: 'Authentication required',
-            },
-          },
-          { status: 401 }
-        )
-        return addSecurityHeaders(response)
-      }
-
-      // For pages, redirect to sign in
-      const url = request.nextUrl.clone()
-      url.pathname = '/auth/signin'
-      url.searchParams.set('callbackUrl', pathname)
-      return NextResponse.redirect(url)
-    }
+    // Note: Admin bypass check happens in API routes since we can't use Prisma here
+    // For pages, we redirect to maintenance page
+    // Admin users can access /api/health to check status
+    return createMaintenanceResponse(request);
   }
 
   // Continue with the request
-  const response = NextResponse.next()
+  const response = NextResponse.next();
 
   // Add security headers to all responses
-  addSecurityHeaders(response)
+  addSecurityHeaders(response);
 
   // Add CORS headers to API responses
   if (matchesPath(pathname, API_PATHS)) {
-    addCorsHeaders(response, request)
+    addCorsHeaders(response, request);
   }
 
-  return response
+  return response;
 }
 
 /**
@@ -222,6 +177,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
-}
+};

@@ -5,38 +5,44 @@
  * Includes trial status tracking, expiry notifications, and automatic downgrade.
  */
 
-import { prisma } from '@/lib/db'
-import { PLAN_LIMITS, type PlanType, type PlanLimits } from '@/lib/stripe'
+import { prisma } from "@/lib/db";
+import {
+  PLAN_LIMITS,
+  type PlanType,
+  type PlanLimits,
+} from "@/lib/stripe-config";
 
 // Type for Prisma transaction client
-type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
+type TransactionClient = Parameters<
+  Parameters<typeof prisma.$transaction>[0]
+>[0];
 
 // Trial configuration
 export const TRIAL_CONFIG = {
   durationDays: 7,
-  plan: 'premium' as PlanType,
+  plan: "premium" as PlanType,
   features: [
-    'Unlimited searches',
-    'Unlimited favorites',
-    '50 AI-powered searches per day',
-    'Full search history',
-    'Compare up to 10 remedies',
-    'Export your data',
-    'Priority support',
+    "Unlimited searches",
+    "Unlimited favorites",
+    "50 AI-powered searches per day",
+    "Full search history",
+    "Compare up to 10 remedies",
+    "Export your data",
+    "Priority support",
   ],
-} as const
+} as const;
 
 /**
  * Trial status information
  */
 export interface TrialStatus {
-  isActive: boolean
-  isEligible: boolean
-  hasUsedTrial: boolean
-  startDate: Date | null
-  endDate: Date | null
-  daysRemaining: number
-  plan: PlanType
+  isActive: boolean;
+  isEligible: boolean;
+  hasUsedTrial: boolean;
+  startDate: Date | null;
+  endDate: Date | null;
+  daysRemaining: number;
+  plan: PlanType;
 }
 
 /**
@@ -47,9 +53,9 @@ export async function isTrialEligible(userId: string): Promise<boolean> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { hasUsedTrial: true },
-  })
+  });
 
-  return user !== null && !user.hasUsedTrial
+  return user !== null && !user.hasUsedTrial;
 }
 
 /**
@@ -66,7 +72,7 @@ export async function getTrialStatus(userId: string): Promise<TrialStatus> {
         select: { plan: true, status: true },
       },
     },
-  })
+  });
 
   if (!user) {
     return {
@@ -76,27 +82,35 @@ export async function getTrialStatus(userId: string): Promise<TrialStatus> {
       startDate: null,
       endDate: null,
       daysRemaining: 0,
-      plan: 'free',
-    }
+      plan: "free",
+    };
   }
 
-  const now = new Date()
+  const now = new Date();
   const isActive =
     user.trialEndDate !== null &&
     user.trialEndDate > now &&
-    user.subscription?.plan !== 'basic' &&
-    user.subscription?.plan !== 'premium'
+    user.subscription?.plan !== "basic" &&
+    user.subscription?.plan !== "premium";
 
   const daysRemaining = user.trialEndDate
-    ? Math.max(0, Math.ceil((user.trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
-    : 0
+    ? Math.max(
+        0,
+        Math.ceil(
+          (user.trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+        ),
+      )
+    : 0;
 
   // Determine current plan based on trial and subscription status
-  let currentPlan: PlanType = 'free'
-  if (user.subscription?.plan === 'premium' || user.subscription?.plan === 'basic') {
-    currentPlan = user.subscription.plan as PlanType
+  let currentPlan: PlanType = "free";
+  if (
+    user.subscription?.plan === "premium" ||
+    user.subscription?.plan === "basic"
+  ) {
+    currentPlan = user.subscription.plan as PlanType;
   } else if (isActive) {
-    currentPlan = TRIAL_CONFIG.plan
+    currentPlan = TRIAL_CONFIG.plan;
   }
 
   return {
@@ -107,7 +121,7 @@ export async function getTrialStatus(userId: string): Promise<TrialStatus> {
     endDate: user.trialEndDate,
     daysRemaining,
     plan: currentPlan,
-  }
+  };
 }
 
 /**
@@ -115,19 +129,19 @@ export async function getTrialStatus(userId: string): Promise<TrialStatus> {
  * Returns trial details or throws an error if not eligible
  */
 export async function startTrial(userId: string): Promise<{
-  success: boolean
-  trialEndDate: Date
-  daysRemaining: number
+  success: boolean;
+  trialEndDate: Date;
+  daysRemaining: number;
 }> {
-  const isEligible = await isTrialEligible(userId)
+  const isEligible = await isTrialEligible(userId);
 
   if (!isEligible) {
-    throw new Error('User is not eligible for a free trial')
+    throw new Error("User is not eligible for a free trial");
   }
 
-  const trialStartDate = new Date()
-  const trialEndDate = new Date()
-  trialEndDate.setDate(trialEndDate.getDate() + TRIAL_CONFIG.durationDays)
+  const trialStartDate = new Date();
+  const trialEndDate = new Date();
+  trialEndDate.setDate(trialEndDate.getDate() + TRIAL_CONFIG.durationDays);
 
   // Start transaction to update user and create/update subscription
   await prisma.$transaction(async (tx: TransactionClient) => {
@@ -139,7 +153,7 @@ export async function startTrial(userId: string): Promise<{
         trialEndDate,
         hasUsedTrial: true,
       },
-    })
+    });
 
     // Ensure subscription record exists with trial status
     await tx.subscription.upsert({
@@ -147,23 +161,23 @@ export async function startTrial(userId: string): Promise<{
       create: {
         userId,
         plan: TRIAL_CONFIG.plan,
-        status: 'trialing',
+        status: "trialing",
         startedAt: trialStartDate,
         expiresAt: trialEndDate,
       },
       update: {
         plan: TRIAL_CONFIG.plan,
-        status: 'trialing',
+        status: "trialing",
         expiresAt: trialEndDate,
       },
-    })
-  })
+    });
+  });
 
   return {
     success: true,
     trialEndDate,
     daysRemaining: TRIAL_CONFIG.durationDays,
-  }
+  };
 }
 
 /**
@@ -171,11 +185,11 @@ export async function startTrial(userId: string): Promise<{
  * Called by a scheduled job to downgrade expired trials
  */
 export async function processExpiredTrials(): Promise<{
-  processed: number
-  errors: string[]
+  processed: number;
+  errors: string[];
 }> {
-  const now = new Date()
-  const errors: string[] = []
+  const now = new Date();
+  const errors: string[] = [];
 
   // Find users with expired trials who are still on trial status
   const expiredTrials = await prisma.user.findMany({
@@ -184,7 +198,7 @@ export async function processExpiredTrials(): Promise<{
         lt: now,
       },
       subscription: {
-        status: 'trialing',
+        status: "trialing",
       },
     },
     select: {
@@ -194,9 +208,9 @@ export async function processExpiredTrials(): Promise<{
         select: { id: true },
       },
     },
-  })
+  });
 
-  let processed = 0
+  let processed = 0;
 
   for (const user of expiredTrials) {
     try {
@@ -204,19 +218,21 @@ export async function processExpiredTrials(): Promise<{
         await prisma.subscription.update({
           where: { id: user.subscription.id },
           data: {
-            plan: 'free',
-            status: 'active',
+            plan: "free",
+            status: "active",
             expiresAt: null,
           },
-        })
-        processed++
+        });
+        processed++;
       }
     } catch (error) {
-      errors.push(`Failed to process trial expiration for user ${user.id}: ${error}`)
+      errors.push(
+        `Failed to process trial expiration for user ${user.id}: ${error}`,
+      );
     }
   }
 
-  return { processed, errors }
+  return { processed, errors };
 }
 
 /**
@@ -224,40 +240,40 @@ export async function processExpiredTrials(): Promise<{
  * Takes into account trial status
  */
 export async function getEffectivePlanLimits(userId: string): Promise<{
-  limits: PlanLimits
-  plan: PlanType
-  isTrial: boolean
+  limits: PlanLimits;
+  plan: PlanType;
+  isTrial: boolean;
 }> {
-  const trialStatus = await getTrialStatus(userId)
+  const trialStatus = await getTrialStatus(userId);
 
   if (trialStatus.isActive) {
     return {
       limits: PLAN_LIMITS.PREMIUM,
-      plan: 'premium',
+      plan: "premium",
       isTrial: true,
-    }
+    };
   }
 
   // Check for paid subscription
   const subscription = await prisma.subscription.findUnique({
     where: { userId },
     select: { plan: true, status: true },
-  })
+  });
 
-  if (subscription?.status === 'active') {
-    const planKey = subscription.plan.toUpperCase() as keyof typeof PLAN_LIMITS
+  if (subscription?.status === "active") {
+    const planKey = subscription.plan.toUpperCase() as keyof typeof PLAN_LIMITS;
     return {
       limits: PLAN_LIMITS[planKey] || PLAN_LIMITS.FREE,
       plan: subscription.plan as PlanType,
       isTrial: false,
-    }
+    };
   }
 
   return {
     limits: PLAN_LIMITS.FREE,
-    plan: 'free',
+    plan: "free",
     isTrial: false,
-  }
+  };
 }
 
 /**
@@ -266,16 +282,16 @@ export async function getEffectivePlanLimits(userId: string): Promise<{
  */
 export async function getExpiringTrials(withinDays: number = 2): Promise<
   Array<{
-    userId: string
-    email: string
-    name: string | null
-    trialEndDate: Date
-    daysRemaining: number
+    userId: string;
+    email: string;
+    name: string | null;
+    trialEndDate: Date;
+    daysRemaining: number;
   }>
 > {
-  const now = new Date()
-  const futureDate = new Date()
-  futureDate.setDate(futureDate.getDate() + withinDays)
+  const now = new Date();
+  const futureDate = new Date();
+  futureDate.setDate(futureDate.getDate() + withinDays);
 
   const users = await prisma.user.findMany({
     where: {
@@ -284,7 +300,7 @@ export async function getExpiringTrials(withinDays: number = 2): Promise<
         lte: futureDate,
       },
       subscription: {
-        status: 'trialing',
+        status: "trialing",
       },
     },
     select: {
@@ -293,17 +309,24 @@ export async function getExpiringTrials(withinDays: number = 2): Promise<
       name: true,
       trialEndDate: true,
     },
-  })
+  });
 
-  return users.map((user: { id: string; email: string; name: string | null; trialEndDate: Date | null }) => ({
-    userId: user.id,
-    email: user.email,
-    name: user.name,
-    trialEndDate: user.trialEndDate!,
-    daysRemaining: Math.ceil(
-      (user.trialEndDate!.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-    ),
-  }))
+  return users.map(
+    (user: {
+      id: string;
+      email: string;
+      name: string | null;
+      trialEndDate: Date | null;
+    }) => ({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      trialEndDate: user.trialEndDate!,
+      daysRemaining: Math.ceil(
+        (user.trialEndDate!.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+      ),
+    }),
+  );
 }
 
 /**
@@ -313,9 +336,9 @@ export async function cancelTrial(userId: string): Promise<void> {
   await prisma.subscription.update({
     where: { userId },
     data: {
-      plan: 'free',
-      status: 'active',
+      plan: "free",
+      status: "active",
       expiresAt: null,
     },
-  })
+  });
 }

@@ -14,8 +14,11 @@
  * - For serverless (Vercel, Netlify): Use Prisma Data Proxy or external pooler
  * - For traditional servers: Connection pool is managed by Prisma
  * - For high-load: Consider pgBouncer (see docker-compose.yml)
+ *
+ * IMPORTANT: This module is server-only and cannot be imported in client components.
  */
 
+import "server-only";
 import { PrismaClient } from "@prisma/client";
 
 // Extend global type for development singleton
@@ -33,9 +36,7 @@ function createPrismaClient(): PrismaClient {
   const isProduction = process.env.NODE_ENV === "production";
 
   return new PrismaClient({
-    log: isProduction
-      ? ["error", "warn"]
-      : ["query", "error", "warn"],
+    log: isProduction ? ["error", "warn"] : ["query", "error", "warn"],
     // Connection pool settings are configured via DATABASE_URL query params
     // Example: ?connection_limit=10&pool_timeout=20
   });
@@ -95,8 +96,13 @@ export async function isConnected(): Promise<boolean> {
  * @param maxRetries - Maximum retry attempts (default: 3)
  */
 export async function withTransaction<T>(
-  fn: (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">) => Promise<T>,
-  maxRetries = 3
+  fn: (
+    tx: Omit<
+      PrismaClient,
+      "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+    >,
+  ) => Promise<T>,
+  maxRetries = 3,
 ): Promise<T> {
   let lastError: Error | undefined;
 
@@ -123,7 +129,7 @@ export async function withTransaction<T>(
 
       // Exponential backoff before retry
       await new Promise((resolve) =>
-        setTimeout(resolve, Math.pow(2, attempt) * 100)
+        setTimeout(resolve, Math.pow(2, attempt) * 100),
       );
     }
   }

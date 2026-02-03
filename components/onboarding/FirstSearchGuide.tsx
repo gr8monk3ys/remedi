@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -28,13 +28,21 @@ const SEARCH_SUGGESTIONS = [
     category: "Sleep & Relaxation",
     icon: <Moon className="w-5 h-5" />,
     color: "purple",
-    examples: ["natural sleep aids", "melatonin alternatives", "insomnia herbs"],
+    examples: [
+      "natural sleep aids",
+      "melatonin alternatives",
+      "insomnia herbs",
+    ],
   },
   {
     category: "Heart Health",
     icon: <Heart className="w-5 h-5" />,
     color: "red",
-    examples: ["omega-3 sources", "blood pressure natural", "cholesterol herbs"],
+    examples: [
+      "omega-3 sources",
+      "blood pressure natural",
+      "cholesterol herbs",
+    ],
   },
   {
     category: "Natural Supplements",
@@ -63,7 +71,7 @@ export function FirstSearchGuide({
   onSearch,
   onDismiss,
   className,
-}: FirstSearchGuideProps): JSX.Element | null {
+}: FirstSearchGuideProps) {
   const { shouldShowFirstSearchGuide, completeFirstSearch, isLoaded } =
     useOnboarding();
 
@@ -83,7 +91,7 @@ export function FirstSearchGuide({
         setShowCelebration(false);
       }, 2000);
     },
-    [onSearch, completeFirstSearch]
+    [onSearch, completeFirstSearch],
   );
 
   // Handle dismiss
@@ -98,7 +106,10 @@ export function FirstSearchGuide({
   }
 
   // Color classes mapping
-  const colorClasses: Record<string, { bg: string; text: string; hover: string }> = {
+  const colorClasses: Record<
+    string,
+    { bg: string; text: string; hover: string }
+  > = {
     blue: {
       bg: "bg-blue-50 dark:bg-blue-900/30",
       text: "text-blue-600 dark:text-blue-400",
@@ -182,7 +193,7 @@ export function FirstSearchGuide({
                       "absolute w-3 h-3 rounded-full",
                       i % 3 === 0 && "bg-green-500",
                       i % 3 === 1 && "bg-blue-500",
-                      i % 3 === 2 && "bg-purple-500"
+                      i % 3 === 2 && "bg-purple-500",
                     )}
                   />
                 ))}
@@ -199,7 +210,7 @@ export function FirstSearchGuide({
         exit={{ opacity: 0, y: -20 }}
         className={cn(
           "bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden",
-          className
+          className,
         )}
       >
         {/* Header */}
@@ -240,15 +251,13 @@ export function FirstSearchGuide({
                 <button
                   key={suggestion.category}
                   onClick={() =>
-                    setSelectedCategory(
-                      isSelected ? null : suggestion.category
-                    )
+                    setSelectedCategory(isSelected ? null : suggestion.category)
                   }
                   className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all",
                     isSelected
                       ? `${colors.bg} ${colors.text} ring-2 ring-offset-2 ring-current`
-                      : `${colors.bg} ${colors.text} ${colors.hover}`
+                      : `${colors.bg} ${colors.text} ${colors.hover}`,
                   )}
                 >
                   {suggestion.icon}
@@ -274,7 +283,7 @@ export function FirstSearchGuide({
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {SEARCH_SUGGESTIONS.find(
-                      (s) => s.category === selectedCategory
+                      (s) => s.category === selectedCategory,
                     )?.examples.map((example) => (
                       <button
                         key={example}
@@ -317,9 +326,9 @@ export function FirstSearchGuide({
             <div className="flex items-start gap-2">
               <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                <span className="font-medium">Pro tip:</span> Enable AI search to
-                describe symptoms naturally, like &quot;I need help with anxiety&quot; or
-                &quot;natural energy boost&quot;.
+                <span className="font-medium">Pro tip:</span> Enable AI search
+                to describe symptoms naturally, like &quot;I need help with
+                anxiety&quot; or &quot;natural energy boost&quot;.
               </p>
             </div>
           </div>

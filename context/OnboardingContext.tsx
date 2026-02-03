@@ -86,7 +86,9 @@ const defaultState: OnboardingState = {
   featureFlags: {},
 };
 
-const OnboardingContext = createContext<OnboardingContextValue | undefined>(undefined);
+const OnboardingContext = createContext<OnboardingContextValue | undefined>(
+  undefined,
+);
 
 interface OnboardingProviderProps {
   children: ReactNode;
@@ -100,7 +102,7 @@ interface OnboardingProviderProps {
 export function OnboardingProvider({
   children,
   featureFlags = {},
-}: OnboardingProviderProps): JSX.Element {
+}: OnboardingProviderProps) {
   const [state, setState] = useState<OnboardingState>({
     ...defaultState,
     featureFlags,
@@ -111,18 +113,34 @@ export function OnboardingProvider({
   useEffect(() => {
     const loadState = (): void => {
       try {
-        const welcomeCompleted = localStorage.getItem(STORAGE_KEYS.WELCOME_COMPLETED) === "true";
-        const tourCompleted = localStorage.getItem(STORAGE_KEYS.TOUR_COMPLETED) === "true";
-        const firstSearchCompleted = localStorage.getItem(STORAGE_KEYS.FIRST_SEARCH_COMPLETED) === "true";
-        const signupPromptDismissed = localStorage.getItem(STORAGE_KEYS.SIGNUP_PROMPT_DISMISSED) === "true";
-        const premiumUpsellDismissed = localStorage.getItem(STORAGE_KEYS.PREMIUM_UPSELL_DISMISSED) === "true";
-        const dontShowWelcome = localStorage.getItem(STORAGE_KEYS.DONT_SHOW_WELCOME) === "true";
-        const dontShowTour = localStorage.getItem(STORAGE_KEYS.DONT_SHOW_TOUR) === "true";
-        const currentWelcomeStep = parseInt(localStorage.getItem(STORAGE_KEYS.ONBOARDING_STEP) || "0", 10);
-        const guestSearchCount = parseInt(localStorage.getItem(STORAGE_KEYS.GUEST_SEARCH_COUNT) || "0", 10);
+        const welcomeCompleted =
+          localStorage.getItem(STORAGE_KEYS.WELCOME_COMPLETED) === "true";
+        const tourCompleted =
+          localStorage.getItem(STORAGE_KEYS.TOUR_COMPLETED) === "true";
+        const firstSearchCompleted =
+          localStorage.getItem(STORAGE_KEYS.FIRST_SEARCH_COMPLETED) === "true";
+        const signupPromptDismissed =
+          localStorage.getItem(STORAGE_KEYS.SIGNUP_PROMPT_DISMISSED) === "true";
+        const premiumUpsellDismissed =
+          localStorage.getItem(STORAGE_KEYS.PREMIUM_UPSELL_DISMISSED) ===
+          "true";
+        const dontShowWelcome =
+          localStorage.getItem(STORAGE_KEYS.DONT_SHOW_WELCOME) === "true";
+        const dontShowTour =
+          localStorage.getItem(STORAGE_KEYS.DONT_SHOW_TOUR) === "true";
+        const currentWelcomeStep = parseInt(
+          localStorage.getItem(STORAGE_KEYS.ONBOARDING_STEP) || "0",
+          10,
+        );
+        const guestSearchCount = parseInt(
+          localStorage.getItem(STORAGE_KEYS.GUEST_SEARCH_COUNT) || "0",
+          10,
+        );
 
         let healthInterests: HealthInterests | null = null;
-        const storedInterests = localStorage.getItem(STORAGE_KEYS.HEALTH_INTERESTS);
+        const storedInterests = localStorage.getItem(
+          STORAGE_KEYS.HEALTH_INTERESTS,
+        );
         if (storedInterests) {
           try {
             healthInterests = JSON.parse(storedInterests) as HealthInterests;
@@ -186,7 +204,10 @@ export function OnboardingProvider({
   }, []);
 
   const setHealthInterests = useCallback((interests: HealthInterests): void => {
-    localStorage.setItem(STORAGE_KEYS.HEALTH_INTERESTS, JSON.stringify(interests));
+    localStorage.setItem(
+      STORAGE_KEYS.HEALTH_INTERESTS,
+      JSON.stringify(interests),
+    );
     setState((prev) => ({ ...prev, healthInterests: interests }));
   }, []);
 
@@ -221,8 +242,18 @@ export function OnboardingProvider({
   }, [isLoaded, state.welcomeCompleted, state.dontShowWelcome]);
 
   const shouldShowTour = useMemo(() => {
-    return isLoaded && state.welcomeCompleted && !state.tourCompleted && !state.dontShowTour;
-  }, [isLoaded, state.welcomeCompleted, state.tourCompleted, state.dontShowTour]);
+    return (
+      isLoaded &&
+      state.welcomeCompleted &&
+      !state.tourCompleted &&
+      !state.dontShowTour
+    );
+  }, [
+    isLoaded,
+    state.welcomeCompleted,
+    state.tourCompleted,
+    state.dontShowTour,
+  ]);
 
   const shouldShowFirstSearchGuide = useMemo(() => {
     return isLoaded && !state.firstSearchCompleted;
@@ -230,12 +261,16 @@ export function OnboardingProvider({
 
   // Show signup prompt after 3 searches as guest
   const shouldShowSignupPrompt = useMemo(() => {
-    return isLoaded && state.guestSearchCount >= 3 && !state.signupPromptDismissed;
+    return (
+      isLoaded && state.guestSearchCount >= 3 && !state.signupPromptDismissed
+    );
   }, [isLoaded, state.guestSearchCount, state.signupPromptDismissed]);
 
   // Show premium upsell after 10 searches (simulating free tier limit)
   const shouldShowPremiumUpsell = useMemo(() => {
-    return isLoaded && state.guestSearchCount >= 10 && !state.premiumUpsellDismissed;
+    return (
+      isLoaded && state.guestSearchCount >= 10 && !state.premiumUpsellDismissed
+    );
   }, [isLoaded, state.guestSearchCount, state.premiumUpsellDismissed]);
 
   const contextValue = useMemo<OnboardingContextValue>(
@@ -280,7 +315,7 @@ export function OnboardingProvider({
       shouldShowPremiumUpsell,
       isFirstTimeUser,
       isLoaded,
-    ]
+    ],
   );
 
   return (

@@ -15,7 +15,10 @@ import {
   Shield,
   Users,
 } from "lucide-react";
-import { useOnboarding, type HealthInterests } from "@/context/OnboardingContext";
+import {
+  useOnboarding,
+  type HealthInterests,
+} from "@/context/OnboardingContext";
 import { cn } from "@/lib/utils";
 
 interface WelcomeModalProps {
@@ -60,7 +63,7 @@ export function WelcomeModal({
   onClose,
   onStartTour,
   onTrySearch,
-}: WelcomeModalProps): JSX.Element | null {
+}: WelcomeModalProps) {
   const {
     shouldShowWelcome,
     currentWelcomeStep,
@@ -109,7 +112,7 @@ export function WelcomeModal({
       setWelcomeStep(newStep);
       setTimeout(() => setIsAnimating(false), 300);
     },
-    [isAnimating, setWelcomeStep]
+    [isAnimating, setWelcomeStep],
   );
 
   const nextStep = useCallback((): void => {
@@ -148,14 +151,16 @@ export function WelcomeModal({
     setSelectedCategories((prev) =>
       prev.includes(categoryId)
         ? prev.filter((c) => c !== categoryId)
-        : [...prev, categoryId]
+        : [...prev, categoryId],
     );
   }, []);
 
   // Toggle goal selection
   const toggleGoal = useCallback((goalId: string): void => {
     setSelectedGoals((prev) =>
-      prev.includes(goalId) ? prev.filter((g) => g !== goalId) : [...prev, goalId]
+      prev.includes(goalId)
+        ? prev.filter((g) => g !== goalId)
+        : [...prev, goalId],
     );
   }, []);
 
@@ -165,7 +170,7 @@ export function WelcomeModal({
       setDemoQuery(query);
       onTrySearch?.(query);
     },
-    [onTrySearch]
+    [onTrySearch],
   );
 
   // Handle keyboard navigation
@@ -229,7 +234,12 @@ export function WelcomeModal({
           </button>
 
           {/* Progress indicator */}
-          <div className="flex gap-1.5 mb-4" role="progressbar" aria-valuenow={step + 1} aria-valuemax={TOTAL_STEPS}>
+          <div
+            className="flex gap-1.5 mb-4"
+            role="progressbar"
+            aria-valuenow={step + 1}
+            aria-valuemax={TOTAL_STEPS}
+          >
             {Array.from({ length: TOTAL_STEPS }).map((_, index) => (
               <button
                 key={index}
@@ -240,7 +250,7 @@ export function WelcomeModal({
                     ? "bg-green-500"
                     : index < step
                       ? "bg-green-500/50"
-                      : "bg-gray-200 dark:bg-gray-700"
+                      : "bg-gray-200 dark:bg-gray-700",
                 )}
                 aria-label={`Go to step ${index + 1}`}
               />
@@ -252,7 +262,10 @@ export function WelcomeModal({
               <Leaf className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h2 id="welcome-modal-title" className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h2
+                id="welcome-modal-title"
+                className="text-2xl font-bold text-gray-900 dark:text-white"
+              >
                 {step === 0 && "Welcome to Remedi"}
                 {step === 1 && "Tell Us About You"}
                 {step === 2 && "Powerful Features"}
@@ -282,9 +295,9 @@ export function WelcomeModal({
               {step === 0 && (
                 <div className="space-y-6">
                   <p className="text-gray-600 dark:text-gray-300 text-lg">
-                    Discover natural alternatives to pharmaceuticals and supplements.
-                    Our platform helps you find evidence-based natural remedies
-                    tailored to your needs.
+                    Discover natural alternatives to pharmaceuticals and
+                    supplements. Our platform helps you find evidence-based
+                    natural remedies tailored to your needs.
                   </p>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -332,8 +345,11 @@ export function WelcomeModal({
               {step === 1 && (
                 <div className="space-y-6">
                   <p className="text-gray-600 dark:text-gray-300">
-                    Help us personalize your experience. What health areas interest you?
-                    <span className="text-sm text-gray-400 ml-1">(Optional)</span>
+                    Help us personalize your experience. What health areas
+                    interest you?
+                    <span className="text-sm text-gray-400 ml-1">
+                      (Optional)
+                    </span>
                   </p>
 
                   <div className="space-y-4">
@@ -349,7 +365,7 @@ export function WelcomeModal({
                             "px-4 py-2 rounded-full text-sm font-medium transition-all",
                             selectedCategories.includes(category.id)
                               ? "bg-green-500 text-white"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600",
                           )}
                         >
                           {selectedCategories.includes(category.id) && (
@@ -374,7 +390,7 @@ export function WelcomeModal({
                             "w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-all text-left",
                             selectedGoals.includes(goal.id)
                               ? "bg-green-500 text-white"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600",
                           )}
                         >
                           {goal.label}
@@ -392,7 +408,8 @@ export function WelcomeModal({
               {step === 2 && (
                 <div className="space-y-6">
                   <p className="text-gray-600 dark:text-gray-300">
-                    Explore our powerful features designed to help you on your wellness journey.
+                    Explore our powerful features designed to help you on your
+                    wellness journey.
                   </p>
 
                   <div className="space-y-4">
@@ -410,8 +427,9 @@ export function WelcomeModal({
                           Smart Search
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Search any pharmaceutical or supplement to find natural alternatives.
-                          Our database includes FDA-approved drugs and evidence-based remedies.
+                          Search any pharmaceutical or supplement to find
+                          natural alternatives. Our database includes
+                          FDA-approved drugs and evidence-based remedies.
                         </p>
                       </div>
                     </motion.div>
@@ -430,8 +448,9 @@ export function WelcomeModal({
                           AI-Powered Matching
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Describe your symptoms in natural language. Our AI understands
-                          queries like &quot;I have trouble sleeping&quot; or &quot;natural pain relief.&quot;
+                          Describe your symptoms in natural language. Our AI
+                          understands queries like &quot;I have trouble
+                          sleeping&quot; or &quot;natural pain relief.&quot;
                         </p>
                       </div>
                     </motion.div>
@@ -463,7 +482,8 @@ export function WelcomeModal({
               {step === 3 && (
                 <div className="space-y-6">
                   <p className="text-gray-600 dark:text-gray-300">
-                    Try a search to see how Remedi works. Click on any suggestion below:
+                    Try a search to see how Remedi works. Click on any
+                    suggestion below:
                   </p>
 
                   <div className="relative">
@@ -497,7 +517,7 @@ export function WelcomeModal({
                             "px-4 py-2 text-sm rounded-full transition-all",
                             demoQuery === search
                               ? "bg-green-500 text-white"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600",
                           )}
                         >
                           {search}
@@ -515,8 +535,8 @@ export function WelcomeModal({
                       <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
                         <Check className="w-5 h-5" />
                         <span className="font-medium">
-                          Great choice! You will see results for &quot;{demoQuery}&quot; after completing
-                          the setup.
+                          Great choice! You will see results for &quot;
+                          {demoQuery}&quot; after completing the setup.
                         </span>
                       </div>
                     </motion.div>
@@ -528,7 +548,8 @@ export function WelcomeModal({
               {step === 4 && (
                 <div className="space-y-6">
                   <p className="text-gray-600 dark:text-gray-300">
-                    Create a free account to unlock all features, or continue exploring as a guest.
+                    Create a free account to unlock all features, or continue
+                    exploring as a guest.
                   </p>
 
                   <div className="space-y-3">
@@ -552,6 +573,7 @@ export function WelcomeModal({
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
+                      {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirects require <a> tags */}
                       <a
                         href="/api/auth/signin/google"
                         className="flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
@@ -579,11 +601,16 @@ export function WelcomeModal({
                         </span>
                       </a>
 
+                      {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirects require <a> tags */}
                       <a
                         href="/api/auth/signin/github"
                         className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
                       >
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path
                             fillRule="evenodd"
                             d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
@@ -634,7 +661,7 @@ export function WelcomeModal({
                 "flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors",
                 step === 0
                   ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
               )}
             >
               <ChevronLeft className="w-4 h-4" />

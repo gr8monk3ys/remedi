@@ -7,9 +7,9 @@
  * - Environment configuration
  */
 
-import { expect, afterEach, vi } from 'vitest';
-import { cleanup } from '@testing-library/react';
-import * as matchers from '@testing-library/jest-dom/matchers';
+import { expect, afterEach, vi } from "vitest";
+import { cleanup } from "@testing-library/react";
+import * as matchers from "@testing-library/jest-dom/matchers";
 
 // Extend Vitest expect with Testing Library matchers
 expect.extend(matchers);
@@ -23,12 +23,12 @@ afterEach(() => {
 // Mock IntersectionObserver
 class MockIntersectionObserver implements IntersectionObserver {
   readonly root: Element | null = null;
-  readonly rootMargin: string = '';
+  readonly rootMargin: string = "";
   readonly thresholds: readonly number[] = [];
 
   constructor(
     private callback: IntersectionObserverCallback,
-    _options?: IntersectionObserverInit
+    _options?: IntersectionObserverInit,
   ) {}
 
   observe(): void {}
@@ -52,7 +52,7 @@ class MockResizeObserver implements ResizeObserver {
 global.ResizeObserver = MockResizeObserver;
 
 // Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
     matches: false,
@@ -67,7 +67,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock scrollTo
-Object.defineProperty(window, 'scrollTo', {
+Object.defineProperty(window, "scrollTo", {
   writable: true,
   value: vi.fn(),
 });
@@ -82,12 +82,12 @@ const localStorageMock = {
   key: vi.fn(),
 };
 
-Object.defineProperty(window, 'localStorage', {
+Object.defineProperty(window, "localStorage", {
   value: localStorageMock,
 });
 
 // Mock sessionStorage
-Object.defineProperty(window, 'sessionStorage', {
+Object.defineProperty(window, "sessionStorage", {
   value: localStorageMock,
 });
 
@@ -95,7 +95,7 @@ Object.defineProperty(window, 'sessionStorage', {
 global.fetch = vi.fn();
 
 // Mock Next.js router
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useRouter: vi.fn(() => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -104,31 +104,34 @@ vi.mock('next/navigation', () => ({
     refresh: vi.fn(),
     prefetch: vi.fn(),
   })),
-  usePathname: vi.fn(() => '/'),
+  usePathname: vi.fn(() => "/"),
   useSearchParams: vi.fn(() => new URLSearchParams()),
   useParams: vi.fn(() => ({})),
 }));
 
 // Mock next-auth
-vi.mock('next-auth/react', () => ({
+vi.mock("next-auth/react", () => ({
   useSession: vi.fn(() => ({
     data: null,
-    status: 'unauthenticated',
+    status: "unauthenticated",
   })),
   signIn: vi.fn(),
   signOut: vi.fn(),
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+// Mock server-only (allows importing server-only modules in tests)
+vi.mock("server-only", () => ({}));
+
 // Suppress console.error for expected test errors
 const originalError = console.error;
 console.error = (...args: unknown[]) => {
   // Suppress specific expected errors
   if (
-    typeof args[0] === 'string' &&
-    (args[0].includes('Warning: ReactDOM.render') ||
-      args[0].includes('Warning: An update to') ||
-      args[0].includes('act(...)'))
+    typeof args[0] === "string" &&
+    (args[0].includes("Warning: ReactDOM.render") ||
+      args[0].includes("Warning: An update to") ||
+      args[0].includes("act(...)"))
   ) {
     return;
   }

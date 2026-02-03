@@ -80,12 +80,16 @@ vi.mock("@/lib/rate-limit", () => ({
 }));
 
 import {
-  getPlanByPriceId,
   isPlanFeatureAvailable,
   getPlanLimit,
-  isStripeConfigured,
   PLANS,
-} from "@/lib/stripe";
+} from "@/lib/stripe-config";
+
+// Mock server-only module
+vi.mock("server-only", () => ({}));
+
+// Import server-only functions after mocking
+import { getPlanByPriceId, isStripeConfigured } from "@/lib/stripe";
 
 describe("lib/stripe", () => {
   describe("PLANS configuration", () => {
@@ -237,7 +241,9 @@ describe("POST /api/checkout", () => {
 
     expect(response!.status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error.code).toBe("VALIDATION_ERROR");
+    // Error code changed from VALIDATION_ERROR to INVALID_PRICE
+    // when using direct priceId approach with invalid IDs
+    expect(data.error.code).toBe("INVALID_PRICE");
   });
 });
 

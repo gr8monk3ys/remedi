@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Upgrade Modal Component
@@ -7,9 +7,9 @@
  * Shows what features they're missing and provides upgrade options.
  */
 
-import { useCallback, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
   Check,
@@ -21,17 +21,24 @@ import {
   Sparkles,
   Clock,
   Loader2,
-} from 'lucide-react'
-import { PLANS, type PlanType } from '@/lib/stripe'
+} from "lucide-react";
+import { PLANS, type PlanType } from "@/lib/stripe-config";
 
 interface UpgradeModalProps {
-  isOpen: boolean
-  onClose: () => void
-  triggerReason?: 'search_limit' | 'ai_search_limit' | 'favorite_limit' | 'compare_limit' | 'export' | 'history' | 'feature'
-  currentPlan?: PlanType
-  featureName?: string
-  currentUsage?: number
-  limit?: number
+  isOpen: boolean;
+  onClose: () => void;
+  triggerReason?:
+    | "search_limit"
+    | "ai_search_limit"
+    | "favorite_limit"
+    | "compare_limit"
+    | "export"
+    | "history"
+    | "feature";
+  currentPlan?: PlanType;
+  featureName?: string;
+  currentUsage?: number;
+  limit?: number;
 }
 
 // Feature icons mapping
@@ -42,180 +49,183 @@ const featureIcons: Record<string, React.ReactNode> = {
   compare: <BarChart3 className="w-5 h-5" />,
   export: <Download className="w-5 h-5" />,
   history: <Clock className="w-5 h-5" />,
-}
+};
 
 // Trigger reason messages
-const triggerMessages: Record<string, { title: string; description: string }> = {
-  search_limit: {
-    title: "You've reached your daily search limit",
-    description: 'Upgrade to get more searches and unlock powerful features.',
-  },
-  ai_search_limit: {
-    title: 'AI search limit reached',
-    description: 'Get more AI-powered searches to find the perfect natural remedies.',
-  },
-  favorite_limit: {
-    title: "You've saved the maximum favorites",
-    description: 'Upgrade to save unlimited favorites and organize your remedies.',
-  },
-  compare_limit: {
-    title: 'Compare more remedies',
-    description: 'Upgrade to compare more remedies side by side.',
-  },
-  export: {
-    title: 'Export is a premium feature',
-    description: 'Upgrade to export your data and favorites.',
-  },
-  history: {
-    title: 'Search history is a premium feature',
-    description: 'Upgrade to access your complete search history.',
-  },
-  feature: {
-    title: 'Unlock this feature',
-    description: 'Upgrade your plan to access premium features.',
-  },
-}
+const triggerMessages: Record<string, { title: string; description: string }> =
+  {
+    search_limit: {
+      title: "You've reached your daily search limit",
+      description: "Upgrade to get more searches and unlock powerful features.",
+    },
+    ai_search_limit: {
+      title: "AI search limit reached",
+      description:
+        "Get more AI-powered searches to find the perfect natural remedies.",
+    },
+    favorite_limit: {
+      title: "You've saved the maximum favorites",
+      description:
+        "Upgrade to save unlimited favorites and organize your remedies.",
+    },
+    compare_limit: {
+      title: "Compare more remedies",
+      description: "Upgrade to compare more remedies side by side.",
+    },
+    export: {
+      title: "Export is a premium feature",
+      description: "Upgrade to export your data and favorites.",
+    },
+    history: {
+      title: "Search history is a premium feature",
+      description: "Upgrade to access your complete search history.",
+    },
+    feature: {
+      title: "Unlock this feature",
+      description: "Upgrade your plan to access premium features.",
+    },
+  };
 
 // Plan comparison data
 const planComparison = [
   {
-    feature: 'Daily searches',
-    free: '5',
-    basic: '100',
-    premium: 'Unlimited',
-    icon: 'searches',
+    feature: "Daily searches",
+    free: "5",
+    basic: "100",
+    premium: "Unlimited",
+    icon: "searches",
   },
   {
-    feature: 'Saved favorites',
-    free: '3',
-    basic: '50',
-    premium: 'Unlimited',
-    icon: 'favorites',
+    feature: "Saved favorites",
+    free: "3",
+    basic: "50",
+    premium: "Unlimited",
+    icon: "favorites",
   },
   {
-    feature: 'AI-powered searches',
-    free: '-',
-    basic: '10/day',
-    premium: '50/day',
-    icon: 'aiSearches',
+    feature: "AI-powered searches",
+    free: "-",
+    basic: "10/day",
+    premium: "50/day",
+    icon: "aiSearches",
   },
   {
-    feature: 'Compare remedies',
-    free: '-',
-    basic: 'Up to 4',
-    premium: 'Up to 10',
-    icon: 'compare',
+    feature: "Compare remedies",
+    free: "-",
+    basic: "Up to 4",
+    premium: "Up to 10",
+    icon: "compare",
   },
   {
-    feature: 'Search history',
-    free: '-',
-    basic: 'Full access',
-    premium: 'Full access',
-    icon: 'history',
+    feature: "Search history",
+    free: "-",
+    basic: "Full access",
+    premium: "Full access",
+    icon: "history",
   },
   {
-    feature: 'Export data',
-    free: '-',
-    basic: 'Yes',
-    premium: 'Yes',
-    icon: 'export',
+    feature: "Export data",
+    free: "-",
+    basic: "Yes",
+    premium: "Yes",
+    icon: "export",
   },
-]
+];
 
 export function UpgradeModal({
   isOpen,
   onClose,
-  triggerReason = 'feature',
-  currentPlan = 'free',
+  triggerReason = "feature",
+  currentPlan = "free",
   featureName,
   currentUsage,
   limit,
 }: UpgradeModalProps) {
   // featureName is used for accessibility but not directly rendered
-  void featureName
-  const router = useRouter()
-  const [isStartingTrial, setIsStartingTrial] = useState(false)
-  const [trialEligible, setTrialEligible] = useState(false)
-  const [loadingCheckout, setLoadingCheckout] = useState<string | null>(null)
+  void featureName;
+  const router = useRouter();
+  const [isStartingTrial, setIsStartingTrial] = useState(false);
+  const [trialEligible, setTrialEligible] = useState(false);
+  const [loadingCheckout, setLoadingCheckout] = useState<string | null>(null);
 
   // Check trial eligibility when modal opens
   useEffect(() => {
     if (isOpen) {
-      checkTrialEligibility()
+      checkTrialEligibility();
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   const checkTrialEligibility = async () => {
     try {
-      const response = await fetch('/api/trial/check')
-      const data = await response.json()
+      const response = await fetch("/api/trial/check");
+      const data = await response.json();
       if (data.success) {
-        setTrialEligible(data.data.isEligible)
+        setTrialEligible(data.data.isEligible);
       }
     } catch {
       // Silently fail - trial button just won't show
     }
-  }
+  };
 
   const handleStartTrial = async () => {
-    setIsStartingTrial(true)
+    setIsStartingTrial(true);
     try {
-      const response = await fetch('/api/trial/start', {
-        method: 'POST',
-      })
-      const data = await response.json()
+      const response = await fetch("/api/trial/start", {
+        method: "POST",
+      });
+      const data = await response.json();
 
       if (data.success) {
-        onClose()
-        router.refresh()
+        onClose();
+        router.refresh();
       } else {
-        alert(data.error?.message || 'Failed to start trial')
+        alert(data.error?.message || "Failed to start trial");
       }
     } catch (error) {
-      console.error('Trial start error:', error)
-      alert('Failed to start trial. Please try again.')
+      console.error("Trial start error:", error);
+      alert("Failed to start trial. Please try again.");
     } finally {
-      setIsStartingTrial(false)
+      setIsStartingTrial(false);
     }
-  }
+  };
 
   const handleUpgrade = async (plan: PlanType) => {
-    if (plan === 'free') return
+    if (plan === "free") return;
 
-    setLoadingCheckout(plan)
+    setLoadingCheckout(plan);
     try {
-      const planConfig = PLANS[plan]
-      if (!('monthlyPriceId' in planConfig)) return
+      const planConfig = PLANS[plan];
+      if (!("monthlyPriceId" in planConfig)) return;
 
-      const priceId = planConfig.monthlyPriceId
+      const priceId = planConfig.monthlyPriceId;
 
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ priceId }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (data.success && data.data.url) {
-        window.location.href = data.data.url
+        window.location.href = data.data.url;
       } else {
-        alert(data.error?.message || 'Failed to start checkout')
+        alert(data.error?.message || "Failed to start checkout");
       }
     } catch (error) {
-      console.error('Checkout error:', error)
-      alert('Failed to start checkout. Please try again.')
+      console.error("Checkout error:", error);
+      alert("Failed to start checkout. Please try again.");
     } finally {
-      setLoadingCheckout(null)
+      setLoadingCheckout(null);
     }
-  }
+  };
 
   const handleViewPricing = useCallback(() => {
-    onClose()
-    router.push('/pricing')
-  }, [onClose, router])
+    onClose();
+    router.push("/pricing");
+  }, [onClose, router]);
 
-  const message = triggerMessages[triggerReason]
+  const message = triggerMessages[triggerReason];
 
   return (
     <AnimatePresence>
@@ -256,22 +266,26 @@ export function UpgradeModal({
               <p className="text-white/90">{message.description}</p>
 
               {/* Usage indicator if applicable */}
-              {currentUsage !== undefined && limit !== undefined && limit > 0 && (
-                <div className="mt-4 bg-white/10 rounded-lg p-3">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Usage today</span>
-                    <span>
-                      {currentUsage} / {limit}
-                    </span>
+              {currentUsage !== undefined &&
+                limit !== undefined &&
+                limit > 0 && (
+                  <div className="mt-4 bg-white/10 rounded-lg p-3">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Usage today</span>
+                      <span>
+                        {currentUsage} / {limit}
+                      </span>
+                    </div>
+                    <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-white rounded-full transition-all"
+                        style={{
+                          width: `${Math.min(100, (currentUsage / limit) * 100)}%`,
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-white rounded-full transition-all"
-                      style={{ width: `${Math.min(100, (currentUsage / limit) * 100)}%` }}
-                    />
-                  </div>
-                </div>
-              )}
+                )}
             </div>
 
             {/* Content */}
@@ -316,22 +330,28 @@ export function UpgradeModal({
                             </div>
                           </td>
                           <td className="text-center py-3 px-2 text-gray-500 dark:text-gray-400">
-                            {row.free === '-' ? (
-                              <span className="text-gray-300 dark:text-gray-600">-</span>
+                            {row.free === "-" ? (
+                              <span className="text-gray-300 dark:text-gray-600">
+                                -
+                              </span>
                             ) : (
                               row.free
                             )}
                           </td>
                           <td className="text-center py-3 px-2 text-gray-700 dark:text-gray-300">
-                            {row.basic === '-' ? (
-                              <span className="text-gray-300 dark:text-gray-600">-</span>
+                            {row.basic === "-" ? (
+                              <span className="text-gray-300 dark:text-gray-600">
+                                -
+                              </span>
                             ) : (
                               row.basic
                             )}
                           </td>
                           <td className="text-center py-3 px-2 font-medium text-blue-600 dark:text-blue-400">
-                            {row.premium === '-' ? (
-                              <span className="text-gray-300 dark:text-gray-600">-</span>
+                            {row.premium === "-" ? (
+                              <span className="text-gray-300 dark:text-gray-600">
+                                -
+                              </span>
                             ) : (
                               row.premium
                             )}
@@ -354,27 +374,34 @@ export function UpgradeModal({
                     <span className="text-2xl font-bold text-gray-900 dark:text-white">
                       ${PLANS.basic.price}
                     </span>
-                    <span className="text-gray-500 dark:text-gray-400">/month</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      /month
+                    </span>
                   </div>
                   <ul className="space-y-2 mb-4">
                     {PLANS.basic.features.slice(0, 4).map((feature) => (
-                      <li key={feature} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <li
+                        key={feature}
+                        className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
+                      >
                         <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                         {feature}
                       </li>
                     ))}
                   </ul>
                   <button
-                    onClick={() => handleUpgrade('basic')}
-                    disabled={loadingCheckout === 'basic' || currentPlan === 'basic'}
+                    onClick={() => handleUpgrade("basic")}
+                    disabled={
+                      loadingCheckout === "basic" || currentPlan === "basic"
+                    }
                     className="w-full py-2 px-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {loadingCheckout === 'basic' ? (
+                    {loadingCheckout === "basic" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : currentPlan === 'basic' ? (
-                      'Current Plan'
+                    ) : currentPlan === "basic" ? (
+                      "Current Plan"
                     ) : (
-                      'Upgrade to Basic'
+                      "Upgrade to Basic"
                     )}
                   </button>
                 </div>
@@ -391,27 +418,34 @@ export function UpgradeModal({
                     <span className="text-2xl font-bold text-gray-900 dark:text-white">
                       ${PLANS.premium.price}
                     </span>
-                    <span className="text-gray-500 dark:text-gray-400">/month</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      /month
+                    </span>
                   </div>
                   <ul className="space-y-2 mb-4">
                     {PLANS.premium.features.slice(0, 4).map((feature) => (
-                      <li key={feature} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <li
+                        key={feature}
+                        className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
+                      >
                         <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                         {feature}
                       </li>
                     ))}
                   </ul>
                   <button
-                    onClick={() => handleUpgrade('premium')}
-                    disabled={loadingCheckout === 'premium' || currentPlan === 'premium'}
+                    onClick={() => handleUpgrade("premium")}
+                    disabled={
+                      loadingCheckout === "premium" || currentPlan === "premium"
+                    }
                     className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {loadingCheckout === 'premium' ? (
+                    {loadingCheckout === "premium" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : currentPlan === 'premium' ? (
-                      'Current Plan'
+                    ) : currentPlan === "premium" ? (
+                      "Current Plan"
                     ) : (
-                      'Upgrade to Premium'
+                      "Upgrade to Premium"
                     )}
                   </button>
                 </div>
@@ -422,7 +456,7 @@ export function UpgradeModal({
             <div className="border-t border-gray-200 dark:border-zinc-700 px-6 py-4 bg-gray-50 dark:bg-zinc-800/50">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 {/* Trial option */}
-                {trialEligible && currentPlan === 'free' && (
+                {trialEligible && currentPlan === "free" && (
                   <button
                     onClick={handleStartTrial}
                     disabled={isStartingTrial}
@@ -449,7 +483,7 @@ export function UpgradeModal({
         </>
       )}
     </AnimatePresence>
-  )
+  );
 }
 
-export default UpgradeModal
+export default UpgradeModal;

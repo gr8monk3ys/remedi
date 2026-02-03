@@ -8,6 +8,10 @@
  * - `import { prisma } from '@/lib/db/client'`
  * - `import { searchPharmaceuticals } from '@/lib/db/pharmaceuticals'`
  * - etc.
+ *
+ * IMPORTANT: This module is server-only and cannot be imported in client components.
  */
 
-export * from './db/index';
+import "server-only";
+
+export * from "./db/index";

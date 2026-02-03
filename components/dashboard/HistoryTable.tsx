@@ -1,19 +1,24 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Search, RotateCcw, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
-import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
-import type { SearchHistoryItem, HistorySortOption } from '@/types/dashboard'
+import Link from "next/link";
+import {
+  Search,
+  RotateCcw,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import type { SearchHistoryItem, HistorySortOption } from "@/types/dashboard";
 
 interface HistoryTableProps {
-  history: SearchHistoryItem[]
-  onRerun?: (query: string) => void
-  onDelete?: (id: string) => void
-  sortOption?: HistorySortOption
-  onSortChange?: (sort: HistorySortOption) => void
-  className?: string
+  history: SearchHistoryItem[];
+  onRerun?: (query: string) => void;
+  onDelete?: (id: string) => void;
+  sortOption?: HistorySortOption;
+  onSortChange?: (sort: HistorySortOption) => void;
+  className?: string;
 }
 
 /**
@@ -25,46 +30,54 @@ export function HistoryTable({
   history,
   onRerun,
   onDelete,
-  sortOption = 'newest',
+  sortOption = "newest",
   onSortChange,
   className,
 }: HistoryTableProps) {
-  const handleSort = (column: 'date' | 'results'): void => {
-    if (!onSortChange) return
+  const handleSort = (column: "date" | "results"): void => {
+    if (!onSortChange) return;
 
-    if (column === 'date') {
-      onSortChange(sortOption === 'newest' ? 'oldest' : 'newest')
+    if (column === "date") {
+      onSortChange(sortOption === "newest" ? "oldest" : "newest");
     } else {
-      onSortChange(sortOption === 'most_results' ? 'least_results' : 'most_results')
+      onSortChange(
+        sortOption === "most_results" ? "least_results" : "most_results",
+      );
     }
-  }
+  };
 
-  const SortIcon = ({ column }: { column: 'date' | 'results' }) => {
-    const isDateColumn = column === 'date'
-    const isResultsColumn = column === 'results'
+  const SortIcon = ({ column }: { column: "date" | "results" }) => {
+    const isDateColumn = column === "date";
+    const isResultsColumn = column === "results";
 
     const isActive =
-      (isDateColumn && (sortOption === 'newest' || sortOption === 'oldest')) ||
-      (isResultsColumn && (sortOption === 'most_results' || sortOption === 'least_results'))
+      (isDateColumn && (sortOption === "newest" || sortOption === "oldest")) ||
+      (isResultsColumn &&
+        (sortOption === "most_results" || sortOption === "least_results"));
 
-    const isAscending = sortOption === 'oldest' || sortOption === 'least_results'
+    const isAscending =
+      sortOption === "oldest" || sortOption === "least_results";
 
     if (!isActive) {
-      return <ChevronDown className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100" />
+      return (
+        <ChevronDown className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100" />
+      );
     }
 
     return isAscending ? (
       <ChevronUp className="h-4 w-4 text-primary" />
     ) : (
       <ChevronDown className="h-4 w-4 text-primary" />
-    )
-  }
+    );
+  };
 
   if (history.length === 0) {
     return (
-      <div className={cn('text-center py-12', className)}>
+      <div className={cn("text-center py-12", className)}>
         <Search className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
-        <p className="text-gray-500 dark:text-gray-400">No search history yet</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          No search history yet
+        </p>
         <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
           Start searching to build your history
         </p>
@@ -76,11 +89,11 @@ export function HistoryTable({
           Start Searching
         </Link>
       </div>
-    )
+    );
   }
 
   return (
-    <div className={cn('overflow-x-auto', className)}>
+    <div className={cn("overflow-x-auto", className)}>
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200 dark:border-gray-700">
@@ -89,7 +102,7 @@ export function HistoryTable({
             </th>
             <th
               className="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400 cursor-pointer group"
-              onClick={() => handleSort('results')}
+              onClick={() => handleSort("results")}
             >
               <span className="flex items-center gap-1">
                 Results
@@ -98,7 +111,7 @@ export function HistoryTable({
             </th>
             <th
               className="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400 cursor-pointer group"
-              onClick={() => handleSort('date')}
+              onClick={() => handleSort("date")}
             >
               <span className="flex items-center gap-1">
                 Date
@@ -125,11 +138,12 @@ export function HistoryTable({
                 </div>
               </td>
               <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
-                {item.resultsCount} {item.resultsCount === 1 ? 'result' : 'results'}
+                {item.resultsCount}{" "}
+                {item.resultsCount === 1 ? "result" : "results"}
               </td>
               <td className="py-3 px-4 text-gray-500 dark:text-gray-400">
                 <time dateTime={item.createdAt.toISOString()}>
-                  {format(item.createdAt, 'MMM d, yyyy h:mm a')}
+                  {format(item.createdAt, "MMM d, yyyy h:mm a")}
                 </time>
               </td>
               <td className="py-3 px-4">
@@ -161,7 +175,7 @@ export function HistoryTable({
         </tbody>
       </table>
     </div>
-  )
+  );
 }
 
 /**
@@ -189,7 +203,10 @@ export function HistoryTableSkeleton({ rows = 5 }: { rows?: number }) {
         </thead>
         <tbody>
           {Array.from({ length: rows }).map((_, i) => (
-            <tr key={i} className="border-b border-gray-200 dark:border-gray-700">
+            <tr
+              key={i}
+              className="border-b border-gray-200 dark:border-gray-700"
+            >
               <td className="py-3 px-4">
                 <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
               </td>
@@ -207,5 +224,5 @@ export function HistoryTableSkeleton({ rows = 5 }: { rows?: number }) {
         </tbody>
       </table>
     </div>
-  )
+  );
 }

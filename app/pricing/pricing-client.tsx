@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Pricing Client Component
@@ -7,17 +7,17 @@
  * trial start, and checkout.
  */
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Check, Loader2, Sparkles, Zap, Crown } from 'lucide-react'
-import { PLANS, type PlanType } from '@/lib/stripe'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Check, Loader2, Sparkles, Zap, Crown } from "lucide-react";
+import { PLANS, type PlanType } from "@/lib/stripe-config";
 
 interface PricingClientProps {
-  currentPlan: PlanType
-  hasActiveSubscription: boolean
-  trialEligible: boolean
-  isAuthenticated: boolean
+  currentPlan: PlanType;
+  hasActiveSubscription: boolean;
+  trialEligible: boolean;
+  isAuthenticated: boolean;
 }
 
 export function PricingClient({
@@ -26,84 +26,83 @@ export function PricingClient({
   trialEligible,
   isAuthenticated,
 }: PricingClientProps) {
-  const router = useRouter()
-  const [isYearly, setIsYearly] = useState(true) // Default to yearly (better value)
-  const [loading, setLoading] = useState<string | null>(null)
+  const router = useRouter();
+  const [isYearly, setIsYearly] = useState(true); // Default to yearly (better value)
+  const [loading, setLoading] = useState<string | null>(null);
 
   const handleStartTrial = async () => {
     if (!isAuthenticated) {
-      router.push('/auth/signin?callbackUrl=/pricing')
-      return
+      router.push("/auth/signin?callbackUrl=/pricing");
+      return;
     }
 
-    setLoading('trial')
+    setLoading("trial");
     try {
-      const response = await fetch('/api/trial/start', {
-        method: 'POST',
-      })
+      const response = await fetch("/api/trial/start", {
+        method: "POST",
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (data.success) {
-        router.push('/billing?trial=true')
-        router.refresh()
+        router.push("/billing?trial=true");
+        router.refresh();
       } else {
-        alert(data.error?.message || 'Failed to start trial')
+        alert(data.error?.message || "Failed to start trial");
       }
     } catch (error) {
-      console.error('Trial start error:', error)
-      alert('Failed to start trial. Please try again.')
+      console.error("Trial start error:", error);
+      alert("Failed to start trial. Please try again.");
     } finally {
-      setLoading(null)
+      setLoading(null);
     }
-  }
+  };
 
   const handleCheckout = async (plan: PlanType) => {
     if (!isAuthenticated) {
-      router.push(`/auth/signin?callbackUrl=/pricing`)
-      return
+      router.push(`/auth/signin?callbackUrl=/pricing`);
+      return;
     }
 
-    if (plan === 'free' || plan === currentPlan) return
+    if (plan === "free" || plan === currentPlan) return;
 
-    setLoading(plan)
+    setLoading(plan);
     try {
-      const planConfig = PLANS[plan]
-      if (!('monthlyPriceId' in planConfig)) return
+      // Send plan and interval to server - server will look up the price ID
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan,
+          interval: isYearly ? "year" : "month",
+        }),
+      });
 
-      const priceId = isYearly ? planConfig.yearlyPriceId : planConfig.monthlyPriceId
-
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId }),
-      })
-
-      const data = await response.json()
+      const data = await response.json();
 
       if (data.success && data.data.url) {
-        window.location.href = data.data.url
+        window.location.href = data.data.url;
       } else {
-        alert(data.error?.message || 'Failed to start checkout')
+        alert(data.error?.message || "Failed to start checkout");
       }
     } catch (error) {
-      console.error('Checkout error:', error)
-      alert('Failed to start checkout. Please try again.')
+      console.error("Checkout error:", error);
+      alert("Failed to start checkout. Please try again.");
     } finally {
-      setLoading(null)
+      setLoading(null);
     }
-  }
+  };
 
   // Calculate prices
-  const basicMonthlyPrice = PLANS.basic.price
-  const basicYearlyPrice = PLANS.basic.yearlyPrice
-  const basicYearlyMonthly = basicYearlyPrice / 12
+  const basicMonthlyPrice = PLANS.basic.price;
+  const basicYearlyPrice = PLANS.basic.yearlyPrice;
+  const basicYearlyMonthly = basicYearlyPrice / 12;
 
-  const premiumMonthlyPrice = PLANS.premium.price
-  const premiumYearlyPrice = PLANS.premium.yearlyPrice
-  const premiumYearlyMonthly = premiumYearlyPrice / 12
+  const premiumMonthlyPrice = PLANS.premium.price;
+  const premiumYearlyPrice = PLANS.premium.yearlyPrice;
+  const premiumYearlyMonthly = premiumYearlyPrice / 12;
 
-  const yearlyDiscount = 20 // 20% discount
+  const yearlyDiscount = 20; // 20% discount
 
   return (
     <div id="pricing">
@@ -114,8 +113,8 @@ export function PricingClient({
             onClick={() => setIsYearly(false)}
             className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
               !isYearly
-                ? 'bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
             }`}
           >
             Monthly
@@ -124,8 +123,8 @@ export function PricingClient({
             onClick={() => setIsYearly(true)}
             className={`px-6 py-3 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
               isYearly
-                ? 'bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
             }`}
           >
             Yearly
@@ -167,14 +166,14 @@ export function PricingClient({
             </div>
 
             <button
-              disabled={currentPlan === 'free'}
+              disabled={currentPlan === "free"}
               className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                currentPlan === 'free'
-                  ? 'bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 cursor-default'
-                  : 'bg-gray-200 dark:bg-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-500'
+                currentPlan === "free"
+                  ? "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 cursor-default"
+                  : "bg-gray-200 dark:bg-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-500"
               }`}
             >
-              {currentPlan === 'free' ? 'Current Plan' : 'Downgrade'}
+              {currentPlan === "free" ? "Current Plan" : "Downgrade"}
             </button>
 
             <ul className="mt-8 space-y-4">
@@ -214,7 +213,10 @@ export function PricingClient({
 
             <div className="mb-6">
               <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                ${isYearly ? basicYearlyMonthly.toFixed(2) : basicMonthlyPrice.toFixed(2)}
+                $
+                {isYearly
+                  ? basicYearlyMonthly.toFixed(2)
+                  : basicMonthlyPrice.toFixed(2)}
               </span>
               <span className="text-gray-500 dark:text-gray-400">/month</span>
               {isYearly && (
@@ -225,31 +227,31 @@ export function PricingClient({
             </div>
 
             <button
-              onClick={() => handleCheckout('basic')}
+              onClick={() => handleCheckout("basic")}
               disabled={
-                loading === 'basic' ||
-                currentPlan === 'basic' ||
-                currentPlan === 'premium'
+                loading === "basic" ||
+                currentPlan === "basic" ||
+                currentPlan === "premium"
               }
               className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-                currentPlan === 'basic'
-                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 cursor-default'
-                  : currentPlan === 'premium'
-                    ? 'bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                    : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'
+                currentPlan === "basic"
+                  ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 cursor-default"
+                  : currentPlan === "premium"
+                    ? "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                    : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
               }`}
             >
-              {loading === 'basic' ? (
+              {loading === "basic" ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
-              ) : currentPlan === 'basic' ? (
+              ) : currentPlan === "basic" ? (
                 <>
                   <Check className="w-5 h-5" />
                   Current Plan
                 </>
-              ) : currentPlan === 'premium' ? (
-                'Included'
+              ) : currentPlan === "premium" ? (
+                "Included"
               ) : (
-                'Get Started'
+                "Get Started"
               )}
             </button>
 
@@ -296,7 +298,10 @@ export function PricingClient({
 
             <div className="mb-6">
               <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                ${isYearly ? premiumYearlyMonthly.toFixed(2) : premiumMonthlyPrice.toFixed(2)}
+                $
+                {isYearly
+                  ? premiumYearlyMonthly.toFixed(2)
+                  : premiumMonthlyPrice.toFixed(2)}
               </span>
               <span className="text-gray-500 dark:text-gray-400">/month</span>
               {isYearly && (
@@ -307,13 +312,13 @@ export function PricingClient({
             </div>
 
             {/* Trial CTA for eligible users */}
-            {trialEligible && currentPlan === 'free' && (
+            {trialEligible && currentPlan === "free" && (
               <button
                 onClick={handleStartTrial}
-                disabled={loading === 'trial'}
+                disabled={loading === "trial"}
                 className="w-full py-3 px-4 mb-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
               >
-                {loading === 'trial' ? (
+                {loading === "trial" ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
@@ -325,25 +330,25 @@ export function PricingClient({
             )}
 
             <button
-              onClick={() => handleCheckout('premium')}
-              disabled={loading === 'premium' || currentPlan === 'premium'}
+              onClick={() => handleCheckout("premium")}
+              disabled={loading === "premium" || currentPlan === "premium"}
               className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-                currentPlan === 'premium'
-                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 cursor-default'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+                currentPlan === "premium"
+                  ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 cursor-default"
+                  : "bg-blue-500 hover:bg-blue-600 text-white"
               }`}
             >
-              {loading === 'premium' ? (
+              {loading === "premium" ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
-              ) : currentPlan === 'premium' ? (
+              ) : currentPlan === "premium" ? (
                 <>
                   <Check className="w-5 h-5" />
                   Current Plan
                 </>
-              ) : trialEligible && currentPlan === 'free' ? (
-                'Subscribe Now'
+              ) : trialEligible && currentPlan === "free" ? (
+                "Subscribe Now"
               ) : (
-                'Upgrade to Premium'
+                "Upgrade to Premium"
               )}
             </button>
 
@@ -389,5 +394,5 @@ export function PricingClient({
         </div>
       )}
     </div>
-  )
+  );
 }

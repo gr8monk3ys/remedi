@@ -84,21 +84,14 @@ interface FeatureTourProps {
   onSkip?: () => void;
 }
 
-export function FeatureTour({
-  onComplete,
-  onSkip,
-}: FeatureTourProps): JSX.Element | null {
-  const {
-    shouldShowTour,
-    completeTour,
-    setDontShowTour,
-    isLoaded,
-  } = useOnboarding();
+export function FeatureTour({ onComplete, onSkip }: FeatureTourProps) {
+  const { shouldShowTour, completeTour, setDontShowTour, isLoaded } =
+    useOnboarding();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
   const [dontShowAgain, setDontShowAgain] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible] = useState(true);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   const step = TOUR_STEPS[currentStep];
@@ -228,8 +221,8 @@ export function FeatureTour({
             padding,
             Math.min(
               viewportWidth - tooltipWidth - padding,
-              highlightRect.left + highlightRect.width / 2 - tooltipWidth / 2
-            )
+              highlightRect.left + highlightRect.width / 2 - tooltipWidth / 2,
+            ),
           )}px`,
         };
         break;
@@ -240,8 +233,8 @@ export function FeatureTour({
             padding,
             Math.min(
               viewportWidth - tooltipWidth - padding,
-              highlightRect.left + highlightRect.width / 2 - tooltipWidth / 2
-            )
+              highlightRect.left + highlightRect.width / 2 - tooltipWidth / 2,
+            ),
           )}px`,
         };
         break;
@@ -251,8 +244,8 @@ export function FeatureTour({
             padding,
             Math.min(
               viewportHeight - tooltipHeight - padding,
-              highlightRect.top + highlightRect.height / 2 - tooltipHeight / 2
-            )
+              highlightRect.top + highlightRect.height / 2 - tooltipHeight / 2,
+            ),
           )}px`,
           left: `${Math.max(padding, highlightRect.left - tooltipWidth - padding)}px`,
         };
@@ -263,8 +256,8 @@ export function FeatureTour({
             padding,
             Math.min(
               viewportHeight - tooltipHeight - padding,
-              highlightRect.top + highlightRect.height / 2 - tooltipHeight / 2
-            )
+              highlightRect.top + highlightRect.height / 2 - tooltipHeight / 2,
+            ),
           )}px`,
           left: `${highlightRect.right + padding}px`,
         };
@@ -405,7 +398,7 @@ export function FeatureTour({
                     ? "bg-green-500"
                     : index < currentStep
                       ? "bg-green-500/50"
-                      : "bg-gray-200 dark:bg-gray-700"
+                      : "bg-gray-200 dark:bg-gray-700",
                 )}
                 aria-label={`Go to step ${index + 1}`}
               />
@@ -425,7 +418,7 @@ export function FeatureTour({
                 "flex items-center gap-1 text-sm font-medium transition-colors",
                 isFirstStep
                   ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white",
               )}
             >
               <ChevronLeft className="w-4 h-4" />

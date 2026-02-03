@@ -1,27 +1,20 @@
 import type { Metadata } from "next";
-import { Inter, Roboto_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { PWARegister } from "@/components/PWARegister";
 import { Analytics } from "@/components/analytics";
-import { generateOrganizationSchema, generateWebSiteSchema } from "@/lib/structured-data";
+import {
+  generateOrganizationSchema,
+  generateWebSiteSchema,
+} from "@/lib/structured-data";
 import "./globals.css";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
-const robotoMono = Roboto_Mono({
-  variable: "--font-roboto-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: {
     default: "Remedi - Natural Alternatives to Pharmaceuticals",
     template: "%s | Remedi",
   },
-  description: "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements. Find safe, effective herbal and nutritional options backed by scientific research.",
+  description:
+    "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements. Find safe, effective herbal and nutritional options backed by scientific research.",
   keywords: [
     "natural remedies",
     "herbal medicine",
@@ -42,7 +35,9 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+  ),
   alternates: {
     canonical: "/",
   },
@@ -52,7 +47,8 @@ export const metadata: Metadata = {
     url: "/",
     siteName: "Remedi",
     title: "Remedi - Natural Alternatives to Pharmaceuticals",
-    description: "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.",
+    description:
+      "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.",
     images: [
       {
         url: "/og-image.png",
@@ -65,7 +61,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Remedi - Natural Alternatives to Pharmaceuticals",
-    description: "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.",
+    description:
+      "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.",
     images: ["/og-image.png"],
     creator: "@remedi",
   },
@@ -118,7 +115,9 @@ export default function RootLayout({
         {/* Organization Structured Data */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
         />
         {/* WebSite Structured Data */}
         <script
@@ -126,16 +125,12 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
         />
       </head>
-      <body
-        className={`${inter.variable} ${robotoMono.variable} antialiased min-h-screen bg-white dark:bg-zinc-900 text-black dark:text-white`}
-      >
+      <body className="font-sans antialiased min-h-screen bg-white dark:bg-zinc-900 text-black dark:text-white">
         <a href="#main-content" className="skip-to-main">
           Skip to main content
         </a>
         <Providers>
-          <main id="main-content">
-            {children}
-          </main>
+          <main id="main-content">{children}</main>
           <PWARegister />
         </Providers>
         <Analytics

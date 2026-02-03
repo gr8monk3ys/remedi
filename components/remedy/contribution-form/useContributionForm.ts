@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Contribution Form Reducer Hook
  *
