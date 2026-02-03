@@ -46,23 +46,88 @@ export const stripe = {
 }
 
 /**
+ * Plan limits configuration
+ * Defines feature access and usage limits for each plan tier
+ */
+export const PLAN_LIMITS = {
+  FREE: {
+    maxFavorites: 3,
+    maxSearchesPerDay: 5,
+    maxAiSearchesPerDay: 0,
+    canExport: false,
+    canCompare: false,
+    maxCompareItems: 0,
+    canAccessHistory: false,
+    prioritySupport: false,
+  },
+  BASIC: {
+    maxFavorites: 50,
+    maxSearchesPerDay: 100,
+    maxAiSearchesPerDay: 10,
+    canExport: true,
+    canCompare: true,
+    maxCompareItems: 4,
+    canAccessHistory: true,
+    prioritySupport: false,
+  },
+  PREMIUM: {
+    maxFavorites: -1, // Unlimited
+    maxSearchesPerDay: -1, // Unlimited
+    maxAiSearchesPerDay: 50,
+    canExport: true,
+    canCompare: true,
+    maxCompareItems: 10,
+    canAccessHistory: true,
+    prioritySupport: true,
+  },
+} as const
+
+export type PlanLimits = typeof PLAN_LIMITS[keyof typeof PLAN_LIMITS]
+
+/**
+ * Get plan limits by plan type
+ */
+export function getPlanLimits(plan: PlanType): PlanLimits {
+  const planKey = plan.toUpperCase() as keyof typeof PLAN_LIMITS
+  return PLAN_LIMITS[planKey] || PLAN_LIMITS.FREE
+}
+
+/**
+ * Check if a usage value is within the plan limit
+ * Returns true if the usage is allowed, false if limit is exceeded
+ */
+export function isWithinLimit(limit: number, currentUsage: number): boolean {
+  return limit === -1 || currentUsage < limit
+}
+
+/**
+ * Calculate usage percentage (0-100)
+ * Returns 0 for unlimited plans
+ */
+export function getUsagePercentage(limit: number, currentUsage: number): number {
+  if (limit === -1) return 0
+  if (limit === 0) return 100
+  return Math.min(100, Math.round((currentUsage / limit) * 100))
+}
+
+/**
  * Subscription plan configuration
  */
 export const PLANS = {
   free: {
     name: 'Free',
-    description: 'Basic access to natural remedy search',
+    description: 'Get started with basic natural remedy search',
     price: 0,
     features: [
       'Basic search functionality',
       'View remedy details',
-      'Save up to 5 favorites',
-      '10 searches per day',
+      'Save up to 3 favorites',
+      '5 searches per day',
     ],
     limits: {
-      favorites: 5,
-      searchesPerDay: 10,
-      aiSearches: 0,
+      favorites: PLAN_LIMITS.FREE.maxFavorites,
+      searchesPerDay: PLAN_LIMITS.FREE.maxSearchesPerDay,
+      aiSearches: PLAN_LIMITS.FREE.maxAiSearchesPerDay,
     },
   },
   basic: {
@@ -71,18 +136,19 @@ export const PLANS = {
     monthlyPriceId: process.env.STRIPE_BASIC_MONTHLY_PRICE_ID,
     yearlyPriceId: process.env.STRIPE_BASIC_YEARLY_PRICE_ID,
     price: 9.99,
-    yearlyPrice: 99.99,
+    yearlyPrice: 95.90, // 20% off annual (saves $24)
     features: [
-      'Unlimited searches',
-      'Save unlimited favorites',
-      'Search history',
-      'Filter preferences',
-      'Priority support',
+      '100 searches per day',
+      'Save up to 50 favorites',
+      '10 AI-powered searches per day',
+      'Full search history',
+      'Compare up to 4 remedies',
+      'Export your data',
     ],
     limits: {
-      favorites: -1, // unlimited
-      searchesPerDay: -1, // unlimited
-      aiSearches: 10,
+      favorites: PLAN_LIMITS.BASIC.maxFavorites,
+      searchesPerDay: PLAN_LIMITS.BASIC.maxSearchesPerDay,
+      aiSearches: PLAN_LIMITS.BASIC.maxAiSearchesPerDay,
     },
   },
   premium: {
@@ -91,19 +157,21 @@ export const PLANS = {
     monthlyPriceId: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID,
     yearlyPriceId: process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID,
     price: 19.99,
-    yearlyPrice: 199.99,
+    yearlyPrice: 191.90, // 20% off annual (saves $48)
     features: [
-      'Everything in Basic',
-      'AI-powered remedy matching',
-      'Drug interaction checking',
-      'Personalized recommendations',
-      'Export data',
-      'API access',
+      'Unlimited searches',
+      'Unlimited favorites',
+      '50 AI-powered searches per day',
+      'Full search history',
+      'Compare up to 10 remedies',
+      'Export your data',
+      'Priority support',
+      'Early access to new features',
     ],
     limits: {
-      favorites: -1,
-      searchesPerDay: -1,
-      aiSearches: -1, // unlimited
+      favorites: PLAN_LIMITS.PREMIUM.maxFavorites,
+      searchesPerDay: PLAN_LIMITS.PREMIUM.maxSearchesPerDay,
+      aiSearches: PLAN_LIMITS.PREMIUM.maxAiSearchesPerDay,
     },
   },
 } as const
@@ -222,13 +290,24 @@ export async function createCheckoutSession({
   userId,
   successUrl,
   cancelUrl,
+  trialPeriodDays,
 }: {
   customerId: string
   priceId: string
   userId: string
   successUrl: string
   cancelUrl: string
+  trialPeriodDays?: number
 }): Promise<Stripe.Checkout.Session> {
+  const subscriptionData: Stripe.Checkout.SessionCreateParams['subscription_data'] = {
+    metadata: { userId },
+  }
+
+  // Add trial period if specified
+  if (trialPeriodDays && trialPeriodDays > 0) {
+    subscriptionData.trial_period_days = trialPeriodDays
+  }
+
   return stripe.checkout.sessions.create({
     customer: customerId,
     mode: 'subscription',
@@ -241,9 +320,7 @@ export async function createCheckoutSession({
     ],
     success_url: successUrl,
     cancel_url: cancelUrl,
-    subscription_data: {
-      metadata: { userId },
-    },
+    subscription_data: subscriptionData,
     metadata: { userId },
   })
 }

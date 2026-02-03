@@ -180,15 +180,22 @@ model User {
   createdAt     DateTime  @default(now()) @db.Timestamptz
   updatedAt     DateTime  @updatedAt @db.Timestamptz
 
+  // Trial tracking
+  trialStartDate DateTime? @db.Timestamptz // When the trial started
+  trialEndDate   DateTime? @db.Timestamptz // When the trial expires
+  hasUsedTrial   Boolean   @default(false) // Whether user has ever used a trial
+
   accounts         Account[]
   sessions         Session[]
   reviews          RemedyReview[]
   contributions    RemedyContribution[]
   subscription     Subscription?
   emailPreferences EmailPreference?
+  usageRecords     UsageRecord[]
 
   @@index([email])
   @@index([role])
+  @@index([trialEndDate])
 }
 
 model Account {
@@ -381,4 +388,45 @@ model EmailLog {
   @@index([emailType])
   @@index([status])
   @@index([createdAt(sort: Desc)])
+}
+
+// ============================================================================
+// Usage Tracking & Analytics Models
+// ============================================================================
+
+// Daily usage records for tracking plan limits
+model UsageRecord {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  date         DateTime @db.Date // The date for this usage record (UTC)
+  searches     Int      @default(0) // Number of searches performed
+  aiSearches   Int      @default(0) // Number of AI searches performed
+  exports      Int      @default(0) // Number of exports performed
+  comparisons  Int      @default(0) // Number of comparisons performed
+  createdAt    DateTime @default(now()) @db.Timestamptz
+  updatedAt    DateTime @updatedAt @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date]) // One record per user per day
+  @@index([userId])
+  @@index([date])
+}
+
+// Conversion funnel analytics events
+model ConversionEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String?  @db.Uuid // Null for anonymous users
+  sessionId   String?  // Session ID for anonymous tracking
+  eventType   String   // Type of event (upgrade_prompt_shown, upgrade_clicked, trial_started, etc.)
+  eventSource String?  // Where the event occurred (feature_gate, limit_banner, pricing_page, etc.)
+  planTarget  String?  // Target plan (basic, premium)
+  metadata    Json?    // Additional event data
+  createdAt   DateTime @default(now()) @db.Timestamptz
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([eventType])
+  @@index([createdAt(sort: Desc)])
+  @@index([eventSource])
 }

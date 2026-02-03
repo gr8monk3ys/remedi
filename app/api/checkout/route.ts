@@ -2,9 +2,10 @@
  * Checkout API Endpoint
  *
  * Creates Stripe checkout sessions for subscription purchases.
+ * Supports optional trial periods for eligible users.
  *
  * POST /api/checkout
- * Body: { priceId: string }
+ * Body: { priceId: string, withTrial?: boolean }
  * Returns: { url: string } - Stripe checkout URL
  */
 
@@ -15,8 +16,15 @@ import {
   getOrCreateStripeCustomer,
   isStripeConfigured,
   PLANS,
+  getPlanByPriceId,
 } from '@/lib/stripe'
 import { withRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
+import { isTrialEligible } from '@/lib/trial'
+import {
+  trackConversionEvent,
+  CONVERSION_EVENT_TYPES,
+  EVENT_SOURCES,
+} from '@/lib/analytics/conversion-events'
 import { z } from 'zod'
 
 // Build allowlist of valid price IDs from PLANS config
@@ -32,6 +40,8 @@ const checkoutSchema = z.object({
     .string()
     .min(1, 'Price ID is required')
     .refine((id) => validPriceIds.has(id), 'Invalid price ID'),
+  withTrial: z.boolean().optional().default(false),
+  source: z.string().optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -90,7 +100,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { priceId } = parsed.data
+    const { priceId, withTrial, source } = parsed.data
+
+    // Get the target plan from price ID
+    const targetPlan = getPlanByPriceId(priceId) || 'basic'
 
     // Get or create Stripe customer
     const customerId = await getOrCreateStripeCustomer(
@@ -98,6 +111,15 @@ export async function POST(request: NextRequest) {
       session.user.email,
       session.user.name || undefined
     )
+
+    // Check trial eligibility if trial is requested
+    let trialPeriodDays: number | undefined
+    if (withTrial) {
+      const eligible = await isTrialEligible(session.user.id)
+      if (eligible) {
+        trialPeriodDays = 7 // 7-day trial
+      }
+    }
 
     // Get base URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -109,6 +131,19 @@ export async function POST(request: NextRequest) {
       userId: session.user.id,
       successUrl: `${baseUrl}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${baseUrl}/billing?canceled=true`,
+      trialPeriodDays,
+    })
+
+    // Track checkout started event
+    await trackConversionEvent({
+      userId: session.user.id,
+      eventType: CONVERSION_EVENT_TYPES.CHECKOUT_STARTED,
+      eventSource: (source as typeof EVENT_SOURCES[keyof typeof EVENT_SOURCES]) || EVENT_SOURCES.PRICING_PAGE,
+      planTarget: targetPlan,
+      metadata: {
+        priceId,
+        withTrial: !!trialPeriodDays,
+      },
     })
 
     return NextResponse.json({
