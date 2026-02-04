@@ -29,7 +29,7 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
     "@prisma/client": "^7.3.0",
-    "@react-email/components": "^1.0.6",
+    "@react-email/components": "^1.0.7",
     "@sentry/nextjs": "^10.38.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.2",
