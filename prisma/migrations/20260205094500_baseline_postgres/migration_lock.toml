@@ -1,0 +1,2 @@
+# Baseline migration for PostgreSQL
+provider = "postgresql"
