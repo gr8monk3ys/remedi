@@ -1,5 +1,7 @@
 # Remedi
 
+![CI](https://github.com/gr8monk3ys/remedi/actions/workflows/ci.yml/badge.svg)
+
 A modern web application designed to help users find natural alternatives to pharmaceutical drugs and supplements. The app integrates with the OpenFDA API and uses an intelligent database-first search strategy to provide accurate, science-backed natural remedy recommendations.
 
 ## Features
@@ -17,11 +19,12 @@ A modern web application designed to help users find natural alternatives to pha
 
 ## Tech Stack
 
-- **React 18**: For building the user interface
-- **Next.js 15**: For server-side rendering and API routes
+- **React 19**: For building the user interface
+- **Next.js 16**: For server-side rendering and API routes
+- **Bun**: Package manager and runtime
 - **TypeScript 5**: For type safety
 - **Prisma**: ORM for database operations
-- **SQLite**: Database (development) - easily switchable to PostgreSQL/MySQL
+- **PostgreSQL**: Primary database (local via Docker)
 - **TailwindCSS 4**: For styling
 - **Framer Motion**: For animations
 - **next-themes**: For dark/light mode
@@ -33,7 +36,8 @@ A modern web application designed to help users find natural alternatives to pha
 ### Prerequisites
 
 - Node.js 18+
-- npm or yarn
+- Bun 1.3+
+- Docker (for local PostgreSQL)
 
 ### Installation
 
@@ -45,7 +49,7 @@ cd remedi
 
 2. Install dependencies
 ```bash
-npm install
+bun install
 ```
 
 3. Set up environment variables
@@ -54,24 +58,31 @@ cp .env.example .env
 # Edit .env with your configuration (optional for basic usage)
 ```
 
-4. Set up the database
+4. Start the database
+```bash
+docker-compose up -d postgres
+```
+
+5. Set up the database
 ```bash
 # Generate Prisma client
-npx prisma generate
+bunx prisma generate
 
 # Run database migrations
-npx prisma migrate dev
+bunx prisma migrate dev
 
 # Seed the database with initial data
-npm run prisma db seed
+bunx prisma db seed
 ```
 
-5. Run the development server
+6. Run the development server
 ```bash
-npm run dev
+bun run dev
 ```
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser
+7. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+Optional: visit [http://localhost:3000/landing](http://localhost:3000/landing) for the GTM landing page.
 
 ## Project Structure
 
@@ -249,16 +260,20 @@ The app implements an intelligent three-tier search:
 
 ```bash
 # Development
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
+bun run dev          # Start development server
+bun run build        # Build for production
+bun run start        # Start production server
+bun run lint         # Run ESLint
+bun run init         # Generate Prisma client, migrate, seed
+bun run health:check # Verify database connectivity
+bun run health:check:http # Verify /api/health endpoint
+bun run predeploy    # Run pre-deploy verification suite
 
 # Database
-npx prisma generate  # Generate Prisma client
-npx prisma migrate dev  # Run migrations
-npx prisma studio    # Open Prisma Studio GUI
-npm run prisma db seed  # Seed database with data
+bunx prisma generate  # Generate Prisma client
+bunx prisma migrate dev  # Run migrations
+bunx prisma studio    # Open Prisma Studio GUI
+bunx prisma db seed  # Seed database with data
 ```
 
 ## Environment Variables
@@ -266,10 +281,25 @@ npm run prisma db seed  # Seed database with data
 Copy `.env.example` to `.env` and configure:
 
 ```env
-DATABASE_URL="file:./dev.db"              # SQLite for dev
+DATABASE_URL="postgresql://remedi:remedi_dev@localhost:5433/remedi?schema=public"
 OPENAI_API_KEY="your-key"                 # Optional: AI features
 OPENFDA_API_KEY="your-key"                # Optional: higher rate limits
 ```
+
+## Runtime Notes
+
+- Pages that depend on Prisma queries are configured as dynamic to avoid build-time DB failures.
+- `sitemap.xml` is generated dynamically and revalidated daily.
+
+## Production Readiness
+
+See `docs/production-readiness.md` for the verification checklist and CI steps.
+
+## Troubleshooting
+
+- `P1001: Can't reach database server`: Verify Postgres is running and that `DATABASE_URL` points to port `5433` (local Docker mapping).
+- `listen EPERM` in Playwright: Run `bun run test:e2e` locally/CI where the runtime can bind ports.
+- Build warnings from `@prisma/instrumentation`: These come from Sentry’s Prisma integration and are expected with webpack builds.
 
 ## Contributing
 
