@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/db";
 import { Users, FileText, Search, Heart, TrendingUp, Clock } from "lucide-react";
+export const dynamic = 'force-dynamic';
+
+
 
 interface RecentSearch {
   query: string;

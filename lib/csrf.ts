@@ -7,7 +7,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { timingSafeEqual } from 'crypto';
 
 const CSRF_COOKIE_NAME = 'csrf_token';
 const CSRF_HEADER_NAME = 'x-csrf-token';
@@ -18,7 +17,7 @@ const CSRF_TOKEN_LENGTH = 32;
  */
 export function generateCSRFToken(): string {
   const array = new Uint8Array(CSRF_TOKEN_LENGTH);
-  crypto.getRandomValues(array);
+  globalThis.crypto.getRandomValues(array);
   return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
@@ -53,6 +52,22 @@ export function getCSRFTokenFromHeader(request: NextRequest): string | undefined
  * Validate CSRF token (compare cookie and header)
  * Uses Node.js crypto.timingSafeEqual to prevent timing attacks
  */
+function timingSafeEqualStrings(a: string, b: string): boolean {
+  const encoder = new TextEncoder();
+  const aBytes = encoder.encode(a);
+  const bBytes = encoder.encode(b);
+  const maxLength = Math.max(aBytes.length, bBytes.length);
+  let diff = aBytes.length ^ bBytes.length;
+
+  for (let i = 0; i < maxLength; i += 1) {
+    const aVal = aBytes[i] ?? 0;
+    const bVal = bBytes[i] ?? 0;
+    diff |= aVal ^ bVal;
+  }
+
+  return diff === 0;
+}
+
 export function validateCSRFToken(request: NextRequest): boolean {
   const cookieToken = getCSRFTokenFromCookie(request);
   const headerToken = getCSRFTokenFromHeader(request);
@@ -61,21 +76,7 @@ export function validateCSRFToken(request: NextRequest): boolean {
     return false;
   }
 
-  // Convert to buffers for timing-safe comparison
-  // Pad shorter token to match length (prevents length leakage)
-  const maxLength = Math.max(cookieToken.length, headerToken.length);
-  const cookieBuffer = Buffer.alloc(maxLength);
-  const headerBuffer = Buffer.alloc(maxLength);
-
-  Buffer.from(cookieToken).copy(cookieBuffer);
-  Buffer.from(headerToken).copy(headerBuffer);
-
-  // Use Node.js built-in timing-safe comparison
-  // Also verify lengths match (after timing-safe compare to not leak via timing)
-  const tokensMatch = timingSafeEqual(cookieBuffer, headerBuffer);
-  const lengthsMatch = cookieToken.length === headerToken.length;
-
-  return tokensMatch && lengthsMatch;
+  return timingSafeEqualStrings(cookieToken, headerToken);
 }
 
 /**
@@ -93,6 +94,7 @@ export function requiresCSRFValidation(method: string): boolean {
 export function shouldSkipCSRF(pathname: string): boolean {
   const skipPaths = [
     '/api/auth/', // NextAuth handles its own CSRF
+    '/api/webhooks/stripe', // Stripe webhooks are signed, not browser-initiated
   ];
 
   return skipPaths.some((path) => pathname.startsWith(path));

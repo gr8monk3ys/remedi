@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/db";
 import { SubscriptionTable } from "@/components/admin/SubscriptionTable";
+export const dynamic = 'force-dynamic';
+
+
 
 interface SubscriptionGroupStat {
   plan: string;

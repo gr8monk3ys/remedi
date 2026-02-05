@@ -23,6 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { PLANS, type PlanType } from "@/lib/stripe-config";
+import { fetchWithCSRF } from "@/lib/fetch";
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -170,7 +171,7 @@ export function UpgradeModal({
   const handleStartTrial = async () => {
     setIsStartingTrial(true);
     try {
-      const response = await fetch("/api/trial/start", {
+      const response = await fetchWithCSRF("/api/trial/start", {
         method: "POST",
       });
       const data = await response.json();
@@ -199,7 +200,7 @@ export function UpgradeModal({
 
       const priceId = planConfig.monthlyPriceId;
 
-      const response = await fetch("/api/checkout", {
+      const response = await fetchWithCSRF("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ priceId }),

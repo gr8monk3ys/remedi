@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/db";
 import { UserTable } from "@/components/admin/UserTable";
+export const dynamic = 'force-dynamic';
+
+
 
 async function getUsers(page: number = 1, limit: number = 20) {
   const skip = (page - 1) * limit;

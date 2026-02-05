@@ -4,6 +4,9 @@ import { prisma } from "@/lib/db";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import type { PlanType } from "@/lib/stripe";
 import type { Metadata } from "next";
+export const dynamic = 'force-dynamic';
+
+
 
 export const metadata: Metadata = {
   title: {

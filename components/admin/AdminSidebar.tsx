@@ -11,6 +11,7 @@ import {
   CreditCard,
   ArrowLeft,
   Shield,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { User } from "next-auth";
@@ -42,6 +43,12 @@ const navItems = [
     href: "/admin/analytics",
     label: "Analytics",
     icon: BarChart3,
+    roles: ["admin"],
+  },
+  {
+    href: "/admin/production",
+    label: "Production",
+    icon: ShieldCheck,
     roles: ["admin"],
   },
   {

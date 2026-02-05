@@ -9,6 +9,7 @@
 import { useState } from "react";
 import { Check, Loader2, CreditCard, Sparkles } from "lucide-react";
 import { PLANS, type PlanType } from "@/lib/stripe-config";
+import { fetchWithCSRF } from "@/lib/fetch";
 
 interface BillingClientProps {
   currentPlan: PlanType;
@@ -28,7 +29,7 @@ export function BillingClient({
     setLoading(plan);
     try {
       // Send plan and interval to server - server will look up the price ID
-      const response = await fetch("/api/checkout", {
+      const response = await fetchWithCSRF("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -55,7 +56,7 @@ export function BillingClient({
   const handleManageBilling = async () => {
     setLoading("manage");
     try {
-      const response = await fetch("/api/billing-portal", {
+      const response = await fetchWithCSRF("/api/billing-portal", {
         method: "POST",
       });
 

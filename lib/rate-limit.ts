@@ -52,6 +52,9 @@ export const RATE_LIMITS = {
 
   // General API: 60 requests per minute
   general: { limit: 60, window: 60, identifier: "general" },
+
+  // Analytics events: 120 requests per minute
+  analytics: { limit: 120, window: 60, identifier: "analytics" },
 } as const;
 
 /**

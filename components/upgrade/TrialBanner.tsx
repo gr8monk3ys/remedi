@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { fetchWithCSRF } from '@/lib/fetch'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, Clock, X, Loader2 } from 'lucide-react'
@@ -255,7 +256,7 @@ export function StartTrialButton({
 
     setIsStarting(true)
     try {
-      const response = await fetch('/api/trial/start', {
+      const response = await fetchWithCSRF('/api/trial/start', {
         method: 'POST',
       })
 

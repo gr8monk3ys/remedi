@@ -90,8 +90,7 @@ export async function getTrialStatus(userId: string): Promise<TrialStatus> {
   const isActive =
     user.trialEndDate !== null &&
     user.trialEndDate > now &&
-    user.subscription?.plan !== "basic" &&
-    user.subscription?.plan !== "premium";
+    user.subscription?.status === "trialing";
 
   const daysRemaining = user.trialEndDate
     ? Math.max(
@@ -104,10 +103,7 @@ export async function getTrialStatus(userId: string): Promise<TrialStatus> {
 
   // Determine current plan based on trial and subscription status
   let currentPlan: PlanType = "free";
-  if (
-    user.subscription?.plan === "premium" ||
-    user.subscription?.plan === "basic"
-  ) {
+  if (user.subscription?.status === "active") {
     currentPlan = user.subscription.plan as PlanType;
   } else if (isActive) {
     currentPlan = TRIAL_CONFIG.plan;

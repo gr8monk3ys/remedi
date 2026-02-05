@@ -5,6 +5,9 @@ import { HistoryTableSkeleton } from "@/components/dashboard/HistoryTable";
 import { HistoryPageClient } from "./history-client";
 import type { SearchHistoryItem } from "@/types/dashboard";
 import type { Metadata } from "next";
+export const dynamic = 'force-dynamic';
+
+
 
 export const metadata: Metadata = {
   title: "Search History",

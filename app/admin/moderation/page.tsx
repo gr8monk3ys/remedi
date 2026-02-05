@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/db";
 import { ModerationQueue } from "@/components/admin/ModerationQueue";
+export const dynamic = 'force-dynamic';
+
+
 
 async function getPendingItems() {
   const [contributions, reviews] = await Promise.all([

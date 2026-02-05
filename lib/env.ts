@@ -101,6 +101,23 @@ export function validateEnv(): void {
     );
   }
 
+  // Enforce auth essentials in production
+  if (process.env.NODE_ENV === "production") {
+    if (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET) {
+      missing.push("AUTH_SECRET or NEXTAUTH_SECRET");
+    }
+    if (!process.env.NEXTAUTH_URL) {
+      missing.push("NEXTAUTH_URL");
+    }
+  }
+
+  if (missing.length > 0) {
+    throw new EnvValidationError(
+      `Missing required environment variables: ${missing.join(", ")}\n` +
+        "Please copy .env.example to .env and configure the required variables.",
+    );
+  }
+
   // Warn about missing optional variables
   if (process.env.NODE_ENV === "development") {
     for (const [key, warning] of Object.entries(OPTIONAL_WITH_WARNINGS)) {

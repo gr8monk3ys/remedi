@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { PLANS, type PlanType } from "@/lib/stripe";
 import { StatsCard, StatsGridSkeleton } from "@/components/dashboard/StatsCard";
 import {
+
   ActivityFeed,
   ActivityFeedSkeleton,
 } from "@/components/dashboard/ActivityFeed";
@@ -12,6 +13,8 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Search, Heart, Star, Sparkles } from "lucide-react";
 import type { ActivityItem, UsageData } from "@/types/dashboard";
 import type { Metadata } from "next";
+export const dynamic = 'force-dynamic';
+
 
 export const metadata: Metadata = {
   title: "Overview",
