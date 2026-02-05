@@ -39,7 +39,7 @@ function parseAIResponse(
               name: remedy.name,
               description: remedy.description || "",
               category: remedy.category,
-              matchingNutrients: JSON.parse(remedy.ingredients) as string[],
+              matchingNutrients: remedy.ingredients,
               similarityScore: rec.confidence,
               imageUrl: remedy.imageUrl || "",
             },
@@ -85,15 +85,12 @@ export async function enhanceRemedyMatching(
     });
 
     const remediesContext = allRemedies
-      .map(
-        (r: {
-          name: string;
-          category: string;
-          description: string | null;
-          ingredients: string;
-        }) =>
-          `- ${r.name} (${r.category}): ${r.description} | Ingredients: ${r.ingredients}`,
-      )
+      .map((r) => {
+        const ingredients = Array.isArray(r.ingredients)
+          ? r.ingredients.join(", ")
+          : r.ingredients;
+        return `- ${r.name} (${r.category}): ${r.description} | Ingredients: ${ingredients}`;
+      })
       .join("\n");
 
     const prompt = buildMatchingPrompt({

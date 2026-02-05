@@ -69,7 +69,7 @@ export interface RawDatabaseRemedy {
   name: string;
   description: string | null;
   category: string;
-  ingredients: string;
-  benefits: string;
+  ingredients: string[];
+  benefits: string[];
   imageUrl: string | null;
 }

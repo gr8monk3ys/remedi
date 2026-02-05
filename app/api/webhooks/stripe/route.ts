@@ -430,6 +430,25 @@ export async function POST(request: NextRequest) {
         log.debug("Unhandled event type", { eventType: event.type });
     }
 
+    try {
+      await prisma.webhookStatus.upsert({
+        where: { provider: "stripe" },
+        create: {
+          provider: "stripe",
+          lastReceivedAt: new Date(),
+          lastEventType: event.type,
+          lastEventId: event.id,
+        },
+        update: {
+          lastReceivedAt: new Date(),
+          lastEventType: event.type,
+          lastEventId: event.id,
+        },
+      });
+    } catch (error) {
+      log.warn("Failed to update webhook status", error);
+    }
+
     return NextResponse.json({ received: true });
   } catch (error) {
     log.error("Error processing webhook", error);

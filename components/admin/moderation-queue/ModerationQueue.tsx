@@ -15,11 +15,15 @@ import { ModerationActions } from "./ModerationActions";
 import type { ModerationQueueProps, ModerationItemType } from "./types";
 
 /**
- * Parse JSON string safely
+ * Normalize list-like fields (string[] or JSON string)
  */
-function parseJSON(str: string): string[] {
+function normalizeList(value: string[] | string | null | undefined): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+
   try {
-    return JSON.parse(str);
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
@@ -181,7 +185,7 @@ export function ModerationQueue({
                             Ingredients
                           </h4>
                           <ul className="list-disc list-inside text-gray-900 dark:text-white">
-                            {parseJSON(item.ingredients).map((ing, i) => (
+                            {normalizeList(item.ingredients).map((ing, i) => (
                               <li key={i}>{ing}</li>
                             ))}
                           </ul>
@@ -191,7 +195,7 @@ export function ModerationQueue({
                             Benefits
                           </h4>
                           <ul className="list-disc list-inside text-gray-900 dark:text-white">
-                            {parseJSON(item.benefits).map((ben, i) => (
+                            {normalizeList(item.benefits).map((ben, i) => (
                               <li key={i}>{ben}</li>
                             ))}
                           </ul>

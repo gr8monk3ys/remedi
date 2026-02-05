@@ -91,7 +91,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, description, category, ingredients, benefits, usage, dosage, precautions, scientificInfo, references, imageUrl } = parsed.data;
+    const {
+      name,
+      description,
+      category,
+      ingredients,
+      benefits,
+      usage,
+      dosage,
+      precautions,
+      scientificInfo,
+      references,
+      imageUrl,
+    } = parsed.data;
+
+    const referenceList = references?.map((ref) =>
+      ref.url ? `${ref.title} (${ref.url})` : ref.title,
+    );
 
     const contribution = await prisma.remedyContribution.create({
       data: {
@@ -99,13 +115,13 @@ export async function POST(request: NextRequest) {
         name,
         description,
         category,
-        ingredients: JSON.stringify(ingredients),
-        benefits: JSON.stringify(benefits),
+        ingredients,
+        benefits,
         usage,
         dosage,
         precautions,
         scientificInfo,
-        references: references ? JSON.stringify(references) : null,
+        references: referenceList ?? [],
         imageUrl,
         status: "pending",
       },

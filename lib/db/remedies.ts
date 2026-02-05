@@ -5,11 +5,7 @@
  */
 
 import { prisma } from "./client";
-import {
-  parseNaturalRemedy,
-  parseRemedyMapping,
-  parseJsonArray,
-} from "./parsers";
+import { parseNaturalRemedy, parseRemedyMapping } from "./parsers";
 import type {
   NaturalRemedy,
   DetailedRemedy,
@@ -78,27 +74,15 @@ export async function getNaturalRemediesForPharmaceutical(
     },
   });
 
-  return mappings.map(
-    (mapping: {
-      naturalRemedy: {
-        id: string;
-        name: string;
-        description: string | null;
-        imageUrl: string | null;
-        category: string;
-      };
-      matchingNutrients: string;
-      similarityScore: number;
-    }) => ({
-      id: mapping.naturalRemedy.id,
-      name: mapping.naturalRemedy.name,
-      description: mapping.naturalRemedy.description || "",
-      imageUrl: mapping.naturalRemedy.imageUrl || "",
-      category: mapping.naturalRemedy.category,
-      matchingNutrients: parseJsonArray(mapping.matchingNutrients),
-      similarityScore: mapping.similarityScore,
-    }),
-  );
+  return mappings.map((mapping) => ({
+    id: mapping.naturalRemedy.id,
+    name: mapping.naturalRemedy.name,
+    description: mapping.naturalRemedy.description || "",
+    imageUrl: mapping.naturalRemedy.imageUrl || "",
+    category: mapping.naturalRemedy.category,
+    matchingNutrients: mapping.matchingNutrients,
+    similarityScore: mapping.similarityScore,
+  }));
 }
 
 /**
@@ -108,6 +92,22 @@ export function toDetailedRemedy(
   remedy: ParsedNaturalRemedy,
   similarityScore = 1.0,
 ): DetailedRemedy {
+  const references =
+    typeof remedy.references?.[0] === "string"
+      ? (remedy.references as string[]).map((ref) => ({
+          title: ref,
+          url: ref,
+        }))
+      : (remedy.references as DetailedRemedy["references"]);
+
+  const relatedRemedies =
+    typeof remedy.relatedRemedies?.[0] === "string"
+      ? (remedy.relatedRemedies as string[]).map((name) => ({
+          id: name,
+          name,
+        }))
+      : (remedy.relatedRemedies as DetailedRemedy["relatedRemedies"]);
+
   return {
     id: remedy.id,
     name: remedy.name,
@@ -121,8 +121,8 @@ export function toDetailedRemedy(
     precautions: remedy.precautions || "Precaution information not available.",
     scientificInfo:
       remedy.scientificInfo || "Scientific information not available.",
-    references: remedy.references,
-    relatedRemedies: remedy.relatedRemedies,
+    references: references || [],
+    relatedRemedies: relatedRemedies || [],
   };
 }
 
@@ -141,7 +141,7 @@ export async function createRemedyMapping(
       pharmaceuticalId,
       naturalRemedyId,
       similarityScore,
-      matchingNutrients: JSON.stringify(matchingNutrients),
+      matchingNutrients,
       replacementType,
     },
   });

@@ -5,7 +5,6 @@
  */
 
 import { prisma } from "./client";
-import { parseJsonArray } from "./parsers";
 
 export interface FilterPreferenceInput {
   sessionId?: string;
@@ -33,9 +32,9 @@ export interface FilterPreferenceOutput {
  */
 interface RawFilterPreference {
   id: string;
-  categories: string | null;
-  nutrients: string | null;
-  evidenceLevels: string | null;
+  categories: string[];
+  nutrients: string[];
+  evidenceLevels: string[];
   sortBy: string | null;
   sortOrder: string | null;
   createdAt: Date;
@@ -50,9 +49,9 @@ function parseFilterPreference(
 ): FilterPreferenceOutput {
   return {
     id: pref.id,
-    categories: parseJsonArray(pref.categories),
-    nutrients: parseJsonArray(pref.nutrients),
-    evidenceLevels: parseJsonArray(pref.evidenceLevels),
+    categories: pref.categories,
+    nutrients: pref.nutrients,
+    evidenceLevels: pref.evidenceLevels,
     sortBy: pref.sortBy,
     sortOrder: pref.sortOrder,
     createdAt: pref.createdAt,
@@ -81,18 +80,18 @@ export async function saveFilterPreferences(
       sessionId: sessionId || "",
     },
     update: {
-      categories: categories ? JSON.stringify(categories) : null,
-      nutrients: nutrients ? JSON.stringify(nutrients) : null,
-      evidenceLevels: evidenceLevels ? JSON.stringify(evidenceLevels) : null,
+      categories: categories ?? [],
+      nutrients: nutrients ?? [],
+      evidenceLevels: evidenceLevels ?? [],
       sortBy,
       sortOrder,
     },
     create: {
       sessionId,
       userId,
-      categories: categories ? JSON.stringify(categories) : null,
-      nutrients: nutrients ? JSON.stringify(nutrients) : null,
-      evidenceLevels: evidenceLevels ? JSON.stringify(evidenceLevels) : null,
+      categories: categories ?? [],
+      nutrients: nutrients ?? [],
+      evidenceLevels: evidenceLevels ?? [],
       sortBy,
       sortOrder,
     },

@@ -13,8 +13,8 @@ export interface Contribution {
   name: string;
   description: string;
   category: string;
-  ingredients: string;
-  benefits: string;
+  ingredients: string[];
+  benefits: string[];
   usage: string | null;
   dosage: string | null;
   precautions: string | null;

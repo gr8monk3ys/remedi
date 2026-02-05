@@ -20,10 +20,13 @@
 
 import "server-only";
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 // Extend global type for development singleton
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
+  prismaPool: Pool | undefined;
 };
 
 /**
@@ -34,8 +37,24 @@ const globalForPrisma = globalThis as unknown as {
  */
 function createPrismaClient(): PrismaClient {
   const isProduction = process.env.NODE_ENV === "production";
+  const databaseUrl = process.env.DATABASE_URL;
+
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is required to initialize Prisma Client.");
+  }
+
+  const pool =
+    globalForPrisma.prismaPool ??
+    new Pool({
+      connectionString: databaseUrl,
+    });
+
+  if (!isProduction) {
+    globalForPrisma.prismaPool = pool;
+  }
 
   return new PrismaClient({
+    adapter: new PrismaPg(pool),
     log: isProduction ? ["error", "warn"] : ["query", "error", "warn"],
     // Connection pool settings are configured via DATABASE_URL query params
     // Example: ?connection_limit=10&pool_timeout=20

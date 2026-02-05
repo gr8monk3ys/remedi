@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { parseJsonArray } from '../lib/db/parsers'
 import {
   allNaturalRemedies,
   pharmaceuticals,
@@ -33,8 +34,8 @@ async function main(): Promise<void> {
         name: pharm.name,
         description: pharm.description || null,
         category: pharm.category,
-        ingredients: pharm.ingredients,
-        benefits: pharm.benefits,
+        ingredients: parseJsonArray(pharm.ingredients),
+        benefits: parseJsonArray(pharm.benefits),
         usage: pharm.usage || null,
         warnings: pharm.warnings || null,
         interactions: pharm.interactions || null
@@ -54,16 +55,22 @@ async function main(): Promise<void> {
         name: remedy.name,
         description: remedy.description || null,
         category: remedy.category,
-        ingredients: remedy.ingredients,
-        benefits: remedy.benefits,
-        imageUrl: 'imageUrl' in remedy ? remedy.imageUrl : null,
+        ingredients: parseJsonArray(remedy.ingredients),
+        benefits: parseJsonArray(remedy.benefits),
+        imageUrl:
+          'imageUrl' in remedy && typeof remedy.imageUrl === 'string'
+            ? remedy.imageUrl
+            : null,
         usage: remedy.usage || null,
         dosage: remedy.dosage || null,
         precautions: remedy.precautions || null,
         scientificInfo: remedy.scientificInfo || null,
-        references: remedy.references || null,
-        relatedRemedies: remedy.relatedRemedies || null,
-        sourceUrl: 'sourceUrl' in remedy ? remedy.sourceUrl : null,
+        references: parseJsonArray(remedy.references),
+        relatedRemedies: parseJsonArray(remedy.relatedRemedies),
+        sourceUrl:
+          'sourceUrl' in remedy && typeof remedy.sourceUrl === 'string'
+            ? remedy.sourceUrl
+            : null,
         evidenceLevel: remedy.evidenceLevel || null
       })),
       skipDuplicates: true
@@ -106,7 +113,7 @@ async function main(): Promise<void> {
       pharmaceuticalId: pharmMap.get(mapping.pharmaceuticalName)!,
       naturalRemedyId: remedyMap.get(mapping.naturalRemedyName)!,
       similarityScore: mapping.similarityScore,
-      matchingNutrients: mapping.matchingNutrients,
+      matchingNutrients: parseJsonArray(mapping.matchingNutrients),
       replacementType: mapping.replacementType
     }))
 

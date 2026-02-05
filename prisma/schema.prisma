@@ -27,14 +27,11 @@ generator client {
   provider = "prisma-client-js"
   // Enable native database types for PostgreSQL
   previewFeatures = ["fullTextSearchPostgres"]
+  engineType = "binary"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
-  // For connection pooling in serverless environments (Vercel, etc.)
-  // directUrl is used for migrations, url for queries via pooler
-  directUrl = env("DIRECT_URL")
 }
 
 // Pharmaceutical drugs or supplements
@@ -411,6 +408,15 @@ model UsageRecord {
   @@unique([userId, date]) // One record per user per day
   @@index([userId])
   @@index([date])
+}
+
+// Webhook health tracking (last event per provider)
+model WebhookStatus {
+  provider       String   @id
+  lastReceivedAt DateTime @db.Timestamptz
+  lastEventType  String?
+  lastEventId    String?
+  updatedAt      DateTime @updatedAt @db.Timestamptz
 }
 
 // Conversion funnel analytics events
