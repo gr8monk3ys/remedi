@@ -198,7 +198,7 @@ export async function sendExpirationReminder(
   const html = await render(SubscriptionExpiringEmail({ ...fullData, userId }))
 
   // Customize subject based on urgency
-  let subject = EMAIL_SUBJECTS.subscription_expiring
+  let subject: string = EMAIL_SUBJECTS.subscription_expiring
   if (data.daysLeft <= 1) {
     subject = 'URGENT: Your Remedi Subscription Expires Tomorrow!'
   } else if (data.daysLeft <= 3) {

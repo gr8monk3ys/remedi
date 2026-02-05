@@ -117,9 +117,6 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
 
-  // Turbopack configuration (Next.js 16+ default bundler)
-  turbopack: {},
-
   // Webpack configuration for advanced code splitting
   webpack: (config, { isServer }) => {
     if (!isServer) {

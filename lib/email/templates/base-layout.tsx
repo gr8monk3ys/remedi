@@ -10,7 +10,6 @@ import {
   Container,
   Head,
   Html,
-  Img,
   Link,
   Preview,
   Section,

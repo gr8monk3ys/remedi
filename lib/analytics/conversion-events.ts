@@ -6,6 +6,7 @@
  */
 
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import type { PlanType } from "@/lib/stripe-config";
 
 /**
@@ -122,7 +123,7 @@ export async function trackConversionEvent(params: {
       eventType,
       eventSource,
       planTarget,
-      metadata: metadata as Record<string, unknown>,
+      metadata: metadata as Prisma.InputJsonValue | undefined,
     },
   });
 

@@ -8,7 +8,7 @@ import { Button, Heading, Section, Text } from '@react-email/components'
 import * as React from 'react'
 import { BaseLayout } from './base-layout'
 import { PasswordResetData } from '../types'
-import { EMAIL_BRAND, getEmailUrl, EMAIL_URLS } from '../config'
+import { EMAIL_BRAND } from '../config'
 
 interface PasswordResetEmailProps extends PasswordResetData {
   userId?: string

@@ -4,7 +4,7 @@
  * Sent to new users when they sign up.
  */
 
-import { Button, Heading, Link, Section, Text } from '@react-email/components'
+import { Button, Heading, Section, Text } from '@react-email/components'
 import * as React from 'react'
 import { BaseLayout } from './base-layout'
 import { WelcomeEmailData } from '../types'
