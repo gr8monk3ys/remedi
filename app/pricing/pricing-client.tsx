@@ -7,11 +7,18 @@
  * trial start, and checkout.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Check, Loader2, Sparkles, Zap, Crown } from "lucide-react";
 import { PLANS, type PlanType } from "@/lib/stripe-config";
+import { fetchWithCSRF } from "@/lib/fetch";
+import { getSessionId } from "@/lib/session";
+import { getOrSetExperimentVariant } from "@/lib/experiments/client";
+import {
+  CONVERSION_EVENT_TYPES,
+  EVENT_SOURCES,
+} from "@/lib/analytics/conversion-events";
 
 interface PricingClientProps {
   currentPlan: PlanType;
@@ -29,6 +36,50 @@ export function PricingClient({
   const router = useRouter();
   const [isYearly, setIsYearly] = useState(true); // Default to yearly (better value)
   const [loading, setLoading] = useState<string | null>(null);
+  const [experimentVariant, setExperimentVariant] = useState("control");
+
+  const trackConversionEvent = async (payload: {
+    eventType: string;
+    planTarget?: PlanType;
+    metadata?: Record<string, unknown>;
+  }) => {
+    try {
+      await fetchWithCSRF("/api/conversion-events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventType: payload.eventType,
+          eventSource: EVENT_SOURCES.PRICING_PAGE,
+          planTarget: payload.planTarget,
+          sessionId: getSessionId(),
+          metadata: payload.metadata,
+        }),
+      });
+    } catch (error) {
+      console.warn("[pricing] Failed to track conversion event", error);
+    }
+  };
+
+  useEffect(() => {
+    const experimentId = "pricing_v1";
+    const variant = getOrSetExperimentVariant(experimentId, [
+      "control",
+      "monthly_default",
+    ]);
+    setExperimentVariant(variant);
+    if (variant === "monthly_default") {
+      setIsYearly(false);
+    }
+
+    void trackConversionEvent({
+      eventType: CONVERSION_EVENT_TYPES.PRICING_PAGE_VIEWED,
+      metadata: {
+        experimentId,
+        variantId: variant,
+        defaultInterval: variant === "monthly_default" ? "month" : "year",
+      },
+    });
+  }, []);
 
   const handleStartTrial = async () => {
     if (!isAuthenticated) {
@@ -36,9 +87,20 @@ export function PricingClient({
       return;
     }
 
+    void trackConversionEvent({
+      eventType: CONVERSION_EVENT_TYPES.PRICING_PLAN_SELECTED,
+      planTarget: "premium",
+      metadata: {
+        interval: isYearly ? "year" : "month",
+        experimentId: "pricing_v1",
+        variantId: experimentVariant,
+        isTrial: true,
+      },
+    });
+
     setLoading("trial");
     try {
-      const response = await fetch("/api/trial/start", {
+      const response = await fetchWithCSRF("/api/trial/start", {
         method: "POST",
       });
 
@@ -66,10 +128,20 @@ export function PricingClient({
 
     if (plan === "free" || plan === currentPlan) return;
 
+    void trackConversionEvent({
+      eventType: CONVERSION_EVENT_TYPES.PRICING_PLAN_SELECTED,
+      planTarget: plan,
+      metadata: {
+        interval: isYearly ? "year" : "month",
+        experimentId: "pricing_v1",
+        variantId: experimentVariant,
+      },
+    });
+
     setLoading(plan);
     try {
       // Send plan and interval to server - server will look up the price ID
-      const response = await fetch("/api/checkout", {
+      const response = await fetchWithCSRF("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -110,7 +182,17 @@ export function PricingClient({
       <div className="flex justify-center mb-12">
         <div className="bg-gray-100 dark:bg-zinc-800 p-1.5 rounded-xl inline-flex items-center gap-2">
           <button
-            onClick={() => setIsYearly(false)}
+            onClick={() => {
+              setIsYearly(false);
+              void trackConversionEvent({
+                eventType: CONVERSION_EVENT_TYPES.PRICING_INTERVAL_TOGGLED,
+                metadata: {
+                  interval: "month",
+                  experimentId: "pricing_v1",
+                  variantId: experimentVariant,
+                },
+              });
+            }}
             className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
               !isYearly
                 ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-sm"
@@ -120,7 +202,17 @@ export function PricingClient({
             Monthly
           </button>
           <button
-            onClick={() => setIsYearly(true)}
+            onClick={() => {
+              setIsYearly(true);
+              void trackConversionEvent({
+                eventType: CONVERSION_EVENT_TYPES.PRICING_INTERVAL_TOGGLED,
+                metadata: {
+                  interval: "year",
+                  experimentId: "pricing_v1",
+                  variantId: experimentVariant,
+                },
+              });
+            }}
             className={`px-6 py-3 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
               isYearly
                 ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-sm"

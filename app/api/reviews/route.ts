@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { trackUserEventSafe } from "@/lib/analytics/user-events";
 
 const reviewSchema = z.object({
   remedyId: z.string().min(1, "Remedy ID is required"),
@@ -22,8 +23,14 @@ export async function GET(request: NextRequest) {
 
     if (!remedyId) {
       return NextResponse.json(
-        { success: false, error: { code: "MISSING_REMEDY_ID", message: "Remedy ID is required" } },
-        { status: 400 }
+        {
+          success: false,
+          error: {
+            code: "MISSING_REMEDY_ID",
+            message: "Remedy ID is required",
+          },
+        },
+        { status: 400 },
       );
     }
 
@@ -67,8 +74,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching reviews:", error);
     return NextResponse.json(
-      { success: false, error: { code: "INTERNAL_ERROR", message: "Failed to fetch reviews" } },
-      { status: 500 }
+      {
+        success: false,
+        error: { code: "INTERNAL_ERROR", message: "Failed to fetch reviews" },
+      },
+      { status: 500 },
     );
   }
 }
@@ -79,8 +89,14 @@ export async function POST(request: NextRequest) {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json(
-        { success: false, error: { code: "UNAUTHORIZED", message: "You must be signed in to write a review" } },
-        { status: 401 }
+        {
+          success: false,
+          error: {
+            code: "UNAUTHORIZED",
+            message: "You must be signed in to write a review",
+          },
+        },
+        { status: 401 },
       );
     }
 
@@ -89,8 +105,14 @@ export async function POST(request: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: { code: "VALIDATION_ERROR", message: parsed.error.issues[0].message } },
-        { status: 400 }
+        {
+          success: false,
+          error: {
+            code: "VALIDATION_ERROR",
+            message: parsed.error.issues[0].message,
+          },
+        },
+        { status: 400 },
       );
     }
 
@@ -106,8 +128,14 @@ export async function POST(request: NextRequest) {
 
     if (existingReview) {
       return NextResponse.json(
-        { success: false, error: { code: "DUPLICATE_REVIEW", message: "You have already reviewed this remedy" } },
-        { status: 400 }
+        {
+          success: false,
+          error: {
+            code: "DUPLICATE_REVIEW",
+            message: "You have already reviewed this remedy",
+          },
+        },
+        { status: 400 },
       );
     }
 
@@ -131,12 +159,25 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    await trackUserEventSafe({
+      request,
+      userId: session.user.id,
+      eventType: "review_submitted",
+      eventData: {
+        remedyId,
+        rating,
+      },
+    });
+
     return NextResponse.json({ success: true, data: review }, { status: 201 });
   } catch (error) {
     console.error("Error creating review:", error);
     return NextResponse.json(
-      { success: false, error: { code: "INTERNAL_ERROR", message: "Failed to create review" } },
-      { status: 500 }
+      {
+        success: false,
+        error: { code: "INTERNAL_ERROR", message: "Failed to create review" },
+      },
+      { status: 500 },
     );
   }
 }
