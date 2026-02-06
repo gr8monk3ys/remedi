@@ -1,24 +1,73 @@
-import { runProductionChecks } from "../lib/production-readiness";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
+
+function createClient(): PrismaClient {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is required for production checks.");
+  }
+  const pool = new Pool({ connectionString: databaseUrl });
+  return new PrismaClient({ adapter: new PrismaPg(pool) });
+}
+
+const prisma = createClient();
+
+const REQUIRED_ENV = [
+  "AUTH_SECRET",
+  "NEXTAUTH_URL",
+  "NEXT_PUBLIC_APP_URL",
+  "STRIPE_SECRET_KEY",
+  "STRIPE_WEBHOOK_SECRET",
+  "STRIPE_BASIC_MONTHLY_PRICE_ID",
+  "STRIPE_BASIC_YEARLY_PRICE_ID",
+  "STRIPE_PREMIUM_MONTHLY_PRICE_ID",
+  "STRIPE_PREMIUM_YEARLY_PRICE_ID",
+];
+
+const RECOMMENDED_ENV = [
+  "NEXT_PUBLIC_SENTRY_DSN",
+  "SENTRY_AUTH_TOKEN",
+  "UPSTASH_REDIS_REST_URL",
+  "UPSTASH_REDIS_REST_TOKEN",
+  "EMAIL_SERVER",
+  "EMAIL_FROM",
+];
+
+function missingEnv(names: string[]) {
+  return names.filter((name) => !process.env[name]);
+}
 
 async function main() {
-  const result = await runProductionChecks();
+  const missingRequired = missingEnv(REQUIRED_ENV);
+  const missingRecommended = missingEnv(RECOMMENDED_ENV);
 
-  if (!result.dbOk) {
+  let dbOk = false;
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    dbOk = true;
+  } catch {
+    dbOk = false;
+  } finally {
+    await prisma.$disconnect();
+  }
+
+  if (!dbOk) {
     console.error("Database connectivity FAILED.");
     process.exit(1);
   }
 
-  if (result.missingRequired.length > 0) {
+  if (missingRequired.length > 0) {
     console.error("Missing required production env vars:");
-    for (const name of result.missingRequired) {
+    for (const name of missingRequired) {
       console.error(`- ${name}`);
     }
     process.exit(1);
   }
 
-  if (result.missingRecommended.length > 0) {
+  if (missingRecommended.length > 0) {
     console.warn("Missing recommended production env vars:");
-    for (const name of result.missingRecommended) {
+    for (const name of missingRecommended) {
       console.warn(`- ${name}`);
     }
   }

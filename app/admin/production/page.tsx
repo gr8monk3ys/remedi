@@ -1,6 +1,6 @@
 import { isConnected, prisma } from "@/lib/db";
 import { hasUpstashRedis } from "@/lib/env";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { isSentryConfigured } from "@/lib/observability";
 import { HealthStatus } from "./health-status";
 import { SentryStatus } from "./sentry-status";
@@ -48,7 +48,7 @@ export default async function ProductionReadinessPage() {
   });
   let stripeOk = false;
   try {
-    await stripe.products.list({ limit: 1 });
+    await getStripe().products.list({ limit: 1 });
     stripeOk = true;
   } catch {
     stripeOk = false;
@@ -77,12 +77,18 @@ export default async function ProductionReadinessPage() {
         />
         <StatusCard
           label="Required secrets"
-          value={missingRequired === 0 ? "Complete" : `${missingRequired} missing`}
+          value={
+            missingRequired === 0 ? "Complete" : `${missingRequired} missing`
+          }
           status={missingRequired === 0 ? "good" : "bad"}
         />
         <StatusCard
           label="Optional services"
-          value={missingRecommended === 0 ? "Complete" : `${missingRecommended} missing`}
+          value={
+            missingRecommended === 0
+              ? "Complete"
+              : `${missingRecommended} missing`
+          }
           status={missingRecommended === 0 ? "good" : "warn"}
         />
         <StatusCard
@@ -98,7 +104,11 @@ export default async function ProductionReadinessPage() {
         </h2>
         <div className="grid md:grid-cols-2 gap-3">
           {required.map((item) => (
-            <ChecklistRow key={item.name} name={item.name} present={item.present} />
+            <ChecklistRow
+              key={item.name}
+              name={item.name}
+              present={item.present}
+            />
           ))}
         </div>
       </section>
@@ -109,7 +119,11 @@ export default async function ProductionReadinessPage() {
         </h2>
         <div className="grid md:grid-cols-2 gap-3">
           {recommended.map((item) => (
-            <ChecklistRow key={item.name} name={item.name} present={item.present} />
+            <ChecklistRow
+              key={item.name}
+              name={item.name}
+              present={item.present}
+            />
           ))}
         </div>
       </section>
@@ -119,10 +133,26 @@ export default async function ProductionReadinessPage() {
           Runtime Services
         </h2>
         <div className="grid md:grid-cols-2 gap-4">
-          <ServiceRow label="Database" value={dbOk ? "Healthy" : "Unavailable"} status={dbOk ? "good" : "bad"} />
-          <ServiceRow label="Upstash Redis" value={upstashOk ? "Configured" : "Not configured"} status={upstashOk ? "good" : "warn"} />
-          <ServiceRow label="Stripe" value={stripeOk ? "Reachable" : "Unavailable"} status={stripeOk ? "good" : "warn"} />
-          <ServiceRow label="Sentry" value={sentryOk ? "Configured" : "Not configured"} status={sentryOk ? "good" : "warn"} />
+          <ServiceRow
+            label="Database"
+            value={dbOk ? "Healthy" : "Unavailable"}
+            status={dbOk ? "good" : "bad"}
+          />
+          <ServiceRow
+            label="Upstash Redis"
+            value={upstashOk ? "Configured" : "Not configured"}
+            status={upstashOk ? "good" : "warn"}
+          />
+          <ServiceRow
+            label="Stripe"
+            value={stripeOk ? "Reachable" : "Unavailable"}
+            status={stripeOk ? "good" : "warn"}
+          />
+          <ServiceRow
+            label="Sentry"
+            value={sentryOk ? "Configured" : "Not configured"}
+            status={sentryOk ? "good" : "warn"}
+          />
           <ServiceRow
             label="Stripe Webhook"
             value={
@@ -154,7 +184,10 @@ export default async function ProductionReadinessPage() {
         <div className="grid md:grid-cols-2 gap-4">
           <LinkRow label="Status Page" envKey="STATUSPAGE_URL" />
           <LinkRow label="Uptime Checks" envKey="UPTIME_STATUS_URL" />
-          <LinkRow label="Stripe Webhooks" envKey="STRIPE_WEBHOOK_DASHBOARD_URL" />
+          <LinkRow
+            label="Stripe Webhooks"
+            envKey="STRIPE_WEBHOOK_DASHBOARD_URL"
+          />
           <LinkRow label="Sentry Project" envKey="SENTRY_PROJECT_URL" />
         </div>
       </section>
@@ -244,7 +277,9 @@ function LinkRow({ label, envKey }: { label: string; envKey: string }) {
           {value}
         </a>
       ) : (
-        <p className="text-sm text-gray-500 dark:text-gray-400">Not configured</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Not configured
+        </p>
       )}
     </div>
   );

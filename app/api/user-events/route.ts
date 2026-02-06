@@ -17,7 +17,7 @@ const userEventSchema = z.object({
     "landing_view",
     "landing_cta_clicked",
   ]),
-  eventData: z.record(z.unknown()).optional(),
+  eventData: z.record(z.string(), z.unknown()).optional(),
   page: z.string().optional(),
   referrer: z.string().optional(),
   sessionId: z.string().optional(),

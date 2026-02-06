@@ -37,7 +37,11 @@ const globalForPrisma = globalThis as unknown as {
  */
 function createPrismaClient(): PrismaClient {
   const isProduction = process.env.NODE_ENV === "production";
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl =
+    process.env.DATABASE_URL ||
+    (process.env.NODE_ENV === "test"
+      ? "postgresql://test:test@localhost:5432/test"
+      : undefined);
 
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is required to initialize Prisma Client.");

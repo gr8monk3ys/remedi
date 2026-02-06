@@ -89,7 +89,7 @@ import {
 vi.mock("server-only", () => ({}));
 
 // Import server-only functions after mocking
-import { getPlanByPriceId, isStripeConfigured } from "@/lib/stripe";
+import { getPlanByPriceId, isStripeConfigured, PRICE_IDS } from "@/lib/stripe";
 
 describe("lib/stripe", () => {
   describe("PLANS configuration", () => {
@@ -115,19 +115,17 @@ describe("lib/stripe", () => {
 
   describe("getPlanByPriceId", () => {
     it("should return correct plan when price ID matches monthlyPriceId", () => {
-      // Get actual price IDs from PLANS (may be undefined in test env)
-      const basicMonthlyPriceId = PLANS.basic.monthlyPriceId;
+      const basicMonthlyPriceId = PRICE_IDS.basic.monthly;
       if (basicMonthlyPriceId) {
         const result = getPlanByPriceId(basicMonthlyPriceId);
         expect(result).toBe("basic");
       } else {
-        // Skip test if env vars not set
         expect(true).toBe(true);
       }
     });
 
     it("should return correct plan when price ID matches yearlyPriceId", () => {
-      const premiumYearlyPriceId = PLANS.premium.yearlyPriceId;
+      const premiumYearlyPriceId = PRICE_IDS.premium.yearly;
       if (premiumYearlyPriceId) {
         const result = getPlanByPriceId(premiumYearlyPriceId);
         expect(result).toBe("premium");

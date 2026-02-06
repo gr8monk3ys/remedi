@@ -446,7 +446,7 @@ export async function POST(request: NextRequest) {
         },
       });
     } catch (error) {
-      log.warn("Failed to update webhook status", error);
+      log.warn("Failed to update webhook status", { error });
     }
 
     return NextResponse.json({ received: true });

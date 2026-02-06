@@ -1,4 +1,17 @@
-import { prisma } from "../lib/db/client";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
+
+function createClient(): PrismaClient {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is required for DB verification.");
+  }
+  const pool = new Pool({ connectionString: databaseUrl });
+  return new PrismaClient({ adapter: new PrismaPg(pool) });
+}
+
+const prisma = createClient();
 
 function requireEnv(name: string): string {
   const value = process.env[name];

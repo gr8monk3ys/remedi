@@ -23,9 +23,9 @@ const conversionEventSchema = z.object({
       ],
     )
     .optional(),
-  planTarget: z.enum(["free", "basic", "premium", "enterprise"]).optional(),
+  planTarget: z.enum(["free", "basic", "premium"]).optional(),
   sessionId: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function POST(request: NextRequest) {
