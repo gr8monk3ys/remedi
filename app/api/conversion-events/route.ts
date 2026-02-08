@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import {
   CONVERSION_EVENT_TYPES,
   EVENT_SOURCES,
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    const session = await auth();
+    const user = await getCurrentUser();
     const body = await request.json();
     const parsed = conversionEventSchema.safeParse(body);
 
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       parsed.data;
 
     await trackConversionEvent({
-      userId: session?.user?.id,
+      userId: user?.id,
       sessionId,
       eventType,
       eventSource,

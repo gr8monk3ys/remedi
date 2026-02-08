@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
+import { useDbUser } from "@/hooks/use-db-user";
 import { useSessionId } from "./use-session-id";
 import { fetchWithCSRF } from "@/lib/fetch";
 
@@ -44,7 +44,7 @@ interface UseFavoritesReturn {
  * Automatically handles session ID for anonymous users and user ID for authenticated users
  */
 export function useFavorites(): UseFavoritesReturn {
-  const { data: session } = useSession();
+  const { dbUserId } = useDbUser();
   const sessionId = useSessionId();
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,15 +53,15 @@ export function useFavorites(): UseFavoritesReturn {
   // Fetch favorites on mount
   useEffect(() => {
     const fetchFavorites = async () => {
-      if (!session?.user && !sessionId) return;
+      if (!dbUserId && !sessionId) return;
 
       setIsLoading(true);
       setError(null);
 
       try {
         const params = new URLSearchParams();
-        if (session?.user?.id) {
-          params.append("userId", session.user.id);
+        if (dbUserId) {
+          params.append("userId", dbUserId);
         } else if (sessionId) {
           params.append("sessionId", sessionId);
         }
@@ -72,34 +72,37 @@ export function useFavorites(): UseFavoritesReturn {
           throw new Error(`Failed to fetch favorites: ${response.status}`);
         }
 
-        const data: ApiResponse<{ favorites: Favorite[] }> = await response.json();
+        const data: ApiResponse<{ favorites: Favorite[] }> =
+          await response.json();
 
         if (data.success && data.data?.favorites) {
           setFavorites(data.data.favorites);
         }
       } catch (err) {
         console.error("Error fetching favorites:", err);
-        setError(err instanceof Error ? err.message : "Failed to load favorites");
+        setError(
+          err instanceof Error ? err.message : "Failed to load favorites",
+        );
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchFavorites();
-  }, [session, sessionId]);
+  }, [dbUserId, sessionId]);
 
   // Check if a remedy is favorited
   const isFavorite = useCallback(
     (remedyId: string) => {
       return favorites.some((fav) => fav.remedyId === remedyId);
     },
-    [favorites]
+    [favorites],
   );
 
   // Add a remedy to favorites
   const addFavorite = useCallback(
     async (remedyId: string, remedyName: string) => {
-      if (!session?.user && !sessionId) {
+      if (!dbUserId && !sessionId) {
         setError("Please sign in to save favorites");
         return;
       }
@@ -113,8 +116,8 @@ export function useFavorites(): UseFavoritesReturn {
           remedyName,
         };
 
-        if (session?.user?.id) {
-          body.userId = session.user.id;
+        if (dbUserId) {
+          body.userId = dbUserId;
         } else if (sessionId) {
           body.sessionId = sessionId;
         }
@@ -148,7 +151,7 @@ export function useFavorites(): UseFavoritesReturn {
         setIsLoading(false);
       }
     },
-    [session, sessionId]
+    [dbUserId, sessionId],
   );
 
   // Remove a remedy from favorites
@@ -161,9 +164,12 @@ export function useFavorites(): UseFavoritesReturn {
       setError(null);
 
       try {
-        const response = await fetchWithCSRF(`/api/favorites?id=${favorite.id}`, {
-          method: "DELETE",
-        });
+        const response = await fetchWithCSRF(
+          `/api/favorites?id=${favorite.id}`,
+          {
+            method: "DELETE",
+          },
+        );
 
         const data: ApiResponse<null> = await response.json();
 
@@ -174,13 +180,15 @@ export function useFavorites(): UseFavoritesReturn {
         setFavorites((prev) => prev.filter((fav) => fav.id !== favorite.id));
       } catch (err) {
         console.error("Error removing favorite:", err);
-        setError(err instanceof Error ? err.message : "Failed to remove favorite");
+        setError(
+          err instanceof Error ? err.message : "Failed to remove favorite",
+        );
         throw err;
       } finally {
         setIsLoading(false);
       }
     },
-    [favorites]
+    [favorites],
   );
 
   return {

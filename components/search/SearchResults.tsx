@@ -32,7 +32,11 @@ interface SearchResultsProps {
   aiInsights: AIInsights | null;
   isFavorite: (id: string) => boolean;
   favoritesLoading: boolean;
-  onFavoriteToggle: (e: React.MouseEvent, remedyId: string, remedyName: string) => void;
+  onFavoriteToggle: (
+    e: React.MouseEvent,
+    remedyId: string,
+    remedyName: string,
+  ) => void;
   onViewDetails: (remedyId: string) => void;
 }
 
@@ -96,13 +100,19 @@ export function SearchResults({
       {/* Loading State */}
       {isLoading && (
         <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div
+            className="animate-spin rounded-full h-8 w-8 border-b-2"
+            style={{ borderColor: "var(--primary)" }}
+          ></div>
         </div>
       )}
 
       {/* Empty State */}
       {!isLoading && filteredResults.length === 0 && query && !error && (
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        <div
+          className="text-center py-8"
+          style={{ color: "var(--foreground-muted)" }}
+        >
           {results.length > 0
             ? "No results match your current filters. Try adjusting your filters."
             : `No results found for "${query}". Try a different search term.`}
@@ -110,7 +120,11 @@ export function SearchResults({
       )}
 
       {/* Error State */}
-      {error && <div className="text-center py-8 text-red-500 dark:text-red-400">{error}</div>}
+      {error && (
+        <div className="text-center py-8" style={{ color: "var(--error)" }}>
+          {error}
+        </div>
+      )}
 
       {/* Results List */}
       <div className="grid grid-cols-1 gap-6 mt-2">

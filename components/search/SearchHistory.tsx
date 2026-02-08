@@ -19,11 +19,17 @@ export const SearchHistory = memo(function SearchHistory({
   if (isLoading) {
     return (
       <div className="mb-6">
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <h3
+          className="text-sm font-medium mb-2"
+          style={{ color: "var(--foreground-muted)" }}
+        >
           Recent Searches
         </h3>
         <div className="flex justify-center items-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+          <div
+            className="animate-spin rounded-full h-6 w-6 border-b-2"
+            style={{ borderColor: "var(--primary)" }}
+          ></div>
         </div>
       </div>
     );
@@ -35,7 +41,10 @@ export const SearchHistory = memo(function SearchHistory({
 
   return (
     <div className="mb-6">
-      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <h3
+        className="text-sm font-medium mb-2"
+        style={{ color: "var(--foreground-muted)" }}
+      >
         Recent Searches
       </h3>
       <div className="flex flex-wrap gap-2">
@@ -43,11 +52,15 @@ export const SearchHistory = memo(function SearchHistory({
           <button
             key={item.id}
             onClick={() => onSelectQuery(item.query)}
-            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full text-sm"
+            className="neu-pill px-3 py-1 rounded-full text-sm transition-all"
+            style={{ color: "var(--foreground)" }}
           >
             {item.query}
             {item.resultsCount > 0 && (
-              <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
+              <span
+                className="ml-1 text-xs"
+                style={{ color: "var(--foreground-subtle)" }}
+              >
                 ({item.resultsCount})
               </span>
             )}
@@ -63,7 +76,8 @@ export const SearchHistory = memo(function SearchHistory({
           }
         }}
         disabled={isLoading}
-        className="mt-2 text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-2 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ color: "var(--error)" }}
       >
         Clear History
       </button>

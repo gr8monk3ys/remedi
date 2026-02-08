@@ -14,10 +14,16 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { User } from "next-auth";
+interface AdminUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role?: string;
+}
 
 interface AdminSidebarProps {
-  user: User & { role?: string };
+  user: AdminUser;
 }
 
 const navItems = [
@@ -64,7 +70,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const userRole = user.role || "user";
 
   const accessibleItems = navItems.filter((item) =>
-    item.roles.includes(userRole)
+    item.roles.includes(userRole),
   );
 
   return (
@@ -96,7 +102,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                 "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
                 isActive
                   ? "bg-primary/10 text-primary"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
               )}
             >
               <Icon className="w-5 h-5" />

@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic';
-
+export const dynamic = "force-dynamic";
 
 /**
  * Pricing Page
@@ -12,42 +11,42 @@ export const dynamic = 'force-dynamic';
  * - Money-back guarantee badge
  */
 
-import { Metadata } from 'next'
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/db'
-import { type PlanType } from '@/lib/stripe'
-import { getTrialStatus } from '@/lib/trial'
-import { PricingClient } from './pricing-client'
+import { Metadata } from "next";
+import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { type PlanType } from "@/lib/stripe";
+import { getTrialStatus } from "@/lib/trial";
+import { PricingClient } from "./pricing-client";
 
 export const metadata: Metadata = {
-  title: 'Pricing | Remedi',
+  title: "Pricing | Remedi",
   description:
-    'Choose the perfect Remedi plan for your natural remedy journey. Free, Basic, and Premium plans available.',
-}
+    "Choose the perfect Remedi plan for your natural remedy journey. Free, Basic, and Premium plans available.",
+};
 
 export default async function PricingPage() {
-  const session = await auth()
+  const user = await getCurrentUser();
 
-  let currentPlan: PlanType = 'free'
-  let trialEligible = false
-  let hasActiveSubscription = false
+  let currentPlan: PlanType = "free";
+  let trialEligible = false;
+  let hasActiveSubscription = false;
 
-  if (session?.user?.id) {
+  if (user) {
     // Get subscription status
     const subscription = await prisma.subscription.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       select: { plan: true, status: true, stripeSubscriptionId: true },
-    })
+    });
 
-    if (subscription?.status === 'active') {
-      currentPlan = subscription.plan as PlanType
+    if (subscription?.status === "active") {
+      currentPlan = subscription.plan as PlanType;
     }
 
-    hasActiveSubscription = !!subscription?.stripeSubscriptionId
+    hasActiveSubscription = !!subscription?.stripeSubscriptionId;
 
     // Check trial eligibility
-    const trialStatus = await getTrialStatus(session.user.id)
-    trialEligible = trialStatus.isEligible
+    const trialStatus = await getTrialStatus(user.id);
+    trialEligible = trialStatus.isEligible;
   }
 
   return (
@@ -59,8 +58,8 @@ export default async function PricingPage() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
-            Choose the plan that fits your natural wellness journey. All plans include
-            a 14-day money-back guarantee.
+            Choose the plan that fits your natural wellness journey. All plans
+            include a 14-day money-back guarantee.
           </p>
 
           {/* Money-back guarantee badge */}
@@ -90,7 +89,7 @@ export default async function PricingPage() {
             currentPlan={currentPlan}
             hasActiveSubscription={hasActiveSubscription}
             trialEligible={trialEligible}
-            isAuthenticated={!!session?.user}
+            isAuthenticated={!!user}
           />
         </div>
       </section>
@@ -125,7 +124,7 @@ export default async function PricingPage() {
                   <tr
                     key={feature.name}
                     className={`border-b border-gray-100 dark:border-zinc-700 ${
-                      index % 2 === 0 ? 'bg-gray-50/50 dark:bg-zinc-800/30' : ''
+                      index % 2 === 0 ? "bg-gray-50/50 dark:bg-zinc-800/30" : ""
                     }`}
                   >
                     <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
@@ -227,7 +226,9 @@ export default async function PricingPage() {
                   </svg>
                 </summary>
                 <div className="px-6 pb-6 pt-0">
-                  <p className="text-gray-600 dark:text-gray-400">{faq.answer}</p>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {faq.answer}
+                  </p>
                 </div>
               </details>
             ))}
@@ -242,7 +243,8 @@ export default async function PricingPage() {
             Ready to Start Your Natural Wellness Journey?
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
-            Join thousands of users discovering natural alternatives with Remedi.
+            Join thousands of users discovering natural alternatives with
+            Remedi.
           </p>
           <a
             href="#pricing"
@@ -266,7 +268,7 @@ export default async function PricingPage() {
         </div>
       </section>
     </main>
-  )
+  );
 }
 
 // Feature value display component
@@ -274,13 +276,13 @@ function FeatureValue({
   value,
   highlight = false,
 }: {
-  value: string | boolean
-  highlight?: boolean
+  value: string | boolean;
+  highlight?: boolean;
 }) {
-  if (typeof value === 'boolean') {
+  if (typeof value === "boolean") {
     return value ? (
       <svg
-        className={`w-5 h-5 mx-auto ${highlight ? 'text-blue-500' : 'text-green-500'}`}
+        className={`w-5 h-5 mx-auto ${highlight ? "text-blue-500" : "text-green-500"}`}
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -294,97 +296,112 @@ function FeatureValue({
       </svg>
     ) : (
       <span className="text-gray-400 dark:text-gray-600">-</span>
-    )
+    );
   }
 
   return (
     <span
       className={`${
         highlight
-          ? 'text-blue-600 dark:text-blue-400 font-medium'
-          : 'text-gray-700 dark:text-gray-300'
+          ? "text-blue-600 dark:text-blue-400 font-medium"
+          : "text-gray-700 dark:text-gray-300"
       }`}
     >
       {value}
     </span>
-  )
+  );
 }
 
 // Feature comparison data
 const featureComparison = [
-  { name: 'Daily searches', free: '5', basic: '100', premium: 'Unlimited' },
-  { name: 'Saved favorites', free: '3', basic: '50', premium: 'Unlimited' },
-  { name: 'AI-powered searches', free: false, basic: '10/day', premium: '50/day' },
-  { name: 'Search history', free: false, basic: true, premium: true },
-  { name: 'Compare remedies', free: false, basic: 'Up to 4', premium: 'Up to 10' },
-  { name: 'Export data', free: false, basic: true, premium: true },
-  { name: 'Priority support', free: false, basic: false, premium: true },
-  { name: 'Early access to features', free: false, basic: false, premium: true },
-  { name: 'API access', free: false, basic: false, premium: true },
-]
+  { name: "Daily searches", free: "5", basic: "100", premium: "Unlimited" },
+  { name: "Saved favorites", free: "3", basic: "50", premium: "Unlimited" },
+  {
+    name: "AI-powered searches",
+    free: false,
+    basic: "10/day",
+    premium: "50/day",
+  },
+  { name: "Search history", free: false, basic: true, premium: true },
+  {
+    name: "Compare remedies",
+    free: false,
+    basic: "Up to 4",
+    premium: "Up to 10",
+  },
+  { name: "Export data", free: false, basic: true, premium: true },
+  { name: "Priority support", free: false, basic: false, premium: true },
+  {
+    name: "Early access to features",
+    free: false,
+    basic: false,
+    premium: true,
+  },
+  { name: "API access", free: false, basic: false, premium: true },
+];
 
 // Testimonials data
 const testimonials = [
   {
-    name: 'Sarah M.',
-    title: 'Health Enthusiast',
+    name: "Sarah M.",
+    title: "Health Enthusiast",
     quote:
-      'Remedi has completely changed how I approach natural wellness. The AI-powered search is incredibly helpful for finding the right remedies.',
+      "Remedi has completely changed how I approach natural wellness. The AI-powered search is incredibly helpful for finding the right remedies.",
   },
   {
-    name: 'David L.',
-    title: 'Naturopath',
+    name: "David L.",
+    title: "Naturopath",
     quote:
-      'As a practitioner, I use Remedi daily to research natural alternatives for my clients. The Premium plan is absolutely worth it.',
+      "As a practitioner, I use Remedi daily to research natural alternatives for my clients. The Premium plan is absolutely worth it.",
   },
   {
-    name: 'Emily R.',
-    title: 'Wellness Blogger',
+    name: "Emily R.",
+    title: "Wellness Blogger",
     quote:
       "The comparison feature is a game-changer. I can easily compare multiple remedies and make informed recommendations to my readers.",
   },
-]
+];
 
 // FAQ data
 const faqs = [
   {
-    question: 'Can I cancel my subscription at any time?',
+    question: "Can I cancel my subscription at any time?",
     answer:
       "Yes, you can cancel your subscription at any time from your billing settings. You'll continue to have access to premium features until the end of your current billing period.",
   },
   {
-    question: 'What payment methods do you accept?',
+    question: "What payment methods do you accept?",
     answer:
-      'We accept all major credit cards including Visa, Mastercard, American Express, and Discover. We also support Apple Pay and Google Pay where available.',
+      "We accept all major credit cards including Visa, Mastercard, American Express, and Discover. We also support Apple Pay and Google Pay where available.",
   },
   {
-    question: 'Is there a free trial available?',
+    question: "Is there a free trial available?",
     answer:
-      'Yes! New users can start a 7-day free trial of our Premium plan. No credit card required to start. Experience all premium features before you decide to subscribe.',
+      "Yes! New users can start a 7-day free trial of our Premium plan. No credit card required to start. Experience all premium features before you decide to subscribe.",
   },
   {
-    question: 'What happens when I upgrade or downgrade?',
+    question: "What happens when I upgrade or downgrade?",
     answer:
       "When you upgrade, you'll immediately get access to the new features. When you downgrade, your current plan continues until the end of your billing period, then switches to the new plan.",
   },
   {
-    question: 'How does the annual billing discount work?',
+    question: "How does the annual billing discount work?",
     answer:
-      'When you choose annual billing, you get 20% off compared to monthly billing. This means you pay for 10 months and get 12 months of access.',
+      "When you choose annual billing, you get 20% off compared to monthly billing. This means you pay for 10 months and get 12 months of access.",
   },
   {
-    question: 'Do you offer refunds?',
+    question: "Do you offer refunds?",
     answer:
       "Yes, we offer a 14-day money-back guarantee. If you're not satisfied with your subscription, contact us within 14 days of purchase for a full refund.",
   },
   {
-    question: 'Is my data secure?',
+    question: "Is my data secure?",
     answer:
-      'Absolutely. We use industry-standard encryption and security practices. Your data is never sold to third parties, and you can export or delete your data at any time.',
+      "Absolutely. We use industry-standard encryption and security practices. Your data is never sold to third parties, and you can export or delete your data at any time.",
   },
   {
-    question: 'Can I use Remedi for professional/commercial purposes?',
+    question: "Can I use Remedi for professional/commercial purposes?",
     answer:
-      'Yes, our Premium plan includes commercial use rights. Many healthcare practitioners, researchers, and content creators use Remedi in their professional work.',
+      "Yes, our Premium plan includes commercial use rights. Many healthcare practitioners, researchers, and content creators use Remedi in their professional work.",
   },
-]
+];

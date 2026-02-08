@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic';
-
+export const dynamic = "force-dynamic";
 
 /**
  * Billing Page
@@ -7,50 +6,50 @@ export const dynamic = 'force-dynamic';
  * Displays subscription plans and allows users to manage their billing.
  */
 
-import { Metadata } from 'next'
-import { redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/db'
-import { PLANS, type PlanType } from '@/lib/stripe'
-import { BillingClient } from './billing-client'
+import { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { PLANS, type PlanType } from "@/lib/stripe";
+import { BillingClient } from "./billing-client";
 
 export const metadata: Metadata = {
-  title: 'Billing & Subscription | Remedi',
-  description: 'Manage your Remedi subscription and billing settings',
-}
+  title: "Billing & Subscription | Remedi",
+  description: "Manage your Remedi subscription and billing settings",
+};
 
 export default async function BillingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string; canceled?: string }>
+  searchParams: Promise<{ success?: string; canceled?: string }>;
 }) {
-  const session = await auth()
-  const params = await searchParams
+  const user = await getCurrentUser();
+  const params = await searchParams;
 
-  if (!session?.user?.id) {
-    redirect('/auth/signin?callbackUrl=/billing')
+  if (!user) {
+    redirect("/sign-in?redirect_url=/billing");
   }
 
   // Get user's subscription
   const subscription = await prisma.subscription.findUnique({
-    where: { userId: session.user.id },
-  })
+    where: { userId: user.id },
+  });
 
-  const currentPlan = (subscription?.plan || 'free') as PlanType
-  const planDetails = PLANS[currentPlan] || PLANS.free
+  const currentPlan = (subscription?.plan || "free") as PlanType;
+  const planDetails = PLANS[currentPlan] || PLANS.free;
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-12">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Success/Cancel Messages */}
-        {params.success === 'true' && (
+        {params.success === "true" && (
           <div className="mb-8 p-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg">
             <p className="text-green-800 dark:text-green-200 font-medium">
               Payment successful! Your subscription is now active.
             </p>
           </div>
         )}
-        {params.canceled === 'true' && (
+        {params.canceled === "true" && (
           <div className="mb-8 p-4 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded-lg">
             <p className="text-yellow-800 dark:text-yellow-200 font-medium">
               Payment was canceled. You can try again when ready.
@@ -79,7 +78,7 @@ export default async function BillingPage({
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {planDetails.name}
               </p>
-              {subscription?.status && subscription.status !== 'active' && (
+              {subscription?.status && subscription.status !== "active" && (
                 <p className="text-sm text-red-500">
                   Status: {subscription.status}
                 </p>
@@ -90,7 +89,7 @@ export default async function BillingPage({
                 </p>
               )}
             </div>
-            {subscription?.currentPeriodEnd && currentPlan !== 'free' && (
+            {subscription?.currentPeriodEnd && currentPlan !== "free" && (
               <div className="text-right">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Next billing date
@@ -138,8 +137,8 @@ export default async function BillingPage({
                 Is there a free trial?
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                We offer a 14-day money-back guarantee. If you are not satisfied,
-                contact us for a full refund.
+                We offer a 14-day money-back guarantee. If you are not
+                satisfied, contact us for a full refund.
               </p>
             </div>
             <div className="bg-white dark:bg-zinc-800 rounded-lg p-6">
@@ -155,5 +154,5 @@ export default async function BillingPage({
         </div>
       </div>
     </main>
-  )
+  );
 }

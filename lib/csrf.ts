@@ -5,11 +5,11 @@
  * Works with both authenticated and anonymous users.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
-const CSRF_COOKIE_NAME = 'csrf_token';
-const CSRF_HEADER_NAME = 'x-csrf-token';
+const CSRF_COOKIE_NAME = "csrf_token";
+const CSRF_HEADER_NAME = "x-csrf-token";
 const CSRF_TOKEN_LENGTH = 32;
 
 /**
@@ -18,7 +18,9 @@ const CSRF_TOKEN_LENGTH = 32;
 export function generateCSRFToken(): string {
   const array = new Uint8Array(CSRF_TOKEN_LENGTH);
   globalThis.crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
 }
 
 /**
@@ -27,9 +29,9 @@ export function generateCSRFToken(): string {
 export function setCSRFCookie(response: NextResponse, token: string): void {
   response.cookies.set(CSRF_COOKIE_NAME, token, {
     httpOnly: false, // Must be readable by JavaScript
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
     maxAge: 60 * 60 * 24, // 24 hours
   });
 }
@@ -37,14 +39,18 @@ export function setCSRFCookie(response: NextResponse, token: string): void {
 /**
  * Get CSRF token from request cookie
  */
-export function getCSRFTokenFromCookie(request: NextRequest): string | undefined {
+export function getCSRFTokenFromCookie(
+  request: NextRequest,
+): string | undefined {
   return request.cookies.get(CSRF_COOKIE_NAME)?.value;
 }
 
 /**
  * Get CSRF token from request header
  */
-export function getCSRFTokenFromHeader(request: NextRequest): string | undefined {
+export function getCSRFTokenFromHeader(
+  request: NextRequest,
+): string | undefined {
   return request.headers.get(CSRF_HEADER_NAME) || undefined;
 }
 
@@ -83,18 +89,18 @@ export function validateCSRFToken(request: NextRequest): boolean {
  * Check if request method requires CSRF validation
  */
 export function requiresCSRFValidation(method: string): boolean {
-  const statefulMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
+  const statefulMethods = ["POST", "PUT", "DELETE", "PATCH"];
   return statefulMethods.includes(method.toUpperCase());
 }
 
 /**
  * Check if request path should skip CSRF validation
- * (e.g., NextAuth routes handle their own CSRF)
+ * (e.g., webhook routes that use their own signature verification)
  */
 export function shouldSkipCSRF(pathname: string): boolean {
   const skipPaths = [
-    '/api/auth/', // NextAuth handles its own CSRF
-    '/api/webhooks/stripe', // Stripe webhooks are signed, not browser-initiated
+    "/api/webhooks/clerk", // Clerk webhooks are signed, not browser-initiated
+    "/api/webhooks/stripe", // Stripe webhooks are signed, not browser-initiated
   ];
 
   return skipPaths.some((path) => pathname.startsWith(path));
@@ -124,12 +130,12 @@ export function csrfMiddleware(request: NextRequest): NextResponse | null {
       {
         success: false,
         error: {
-          code: 'CSRF_VALIDATION_FAILED',
-          message: 'Invalid or missing CSRF token',
+          code: "CSRF_VALIDATION_FAILED",
+          message: "Invalid or missing CSRF token",
           statusCode: 403,
         },
       },
-      { status: 403 }
+      { status: 403 },
     );
   }
 

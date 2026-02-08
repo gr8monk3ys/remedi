@@ -17,11 +17,17 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { User } from "next-auth";
+interface DashboardUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role?: string;
+}
 import type { PlanType } from "@/lib/stripe-config";
 
 interface DashboardSidebarProps {
-  user: User & { role?: string };
+  user: DashboardUser;
   currentPlan?: PlanType;
 }
 

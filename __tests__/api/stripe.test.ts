@@ -47,14 +47,19 @@ vi.stubEnv("STRIPE_BASIC_YEARLY_PRICE_ID", "price_basic_yearly");
 vi.stubEnv("STRIPE_PREMIUM_MONTHLY_PRICE_ID", "price_premium_monthly");
 vi.stubEnv("STRIPE_PREMIUM_YEARLY_PRICE_ID", "price_premium_yearly");
 
-// Mock auth - NextAuth v5 auth() has complex overloads (session getter + middleware)
-// We create a properly typed mock that matches the session getter overload
-import type { Session } from "next-auth";
+// Mock auth - Clerk-based getCurrentUser()
+interface MockUser {
+  id: string;
+  name: string | null;
+  email: string;
+  image: string | null;
+  role: string;
+}
 
-const mockAuth = vi.fn<() => Promise<Session | null>>();
+const mockGetCurrentUser = vi.fn<() => Promise<MockUser | null>>();
 
 vi.mock("@/lib/auth", () => ({
-  auth: mockAuth,
+  getCurrentUser: mockGetCurrentUser,
 }));
 
 // Mock database
@@ -198,7 +203,7 @@ describe("POST /api/checkout", () => {
   });
 
   it("should return 401 when not authenticated", async () => {
-    mockAuth.mockResolvedValue(null);
+    mockGetCurrentUser.mockResolvedValue(null);
 
     const { POST } = await import("@/app/api/checkout/route");
     const { NextRequest } = await import("next/server");
@@ -219,9 +224,12 @@ describe("POST /api/checkout", () => {
   });
 
   it("should return 400 for invalid price ID", async () => {
-    mockAuth.mockResolvedValue({
-      user: { id: "user_123", email: "test@example.com", name: "Test User" },
-      expires: new Date(Date.now() + 86400000).toISOString(),
+    mockGetCurrentUser.mockResolvedValue({
+      id: "user_123",
+      email: "test@example.com",
+      name: "Test User",
+      image: null,
+      role: "user",
     });
 
     const { POST } = await import("@/app/api/checkout/route");
@@ -251,7 +259,7 @@ describe("POST /api/billing-portal", () => {
   });
 
   it("should return 401 when not authenticated", async () => {
-    mockAuth.mockResolvedValue(null);
+    mockGetCurrentUser.mockResolvedValue(null);
 
     const { POST } = await import("@/app/api/billing-portal/route");
     const { NextRequest } = await import("next/server");
@@ -273,9 +281,12 @@ describe("POST /api/billing-portal", () => {
   });
 
   it("should return 404 when user has no customer ID", async () => {
-    mockAuth.mockResolvedValue({
-      user: { id: "user_123", email: "test@example.com" },
-      expires: new Date(Date.now() + 86400000).toISOString(),
+    mockGetCurrentUser.mockResolvedValue({
+      id: "user_123",
+      email: "test@example.com",
+      name: null,
+      image: null,
+      role: "user",
     });
 
     const { prisma } = await import("@/lib/db");

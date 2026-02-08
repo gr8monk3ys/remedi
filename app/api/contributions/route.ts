@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 
@@ -7,27 +7,36 @@ const contributionSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   description: z.string().min(20, "Description must be at least 20 characters"),
   category: z.string().min(1, "Category is required"),
-  ingredients: z.array(z.string()).min(1, "At least one ingredient is required"),
+  ingredients: z
+    .array(z.string())
+    .min(1, "At least one ingredient is required"),
   benefits: z.array(z.string()).min(1, "At least one benefit is required"),
   usage: z.string().optional(),
   dosage: z.string().optional(),
   precautions: z.string().optional(),
   scientificInfo: z.string().optional(),
-  references: z.array(z.object({
-    title: z.string(),
-    url: z.string().url().optional(),
-  })).optional(),
+  references: z
+    .array(
+      z.object({
+        title: z.string(),
+        url: z.string().url().optional(),
+      }),
+    )
+    .optional(),
   imageUrl: z.string().url().optional(),
 });
 
 // GET /api/contributions - Get user's contributions
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json(
-        { success: false, error: { code: "UNAUTHORIZED", message: "You must be signed in" } },
-        { status: 401 }
+        {
+          success: false,
+          error: { code: "UNAUTHORIZED", message: "You must be signed in" },
+        },
+        { status: 401 },
       );
     }
 
@@ -38,7 +47,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     const where = {
-      userId: session.user.id,
+      userId: user.id,
       ...(status && { status }),
     };
 
@@ -64,8 +73,14 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching contributions:", error);
     return NextResponse.json(
-      { success: false, error: { code: "INTERNAL_ERROR", message: "Failed to fetch contributions" } },
-      { status: 500 }
+      {
+        success: false,
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "Failed to fetch contributions",
+        },
+      },
+      { status: 500 },
     );
   }
 }
@@ -73,11 +88,17 @@ export async function GET(request: NextRequest) {
 // POST /api/contributions - Create a new contribution
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json(
-        { success: false, error: { code: "UNAUTHORIZED", message: "You must be signed in to contribute a remedy" } },
-        { status: 401 }
+        {
+          success: false,
+          error: {
+            code: "UNAUTHORIZED",
+            message: "You must be signed in to contribute a remedy",
+          },
+        },
+        { status: 401 },
       );
     }
 
@@ -86,8 +107,14 @@ export async function POST(request: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: { code: "VALIDATION_ERROR", message: parsed.error.issues[0].message } },
-        { status: 400 }
+        {
+          success: false,
+          error: {
+            code: "VALIDATION_ERROR",
+            message: parsed.error.issues[0].message,
+          },
+        },
+        { status: 400 },
       );
     }
 
@@ -111,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     const contribution = await prisma.remedyContribution.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         name,
         description,
         category,
@@ -127,12 +154,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, data: contribution }, { status: 201 });
+    return NextResponse.json(
+      { success: true, data: contribution },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Error creating contribution:", error);
     return NextResponse.json(
-      { success: false, error: { code: "INTERNAL_ERROR", message: "Failed to create contribution" } },
-      { status: 500 }
+      {
+        success: false,
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "Failed to create contribution",
+        },
+      },
+      { status: 500 },
     );
   }
 }

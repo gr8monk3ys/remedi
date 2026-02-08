@@ -10,7 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import {
   createCheckoutSession,
   getOrCreateStripeCustomer,
@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Authenticate user
-    const session = await auth();
-    if (!session?.user?.id || !session.user.email) {
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json(
         {
           success: false,
@@ -175,15 +175,15 @@ export async function POST(request: NextRequest) {
 
     // Get or create Stripe customer
     const customerId = await getOrCreateStripeCustomer(
-      session.user.id,
-      session.user.email,
-      session.user.name || undefined,
+      user.id,
+      user.email,
+      user.name || undefined,
     );
 
     // Check trial eligibility if trial is requested
     let trialPeriodDays: number | undefined;
     if (withTrial) {
-      const eligible = await isTrialEligible(session.user.id);
+      const eligible = await isTrialEligible(user.id);
       if (eligible) {
         trialPeriodDays = 7; // 7-day trial
       }
@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
     const checkoutSession = await createCheckoutSession({
       customerId,
       priceId,
-      userId: session.user.id,
+      userId: user.id,
       successUrl: `${baseUrl}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${baseUrl}/billing?canceled=true`,
       trialPeriodDays,
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
 
     // Track checkout started event
     await trackConversionEvent({
-      userId: session.user.id,
+      userId: user.id,
       eventType: CONVERSION_EVENT_TYPES.CHECKOUT_STARTED,
       eventSource:
         (source as ConversionEventSource) || EVENT_SOURCES.PRICING_PAGE,

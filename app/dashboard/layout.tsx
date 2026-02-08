@@ -4,9 +4,7 @@ import { prisma } from "@/lib/db";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import type { PlanType } from "@/lib/stripe";
 import type { Metadata } from "next";
-export const dynamic = 'force-dynamic';
-
-
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: {
@@ -33,7 +31,7 @@ export default async function DashboardLayout({
 
   // Redirect to sign in if not authenticated
   if (!user) {
-    redirect("/auth/signin?callbackUrl=/dashboard");
+    redirect("/sign-in?redirect_url=/dashboard");
   }
 
   // Get user's subscription plan

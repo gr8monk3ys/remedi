@@ -61,11 +61,9 @@ describe("CSRF Protection Utilities", () => {
   });
 
   describe("shouldSkipCSRF", () => {
-    it("should skip NextAuth routes", () => {
-      expect(shouldSkipCSRF("/api/auth/signin")).toBe(true);
-      expect(shouldSkipCSRF("/api/auth/signout")).toBe(true);
-      expect(shouldSkipCSRF("/api/auth/callback/google")).toBe(true);
-      expect(shouldSkipCSRF("/api/auth/session")).toBe(true);
+    it("should skip webhook routes", () => {
+      expect(shouldSkipCSRF("/api/webhooks/clerk")).toBe(true);
+      expect(shouldSkipCSRF("/api/webhooks/stripe")).toBe(true);
     });
 
     it("should not skip regular API routes", () => {
@@ -208,10 +206,13 @@ describe("CSRF Protection Utilities", () => {
       expect(result).toBeNull();
     });
 
-    it("should return null for auth routes", () => {
-      const request = new NextRequest("http://localhost:3000/api/auth/signin", {
-        method: "POST",
-      });
+    it("should return null for webhook routes", () => {
+      const request = new NextRequest(
+        "http://localhost:3000/api/webhooks/clerk",
+        {
+          method: "POST",
+        },
+      );
 
       const result = csrfMiddleware(request);
       expect(result).toBeNull();

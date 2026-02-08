@@ -9,7 +9,7 @@
 
 import { useState, useEffect, type ReactNode } from "react";
 import { Lock, Sparkles, Loader2 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { type PlanType, PLAN_LIMITS } from "@/lib/stripe-config";
@@ -91,7 +91,7 @@ export function FeatureGate({
   onUpgradeClick,
   className = "",
 }: FeatureGateProps) {
-  const { status } = useSession();
+  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const router = useRouter();
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [currentPlan, setCurrentPlan] = useState<PlanType>("free");
@@ -103,7 +103,7 @@ export function FeatureGate({
   useEffect(() => {
     const checkAccess = async () => {
       // Not logged in - no access to premium features
-      if (status === "unauthenticated") {
+      if (!isSignedIn && isAuthLoaded) {
         setHasAccess(false);
         setCurrentPlan("free");
         setIsLoading(false);
@@ -111,7 +111,7 @@ export function FeatureGate({
       }
 
       // Still loading auth
-      if (status === "loading") {
+      if (!isAuthLoaded) {
         return;
       }
 
@@ -148,17 +148,16 @@ export function FeatureGate({
     };
 
     checkAccess();
-  }, [status, feature, requiredPlan]);
+  }, [isAuthLoaded, isSignedIn, feature, requiredPlan]);
 
   const handleUpgradeClick = () => {
     if (onUpgradeClick) {
       onUpgradeClick();
     }
 
-    if (status === "unauthenticated") {
+    if (!isSignedIn && isAuthLoaded) {
       router.push(
-        "/auth/signin?callbackUrl=" +
-          encodeURIComponent(window.location.pathname),
+        "/sign-in?redirect_url=" + encodeURIComponent(window.location.pathname),
       );
       return;
     }
@@ -242,7 +241,7 @@ export function FeatureGate({
                 Unlock Feature
               </motion.button>
 
-              {status === "unauthenticated" && (
+              {!isSignedIn && isAuthLoaded && (
                 <p className="text-xs text-gray-500 dark:text-gray-500 mt-3">
                   Sign in required
                 </p>
@@ -284,21 +283,21 @@ export function useFeatureAccess(feature: FeatureKey): {
   isLoading: boolean;
   currentPlan: PlanType;
 } {
-  const { status } = useSession();
+  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [currentPlan, setCurrentPlan] = useState<PlanType>("free");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAccess = async () => {
-      if (status === "unauthenticated") {
+      if (!isSignedIn && isAuthLoaded) {
         setHasAccess(false);
         setCurrentPlan("free");
         setIsLoading(false);
         return;
       }
 
-      if (status === "loading") {
+      if (!isAuthLoaded) {
         return;
       }
 
@@ -324,7 +323,7 @@ export function useFeatureAccess(feature: FeatureKey): {
     };
 
     checkAccess();
-  }, [status, feature]);
+  }, [isAuthLoaded, isSignedIn, feature]);
 
   return { hasAccess, isLoading, currentPlan };
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Star, Send, X } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { fetchWithCSRF } from "@/lib/fetch";
 
@@ -13,8 +13,13 @@ interface ReviewFormProps {
   onCancel?: () => void;
 }
 
-export function ReviewForm({ remedyId, remedyName, onReviewSubmitted, onCancel }: ReviewFormProps) {
-  const { data: session } = useSession();
+export function ReviewForm({
+  remedyId,
+  remedyName,
+  onReviewSubmitted,
+  onCancel,
+}: ReviewFormProps) {
+  const { isLoaded, isSignedIn } = useAuth();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState("");
@@ -68,14 +73,18 @@ export function ReviewForm({ remedyId, remedyName, onReviewSubmitted, onCancel }
     }
   };
 
-  if (!session) {
+  if (!isLoaded) {
+    return null;
+  }
+
+  if (!isSignedIn) {
     return (
       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 text-center">
         <p className="text-gray-600 dark:text-gray-300 mb-4">
           Sign in to write a review and share your experience with this remedy.
         </p>
         <Link
-          href="/auth/signin"
+          href="/sign-in"
           className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
         >
           Sign In to Review
@@ -85,7 +94,10 @@ export function ReviewForm({ remedyId, remedyName, onReviewSubmitted, onCancel }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6"
+    >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Write a Review
@@ -126,7 +138,9 @@ export function ReviewForm({ remedyId, remedyName, onReviewSubmitted, onCancel }
             </button>
           ))}
           <span className="ml-2 text-sm text-gray-500 dark:text-gray-400 self-center">
-            {rating > 0 ? `${rating} star${rating > 1 ? "s" : ""}` : "Select rating"}
+            {rating > 0
+              ? `${rating} star${rating > 1 ? "s" : ""}`
+              : "Select rating"}
           </span>
         </div>
       </div>

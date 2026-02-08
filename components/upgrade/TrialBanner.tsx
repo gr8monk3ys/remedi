@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Trial Banner Component
@@ -7,18 +7,18 @@
  * Displays upgrade prompts as trial expiration approaches.
  */
 
-import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { fetchWithCSRF } from '@/lib/fetch'
-import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Clock, X, Loader2 } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { fetchWithCSRF } from "@/lib/fetch";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Clock, X, Loader2 } from "lucide-react";
 
 interface TrialStatus {
-  isActive: boolean
-  isEligible: boolean
-  daysRemaining: number
-  endDate: string | null
+  isActive: boolean;
+  isEligible: boolean;
+  daysRemaining: number;
+  endDate: string | null;
 }
 
 interface TrialBannerProps {
@@ -26,73 +26,73 @@ interface TrialBannerProps {
    * Where the banner is being displayed (for analytics)
    * Reserved for future analytics integration
    */
-  location?: string
+  location?: string;
   /**
    * Whether the banner can be dismissed
    */
-  dismissable?: boolean
+  dismissable?: boolean;
   /**
    * Callback when dismissed
    */
-  onDismiss?: () => void
+  onDismiss?: () => void;
   /**
    * Custom className
    */
-  className?: string
+  className?: string;
 }
 
 export function TrialBanner({
-  location: _location = 'header', // Reserved for future analytics
+  location: _location = "header", // Reserved for future analytics
   dismissable = true,
   onDismiss,
-  className = '',
+  className = "",
 }: TrialBannerProps) {
-  const { status } = useSession()
-  const router = useRouter()
-  const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isDismissed, setIsDismissed] = useState(false)
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
+  const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
-    if (status !== 'authenticated') {
-      setIsLoading(false)
-      return
+    if (!isSignedIn) {
+      setIsLoading(false);
+      return;
     }
 
     const fetchTrialStatus = async () => {
       try {
-        const response = await fetch('/api/trial/check')
-        const data = await response.json()
+        const response = await fetch("/api/trial/check");
+        const data = await response.json();
 
         if (data.success) {
-          setTrialStatus(data.data)
+          setTrialStatus(data.data);
         }
       } catch {
         // Silently fail
       }
 
-      setIsLoading(false)
-    }
+      setIsLoading(false);
+    };
 
-    fetchTrialStatus()
-  }, [status])
+    fetchTrialStatus();
+  }, [isSignedIn]);
 
   const handleDismiss = () => {
-    setIsDismissed(true)
-    onDismiss?.()
-  }
+    setIsDismissed(true);
+    onDismiss?.();
+  };
 
   const handleUpgrade = () => {
-    router.push('/pricing')
-  }
+    router.push("/pricing");
+  };
 
   // Don't show if loading, dismissed, not authenticated, or no active trial
-  if (isLoading || isDismissed || status !== 'authenticated' || !trialStatus?.isActive) {
-    return null
+  if (isLoading || isDismissed || !isSignedIn || !trialStatus?.isActive) {
+    return null;
   }
 
-  const isUrgent = trialStatus.daysRemaining <= 2
-  const isWarning = trialStatus.daysRemaining <= 5
+  const isUrgent = trialStatus.daysRemaining <= 2;
+  const isWarning = trialStatus.daysRemaining <= 5;
 
   return (
     <AnimatePresence>
@@ -105,10 +105,10 @@ export function TrialBanner({
         <div
           className={`px-4 py-3 ${
             isUrgent
-              ? 'bg-gradient-to-r from-red-500 to-orange-500'
+              ? "bg-gradient-to-r from-red-500 to-orange-500"
               : isWarning
-                ? 'bg-gradient-to-r from-orange-500 to-yellow-500'
-                : 'bg-gradient-to-r from-blue-500 to-purple-500'
+                ? "bg-gradient-to-r from-orange-500 to-yellow-500"
+                : "bg-gradient-to-r from-blue-500 to-purple-500"
           } text-white`}
         >
           <div className="container mx-auto flex items-center justify-between gap-4">
@@ -117,8 +117,8 @@ export function TrialBanner({
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                 <span className="font-medium">
                   {isUrgent
-                    ? 'Your trial ends soon!'
-                    : `${trialStatus.daysRemaining} day${trialStatus.daysRemaining !== 1 ? 's' : ''} left in your Premium trial`}
+                    ? "Your trial ends soon!"
+                    : `${trialStatus.daysRemaining} day${trialStatus.daysRemaining !== 1 ? "s" : ""} left in your Premium trial`}
                 </span>
                 {trialStatus.endDate && (
                   <span className="text-white/80 text-sm flex items-center gap-1">
@@ -151,147 +151,150 @@ export function TrialBanner({
         </div>
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }
 
 /**
  * Compact trial badge for headers/navbars
  */
-export function TrialBadge({ className = '' }: { className?: string }) {
-  const { status } = useSession()
-  const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+export function TrialBadge({ className = "" }: { className?: string }) {
+  const { isSignedIn } = useAuth();
+  const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (status !== 'authenticated') {
-      setIsLoading(false)
-      return
+    if (!isSignedIn) {
+      setIsLoading(false);
+      return;
     }
 
     const fetchTrialStatus = async () => {
       try {
-        const response = await fetch('/api/trial/check')
-        const data = await response.json()
+        const response = await fetch("/api/trial/check");
+        const data = await response.json();
 
         if (data.success) {
-          setTrialStatus(data.data)
+          setTrialStatus(data.data);
         }
       } catch {
         // Silently fail
       }
 
-      setIsLoading(false)
-    }
+      setIsLoading(false);
+    };
 
-    fetchTrialStatus()
-  }, [status])
+    fetchTrialStatus();
+  }, [isSignedIn]);
 
-  if (isLoading || status !== 'authenticated' || !trialStatus?.isActive) {
-    return null
+  if (isLoading || !isSignedIn || !trialStatus?.isActive) {
+    return null;
   }
 
-  const isUrgent = trialStatus.daysRemaining <= 2
+  const isUrgent = trialStatus.daysRemaining <= 2;
 
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
         isUrgent
-          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-          : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+          : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
       } ${className}`}
     >
       <Sparkles className="w-3 h-3" />
       Trial: {trialStatus.daysRemaining}d left
     </span>
-  )
+  );
 }
 
 /**
  * Start Trial Button for eligible users
  */
 export function StartTrialButton({
-  className = '',
-  variant = 'primary',
-  size = 'md',
+  className = "",
+  variant = "primary",
+  size = "md",
 }: {
-  className?: string
-  variant?: 'primary' | 'secondary' | 'outline'
-  size?: 'sm' | 'md' | 'lg'
+  className?: string;
+  variant?: "primary" | "secondary" | "outline";
+  size?: "sm" | "md" | "lg";
 }) {
-  const { status } = useSession()
-  const router = useRouter()
-  const [isEligible, setIsEligible] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isStarting, setIsStarting] = useState(false)
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
+  const [isEligible, setIsEligible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isStarting, setIsStarting] = useState(false);
 
   useEffect(() => {
-    if (status !== 'authenticated') {
-      setIsLoading(false)
-      return
+    if (!isSignedIn) {
+      setIsLoading(false);
+      return;
     }
 
     const checkEligibility = async () => {
       try {
-        const response = await fetch('/api/trial/check')
-        const data = await response.json()
+        const response = await fetch("/api/trial/check");
+        const data = await response.json();
 
         if (data.success) {
-          setIsEligible(data.data.isEligible)
+          setIsEligible(data.data.isEligible);
         }
       } catch {
         // Silently fail
       }
 
-      setIsLoading(false)
-    }
+      setIsLoading(false);
+    };
 
-    checkEligibility()
-  }, [status])
+    checkEligibility();
+  }, [isSignedIn]);
 
   const handleStartTrial = async () => {
-    if (status !== 'authenticated') {
-      router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname))
-      return
+    if (!isSignedIn) {
+      router.push(
+        "/sign-in?redirect_url=" + encodeURIComponent(window.location.pathname),
+      );
+      return;
     }
 
-    setIsStarting(true)
+    setIsStarting(true);
     try {
-      const response = await fetchWithCSRF('/api/trial/start', {
-        method: 'POST',
-      })
+      const response = await fetchWithCSRF("/api/trial/start", {
+        method: "POST",
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (data.success) {
-        router.refresh()
+        router.refresh();
       } else {
-        alert(data.error?.message || 'Failed to start trial')
+        alert(data.error?.message || "Failed to start trial");
       }
     } catch (error) {
-      console.error('Trial start error:', error)
-      alert('Failed to start trial. Please try again.')
+      console.error("Trial start error:", error);
+      alert("Failed to start trial. Please try again.");
     } finally {
-      setIsStarting(false)
+      setIsStarting(false);
     }
-  }
+  };
 
   if (isLoading || !isEligible) {
-    return null
+    return null;
   }
 
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2',
-    lg: 'px-6 py-3 text-lg',
-  }
+    sm: "px-3 py-1.5 text-sm",
+    md: "px-4 py-2",
+    lg: "px-6 py-3 text-lg",
+  };
 
   const variantClasses = {
     primary:
-      'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white',
-    secondary: 'bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-zinc-700',
+      "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white",
+    secondary:
+      "bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-zinc-700",
     outline:
-      'border-2 border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20',
-  }
+      "border-2 border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20",
+  };
 
   return (
     <button
@@ -306,7 +309,7 @@ export function StartTrialButton({
       )}
       Start Free Trial
     </button>
-  )
+  );
 }
 
-export default TrialBanner
+export default TrialBanner;

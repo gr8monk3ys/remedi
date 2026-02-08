@@ -5,31 +5,31 @@
  * Returns the user's trial eligibility status.
  */
 
-import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { getTrialStatus, isTrialEligible, TRIAL_CONFIG } from '@/lib/trial'
+import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { getTrialStatus, isTrialEligible, TRIAL_CONFIG } from "@/lib/trial";
 
 export async function GET() {
   try {
-    const session = await auth()
+    const user = await getCurrentUser();
 
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json(
         {
           success: false,
           error: {
-            code: 'UNAUTHORIZED',
-            message: 'You must be signed in to check trial eligibility',
+            code: "UNAUTHORIZED",
+            message: "You must be signed in to check trial eligibility",
           },
         },
-        { status: 401 }
-      )
+        { status: 401 },
+      );
     }
 
     const [eligible, trialStatus] = await Promise.all([
-      isTrialEligible(session.user.id),
-      getTrialStatus(session.user.id),
-    ])
+      isTrialEligible(user.id),
+      getTrialStatus(user.id),
+    ]);
 
     return NextResponse.json({
       success: true,
@@ -47,18 +47,18 @@ export async function GET() {
           features: TRIAL_CONFIG.features,
         },
       },
-    })
+    });
   } catch (error) {
-    console.error('[trial/check] Error checking trial eligibility:', error)
+    console.error("[trial/check] Error checking trial eligibility:", error);
     return NextResponse.json(
       {
         success: false,
         error: {
-          code: 'INTERNAL_ERROR',
-          message: 'Failed to check trial eligibility',
+          code: "INTERNAL_ERROR",
+          message: "Failed to check trial eligibility",
         },
       },
-      { status: 500 }
-    )
+      { status: 500 },
+    );
   }
 }

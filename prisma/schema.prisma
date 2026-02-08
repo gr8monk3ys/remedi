@@ -163,11 +163,12 @@ model FilterPreference {
 }
 
 // ============================================================================
-// NextAuth.js Models (Authentication & User Management)
+// Clerk Authentication & User Management
 // ============================================================================
 
 model User {
   id            String    @id @default(uuid()) @db.Uuid
+  clerkId       String?   @unique // Clerk user ID (user_xxx)
   name          String?
   email         String    @unique
   emailVerified DateTime? @db.Timestamptz
@@ -182,8 +183,6 @@ model User {
   trialEndDate   DateTime? @db.Timestamptz // When the trial expires
   hasUsedTrial   Boolean   @default(false) // Whether user has ever used a trial
 
-  accounts         Account[]
-  sessions         Session[]
   reviews          RemedyReview[]
   contributions    RemedyContribution[]
   subscription     Subscription?
@@ -192,51 +191,8 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@index([clerkId])
   @@index([trialEndDate])
-}
-
-model Account {
-  userId            String  @db.Uuid
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  createdAt DateTime @default(now()) @db.Timestamptz
-  updatedAt DateTime @updatedAt @db.Timestamptz
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([provider, providerAccountId])
-  @@index([userId])
-}
-
-model Session {
-  sessionToken String   @unique
-  userId       String   @db.Uuid
-  expires      DateTime @db.Timestamptz
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @db.Timestamptz
-  updatedAt DateTime @updatedAt @db.Timestamptz
-
-  @@index([userId])
-  @@index([expires])
-}
-
-model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime @db.Timestamptz
-
-  @@id([identifier, token])
-  @@index([expires])
 }
 
 // ============================================================================

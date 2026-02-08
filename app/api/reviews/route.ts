@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
@@ -86,8 +86,8 @@ export async function GET(request: NextRequest) {
 // POST /api/reviews - Create a new review
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json(
         {
           success: false,
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     const existingReview = await prisma.remedyReview.findFirst({
       where: {
         remedyId,
-        userId: session.user.id,
+        userId: user.id,
       },
     });
 
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
         rating,
         title,
         comment,
-        userId: session.user.id,
+        userId: user.id,
       },
       include: {
         user: {
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
 
     await trackUserEventSafe({
       request,
-      userId: session.user.id,
+      userId: user.id,
       eventType: "review_submitted",
       eventData: {
         remedyId,

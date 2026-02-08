@@ -17,7 +17,7 @@ import {
   Clock,
   RefreshCw,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@clerk/nextjs";
 import { type PlanType } from "@/lib/stripe-config";
 import { UpgradeModal } from "./UpgradeModal";
 
@@ -96,7 +96,7 @@ export function UsageLimitBanner({
   onDismiss,
   className = "",
 }: UsageLimitBannerProps) {
-  const { status } = useSession();
+  const { isSignedIn } = useAuth();
   const [usage, setUsage] = useState<UsageSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -105,7 +105,7 @@ export function UsageLimitBanner({
 
   // Fetch usage data
   const fetchUsage = useCallback(async () => {
-    if (status !== "authenticated") {
+    if (!isSignedIn) {
       setIsLoading(false);
       return;
     }
@@ -122,7 +122,7 @@ export function UsageLimitBanner({
     }
 
     setIsLoading(false);
-  }, [status]);
+  }, [isSignedIn]);
 
   useEffect(() => {
     fetchUsage();
@@ -193,13 +193,7 @@ export function UsageLimitBanner({
   };
 
   // Don't show if loading, dismissed, no active limit, or not authenticated
-  if (
-    isLoading ||
-    isDismissed ||
-    !activeLimit ||
-    !usage ||
-    status !== "authenticated"
-  ) {
+  if (isLoading || isDismissed || !activeLimit || !usage || !isSignedIn) {
     return null;
   }
 
@@ -393,11 +387,11 @@ export function UsageIndicator({
   showLabel?: boolean;
   className?: string;
 }) {
-  const { status } = useSession();
+  const { isSignedIn } = useAuth();
   const [usage, setUsage] = useState<UsageSummary | null>(null);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!isSignedIn) return;
 
     const fetchUsage = async () => {
       try {
@@ -412,9 +406,9 @@ export function UsageIndicator({
     };
 
     fetchUsage();
-  }, [status]);
+  }, [isSignedIn]);
 
-  if (!usage || status !== "authenticated") {
+  if (!usage || !isSignedIn) {
     return null;
   }
 

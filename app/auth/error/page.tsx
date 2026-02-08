@@ -7,14 +7,19 @@ export const metadata: Metadata = {
   description: "An error occurred during authentication",
 };
 
-const errorDescriptions: Record<string, { title: string; description: string }> = {
+const errorDescriptions: Record<
+  string,
+  { title: string; description: string }
+> = {
   Configuration: {
     title: "Server Configuration Error",
-    description: "There is a problem with the server configuration. Please contact support.",
+    description:
+      "There is a problem with the server configuration. Please contact support.",
   },
   AccessDenied: {
     title: "Access Denied",
-    description: "You do not have permission to sign in. This may be due to account restrictions.",
+    description:
+      "You do not have permission to sign in. This may be due to account restrictions.",
   },
   Verification: {
     title: "Verification Failed",
@@ -30,15 +35,18 @@ const errorDescriptions: Record<string, { title: string; description: string }> 
   },
   OAuthCreateAccount: {
     title: "Account Creation Failed",
-    description: "Could not create your account. The email may already be in use with a different provider.",
+    description:
+      "Could not create your account. The email may already be in use with a different provider.",
   },
   OAuthAccountNotLinked: {
     title: "Account Not Linked",
-    description: "This email is already associated with another sign in method. Please use your original sign in method.",
+    description:
+      "This email is already associated with another sign in method. Please use your original sign in method.",
   },
   Default: {
     title: "Authentication Error",
-    description: "An unexpected error occurred during authentication. Please try again.",
+    description:
+      "An unexpected error occurred during authentication. Please try again.",
   },
 };
 
@@ -71,7 +79,7 @@ export default async function AuthErrorPage({
           {/* Actions */}
           <div className="space-y-3">
             <Link
-              href="/auth/signin"
+              href="/sign-in"
               className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />

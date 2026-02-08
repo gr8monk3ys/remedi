@@ -12,15 +12,10 @@ interface EnvSchema {
   // Database
   DATABASE_URL: string;
 
-  // Authentication (NextAuth.js)
-  AUTH_SECRET?: string;
-  NEXTAUTH_SECRET?: string;
-
-  // OAuth Providers (optional - auth disabled if not set)
-  GOOGLE_CLIENT_ID?: string;
-  GOOGLE_CLIENT_SECRET?: string;
-  GITHUB_ID?: string;
-  GITHUB_SECRET?: string;
+  // Authentication (Clerk)
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?: string;
+  CLERK_SECRET_KEY?: string;
+  CLERK_WEBHOOK_SECRET?: string;
 
   // Optional: Rate limiting (Upstash Redis)
   UPSTASH_REDIS_REST_URL?: string;
@@ -59,6 +54,9 @@ const OPTIONAL_WITH_WARNINGS: Partial<Record<keyof EnvSchema, string>> = {
     "OpenFDA API key not set. Using default rate limits (240 req/min).",
   OPENAI_API_KEY:
     "OpenAI API key not set. AI-enhanced features will be disabled.",
+  RESEND_API_KEY: "Resend API key not set. Email features will be disabled.",
+  CLERK_WEBHOOK_SECRET:
+    "Clerk webhook secret not set. Clerk webhooks will not be verified.",
 };
 
 /**
@@ -101,14 +99,13 @@ export function validateEnv(): void {
     );
   }
 
-  // Enforce auth essentials in production
+  // Enforce Clerk auth essentials in production
   if (process.env.NODE_ENV === "production") {
-    if (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET) {
-      missing.push("AUTH_SECRET or NEXTAUTH_SECRET");
+    if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+      missing.push("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY");
     }
-    // On Vercel, VERCEL_URL is auto-set, so NEXTAUTH_URL is not required
-    if (!process.env.NEXTAUTH_URL && !process.env.VERCEL_URL) {
-      missing.push("NEXTAUTH_URL");
+    if (!process.env.CLERK_SECRET_KEY) {
+      missing.push("CLERK_SECRET_KEY");
     }
   }
 
@@ -204,53 +201,6 @@ export function getFdaApiKey(): string | undefined {
  */
 export function getOpenAiKey(): string | undefined {
   return getEnv("OPENAI_API_KEY");
-}
-
-/**
- * Get auth secret (AUTH_SECRET or NEXTAUTH_SECRET)
- */
-export function getAuthSecret(): string | undefined {
-  return getEnv("AUTH_SECRET") || getEnv("NEXTAUTH_SECRET");
-}
-
-/**
- * Check if Google OAuth is configured
- */
-export function hasGoogleOAuth(): boolean {
-  return !!(getEnv("GOOGLE_CLIENT_ID") && getEnv("GOOGLE_CLIENT_SECRET"));
-}
-
-/**
- * Get Google OAuth credentials (returns undefined values if not configured)
- */
-export function getGoogleOAuthCredentials(): {
-  clientId: string | undefined;
-  clientSecret: string | undefined;
-} {
-  return {
-    clientId: getEnv("GOOGLE_CLIENT_ID"),
-    clientSecret: getEnv("GOOGLE_CLIENT_SECRET"),
-  };
-}
-
-/**
- * Check if GitHub OAuth is configured
- */
-export function hasGitHubOAuth(): boolean {
-  return !!(getEnv("GITHUB_ID") && getEnv("GITHUB_SECRET"));
-}
-
-/**
- * Get GitHub OAuth credentials (returns undefined values if not configured)
- */
-export function getGitHubOAuthCredentials(): {
-  clientId: string | undefined;
-  clientSecret: string | undefined;
-} {
-  return {
-    clientId: getEnv("GITHUB_ID"),
-    clientSecret: getEnv("GITHUB_SECRET"),
-  };
 }
 
 /**

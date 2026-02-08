@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -12,7 +13,7 @@ import {
   Clock,
   Bell,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@clerk/nextjs";
 import { useOnboarding } from "@/context/OnboardingContext";
 import { cn } from "@/lib/utils";
 
@@ -57,7 +58,7 @@ export function SignUpPrompt({
   variant = "modal",
   className,
 }: SignUpPromptProps) {
-  const { data: session } = useSession();
+  const { isSignedIn, isLoaded: isAuthLoaded } = useAuth();
   const {
     shouldShowSignupPrompt,
     guestSearchCount,
@@ -91,7 +92,13 @@ export function SignUpPrompt({
   }, [handleDismiss, onSignIn]);
 
   // Don't render if not loaded, user is signed in, shouldn't show, or dismissed
-  if (!isLoaded || session || !shouldShowSignupPrompt || !isVisible) {
+  if (
+    !isLoaded ||
+    !isAuthLoaded ||
+    isSignedIn ||
+    !shouldShowSignupPrompt ||
+    !isVisible
+  ) {
     return null;
   }
 
@@ -138,13 +145,13 @@ export function SignUpPrompt({
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <a
-              href="/auth/signin"
+            <Link
+              href="/sign-in"
               onClick={handleSignIn}
               className="px-4 py-1.5 bg-white text-green-600 text-sm font-medium rounded-lg hover:bg-green-50 transition-colors"
             >
               Sign Up Free
-            </a>
+            </Link>
             <button
               onClick={handleDismiss}
               className="p-1 text-white/70 hover:text-white transition-colors"
@@ -183,13 +190,13 @@ export function SignUpPrompt({
               features.
             </p>
             <div className="flex items-center gap-2">
-              <a
-                href="/auth/signin"
+              <Link
+                href="/sign-in"
                 onClick={handleSignIn}
                 className="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
               >
                 Sign Up Free
-              </a>
+              </Link>
               <button
                 onClick={handleRemindLater}
                 className="px-3 py-1.5 text-gray-600 dark:text-gray-400 text-sm hover:text-gray-900 dark:hover:text-white transition-colors"
@@ -293,14 +300,14 @@ export function SignUpPrompt({
 
             {/* Sign up buttons */}
             <div className="space-y-3">
-              <a
-                href="/auth/signin"
+              <Link
+                href="/sign-in"
                 onClick={handleSignIn}
                 className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
               >
                 <Check className="w-5 h-5" />
                 Create Free Account
-              </a>
+              </Link>
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -316,7 +323,7 @@ export function SignUpPrompt({
               <div className="grid grid-cols-2 gap-3">
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirects require <a> tags */}
                 <a
-                  href="/api/auth/signin/google"
+                  href="/sign-in"
                   className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -344,7 +351,7 @@ export function SignUpPrompt({
 
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirects require <a> tags */}
                 <a
-                  href="/api/auth/signin/github"
+                  href="/sign-in"
                   className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
                 >
                   <svg

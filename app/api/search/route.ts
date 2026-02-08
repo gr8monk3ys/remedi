@@ -118,48 +118,55 @@ export async function GET(req: NextRequest) {
     let remedies: NaturalRemedy[] = [];
 
     // Step 1: Try to find pharmaceutical in database
-    log.debug("Searching database for pharmaceutical");
-    const dbPharmaceuticals = await searchPharmaceuticals(processedQuery);
+    try {
+      log.debug("Searching database for pharmaceutical");
+      const dbPharmaceuticals = await searchPharmaceuticals(processedQuery);
 
-    if (dbPharmaceuticals.length > 0) {
-      // Found in database - get remedies from database
-      const dbPharma = dbPharmaceuticals[0];
-      if (!dbPharma) {
-        throw new Error("Unexpected: pharmaceutical at index 0 is undefined");
+      if (dbPharmaceuticals.length > 0) {
+        // Found in database - get remedies from database
+        const dbPharma = dbPharmaceuticals[0];
+        if (!dbPharma) {
+          throw new Error("Unexpected: pharmaceutical at index 0 is undefined");
+        }
+
+        pharmaceutical = {
+          id: dbPharma.id,
+          fdaId: dbPharma.fdaId || "",
+          name: dbPharma.name,
+          description: dbPharma.description || "",
+          category: dbPharma.category,
+          ingredients: dbPharma.ingredients,
+          benefits: dbPharma.benefits,
+          usage: dbPharma.usage || undefined,
+          warnings: dbPharma.warnings || undefined,
+          interactions: dbPharma.interactions || undefined,
+        };
+
+        log.info("Found pharmaceutical in database", {
+          name: pharmaceutical.name,
+        });
+        remedies = await getNaturalRemediesForPharmaceutical(pharmaceutical.id);
+
+        if (remedies.length > 0) {
+          log.info("Found remedies from database", { count: remedies.length });
+          await saveHistory(remedies.length);
+          await trackSearchEvent(remedies.length, "database");
+          const processingTime = Date.now() - startTime;
+          return NextResponse.json(
+            successResponse(remedies, {
+              total: remedies.length,
+              processingTime,
+              apiVersion: "1.0",
+            }),
+            { status: 200 },
+          );
+        }
       }
-
-      pharmaceutical = {
-        id: dbPharma.id,
-        fdaId: dbPharma.fdaId || "",
-        name: dbPharma.name,
-        description: dbPharma.description || "",
-        category: dbPharma.category,
-        ingredients: dbPharma.ingredients,
-        benefits: dbPharma.benefits,
-        usage: dbPharma.usage || undefined,
-        warnings: dbPharma.warnings || undefined,
-        interactions: dbPharma.interactions || undefined,
-      };
-
-      log.info("Found pharmaceutical in database", {
-        name: pharmaceutical.name,
+    } catch (dbError) {
+      // Database unavailable - gracefully fall through to FDA API and mock data
+      log.warn("Database search failed, falling through to FDA API", {
+        error: String(dbError),
       });
-      remedies = await getNaturalRemediesForPharmaceutical(pharmaceutical.id);
-
-      if (remedies.length > 0) {
-        log.info("Found remedies from database", { count: remedies.length });
-        await saveHistory(remedies.length);
-        await trackSearchEvent(remedies.length, "database");
-        const processingTime = Date.now() - startTime;
-        return NextResponse.json(
-          successResponse(remedies, {
-            total: remedies.length,
-            processingTime,
-            apiVersion: "1.0",
-          }),
-          { status: 200 },
-        );
-      }
     }
 
     // Step 2: If not in database, try OpenFDA API

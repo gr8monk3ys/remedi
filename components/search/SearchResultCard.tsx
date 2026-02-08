@@ -10,7 +10,11 @@ interface SearchResultCardProps {
   result: SearchResult;
   isFavorite: boolean;
   isLoading: boolean;
-  onFavoriteToggle: (e: React.MouseEvent, remedyId: string, remedyName: string) => void;
+  onFavoriteToggle: (
+    e: React.MouseEvent,
+    remedyId: string,
+    remedyName: string,
+  ) => void;
   onViewDetails: (remedyId: string) => void;
 }
 
@@ -21,7 +25,8 @@ export const SearchResultCard = memo(function SearchResultCard({
   onFavoriteToggle,
   onViewDetails,
 }: SearchResultCardProps) {
-  const { isInComparison, addToCompare, removeFromCompare, isFull } = useCompare();
+  const { isInComparison, addToCompare, removeFromCompare, isFull } =
+    useCompare();
   const isComparing = isInComparison(result.id);
 
   const handleCompareToggle = (e: React.MouseEvent) => {
@@ -40,8 +45,8 @@ export const SearchResultCard = memo(function SearchResultCard({
 
   return (
     <div
-      className={`p-4 border rounded-lg mb-4 hover:border-primary hover:shadow-sm transition-all cursor-pointer ${
-        isComparing ? "border-primary bg-primary/5 dark:bg-primary/10" : ""
+      className={`neu-card-interactive p-4 rounded-2xl mb-4 transition-all cursor-pointer ${
+        isComparing ? "ring-2 ring-[var(--primary)]" : ""
       }`}
       onClick={() => onViewDetails(result.id)}
     >
@@ -57,8 +62,13 @@ export const SearchResultCard = memo(function SearchResultCard({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-              <span className="text-xs text-gray-500 dark:text-gray-400">No Image</span>
+            <div className="neu-pressed w-full h-full flex items-center justify-center rounded">
+              <span
+                className="text-xs"
+                style={{ color: "var(--foreground-subtle)" }}
+              >
+                No Image
+              </span>
             </div>
           )}
           {/* Compare indicator overlay */}
@@ -75,7 +85,10 @@ export const SearchResultCard = memo(function SearchResultCard({
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center min-w-0">
               <h3 className="font-bold truncate">{result.name}</h3>
-              <ExternalLink size={14} className="ml-2 text-primary flex-shrink-0" />
+              <ExternalLink
+                size={14}
+                className="ml-2 text-primary flex-shrink-0"
+              />
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
               {/* Compare button */}
@@ -85,12 +98,21 @@ export const SearchResultCard = memo(function SearchResultCard({
                 disabled={!isComparing && isFull}
                 className={`p-2 rounded-full transition-colors ${
                   isComparing
-                    ? "text-primary bg-primary/10 hover:bg-primary/20"
+                    ? "hover:opacity-80"
                     : isFull
-                      ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                      : "text-gray-400 hover:text-primary hover:bg-primary/10"
+                      ? "cursor-not-allowed opacity-30"
+                      : "hover:opacity-80"
                 }`}
-                aria-label={isComparing ? "Remove from comparison" : "Add to comparison"}
+                style={{
+                  color: isComparing
+                    ? "var(--primary)"
+                    : isFull
+                      ? "var(--foreground-subtle)"
+                      : "var(--foreground-subtle)",
+                }}
+                aria-label={
+                  isComparing ? "Remove from comparison" : "Add to comparison"
+                }
                 title={
                   isComparing
                     ? "Remove from comparison"
@@ -99,22 +121,22 @@ export const SearchResultCard = memo(function SearchResultCard({
                       : "Add to comparison"
                 }
               >
-                <GitCompare
-                  size={18}
-                  className="transition-all"
-                />
+                <GitCompare size={18} className="transition-all" />
               </button>
               {/* Favorite button */}
               <button
                 data-favorite-button
                 onClick={(e) => onFavoriteToggle(e, result.id, result.name)}
                 disabled={isLoading}
-                className={`p-2 rounded-full transition-colors ${
-                  isFavorite
-                    ? "text-red-500 hover:text-red-600 dark:text-red-400"
-                    : "text-gray-400 hover:text-red-500 dark:hover:text-red-400"
-                } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                className={`p-2 rounded-full transition-colors ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                style={{
+                  color: isFavorite
+                    ? "var(--error)"
+                    : "var(--foreground-subtle)",
+                }}
+                aria-label={
+                  isFavorite ? "Remove from favorites" : "Add to favorites"
+                }
               >
                 <Heart
                   size={20}
@@ -127,24 +149,36 @@ export const SearchResultCard = memo(function SearchResultCard({
 
           {/* Category Badge */}
           {result.category && (
-            <span className="inline-block px-2 py-1 mt-1 text-xs rounded bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+            <span
+              className="neu-pill inline-block px-2 py-1 mt-1 text-xs rounded-full"
+              style={{ color: "var(--foreground-muted)" }}
+            >
               {result.category}
             </span>
           )}
 
           {/* Description */}
-          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">{result.description}</p>
+          <p
+            className="text-sm mt-1 line-clamp-2"
+            style={{ color: "var(--foreground-muted)" }}
+          >
+            {result.description}
+          </p>
 
           {/* Matching Nutrients */}
           <div className="mt-2">
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">
+            <span
+              className="text-xs font-medium block mb-1"
+              style={{ color: "var(--foreground-subtle)" }}
+            >
               Matching Nutrients:
             </span>
             <div className="flex flex-wrap gap-1">
               {result.matchingNutrients.map((nutrient) => (
                 <span
                   key={nutrient}
-                  className="px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-xs"
+                  className="neu-pill px-2 py-0.5 rounded-full text-xs"
+                  style={{ color: "var(--primary)" }}
                 >
                   {nutrient}
                 </span>
@@ -154,12 +188,17 @@ export const SearchResultCard = memo(function SearchResultCard({
 
           {/* Similarity Score */}
           {result.similarityScore !== undefined && (
-            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            <div
+              className="mt-2 text-xs"
+              style={{ color: "var(--foreground-subtle)" }}
+            >
               Match score: {(result.similarityScore * 100).toFixed(0)}%
             </div>
           )}
 
-          <div className="mt-2 text-xs text-primary">Click for detailed information</div>
+          <div className="mt-2 text-xs text-primary">
+            Click for detailed information
+          </div>
         </div>
       </div>
     </div>

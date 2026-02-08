@@ -13,7 +13,7 @@ interface SignInButtonProps {
 export function SignInButton({ className = "" }: SignInButtonProps) {
   return (
     <Link
-      href="/auth/signin"
+      href="/sign-in"
       className={`
         inline-flex items-center gap-2 px-4 py-2 rounded-lg
         bg-primary hover:bg-primary/90

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -553,13 +554,13 @@ export function WelcomeModal({
                   </p>
 
                   <div className="space-y-3">
-                    <a
-                      href="/auth/signin"
+                    <Link
+                      href="/sign-in"
                       className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
                     >
                       <Leaf className="w-5 h-5" />
                       Create Free Account
-                    </a>
+                    </Link>
 
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
@@ -575,7 +576,7 @@ export function WelcomeModal({
                     <div className="grid grid-cols-2 gap-3">
                       {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirects require <a> tags */}
                       <a
-                        href="/api/auth/signin/google"
+                        href="/sign-in"
                         className="flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                       >
                         <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -603,7 +604,7 @@ export function WelcomeModal({
 
                       {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirects require <a> tags */}
                       <a
-                        href="/api/auth/signin/github"
+                        href="/sign-in"
                         className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
                       >
                         <svg

@@ -125,7 +125,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
         />
       </head>
-      <body className="font-sans antialiased min-h-screen bg-white dark:bg-zinc-900 text-black dark:text-white">
+      <body className="font-sans antialiased min-h-screen">
         <a href="#main-content" className="skip-to-main">
           Skip to main content
         </a>

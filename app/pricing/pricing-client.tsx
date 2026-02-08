@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Check, Loader2, Sparkles, Zap, Crown } from "lucide-react";
 import { PLANS, type PlanType } from "@/lib/stripe-config";
@@ -83,7 +84,7 @@ export function PricingClient({
 
   const handleStartTrial = async () => {
     if (!isAuthenticated) {
-      router.push("/auth/signin?callbackUrl=/pricing");
+      router.push("/sign-in?redirect_url=/pricing");
       return;
     }
 
@@ -122,7 +123,7 @@ export function PricingClient({
 
   const handleCheckout = async (plan: PlanType) => {
     if (!isAuthenticated) {
-      router.push(`/auth/signin?callbackUrl=/pricing`);
+      router.push(`/sign-in?redirect_url=/pricing`);
       return;
     }
 
@@ -477,12 +478,12 @@ export function PricingClient({
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             Already have an account?
           </p>
-          <a
-            href="/auth/signin?callbackUrl=/pricing"
+          <Link
+            href="/sign-in?redirect_url=/pricing"
             className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
           >
             Sign in to manage your subscription
-          </a>
+          </Link>
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import {
   trackUserEventSafe,
   type UserEventType,
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    const session = await auth();
+    const user = await getCurrentUser();
     const body = await request.json();
     const parsed = userEventSchema.safeParse(body);
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     await trackUserEventSafe({
       request,
-      userId: session?.user?.id,
+      userId: user?.id,
       sessionId,
       eventType: eventType as UserEventType,
       eventData,

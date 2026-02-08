@@ -7,7 +7,7 @@
  * Uses extracted hook for state management and sub-components for reusable UI.
  */
 
-import { useSession } from "next-auth/react";
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { Send, AlertCircle } from "lucide-react";
 import { useContributionForm } from "./useContributionForm";
@@ -17,7 +17,7 @@ import { CATEGORIES } from "./types";
 import type { ContributionFormProps } from "./types";
 
 export function ContributionForm({ onSuccess }: ContributionFormProps) {
-  const { data: session } = useSession();
+  const { isLoaded, isSignedIn } = useAuth();
   const {
     state,
     handleSubmit,
@@ -34,14 +34,18 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
     reset,
   } = useContributionForm(onSuccess);
 
-  if (!session) {
+  if (!isLoaded) {
+    return null;
+  }
+
+  if (!isSignedIn) {
     return (
       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-8 text-center">
         <p className="text-gray-600 dark:text-gray-300 mb-4">
           Sign in to contribute a new natural remedy to our database.
         </p>
         <Link
-          href="/auth/signin"
+          href="/sign-in"
           className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
         >
           Sign In to Contribute

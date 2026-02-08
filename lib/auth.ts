@@ -1,140 +1,87 @@
 /**
- * NextAuth.js Configuration
+ * Clerk Authentication Utilities
  *
- * Provides authentication using NextAuth.js v5 with Prisma adapter.
- * Supports multiple OAuth providers and email authentication.
+ * Provides authentication helpers using Clerk.
+ * Maintains the same exported function signatures as the previous NextAuth.js
+ * implementation so all downstream imports continue to work unchanged.
  *
  * IMPORTANT: This module is server-only (uses Prisma and auth secrets).
  *
- * @see https://next-auth.js.org/
+ * @see https://clerk.com/docs/references/nextjs/overview
  */
 
 import "server-only";
-import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import Google from "next-auth/providers/google";
-import GitHub from "next-auth/providers/github";
-import type { NextAuthConfig } from "next-auth";
+import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
-import {
-  getAuthSecret,
-  getGoogleOAuthCredentials,
-  getGitHubOAuthCredentials,
-  hasGoogleOAuth,
-  hasGitHubOAuth,
-} from "@/lib/env";
 
 /**
- * Build providers array based on configured OAuth credentials
- * Only includes providers that have valid credentials configured
+ * Get current authenticated user from Clerk + DB.
+ *
+ * Returns a user object with shape compatible with the old NextAuth getCurrentUser():
+ * { id, name, email, image, role }
+ *
+ * Returns null if not authenticated or if no DB user record exists.
  */
-function buildProviders(): NextAuthConfig["providers"] {
-  const providers: NextAuthConfig["providers"] = [];
+export async function getCurrentUser(): Promise<{
+  id: string;
+  name: string | null;
+  email: string;
+  image: string | null;
+  role: string;
+} | null> {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) return null;
 
-  if (hasGoogleOAuth()) {
-    const { clientId, clientSecret } = getGoogleOAuthCredentials();
-    providers.push(
-      Google({
-        clientId: clientId!,
-        clientSecret: clientSecret!,
-      }),
-    );
-  }
-
-  if (hasGitHubOAuth()) {
-    const { clientId, clientSecret } = getGitHubOAuthCredentials();
-    providers.push(
-      GitHub({
-        clientId: clientId!,
-        clientSecret: clientSecret!,
-      }),
-    );
-  }
-
-  return providers;
-}
-
-/**
- * NextAuth configuration
- */
-export const authConfig: NextAuthConfig = {
-  adapter: PrismaAdapter(prisma),
-  providers: buildProviders(),
-  pages: {
-    signIn: "/auth/signin",
-    error: "/auth/error",
-    verifyRequest: "/auth/verify",
-  },
-  callbacks: {
-    /**
-     * Add user role and ID to session
-     */
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
-        session.user.role = user.role || "user";
-      }
-      return session;
+  const dbUser = await prisma.user.findUnique({
+    where: { clerkId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      role: true,
     },
-    /**
-     * Add user role to JWT token
-     */
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role || "user";
-      }
-      return token;
-    },
-  },
-  session: {
-    strategy: "database",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // 24 hours
-  },
-  // NextAuth.js v5 uses AUTH_SECRET (falls back to NEXTAUTH_SECRET for compatibility)
-  secret: getAuthSecret(),
-};
+  });
 
-/**
- * NextAuth handlers and auth helper
- */
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
-
-/**
- * Check if user has specific role
- */
-export async function checkUserRole(allowedRoles: string[]): Promise<boolean> {
-  const session = await auth();
-  if (!session?.user?.role) return false;
-  return allowedRoles.includes(session.user.role);
+  return dbUser || null;
 }
 
 /**
- * Get current user from session
+ * Get the Clerk user ID directly (fast, no DB call).
+ * Returns null if not authenticated.
  */
-export async function getCurrentUser() {
-  const session = await auth();
-  return session?.user || null;
+export async function getClerkUserId(): Promise<string | null> {
+  const { userId } = await auth();
+  return userId;
 }
 
 /**
- * Check if user is authenticated
+ * Check if the current request is authenticated.
  */
 export async function isAuthenticated(): Promise<boolean> {
-  const session = await auth();
-  return !!session?.user;
+  const { userId } = await auth();
+  return !!userId;
 }
 
 /**
- * Check if user is admin
+ * Check if the current user has one of the specified roles.
+ * Reads from the database User.role field.
+ */
+export async function checkUserRole(allowedRoles: string[]): Promise<boolean> {
+  const user = await getCurrentUser();
+  if (!user?.role) return false;
+  return allowedRoles.includes(user.role);
+}
+
+/**
+ * Check if the current user is an admin.
  */
 export async function isAdmin(): Promise<boolean> {
   return checkUserRole(["admin"]);
 }
 
 /**
- * Check if user is moderator or admin
+ * Check if the current user is a moderator or admin.
  */
 export async function isModerator(): Promise<boolean> {
   return checkUserRole(["moderator", "admin"]);

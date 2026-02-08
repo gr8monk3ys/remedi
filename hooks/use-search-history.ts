@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
+import { useDbUser } from "@/hooks/use-db-user";
 import { useSessionId } from "./use-session-id";
 import { fetchWithCSRF } from "@/lib/fetch";
 
@@ -24,7 +24,7 @@ interface UseSearchHistoryReturn {
  * Automatically fetches history for authenticated users or session-based users
  */
 export function useSearchHistory(limit: number = 10): UseSearchHistoryReturn {
-  const { data: session } = useSession();
+  const { dbUserId } = useDbUser();
   const sessionId = useSessionId();
   const [history, setHistory] = useState<SearchHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,21 +33,23 @@ export function useSearchHistory(limit: number = 10): UseSearchHistoryReturn {
   // Fetch search history on mount
   useEffect(() => {
     const fetchHistory = async () => {
-      if (!session?.user && !sessionId) return;
+      if (!dbUserId && !sessionId) return;
 
       setIsLoading(true);
       setError(null);
 
       try {
         const params = new URLSearchParams();
-        if (session?.user?.id) {
-          params.append("userId", session.user.id);
+        if (dbUserId) {
+          params.append("userId", dbUserId);
         } else if (sessionId) {
           params.append("sessionId", sessionId);
         }
         params.append("limit", limit.toString());
 
-        const response = await fetch(`/api/search-history?${params.toString()}`);
+        const response = await fetch(
+          `/api/search-history?${params.toString()}`,
+        );
 
         if (!response.ok) {
           throw new Error(`Failed to fetch search history: ${response.status}`);
@@ -60,33 +62,38 @@ export function useSearchHistory(limit: number = 10): UseSearchHistoryReturn {
         }
       } catch (err) {
         console.error("Error fetching search history:", err);
-        setError(err instanceof Error ? err.message : "Failed to load search history");
+        setError(
+          err instanceof Error ? err.message : "Failed to load search history",
+        );
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchHistory();
-  }, [session, sessionId, limit]);
+  }, [dbUserId, sessionId, limit]);
 
   // Clear all search history
   const clearHistory = useCallback(async () => {
-    if (!session?.user && !sessionId) return;
+    if (!dbUserId && !sessionId) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
       const params = new URLSearchParams();
-      if (session?.user?.id) {
-        params.append("userId", session.user.id);
+      if (dbUserId) {
+        params.append("userId", dbUserId);
       } else if (sessionId) {
         params.append("sessionId", sessionId);
       }
 
-      const response = await fetchWithCSRF(`/api/search-history?${params.toString()}`, {
-        method: "DELETE",
-      });
+      const response = await fetchWithCSRF(
+        `/api/search-history?${params.toString()}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       const data = await response.json();
 
@@ -102,7 +109,7 @@ export function useSearchHistory(limit: number = 10): UseSearchHistoryReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [session, sessionId]);
+  }, [dbUserId, sessionId]);
 
   return {
     history,

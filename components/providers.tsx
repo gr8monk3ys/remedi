@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { SessionProvider } from "next-auth/react";
+import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CompareProvider } from "@/context/CompareContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
@@ -13,11 +13,11 @@ interface ProvidersProps {
 
 /**
  * Combined providers for the application
- * Includes NextAuth SessionProvider, ThemeProvider, CompareProvider, and OnboardingProvider
+ * Includes Clerk authentication, ThemeProvider, CompareProvider, and OnboardingProvider
  */
 export function Providers({ children }: ProvidersProps) {
   return (
-    <SessionProvider>
+    <ClerkProvider>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <OnboardingProvider>
           <CompareProvider>
@@ -26,6 +26,6 @@ export function Providers({ children }: ProvidersProps) {
           </CompareProvider>
         </OnboardingProvider>
       </ThemeProvider>
-    </SessionProvider>
+    </ClerkProvider>
   );
 }

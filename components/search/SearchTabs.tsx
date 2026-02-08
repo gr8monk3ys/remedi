@@ -23,24 +23,39 @@ export const SearchTabs = memo(function SearchTabs({
   activeFiltersCount,
 }: SearchTabsProps) {
   return (
-    <div className="flex border-b border-gray-200 dark:border-gray-700 mt-6 mb-4">
+    <div
+      className="flex mt-6 mb-4"
+      style={{ borderBottom: "1px solid var(--shadow-dark)" }}
+    >
       <button
         onClick={() => setActiveTab("results")}
-        className={`py-2 px-4 font-medium text-sm ${
-          activeTab === "results"
-            ? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-        }`}
+        className="py-2 px-4 font-medium text-sm transition-colors"
+        style={{
+          color:
+            activeTab === "results"
+              ? "var(--primary)"
+              : "var(--foreground-muted)",
+          borderBottom:
+            activeTab === "results"
+              ? "2px solid var(--primary)"
+              : "2px solid transparent",
+        }}
       >
         Results {resultsCount > 0 && `(${resultsCount})`}
       </button>
       <button
         onClick={() => setActiveTab("history")}
-        className={`py-2 px-4 font-medium text-sm ${
-          activeTab === "history"
-            ? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-        }`}
+        className="py-2 px-4 font-medium text-sm transition-colors"
+        style={{
+          color:
+            activeTab === "history"
+              ? "var(--primary)"
+              : "var(--foreground-muted)",
+          borderBottom:
+            activeTab === "history"
+              ? "2px solid var(--primary)"
+              : "2px solid transparent",
+        }}
       >
         History {historyCount > 0 && `(${historyCount})`}
       </button>
@@ -49,11 +64,10 @@ export const SearchTabs = memo(function SearchTabs({
         <button
           data-filter-toggle
           onClick={toggleFilters}
-          className={`ml-auto py-2 px-4 font-medium text-sm flex items-center ${
-            showFilters
-              ? "text-blue-600 dark:text-blue-400"
-              : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          }`}
+          className="ml-auto py-2 px-4 font-medium text-sm flex items-center transition-colors"
+          style={{
+            color: showFilters ? "var(--primary)" : "var(--foreground-muted)",
+          }}
         >
           <SlidersHorizontal size={14} className="mr-1" />
           Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}
