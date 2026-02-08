@@ -8,7 +8,6 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { GET } from "@/app/api/search/route";
 import { NextRequest } from "next/server";
 
 // Mock the database functions
@@ -42,6 +41,34 @@ vi.mock("@/lib/rate-limit", () => ({
   RATE_LIMITS: { search: { limit: 30, window: 60, identifier: "search" } },
 }));
 
+// Mock logger
+vi.mock("@/lib/logger", () => ({
+  createLogger: vi.fn(() => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  })),
+}));
+
+// Mock analytics
+vi.mock("@/lib/analytics/user-events", () => ({
+  trackUserEventSafe: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Mock mock-data module
+vi.mock("@/lib/mock-data", () => ({
+  MOCK_PHARMACEUTICALS: [],
+  MOCK_REMEDY_MAPPINGS: {},
+}));
+
+// Mock constants module
+vi.mock("@/lib/constants", () => ({
+  COMMON_SUFFIXES: ["tablet", "capsule", "pill", "mg", "ml"],
+  SPELLING_VARIANTS: {},
+}));
+
+import { GET } from "@/app/api/search/route";
 import {
   searchPharmaceuticals,
   getNaturalRemediesForPharmaceutical,

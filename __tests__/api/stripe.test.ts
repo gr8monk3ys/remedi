@@ -84,6 +84,27 @@ vi.mock("@/lib/rate-limit", () => ({
   },
 }));
 
+// Mock trial module
+vi.mock("@/lib/trial", () => ({
+  isTrialEligible: vi.fn().mockResolvedValue(false),
+  startTrial: vi.fn(),
+  getTrialStatus: vi.fn(),
+}));
+
+// Mock analytics conversion events
+vi.mock("@/lib/analytics/conversion-events", () => ({
+  trackConversionEvent: vi.fn().mockResolvedValue(undefined),
+  CONVERSION_EVENT_TYPES: {
+    CHECKOUT_STARTED: "checkout_started",
+    CHECKOUT_COMPLETED: "checkout_completed",
+    TRIAL_STARTED: "trial_started",
+  },
+  EVENT_SOURCES: {
+    PRICING_PAGE: "pricing_page",
+    SETTINGS: "settings",
+  },
+}));
+
 import {
   isPlanFeatureAvailable,
   getPlanLimit,

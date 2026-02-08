@@ -8,18 +8,18 @@
  * - Invoice payment succeeded/failed
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { NextRequest } from 'next/server';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { NextRequest } from "next/server";
 import {
   mockStripeSession,
   mockStripeSubscription,
   mockStripeInvoice,
   mockSubscription,
-} from '../mocks';
+} from "../mocks";
 
 // Mock headers
 const mockHeaders = vi.fn();
-vi.mock('next/headers', () => ({
+vi.mock("next/headers", () => ({
   headers: () => mockHeaders(),
 }));
 
@@ -27,7 +27,7 @@ vi.mock('next/headers', () => ({
 const mockConstructEvent = vi.fn();
 const mockRetrieve = vi.fn();
 
-vi.mock('@/lib/stripe', () => ({
+vi.mock("@/lib/stripe", () => ({
   stripe: {
     webhooks: {
       constructEvent: mockConstructEvent,
@@ -37,29 +37,42 @@ vi.mock('@/lib/stripe', () => ({
     },
   },
   getPlanByPriceId: vi.fn((priceId: string) => {
-    if (priceId.includes('basic')) return 'basic';
-    if (priceId.includes('premium')) return 'premium';
+    if (priceId.includes("basic")) return "basic";
+    if (priceId.includes("premium")) return "premium";
     return null;
   }),
+  PLANS: {
+    free: { name: "Free", price: 0 },
+    basic: { name: "Basic", price: 9.99, yearlyPrice: 99 },
+    premium: { name: "Premium", price: 19.99, yearlyPrice: 199 },
+  },
 }));
 
 // Mock Prisma
 const mockFindUnique = vi.fn();
 const mockUpsert = vi.fn();
 const mockUpdate = vi.fn();
+const mockWebhookStatusUpsert = vi.fn().mockResolvedValue({});
+const mockUserFindUnique = vi.fn().mockResolvedValue(null);
 
-vi.mock('@/lib/db', () => ({
+vi.mock("@/lib/db", () => ({
   prisma: {
     subscription: {
-      findUnique: mockFindUnique,
-      upsert: mockUpsert,
-      update: mockUpdate,
+      findUnique: (...args: unknown[]) => mockFindUnique(...args),
+      upsert: (...args: unknown[]) => mockUpsert(...args),
+      update: (...args: unknown[]) => mockUpdate(...args),
+    },
+    webhookStatus: {
+      upsert: (...args: unknown[]) => mockWebhookStatusUpsert(...args),
+    },
+    user: {
+      findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
     },
   },
 }));
 
 // Mock logger
-vi.mock('@/lib/logger', () => ({
+vi.mock("@/lib/logger", () => ({
   createLogger: vi.fn(() => ({
     info: vi.fn(),
     warn: vi.fn(),
@@ -68,14 +81,21 @@ vi.mock('@/lib/logger', () => ({
   })),
 }));
 
+// Mock email service
+vi.mock("@/lib/email", () => ({
+  sendSubscriptionConfirmation: vi.fn().mockResolvedValue({ success: true }),
+  sendSubscriptionCancelled: vi.fn().mockResolvedValue({ success: true }),
+}));
+
 // Import module with mock env vars
 beforeEach(() => {
-  vi.stubEnv('STRIPE_WEBHOOK_SECRET', 'whsec_test_secret');
-  vi.stubEnv('STRIPE_SECRET_KEY', 'sk_test_key');
+  vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test_secret");
+  vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_key");
 
   // Default: return valid signature header
   mockHeaders.mockResolvedValue({
-    get: (name: string) => name === 'stripe-signature' ? 'test_signature' : null,
+    get: (name: string) =>
+      name === "stripe-signature" ? "test_signature" : null,
   });
 });
 
@@ -84,51 +104,57 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe('/api/webhooks/stripe', () => {
-  describe('POST /api/webhooks/stripe', () => {
-    it('should return 400 when signature is missing', async () => {
+describe("/api/webhooks/stripe", () => {
+  describe("POST /api/webhooks/stripe", () => {
+    it("should return 400 when signature is missing", async () => {
       // Override headers to return null signature
       mockHeaders.mockResolvedValueOnce({
         get: () => null,
       });
 
-      const { POST } = await import('@/app/api/webhooks/stripe/route');
+      const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-      const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
+      const request = new NextRequest(
+        "http://localhost:3000/api/webhooks/stripe",
+        {
+          method: "POST",
+          body: JSON.stringify({}),
+        },
+      );
 
       const response = await POST(request);
       const json = await response.json();
 
       expect(response.status).toBe(400);
-      expect(json.error).toContain('signature');
+      expect(json.error).toContain("signature");
     });
 
-    it('should return 400 when signature verification fails', async () => {
+    it("should return 400 when signature verification fails", async () => {
       mockConstructEvent.mockImplementation(() => {
-        throw new Error('Invalid signature');
+        throw new Error("Invalid signature");
       });
 
-      const { POST } = await import('@/app/api/webhooks/stripe/route');
+      const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-      const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-        method: 'POST',
-        body: 'test body',
-      });
+      const request = new NextRequest(
+        "http://localhost:3000/api/webhooks/stripe",
+        {
+          method: "POST",
+          body: "test body",
+        },
+      );
 
       const response = await POST(request);
       const json = await response.json();
 
       expect(response.status).toBe(400);
-      expect(json.error).toContain('Invalid signature');
+      expect(json.error).toContain("Invalid signature");
     });
 
-    describe('checkout.session.completed', () => {
-      it('should create subscription when checkout completes', async () => {
+    describe("checkout.session.completed", () => {
+      it("should create subscription when checkout completes", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'checkout.session.completed',
+          type: "checkout.session.completed",
           data: { object: mockStripeSession },
         });
 
@@ -136,12 +162,15 @@ describe('/api/webhooks/stripe', () => {
         mockRetrieve.mockResolvedValue(mockStripeSubscription);
         mockUpsert.mockResolvedValue(mockSubscription);
 
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
         const json = await response.json();
@@ -151,23 +180,26 @@ describe('/api/webhooks/stripe', () => {
         expect(mockUpsert).toHaveBeenCalled();
       });
 
-      it('should skip if subscription already processed', async () => {
+      it("should skip if subscription already processed", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'checkout.session.completed',
+          type: "checkout.session.completed",
           data: { object: mockStripeSession },
         });
 
         mockFindUnique.mockResolvedValue({
           ...mockSubscription,
-          status: 'active',
+          status: "active",
         });
 
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
 
@@ -175,9 +207,9 @@ describe('/api/webhooks/stripe', () => {
         expect(mockRetrieve).not.toHaveBeenCalled();
       });
 
-      it('should handle missing userId in session metadata', async () => {
+      it("should handle missing userId in session metadata", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'checkout.session.completed',
+          type: "checkout.session.completed",
           data: {
             object: {
               ...mockStripeSession,
@@ -186,12 +218,15 @@ describe('/api/webhooks/stripe', () => {
           },
         });
 
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
 
@@ -200,14 +235,14 @@ describe('/api/webhooks/stripe', () => {
       });
     });
 
-    describe('customer.subscription.updated', () => {
-      it('should update subscription status', async () => {
+    describe("customer.subscription.updated", () => {
+      it("should update subscription status", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'customer.subscription.updated',
+          type: "customer.subscription.updated",
           data: {
             object: {
               ...mockStripeSubscription,
-              status: 'active',
+              status: "active",
             },
           },
         });
@@ -215,12 +250,15 @@ describe('/api/webhooks/stripe', () => {
         mockFindUnique.mockResolvedValue(mockSubscription);
         mockUpdate.mockResolvedValue(mockSubscription);
 
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
 
@@ -228,73 +266,88 @@ describe('/api/webhooks/stripe', () => {
         expect(mockUpdate).toHaveBeenCalled();
       });
 
-      it('should handle cancelled subscription status', async () => {
+      it("should handle cancelled subscription status", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'customer.subscription.updated',
+          type: "customer.subscription.updated",
           data: {
             object: {
               ...mockStripeSubscription,
-              status: 'canceled',
+              status: "canceled",
               canceled_at: Math.floor(Date.now() / 1000),
             },
           },
         });
 
         mockFindUnique.mockResolvedValue(mockSubscription);
-        mockUpdate.mockResolvedValue({ ...mockSubscription, status: 'cancelled' });
-
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
-
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
+        mockUpdate.mockResolvedValue({
+          ...mockSubscription,
+          status: "cancelled",
         });
+
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
+
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
 
         expect(response.status).toBe(200);
       });
 
-      it('should handle past_due subscription status', async () => {
+      it("should handle past_due subscription status", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'customer.subscription.updated',
+          type: "customer.subscription.updated",
           data: {
             object: {
               ...mockStripeSubscription,
-              status: 'past_due',
+              status: "past_due",
             },
           },
         });
 
         mockFindUnique.mockResolvedValue(mockSubscription);
-        mockUpdate.mockResolvedValue({ ...mockSubscription, status: 'expired' });
-
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
-
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
+        mockUpdate.mockResolvedValue({
+          ...mockSubscription,
+          status: "expired",
         });
+
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
+
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
 
         expect(response.status).toBe(200);
       });
 
-      it('should handle subscription not found in database', async () => {
+      it("should handle subscription not found in database", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'customer.subscription.updated',
+          type: "customer.subscription.updated",
           data: { object: mockStripeSubscription },
         });
 
         mockFindUnique.mockResolvedValue(null);
 
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
 
@@ -303,26 +356,29 @@ describe('/api/webhooks/stripe', () => {
       });
     });
 
-    describe('customer.subscription.deleted', () => {
-      it('should downgrade to free plan when subscription deleted', async () => {
+    describe("customer.subscription.deleted", () => {
+      it("should downgrade to free plan when subscription deleted", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'customer.subscription.deleted',
+          type: "customer.subscription.deleted",
           data: { object: mockStripeSubscription },
         });
 
         mockFindUnique.mockResolvedValue(mockSubscription);
         mockUpdate.mockResolvedValue({
           ...mockSubscription,
-          plan: 'free',
-          status: 'cancelled',
+          plan: "free",
+          status: "cancelled",
         });
 
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
 
@@ -330,27 +386,30 @@ describe('/api/webhooks/stripe', () => {
         expect(mockUpdate).toHaveBeenCalledWith(
           expect.objectContaining({
             data: expect.objectContaining({
-              plan: 'free',
-              status: 'cancelled',
+              plan: "free",
+              status: "cancelled",
             }),
-          })
+          }),
         );
       });
 
-      it('should handle subscription not found', async () => {
+      it("should handle subscription not found", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'customer.subscription.deleted',
+          type: "customer.subscription.deleted",
           data: { object: mockStripeSubscription },
         });
 
         mockFindUnique.mockResolvedValue(null);
 
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
 
@@ -359,36 +418,39 @@ describe('/api/webhooks/stripe', () => {
       });
     });
 
-    describe('invoice.payment_succeeded', () => {
-      it('should update subscription status to active on successful payment', async () => {
+    describe("invoice.payment_succeeded", () => {
+      it("should update subscription status to active on successful payment", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'invoice.payment_succeeded',
+          type: "invoice.payment_succeeded",
           data: { object: mockStripeInvoice },
         });
 
         mockFindUnique.mockResolvedValue(mockSubscription);
-        mockUpdate.mockResolvedValue({ ...mockSubscription, status: 'active' });
+        mockUpdate.mockResolvedValue({ ...mockSubscription, status: "active" });
 
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
 
         expect(response.status).toBe(200);
         expect(mockUpdate).toHaveBeenCalledWith(
           expect.objectContaining({
-            data: { status: 'active' },
-          })
+            data: { status: "active" },
+          }),
         );
       });
 
-      it('should handle invoice without subscription', async () => {
+      it("should handle invoice without subscription", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'invoice.payment_succeeded',
+          type: "invoice.payment_succeeded",
           data: {
             object: {
               ...mockStripeInvoice,
@@ -397,12 +459,15 @@ describe('/api/webhooks/stripe', () => {
           },
         });
 
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
 
@@ -411,47 +476,56 @@ describe('/api/webhooks/stripe', () => {
       });
     });
 
-    describe('invoice.payment_failed', () => {
-      it('should update subscription status to expired on failed payment', async () => {
+    describe("invoice.payment_failed", () => {
+      it("should update subscription status to expired on failed payment", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'invoice.payment_failed',
+          type: "invoice.payment_failed",
           data: { object: mockStripeInvoice },
         });
 
         mockFindUnique.mockResolvedValue(mockSubscription);
-        mockUpdate.mockResolvedValue({ ...mockSubscription, status: 'expired' });
-
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
-
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
+        mockUpdate.mockResolvedValue({
+          ...mockSubscription,
+          status: "expired",
         });
+
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
+
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
 
         expect(response.status).toBe(200);
         expect(mockUpdate).toHaveBeenCalledWith(
           expect.objectContaining({
-            data: { status: 'expired' },
-          })
+            data: { status: "expired" },
+          }),
         );
       });
     });
 
-    describe('Unhandled events', () => {
-      it('should acknowledge unhandled event types', async () => {
+    describe("Unhandled events", () => {
+      it("should acknowledge unhandled event types", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'customer.created',
+          type: "customer.created",
           data: { object: {} },
         });
 
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
         const json = await response.json();
@@ -461,44 +535,50 @@ describe('/api/webhooks/stripe', () => {
       });
     });
 
-    describe('Error handling', () => {
-      it('should return 400 on signature verification errors', async () => {
+    describe("Error handling", () => {
+      it("should return 400 on signature verification errors", async () => {
         // When constructEvent throws, it means signature verification failed
         mockConstructEvent.mockImplementation(() => {
-          throw new Error('Signature verification failed');
+          throw new Error("Signature verification failed");
         });
 
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
         const json = await response.json();
 
         // Signature verification errors return 400
         expect(response.status).toBe(400);
-        expect(json.error).toContain('Invalid signature');
+        expect(json.error).toContain("Invalid signature");
       });
 
-      it('should handle database errors during checkout', async () => {
+      it("should handle database errors during checkout", async () => {
         mockConstructEvent.mockReturnValue({
-          type: 'checkout.session.completed',
+          type: "checkout.session.completed",
           data: { object: mockStripeSession },
         });
 
         mockFindUnique.mockResolvedValue(null);
         mockRetrieve.mockResolvedValue(mockStripeSubscription);
-        mockUpsert.mockRejectedValue(new Error('Database error'));
+        mockUpsert.mockRejectedValue(new Error("Database error"));
 
-        const { POST } = await import('@/app/api/webhooks/stripe/route');
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
 
-        const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
 
         const response = await POST(request);
 

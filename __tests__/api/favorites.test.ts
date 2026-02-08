@@ -31,6 +31,21 @@ vi.mock("@/lib/authorization", () => ({
     .mockResolvedValue({ authorized: true, error: null }),
 }));
 
+// Mock rate limiting
+vi.mock("@/lib/rate-limit", () => ({
+  withRateLimit: vi
+    .fn()
+    .mockResolvedValue({ allowed: true, result: { success: true } }),
+  RATE_LIMITS: {
+    favorites: { limit: 30, window: 60, identifier: "favorites" },
+  },
+}));
+
+// Mock analytics
+vi.mock("@/lib/analytics/user-events", () => ({
+  trackUserEventSafe: vi.fn().mockResolvedValue(undefined),
+}));
+
 import {
   addFavorite,
   getFavorites,

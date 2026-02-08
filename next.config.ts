@@ -7,7 +7,9 @@ const bundleAnalyzer = withBundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // NOTE: Do NOT set `output: "standalone"` when deploying to Vercel.
+  // Vercel uses its own build output adapter; "standalone" is only for
+  // self-hosted Docker/Node deployments and breaks Vercel routing.
   reactStrictMode: true,
   images: {
     remotePatterns: [

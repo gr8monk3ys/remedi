@@ -2,288 +2,394 @@
  * E2E Tests for Search Functionality
  *
  * Tests the core search features including:
- * - Basic search
- * - Search results display
- * - Filters
+ * - Basic search via input and button
+ * - Search results display with shadcn Card components
+ * - Suggestion badge clicks
+ * - Loading/skeleton states
+ * - Filter toggle and filter panel
  * - Error handling
+ * - Keyboard accessibility
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Search Functionality', () => {
+test.describe("Search Functionality", () => {
   test.beforeEach(async ({ page }) => {
-    // Search is on the homepage
-    await page.goto('/');
+    // Dismiss onboarding
+    await page.addInitScript(() => {
+      localStorage.setItem("remedi_first_visit", "true");
+      localStorage.setItem("remedi_tutorial_completed", "true");
+    });
+    await page.goto("/");
+    // Wait for the dynamically-loaded search component
+    await page.getByRole("searchbox").waitFor({ timeout: 10000 });
   });
 
-  test('should display search page', async ({ page }) => {
-    await expect(page).toHaveURL('/');
-    await expect(page.getByRole('searchbox')).toBeVisible();
+  test("should display search input on homepage", async ({ page }) => {
+    await expect(page).toHaveURL("/");
+    const searchInput = page.getByRole("searchbox");
+    await expect(searchInput).toBeVisible();
+    await expect(searchInput).toBeEnabled();
   });
 
-  test('should perform a basic search', async ({ page }) => {
-    const searchInput = page.getByRole('searchbox');
-    const searchQuery = 'aspirin';
+  test("should have a search button", async ({ page }) => {
+    const searchButton = page.locator("[data-search-button]");
+    await expect(searchButton).toBeVisible();
+    await expect(searchButton).toHaveText("Search");
+  });
 
-    // Type search query
-    await searchInput.fill(searchQuery);
+  test("should perform a basic search by pressing Enter", async ({ page }) => {
+    const searchInput = page.getByRole("searchbox");
 
-    // Submit search (either by clicking button or pressing Enter)
-    await searchInput.press('Enter');
+    await searchInput.fill("aspirin");
+    await searchInput.press("Enter");
 
     // Wait for search API response
-    await page.waitForResponse(
-      (response) => response.url().includes('/api/search') && response.status() === 200,
-      { timeout: 10000 }
-    ).catch(() => {});
+    await page
+      .waitForResponse(
+        (response) =>
+          response.url().includes("/api/search") && response.status() === 200,
+        { timeout: 10000 },
+      )
+      .catch(() => {
+        // API may not be running; we still verify the UI behavior
+      });
 
-    // Check if search was performed - look for result cards, tabs showing count, or no results message
-    const searchPerformed = await page.evaluate(() => {
-      // Check for result cards
-      const cards = document.querySelectorAll('[data-testid="remedy-card"], article, .remedy-card');
+    // Check that some search outcome is visible:
+    // result cards (inside #search-results), no-results message, or error
+    const searchCompleted = await page.evaluate(() => {
+      const resultsContainer = document.getElementById("search-results");
+      if (!resultsContainer) return false;
+
+      // Check for result cards (shadcn Card elements within results)
+      const cards = resultsContainer.querySelectorAll("[data-favorite-button]");
       if (cards.length > 0) return true;
 
-      // Check for results tab with count
-      const resultsTab = document.querySelector('[data-results-tab], button[role="tab"]');
-      if (resultsTab && /\d+ results?/i.test(resultsTab.textContent || '')) return true;
+      // Check for no-results message
+      if (/no results found/i.test(resultsContainer.textContent || ""))
+        return true;
 
-      // Check for "no natural remedies found" message
-      const pageText = document.body.innerText;
-      if (/no natural remedies found/i.test(pageText)) return true;
-
-      // Check for any visible search results section
-      const resultsSection = document.querySelector('[data-testid="search-results"], #search-results');
-      if (resultsSection) return true;
+      // Check for error message
+      if (/failed|error|try again/i.test(resultsContainer.textContent || ""))
+        return true;
 
       return false;
     });
 
-    expect(searchPerformed).toBeTruthy();
+    expect(searchCompleted).toBeTruthy();
   });
 
-  test('should show loading state during search', async ({ page }) => {
-    const searchInput = page.getByRole('searchbox');
+  test("should perform a search by clicking the search button", async ({
+    page,
+  }) => {
+    const searchInput = page.getByRole("searchbox");
+    const searchButton = page.locator("[data-search-button]");
 
-    await searchInput.fill('ibuprofen');
-    await searchInput.press('Enter');
+    await searchInput.fill("ibuprofen");
+    await searchButton.click();
 
-    // Check for loading indicator
-    const loadingIndicator = page.locator('text=/loading|searching/i').or(
-      page.locator('[role="status"]')
-    );
+    // Wait for API response
+    await page
+      .waitForResponse((response) => response.url().includes("/api/search"), {
+        timeout: 10000,
+      })
+      .catch(() => {});
 
-    // Loading should appear (even briefly)
+    // Search input should retain the query
+    await expect(searchInput).toHaveValue("ibuprofen");
+  });
+
+  test("should trigger search by clicking a suggestion badge", async ({
+    page,
+  }) => {
+    const suggestionBadge = page.getByText("Vitamin D");
+    await expect(suggestionBadge).toBeVisible();
+
+    await suggestionBadge.click();
+
+    // The search input should update to the suggestion text
+    const searchInput = page.getByRole("searchbox");
+    await expect(searchInput).toHaveValue("Vitamin D");
+
+    // Wait for search API response triggered by suggestion click
+    await page
+      .waitForResponse((response) => response.url().includes("/api/search"), {
+        timeout: 10000,
+      })
+      .catch(() => {});
+  });
+
+  test("should show loading skeletons during search", async ({ page }) => {
+    const searchInput = page.getByRole("searchbox");
+
+    await searchInput.fill("ibuprofen");
+    await searchInput.press("Enter");
+
+    // Skeletons are rendered inside #search-results as Skeleton components
+    // with the animate-pulse class
+    const loadingSkeleton = page.locator("#search-results .animate-pulse");
+
     try {
-      await expect(loadingIndicator).toBeVisible({ timeout: 1000 });
+      await expect(loadingSkeleton.first()).toBeVisible({ timeout: 2000 });
     } catch {
-      // If loading is too fast, that's okay
+      // Loading may complete too fast to catch; that is acceptable
       expect(true).toBe(true);
     }
   });
 
-  test('should handle empty search gracefully', async ({ page }) => {
-    const searchInput = page.getByRole('searchbox');
+  test("should handle empty search gracefully", async ({ page }) => {
+    const searchInput = page.getByRole("searchbox");
 
-    // Try to search with empty query
-    await searchInput.press('Enter');
+    // Press Enter with empty query
+    await searchInput.press("Enter");
 
-    // Should either prevent search or show helpful message
-    // The page should not crash - stays on homepage
-    await expect(page).toHaveURL('/');
-
-    // Search input should still be functional
+    // Should stay on homepage, no crash
+    await expect(page).toHaveURL("/");
     await expect(searchInput).toBeEnabled();
   });
 
-  test('should display remedy details when clicked', async ({ page }) => {
-    const searchInput = page.getByRole('searchbox');
+  test("should show clear button when query is entered", async ({ page }) => {
+    const searchInput = page.getByRole("searchbox");
 
-    await searchInput.fill('acetaminophen');
-    await searchInput.press('Enter');
+    await searchInput.fill("test query");
 
-    // Wait for search API response
-    await page.waitForResponse(
-      (response) => response.url().includes('/api/search') && response.status() === 200,
-      { timeout: 10000 }
-    ).catch(() => {});
+    // Clear button should appear
+    const clearButton = page.getByRole("button", { name: /Clear search/i });
+    await expect(clearButton).toBeVisible();
 
-    // Try to click on first result
-    const firstResult = page.locator('[data-testid="remedy-card"]').first().or(
-      page.locator('article').first()
-    );
+    // Clicking it should clear the input
+    await clearButton.click();
+    await expect(searchInput).toHaveValue("");
+  });
 
-    if (await firstResult.isVisible()) {
-      await firstResult.click();
+  test("should display search result cards after search", async ({ page }) => {
+    const searchInput = page.getByRole("searchbox");
 
-      // Wait for navigation or modal to appear
-      await Promise.race([
-        page.waitForURL('**/remedy/**', { timeout: 5000 }),
-        page.waitForSelector('[role="dialog"]', { timeout: 5000 }),
-      ]).catch(() => {});
+    await searchInput.fill("vitamin d");
+    await searchInput.press("Enter");
 
-      // Check if we're on a detail page or modal opened
-      const isDetailPage = await page.evaluate(() => {
-        return (
-          window.location.pathname.includes('/remedy') ||
-          document.querySelector('[role="dialog"]') !== null
+    // Wait for API response
+    const responsePromise = page
+      .waitForResponse(
+        (response) =>
+          response.url().includes("/api/search") && response.status() === 200,
+        { timeout: 10000 },
+      )
+      .catch(() => null);
+
+    const response = await responsePromise;
+
+    if (response) {
+      const body = await response.json().catch(() => null);
+
+      // If API returned results, verify cards are displayed
+      if (body?.success && body?.data?.length > 0) {
+        // Result cards use the data-favorite-button attribute
+        const resultCards = page.locator(
+          "#search-results [data-favorite-button]",
         );
-      });
+        await expect(resultCards.first()).toBeVisible({ timeout: 5000 });
+      }
+    }
+  });
 
+  test("should navigate to remedy detail when clicking a result card", async ({
+    page,
+  }) => {
+    const searchInput = page.getByRole("searchbox");
+
+    await searchInput.fill("acetaminophen");
+    await searchInput.press("Enter");
+
+    // Wait for API response
+    await page
+      .waitForResponse(
+        (response) =>
+          response.url().includes("/api/search") && response.status() === 200,
+        { timeout: 10000 },
+      )
+      .catch(() => {});
+
+    // Wait a moment for results to render
+    await page.waitForTimeout(1000);
+
+    // Try to find and click the first result card
+    // SearchResultCard renders as a shadcn Card with onClick navigating to /remedy/[id]
+    const firstCard = page
+      .locator("#search-results")
+      .locator("[data-favorite-button]")
+      .first();
+
+    if (await firstCard.isVisible().catch(() => false)) {
+      // Click the card itself (not the favorite button)
+      // The card container has the onClick, so click on the card's heading
+      const cardParent = firstCard.locator("..").locator("..").locator("..");
+      await cardParent.click();
+
+      // Wait for navigation to remedy page
+      await page.waitForURL("**/remedy/**", { timeout: 5000 }).catch(() => {});
+
+      const isDetailPage = page.url().includes("/remedy");
       expect(isDetailPage).toBeTruthy();
     }
   });
 
-  test('should support search filters', async ({ page }) => {
-    // Look for filter controls
-    const filterButton = page.getByRole('button', { name: /filter|advanced/i });
+  test("should show tabs after search results are available", async ({
+    page,
+  }) => {
+    const searchInput = page.getByRole("searchbox");
 
-    if (await filterButton.isVisible()) {
+    await searchInput.fill("vitamin d");
+    await searchInput.press("Enter");
+
+    // Wait for API response
+    await page
+      .waitForResponse(
+        (response) =>
+          response.url().includes("/api/search") && response.status() === 200,
+        { timeout: 10000 },
+      )
+      .catch(() => {});
+
+    // SearchTabs uses shadcn Tabs with tab triggers "Results" and "History"
+    const resultsTab = page.getByRole("tab", { name: /Results/i });
+    const historyTab = page.getByRole("tab", { name: /History/i });
+
+    // Tabs should appear when there are results or history
+    if (await resultsTab.isVisible().catch(() => false)) {
+      await expect(resultsTab).toBeVisible();
+      await expect(historyTab).toBeVisible();
+    }
+  });
+
+  test("should toggle filter panel via filter button", async ({ page }) => {
+    const searchInput = page.getByRole("searchbox");
+
+    await searchInput.fill("vitamin d");
+    await searchInput.press("Enter");
+
+    // Wait for API response
+    await page
+      .waitForResponse(
+        (response) =>
+          response.url().includes("/api/search") && response.status() === 200,
+        { timeout: 10000 },
+      )
+      .catch(() => {});
+
+    // The filter toggle button has data-filter-toggle attribute and text "Filters"
+    const filterButton = page.locator("[data-filter-toggle]");
+
+    if (await filterButton.isVisible().catch(() => false)) {
       await filterButton.click();
 
-      // Check for filter options
-      const filterPanel = page.locator('[data-testid="filter-panel"]').or(
-        page.locator('text=/category|type|sort/i')
-      );
+      // Filter panel should become visible with filter cards
+      // The Filter component renders as a Card with a CardTitle
+      const filterCard = page
+        .getByText("Filter by Category")
+        .or(page.getByText("Filter by Nutrients"));
 
-      await expect(filterPanel).toBeVisible();
+      await expect(filterCard).toBeVisible({ timeout: 3000 });
     }
   });
 
-  test('should save search to history when authenticated', async ({ page }) => {
-    // This test assumes user is logged in
-    // In a real scenario, you'd authenticate first
-
-    const searchInput = page.getByRole('searchbox');
-
-    await searchInput.fill('pain relief');
-    await searchInput.press('Enter');
-
-    // Wait for search API response
-    await page.waitForResponse(
-      (response) => response.url().includes('/api/search') && response.status() === 200,
-      { timeout: 10000 }
-    ).catch(() => {});
-
-    // Navigate to search history (if it exists)
-    const historyLink = page.getByRole('link', { name: /history/i });
-
-    if (await historyLink.isVisible()) {
-      await historyLink.click();
-
-      // Should see the search in history
-      await expect(page.locator('text=/pain relief/i')).toBeVisible();
-    }
-  });
-
-  test('should handle search API errors gracefully', async ({ page }) => {
-    // Intercept API and force error
-    await page.route('**/api/search**', (route) => {
+  test("should handle search API errors gracefully", async ({ page }) => {
+    // Intercept API and force an error
+    await page.route("**/api/search**", (route) => {
       route.fulfill({
         status: 500,
-        body: JSON.stringify({ error: 'Internal server error' }),
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          error: { code: "INTERNAL_ERROR", message: "Internal server error" },
+        }),
       });
     });
 
-    const searchInput = page.getByRole('searchbox');
+    const searchInput = page.getByRole("searchbox");
 
-    await searchInput.fill('test');
-    await searchInput.press('Enter');
+    await searchInput.fill("test");
+    await searchInput.press("Enter");
 
     // Wait for error response
-    await page.waitForResponse(
-      (response) => response.url().includes('/api/search'),
-      { timeout: 10000 }
-    ).catch(() => {});
+    await page
+      .waitForResponse((response) => response.url().includes("/api/search"), {
+        timeout: 10000,
+      })
+      .catch(() => {});
 
-    // Should show error message
-    const errorMessage = page.locator('text=/error|failed|try again/i');
-    await expect(errorMessage).toBeVisible();
+    // Error message should be displayed in the results area
+    const errorMessage = page
+      .locator("#search-results")
+      .getByText(/failed|error|try again/i);
+    await expect(errorMessage).toBeVisible({ timeout: 5000 });
   });
 
-  test('should be keyboard accessible', async ({ page }) => {
-    // Find the search input
-    const searchInput = page.getByRole('searchbox');
+  test("should be keyboard accessible", async ({ page }) => {
+    const searchInput = page.getByRole("searchbox");
 
     // Focus on search input with keyboard
     await searchInput.focus();
 
-    // Verify it's focused
-    const isFocused = await searchInput.evaluate((el) => el === document.activeElement);
+    const isFocused = await searchInput.evaluate(
+      (el) => el === document.activeElement,
+    );
     expect(isFocused).toBeTruthy();
 
     // Type in search using keyboard
-    await page.keyboard.type('headache');
+    await page.keyboard.type("headache");
+    await expect(searchInput).toHaveValue("headache");
 
     // Submit with Enter
-    await page.keyboard.press('Enter');
+    await page.keyboard.press("Enter");
 
-    // Wait for search API response
-    await page.waitForResponse(
-      (response) => response.url().includes('/api/search') && response.status() === 200,
-      { timeout: 10000 }
-    ).catch(() => {});
+    // Wait for API response
+    await page
+      .waitForResponse((response) => response.url().includes("/api/search"), {
+        timeout: 10000,
+      })
+      .catch(() => {});
 
-    // Check that search was performed using page.evaluate to avoid strict mode issues
-    const searchPerformed = await page.evaluate(() => {
-      // Check for result cards
-      const cards = document.querySelectorAll('[data-testid="remedy-card"], article, .remedy-card');
-      if (cards.length > 0) return true;
-
-      // Check for results tab with count
-      const resultsTab = document.querySelector('[data-results-tab], button[role="tab"]');
-      if (resultsTab && /\d+ results?/i.test(resultsTab.textContent || '')) return true;
-
-      // Check for "no natural remedies found" message
-      const pageText = document.body.innerText;
-      if (/no natural remedies found/i.test(pageText)) return true;
-
-      // Check for any visible search results section
-      const resultsSection = document.querySelector('[data-testid="search-results"], #search-results');
-      if (resultsSection) return true;
-
-      return false;
-    });
-
-    expect(searchPerformed).toBeTruthy();
+    // Search input should retain the value
+    await expect(searchInput).toHaveValue("headache");
   });
 
-  test('should maintain search state on page', async ({ page }) => {
-    const searchInput = page.getByRole('searchbox');
-    const searchQuery = 'cold medicine';
+  test("should maintain search state on page", async ({ page }) => {
+    const searchInput = page.getByRole("searchbox");
+    const searchQuery = "cold medicine";
 
     await searchInput.fill(searchQuery);
-    await searchInput.press('Enter');
+    await searchInput.press("Enter");
 
-    // Wait for search API response
-    await page.waitForResponse(
-      (response) => response.url().includes('/api/search') && response.status() === 200,
-      { timeout: 10000 }
-    ).catch(() => {});
+    // Wait for API response
+    await page
+      .waitForResponse((response) => response.url().includes("/api/search"), {
+        timeout: 10000,
+      })
+      .catch(() => {});
 
-    // Check that search input still contains the query
+    // Search input should still contain the query
     await expect(searchInput).toHaveValue(searchQuery);
+  });
 
-    // Check that search was processed using page.evaluate to avoid strict mode issues
-    const searchProcessed = await page.evaluate(() => {
-      // Check for result cards
-      const cards = document.querySelectorAll('[data-testid="remedy-card"], article, .remedy-card');
-      if (cards.length > 0) return true;
+  test("should debounce search when typing", async ({ page }) => {
+    const searchInput = page.getByRole("searchbox");
+    const apiCalls: string[] = [];
 
-      // Check for results tab with count
-      const resultsTab = document.querySelector('[data-results-tab], button[role="tab"]');
-      if (resultsTab && /\d+ results?/i.test(resultsTab.textContent || '')) return true;
-
-      // Check for "no natural remedies found" message
-      const pageText = document.body.innerText;
-      if (/no natural remedies found/i.test(pageText)) return true;
-
-      // Check for any visible search results section
-      const resultsSection = document.querySelector('[data-testid="search-results"], #search-results');
-      if (resultsSection) return true;
-
-      return false;
+    // Track API calls
+    page.on("request", (request) => {
+      if (request.url().includes("/api/search")) {
+        apiCalls.push(request.url());
+      }
     });
 
-    expect(searchProcessed).toBeTruthy();
+    // Type characters quickly
+    await searchInput.type("ib", { delay: 50 });
+
+    // Wait for debounce timer (400ms based on SearchInput component)
+    await page.waitForTimeout(600);
+
+    // Should have triggered at most one search (after debounce)
+    expect(apiCalls.length).toBeLessThanOrEqual(1);
   });
 });

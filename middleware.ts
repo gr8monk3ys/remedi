@@ -11,7 +11,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { csrfMiddleware } from "@/lib/csrf";
+import { csrfMiddleware, generateCSRFToken, setCSRFCookie } from "@/lib/csrf";
 
 /**
  * Routes that are publicly accessible without authentication.
@@ -26,13 +26,17 @@ const isPublicRoute = createRouteMatcher([
   "/legal/(.*)",
   "/compare(.*)",
   "/contribute(.*)",
+  "/interactions(.*)",
   "/landing(.*)",
   "/maintenance(.*)",
+  "/pricing(.*)",
+  "/remedy/(.*)",
   "/robots.txt",
   "/sitemap.xml",
   // Public API routes
   "/api/search(.*)",
   "/api/remedy/(.*)",
+  "/api/remedies/(.*)",
   "/api/webhooks/(.*)",
   "/api/health(.*)",
   "/api/reviews", // GET is public (POST requires auth at route level)
@@ -69,16 +73,17 @@ function addSecurityHeaders(response: NextResponse): void {
   response.headers.set("X-DNS-Prefetch-Control", "on");
 
   const isProduction = process.env.NODE_ENV === "production";
+  const clerkScriptSrc = "https://*.clerk.accounts.dev https://*.clerk.com";
   const cspDirectives = [
     "default-src 'self'",
     isProduction
-      ? "script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev"
-      : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev",
+      ? `script-src 'self' 'unsafe-inline' ${clerkScriptSrc}`
+      : `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${clerkScriptSrc}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' https://images.unsplash.com https://img.clerk.com data: blob:",
+    "img-src 'self' https://images.unsplash.com https://img.clerk.com https://*.clerk.com data: blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://api.fda.gov https://api.openai.com https://api.clerk.com https://*.clerk.accounts.dev",
-    "frame-src 'self' https://accounts.clerk.com",
+    "connect-src 'self' https://api.fda.gov https://api.openai.com https://api.clerk.com https://*.clerk.accounts.dev https://*.clerk.com",
+    "frame-src 'self' https://accounts.clerk.com https://*.clerk.accounts.dev https://*.clerk.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -203,6 +208,15 @@ export default clerkMiddleware(async (authObj, req: NextRequest) => {
   // Continue with the request and add security headers
   const response = NextResponse.next();
   addSecurityHeaders(response);
+
+  // Issue a CSRF token cookie if one does not already exist.
+  // This allows client-side code (fetchWithCSRF) to read the cookie and
+  // send it back as a header on subsequent state-changing requests.
+  const existingCsrfToken = req.cookies.get("csrf_token")?.value;
+  if (!existingCsrfToken) {
+    const newToken = generateCSRFToken();
+    setCSRFCookie(response, newToken);
+  }
 
   // CORS for API routes
   if (pathname.startsWith("/api/")) {
