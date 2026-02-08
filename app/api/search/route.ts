@@ -24,6 +24,21 @@ import type { ProcessedDrug, NaturalRemedy } from "@/lib/types";
 
 const log = createLogger("search-api");
 
+// Pre-compiled regex patterns (avoid re-creating on every request)
+const SUFFIX_PATTERNS = COMMON_SUFFIXES.map(
+  (suffix) => new RegExp(`\\s${suffix}s?\\b`, "gi"),
+);
+
+const VARIANT_PATTERNS = Object.entries(SPELLING_VARIANTS).map(
+  ([standard, variants]) => ({
+    standard,
+    patterns: variants.map((variant) => ({
+      test: variant,
+      regex: new RegExp(variant, "gi"),
+    })),
+  }),
+);
+
 export async function GET(req: NextRequest) {
   const startTime = Date.now();
 
@@ -88,21 +103,15 @@ export async function GET(req: NextRequest) {
     // Process query - remove common suffixes and extra words
     let processedQuery = query.toLowerCase();
     // Remove common suffixes that might cause search issues
-    COMMON_SUFFIXES.forEach((suffix) => {
-      processedQuery = processedQuery.replace(
-        new RegExp(`\\s${suffix}s?\\b`, "gi"),
-        "",
-      );
+    SUFFIX_PATTERNS.forEach((pattern) => {
+      processedQuery = processedQuery.replace(pattern, "");
     });
 
     // Find if any variant matches and replace with standard spelling
-    Object.entries(SPELLING_VARIANTS).forEach(([standard, variants]) => {
-      variants.forEach((variant) => {
-        if (processedQuery.includes(variant)) {
-          processedQuery = processedQuery.replace(
-            new RegExp(variant, "gi"),
-            standard,
-          );
+    VARIANT_PATTERNS.forEach(({ standard, patterns }) => {
+      patterns.forEach(({ test, regex }) => {
+        if (processedQuery.includes(test)) {
+          processedQuery = processedQuery.replace(regex, standard);
         }
       });
     });
@@ -149,16 +158,23 @@ export async function GET(req: NextRequest) {
 
         if (remedies.length > 0) {
           log.info("Found remedies from database", { count: remedies.length });
-          await saveHistory(remedies.length);
-          await trackSearchEvent(remedies.length, "database");
+          void saveHistory(remedies.length);
+          void trackSearchEvent(remedies.length, "database");
           const processingTime = Date.now() - startTime;
           return NextResponse.json(
             successResponse(remedies, {
               total: remedies.length,
               processingTime,
               apiVersion: "1.0",
+              source: "database" as const,
             }),
-            { status: 200 },
+            {
+              status: 200,
+              headers: {
+                "Cache-Control":
+                  "public, s-maxage=300, stale-while-revalidate=3600",
+              },
+            },
           );
         }
       }
@@ -194,16 +210,23 @@ export async function GET(req: NextRequest) {
         log.info("Found remedies using mapping algorithm", {
           count: remedies.length,
         });
-        await saveHistory(remedies.length);
-        await trackSearchEvent(remedies.length, "openfda");
+        void saveHistory(remedies.length);
+        void trackSearchEvent(remedies.length, "openfda");
         const processingTime = Date.now() - startTime;
         return NextResponse.json(
           successResponse(remedies, {
             total: remedies.length,
             processingTime,
             apiVersion: "1.0",
+            source: "openfda" as const,
           }),
-          { status: 200 },
+          {
+            status: 200,
+            headers: {
+              "Cache-Control":
+                "public, s-maxage=300, stale-while-revalidate=3600",
+            },
+          },
         );
       }
     }
@@ -223,16 +246,23 @@ export async function GET(req: NextRequest) {
 
     if (matchedPharmaceuticals.length === 0) {
       log.info("No pharmaceutical found", { query });
-      await saveHistory(0);
-      await trackSearchEvent(0, "mock");
+      void saveHistory(0);
+      void trackSearchEvent(0, "fallback");
       const processingTime = Date.now() - startTime;
       return NextResponse.json(
         successResponse([], {
           total: 0,
           processingTime,
           apiVersion: "1.0",
+          source: "fallback" as const,
         }),
-        { status: 200 },
+        {
+          status: 200,
+          headers: {
+            "Cache-Control":
+              "public, s-maxage=300, stale-while-revalidate=3600",
+          },
+        },
       );
     }
 
@@ -262,16 +292,22 @@ export async function GET(req: NextRequest) {
     );
 
     log.info("Found remedies from mock data", { count: sortedRemedies.length });
-    await saveHistory(sortedRemedies.length);
-    await trackSearchEvent(sortedRemedies.length, "mock");
+    void saveHistory(sortedRemedies.length);
+    void trackSearchEvent(sortedRemedies.length, "fallback");
     const processingTime = Date.now() - startTime;
     return NextResponse.json(
       successResponse(sortedRemedies, {
         total: sortedRemedies.length,
         processingTime,
         apiVersion: "1.0",
+        source: "fallback" as const,
       }),
-      { status: 200 },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
+        },
+      },
     );
   } catch (error) {
     log.error("Error in search API", error);

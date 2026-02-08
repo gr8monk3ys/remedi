@@ -13,15 +13,16 @@
  * - Session data is ephemeral and non-sensitive (favorites, search history)
  */
 
-import { getCurrentUser } from '@/lib/auth';
-import { NextResponse } from 'next/server';
-import { errorResponse } from '@/lib/api/response';
+import { getCurrentUser } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { errorResponse } from "@/lib/api/response";
 
 /**
  * UUID v4 regex pattern for validation
  * Format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx where y is 8, 9, a, or b
  */
-const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_V4_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Validate that a string is a properly formatted UUID v4
@@ -36,8 +37,12 @@ export function isValidSessionId(sessionId: string): boolean {
  */
 export async function verifyOwnership(
   requestedUserId?: string,
-  requestedSessionId?: string
-): Promise<{ authorized: boolean; currentUserId: string | null; error?: NextResponse }> {
+  requestedSessionId?: string,
+): Promise<{
+  authorized: boolean;
+  currentUserId: string | null;
+  error?: NextResponse;
+}> {
   const currentUser = await getCurrentUser();
   const currentUserId = currentUser?.id || null;
 
@@ -49,8 +54,11 @@ export async function verifyOwnership(
         authorized: false,
         currentUserId: null,
         error: NextResponse.json(
-          errorResponse('UNAUTHORIZED', 'Authentication required to access user data'),
-          { status: 401 }
+          errorResponse(
+            "UNAUTHORIZED",
+            "Authentication required to access user data",
+          ),
+          { status: 401 },
         ),
       };
     }
@@ -61,8 +69,8 @@ export async function verifyOwnership(
         authorized: false,
         currentUserId,
         error: NextResponse.json(
-          errorResponse('FORBIDDEN', 'You can only access your own data'),
-          { status: 403 }
+          errorResponse("FORBIDDEN", "You can only access your own data"),
+          { status: 403 },
         ),
       };
     }
@@ -77,8 +85,8 @@ export async function verifyOwnership(
         authorized: false,
         currentUserId,
         error: NextResponse.json(
-          errorResponse('INVALID_INPUT', 'Invalid session ID format'),
-          { status: 400 }
+          errorResponse("INVALID_INPUT", "Invalid session ID format"),
+          { status: 400 },
         ),
       };
     }
@@ -96,13 +104,21 @@ export async function verifyOwnership(
 }
 
 /**
- * Verify user can modify a specific resource by ID
- * Used for PUT/DELETE operations where we need to check the resource owner
+ * Verify user can modify a specific resource by ID.
+ * Used for PUT/DELETE operations where we need to check the resource owner.
+ *
+ * For user-owned resources, verifies the authenticated user matches.
+ * For session-owned resources, verifies the caller's session ID matches
+ * the resource's session ID (the session ID acts as a bearer token).
+ *
+ * @param resourceUserId - The userId stored on the resource (from DB)
+ * @param resourceSessionId - The sessionId stored on the resource (from DB)
+ * @param requestSessionId - The session ID provided by the current request caller
  */
 export async function verifyResourceOwnership(
   resourceUserId: string | null | undefined,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _resourceSessionId: string | null | undefined // Session-based resources are trusted
+  resourceSessionId: string | null | undefined,
+  requestSessionId?: string | null,
 ): Promise<{ authorized: boolean; error?: NextResponse }> {
   const currentUser = await getCurrentUser();
   const currentUserId = currentUser?.id || null;
@@ -113,8 +129,8 @@ export async function verifyResourceOwnership(
       return {
         authorized: false,
         error: NextResponse.json(
-          errorResponse('UNAUTHORIZED', 'Authentication required'),
-          { status: 401 }
+          errorResponse("UNAUTHORIZED", "Authentication required"),
+          { status: 401 },
         ),
       };
     }
@@ -123,15 +139,57 @@ export async function verifyResourceOwnership(
       return {
         authorized: false,
         error: NextResponse.json(
-          errorResponse('FORBIDDEN', 'You can only modify your own data'),
-          { status: 403 }
+          errorResponse("FORBIDDEN", "You can only modify your own data"),
+          { status: 403 },
         ),
       };
     }
+
+    return { authorized: true };
   }
 
-  // For session-based resources, we trust the session ID from the request
-  // (session IDs are UUIDs that act as bearer tokens)
+  // If resource has a sessionId but no userId, verify the caller's session matches
+  if (resourceSessionId) {
+    // Caller must provide their session ID for comparison
+    if (!requestSessionId) {
+      return {
+        authorized: false,
+        error: NextResponse.json(
+          errorResponse(
+            "UNAUTHORIZED",
+            "Session ID is required to modify this resource",
+          ),
+          { status: 401 },
+        ),
+      };
+    }
+
+    // Validate the request session ID format
+    if (!isValidSessionId(requestSessionId)) {
+      return {
+        authorized: false,
+        error: NextResponse.json(
+          errorResponse("INVALID_INPUT", "Invalid session ID format"),
+          { status: 400 },
+        ),
+      };
+    }
+
+    // Compare the resource's session ID against the caller's session ID
+    if (resourceSessionId !== requestSessionId) {
+      return {
+        authorized: false,
+        error: NextResponse.json(
+          errorResponse("FORBIDDEN", "You can only modify your own data"),
+          { status: 403 },
+        ),
+      };
+    }
+
+    return { authorized: true };
+  }
+
+  // Resource has neither userId nor sessionId -- allow (edge case)
   return { authorized: true };
 }
 

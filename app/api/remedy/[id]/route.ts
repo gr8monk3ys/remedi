@@ -202,7 +202,13 @@ export async function GET(
           processingTime,
           apiVersion: "1.0",
         }),
-        { status: 200 },
+        {
+          status: 200,
+          headers: {
+            "Cache-Control":
+              "public, s-maxage=3600, stale-while-revalidate=86400",
+          },
+        },
       );
     }
 
@@ -235,7 +241,13 @@ export async function GET(
         processingTime,
         apiVersion: "1.0",
       }),
-      { status: 200 },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control":
+            "public, s-maxage=3600, stale-while-revalidate=86400",
+        },
+      },
     );
   } catch (error) {
     log.error("Error fetching remedy details", error);

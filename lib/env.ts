@@ -74,6 +74,11 @@ export class EnvValidationError extends Error {
  * @throws {EnvValidationError} If required variables are missing
  */
 export function validateEnv(): void {
+  // Skip validation during build (Vercel sets env vars at runtime, not build time)
+  if (process.env.SKIP_ENV_VALIDATION === "true") {
+    return;
+  }
+
   const missing: string[] = [];
 
   // Check required variables

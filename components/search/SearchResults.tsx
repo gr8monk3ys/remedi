@@ -3,6 +3,8 @@
 import { useMemo } from "react";
 import { Filter } from "@/components/ui/filter";
 import { Pagination } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
 import { SearchResultCard } from "./SearchResultCard";
 import { AIInsightsPanel } from "./AIInsightsPanel";
 import type { SearchResult, AIInsights } from "./types";
@@ -62,7 +64,6 @@ export function SearchResults({
   onFavoriteToggle,
   onViewDetails,
 }: SearchResultsProps) {
-  // Memoize pagination slice to prevent unnecessary array creation on every render
   const currentItems = useMemo(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -73,7 +74,7 @@ export function SearchResults({
     <div id="search-results">
       {/* Filters */}
       {results.length > 0 && showFilters && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2">
           {categoryOptions.length > 0 && (
             <Filter
               title="Filter by Category"
@@ -82,7 +83,6 @@ export function SearchResults({
               onChange={setCategoryFilters}
             />
           )}
-
           {nutrientOptions.length > 0 && (
             <Filter
               title="Filter by Nutrients"
@@ -99,35 +99,45 @@ export function SearchResults({
 
       {/* Loading State */}
       {isLoading && (
-        <div className="flex justify-center items-center py-8">
-          <div
-            className="animate-spin rounded-full h-8 w-8 border-b-2"
-            style={{ borderColor: "var(--primary)" }}
-          ></div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="flex gap-4">
+                  <Skeleton className="h-16 w-16 rounded-lg" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-16 rounded-md" />
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-3/4" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
 
       {/* Empty State */}
       {!isLoading && filteredResults.length === 0 && query && !error && (
-        <div
-          className="text-center py-8"
-          style={{ color: "var(--foreground-muted)" }}
-        >
-          {results.length > 0
-            ? "No results match your current filters. Try adjusting your filters."
-            : `No results found for "${query}". Try a different search term.`}
+        <div className="py-12 text-center">
+          <p className="text-sm text-muted-foreground">
+            {results.length > 0
+              ? "No results match your current filters. Try adjusting your filters."
+              : `No results found for "${query}". Try a different search term.`}
+          </p>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="text-center py-8" style={{ color: "var(--error)" }}>
-          {error}
+        <div className="py-8 text-center">
+          <p className="text-sm text-destructive">{error}</p>
         </div>
       )}
 
       {/* Results List */}
-      <div className="grid grid-cols-1 gap-6 mt-2">
+      <div className="grid grid-cols-1 gap-3 mt-2">
         {currentItems.map((result) => (
           <SearchResultCard
             key={result.id}

@@ -30,6 +30,27 @@ generator client {
   engineType = "binary"
 }
 
+// ============================================================================
+// Enums
+// ============================================================================
+
+enum ContributionStatus {
+  pending
+  approved
+  rejected
+}
+
+enum SubscriptionPlan {
+  free
+  basic
+  premium
+}
+
+enum UserRole {
+  user
+  admin
+}
+
 datasource db {
   provider = "postgresql"
 }
@@ -78,6 +99,7 @@ model NaturalRemedy {
   createdAt      DateTime @default(now()) @db.Timestamptz
   updatedAt      DateTime @updatedAt @db.Timestamptz
   pharmaceuticals NaturalRemedyMapping[]
+  reviews         RemedyReview[]
 
   // Indexes for performance
   @@index([name])
@@ -114,8 +136,10 @@ model SearchHistory {
   query       String   // The search query
   resultsCount Int     @default(0) // Number of results found
   sessionId   String?  // Optional session identifier for anonymous users
-  userId      String?  @db.Uuid // Future: user ID when authentication is added
+  userId      String?  @db.Uuid
   createdAt   DateTime @default(now()) @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   // Indexes for performance
   @@index([query])
@@ -130,11 +154,13 @@ model Favorite {
   remedyId      String   @db.Uuid // ID of the natural remedy
   remedyName    String   // Cached name for quick display
   sessionId     String?  // Session identifier for anonymous users
-  userId        String?  @db.Uuid // Future: user ID when authentication is added
+  userId        String?  @db.Uuid
   notes         String?  @db.Text // User's personal notes about the remedy
   collectionName String? // Optional collection/folder name
   createdAt     DateTime @default(now()) @db.Timestamptz
   updatedAt     DateTime @updatedAt @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   // Indexes for performance
   @@index([remedyId])
@@ -142,6 +168,7 @@ model Favorite {
   @@index([userId])
   @@index([collectionName])
   @@unique([sessionId, remedyId]) // Prevent duplicate favorites per session
+  @@unique([userId, remedyId]) // Prevent duplicate favorites per user
 }
 
 // Filter preferences (persisted filter state)
@@ -173,7 +200,7 @@ model User {
   email         String    @unique
   emailVerified DateTime? @db.Timestamptz
   image         String?
-  role          String    @default("user") // user, moderator, admin
+  role          UserRole  @default(user)
   bio           String?   @db.Text
   createdAt     DateTime  @default(now()) @db.Timestamptz
   updatedAt     DateTime  @updatedAt @db.Timestamptz
@@ -188,6 +215,8 @@ model User {
   subscription     Subscription?
   emailPreferences EmailPreference?
   usageRecords     UsageRecord[]
+  favorites        Favorite[]
+  searchHistory    SearchHistory[]
 
   @@index([email])
   @@index([role])
@@ -213,7 +242,8 @@ model RemedyReview {
   createdAt   DateTime @default(now()) @db.Timestamptz
   updatedAt   DateTime @updatedAt @db.Timestamptz
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  remedy NaturalRemedy @relation(fields: [remedyId], references: [id], onDelete: Cascade)
 
   @@index([remedyId])
   @@index([userId])
@@ -237,7 +267,7 @@ model RemedyContribution {
   scientificInfo String?  @db.Text
   references     String[] // Native PostgreSQL array
   imageUrl       String?
-  status         String   @default("pending") // pending, approved, rejected
+  status         ContributionStatus @default(pending)
   moderatorNote  String?  @db.Text
   moderatedBy    String?  @db.Uuid
   moderatedAt    DateTime? @db.Timestamptz
@@ -280,7 +310,7 @@ model UserEvent {
 model Subscription {
   id              String    @id @default(uuid()) @db.Uuid
   userId          String    @unique @db.Uuid
-  plan            String    @default("free") // free, basic, premium, enterprise
+  plan            SubscriptionPlan @default(free)
   status          String    @default("active") // active, cancelled, expired, suspended
   interval        String?   // monthly, yearly
   stripeSubscriptionId String? @unique // Stripe subscription ID
@@ -373,6 +403,28 @@ model WebhookStatus {
   lastEventType  String?
   lastEventId    String?
   updatedAt      DateTime @updatedAt @db.Timestamptz
+}
+
+// Drug interaction safety data
+model DrugInteraction {
+  id              String   @id @default(uuid()) @db.Uuid
+  substanceA      String   // Name of first substance (drug or remedy)
+  substanceAType  String   // "pharmaceutical" or "natural_remedy"
+  substanceB      String   // Name of second substance
+  substanceBType  String   // "pharmaceutical" or "natural_remedy"
+  severity        String   // "mild", "moderate", "severe", "contraindicated"
+  description     String   @db.Text // What the interaction does
+  mechanism       String?  @db.Text // How the interaction works
+  recommendation  String?  @db.Text // What to do about it
+  evidence        String?  // "established", "theoretical", "case_report"
+  sources         String[] // References/citations
+  createdAt       DateTime @default(now()) @db.Timestamptz
+  updatedAt       DateTime @updatedAt @db.Timestamptz
+
+  @@index([substanceA])
+  @@index([substanceB])
+  @@index([severity])
+  @@unique([substanceA, substanceB])
 }
 
 // Conversion funnel analytics events

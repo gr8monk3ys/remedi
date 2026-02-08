@@ -43,6 +43,7 @@ export const EMAIL_URLS = {
   termsOfService: "/terms",
   contact: "/contact",
   support: "/support",
+  contribute: "/contribute",
 } as const;
 
 /**
@@ -79,4 +80,6 @@ export const EMAIL_SUBJECTS = {
   subscription_expiring: "Your Remedi Subscription Expires Soon",
   weekly_digest: "Your Weekly Remedi Digest",
   password_reset: "Reset Your Remedi Password",
+  contribution_approved: "Your Remedy Contribution Has Been Approved!",
+  contribution_rejected: "Update on Your Remedy Contribution",
 } as const;

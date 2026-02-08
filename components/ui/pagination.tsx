@@ -2,6 +2,8 @@
 
 import { memo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface PaginationProps {
   totalItems: number;
@@ -10,111 +12,102 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export const Pagination = memo(function Pagination({ 
-  totalItems, 
-  itemsPerPage, 
-  currentPage, 
-  onPageChange 
+export const Pagination = memo(function Pagination({
+  totalItems,
+  itemsPerPage,
+  currentPage,
+  onPageChange,
 }: PaginationProps) {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  
-  // Don't render pagination if only 1 page
+
   if (totalPages <= 1) return null;
-  
-  const handlePrevious = () => {
+
+  const handlePrevious = (): void => {
     if (currentPage > 1) {
       onPageChange(currentPage - 1);
     }
   };
-  
-  const handleNext = () => {
+
+  const handleNext = (): void => {
     if (currentPage < totalPages) {
       onPageChange(currentPage + 1);
     }
   };
-  
-  // Generate page numbers to display
-  const getPageNumbers = () => {
-    const pages = [];
-    
-    // Always show first page
+
+  const getPageNumbers = (): number[] => {
+    const pages: number[] = [];
+
     pages.push(1);
-    
-    // Add current page and surrounding pages
-    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+
+    for (
+      let i = Math.max(2, currentPage - 1);
+      i <= Math.min(totalPages - 1, currentPage + 1);
+      i++
+    ) {
       if (pages[pages.length - 1] !== i - 1) {
-        // Add ellipsis if there's a gap
         pages.push(-1);
       }
       pages.push(i);
     }
-    
-    // Add last page if not already added
+
     if (totalPages > 1) {
       if (pages[pages.length - 1] !== totalPages - 1) {
-        // Add ellipsis if there's a gap
         pages.push(-1);
       }
       pages.push(totalPages);
     }
-    
+
     return pages;
   };
-  
+
   const pageNumbers = getPageNumbers();
-  
+
   return (
-    <div className="flex items-center justify-center mt-6 space-x-1">
-      {/* Previous Button */}
-      <button
+    <div className="mt-6 flex items-center justify-center gap-1">
+      <Button
+        variant="outline"
+        size="icon"
+        className="h-8 w-8"
         onClick={handlePrevious}
         disabled={currentPage === 1}
-        className={`p-2 rounded-md ${
-          currentPage === 1
-            ? "text-gray-400 cursor-not-allowed"
-            : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-        }`}
         aria-label="Previous page"
       >
-        <ChevronLeft size={16} />
-      </button>
-      
-      {/* Page Numbers */}
-      {pageNumbers.map((pageNumber, index) => (
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+
+      {pageNumbers.map((pageNumber, index) =>
         pageNumber === -1 ? (
-          // Ellipsis
-          <span key={`ellipsis-${index}`} className="px-2 text-gray-500 dark:text-gray-400">
+          <span
+            key={`ellipsis-${index}`}
+            className="px-1 text-sm text-muted-foreground"
+          >
             ...
           </span>
         ) : (
-          // Page Number Button
-          <button
+          <Button
             key={`page-${pageNumber}`}
+            variant={currentPage === pageNumber ? "default" : "ghost"}
+            size="icon"
+            className={cn("h-8 w-8 text-sm")}
             onClick={() => onPageChange(pageNumber)}
-            className={`w-8 h-8 flex items-center justify-center rounded-md ${
-              currentPage === pageNumber
-                ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300 font-medium"
-                : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-            }`}
+            aria-label={`Page ${pageNumber}`}
+            aria-current={currentPage === pageNumber ? "page" : undefined}
           >
             {pageNumber}
-          </button>
-        )
-      ))}
-      
-      {/* Next Button */}
-      <button
+          </Button>
+        ),
+      )}
+
+      <Button
+        variant="outline"
+        size="icon"
+        className="h-8 w-8"
         onClick={handleNext}
         disabled={currentPage === totalPages}
-        className={`p-2 rounded-md ${
-          currentPage === totalPages
-            ? "text-gray-400 cursor-not-allowed"
-            : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-        }`}
         aria-label="Next page"
       >
-        <ChevronRight size={16} />
-      </button>
+        <ChevronRight className="h-4 w-4" />
+      </Button>
     </div>
   );
 });

@@ -2,6 +2,11 @@
 
 import { useCallback, useRef, useEffect } from "react";
 import { Search as SearchIcon, X as XIcon, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 
 interface SearchInputProps {
   query: string;
@@ -33,27 +38,22 @@ export function SearchInput({
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialMountRef = useRef(true);
 
-  // Debounced auto-search as user types
   useEffect(() => {
-    // Skip the initial mount to avoid searching on page load
     if (isInitialMountRef.current) {
       isInitialMountRef.current = false;
       return;
     }
 
-    // Clear any existing timeout
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
 
-    // Only trigger search if query has content
     if (query.trim().length >= 2) {
       debounceTimeoutRef.current = setTimeout(() => {
         onSearch();
       }, 400);
     }
 
-    // Cleanup on unmount or query change
     return () => {
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
@@ -64,7 +64,6 @@ export function SearchInput({
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
-        // Clear debounce timeout for immediate search
         if (debounceTimeoutRef.current) {
           clearTimeout(debounceTimeoutRef.current);
         }
@@ -76,7 +75,6 @@ export function SearchInput({
 
   const handleSuggestionClick = useCallback(
     (suggestion: string) => {
-      // Clear debounce timeout since we're searching immediately
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
@@ -87,106 +85,85 @@ export function SearchInput({
   );
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-3">
       {/* Search Input */}
       <div className="relative">
-        <input
+        <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
           type="search"
           aria-label="Search for pharmaceuticals or natural remedies"
           data-search-input
-          className="neu-input w-full px-4 py-2 pl-10 rounded-full focus:outline-none"
+          className="h-11 pl-10 pr-24 rounded-lg"
           placeholder={
             useAiSearch
               ? "Describe your needs naturally..."
-              : "Enter a pharmaceutical drug or supplement..."
+              : "Search a drug or supplement..."
           }
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-        />
-        <SearchIcon
-          className="absolute left-3 top-1/2 transform -translate-y-1/2"
-          style={{ color: "var(--foreground-subtle)" }}
-          size={18}
         />
 
         {query && (
           <button
             type="button"
             onClick={() => setQuery("")}
-            className="absolute right-16 top-1/2 transform -translate-y-1/2 transition-colors"
-            style={{ color: "var(--foreground-subtle)" }}
+            className="absolute right-[4.5rem] top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Clear search"
           >
-            <XIcon size={20} />
+            <XIcon className="h-4 w-4" />
           </button>
         )}
-        <button
+        <Button
           type="button"
           data-search-button
+          size="sm"
           onClick={() => {
-            // Clear debounce for immediate search
             if (debounceTimeoutRef.current) {
               clearTimeout(debounceTimeoutRef.current);
             }
             onSearch();
           }}
-          className="neu-btn absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 rounded-full text-sm"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 rounded-md"
         >
           Search
-        </button>
+        </Button>
       </div>
 
       {/* AI Search Toggle */}
       {aiSearchAvailable && (
-        <div className="mt-3 flex items-center justify-center gap-2">
-          <button
+        <div className="flex items-center justify-center gap-2">
+          <Switch
             data-ai-toggle
+            checked={useAiSearch}
+            onCheckedChange={setUseAiSearch}
+            aria-label="Toggle AI search"
+          />
+          <button
             onClick={() => setUseAiSearch(!useAiSearch)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-              useAiSearch
-                ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md"
-                : "neu-pill"
-            }`}
-            style={
-              !useAiSearch ? { color: "var(--foreground-muted)" } : undefined
-            }
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <Sparkles
-              size={16}
-              className={useAiSearch ? "animate-pulse" : ""}
+              className={cn("h-3.5 w-3.5", useAiSearch && "text-primary")}
             />
-            <span className="text-sm font-medium">
-              {useAiSearch ? "AI Search Enabled" : "Enable AI Search"}
+            <span className="font-medium">
+              {useAiSearch ? "AI Search On" : "AI Search"}
             </span>
           </button>
-          {useAiSearch && (
-            <span
-              className="text-xs"
-              style={{ color: "var(--foreground-subtle)" }}
-            >
-              Powered by GPT-4
-            </span>
-          )}
         </div>
       )}
 
       {/* Suggestions */}
-      <div className="mt-3 flex flex-wrap gap-2 justify-center">
+      <div className="flex flex-wrap gap-1.5 justify-center">
         {suggestions.map((suggestion) => (
-          <button
+          <Badge
             key={suggestion}
+            variant={query === suggestion ? "default" : "outline"}
+            className="cursor-pointer transition-colors hover:bg-accent"
             onClick={() => handleSuggestionClick(suggestion)}
-            data-active={query === suggestion ? "true" : undefined}
-            className="neu-pill px-3 py-1 text-sm rounded-full transition-all"
-            style={{
-              color:
-                query === suggestion
-                  ? "var(--primary)"
-                  : "var(--foreground-muted)",
-            }}
           >
             {suggestion}
-          </button>
+          </Badge>
         ))}
       </div>
     </div>

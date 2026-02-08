@@ -6,19 +6,20 @@
  * DELETE /api/filter-preferences - Clear filter preferences
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   saveFilterPreferences,
   getFilterPreferences,
   clearFilterPreferences,
-} from '@/lib/db';
-import { successResponse, errorResponse } from '@/lib/api/response';
+} from "@/lib/db";
+import { successResponse, errorResponse } from "@/lib/api/response";
 import {
   saveFilterPreferencesSchema,
   getFilterPreferencesSchema,
   getValidationErrorMessage,
-} from '@/lib/validations/api';
-import { verifyOwnership } from '@/lib/authorization';
+} from "@/lib/validations/api";
+import { verifyOwnership } from "@/lib/authorization";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 /**
  * GET /api/filter-preferences
@@ -27,8 +28,8 @@ import { verifyOwnership } from '@/lib/authorization';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const sessionId = searchParams.get('sessionId') || undefined;
-    const userId = searchParams.get('userId') || undefined;
+    const sessionId = searchParams.get("sessionId") || undefined;
+    const userId = searchParams.get("userId") || undefined;
 
     // Validate query parameters
     const validation = getFilterPreferencesSchema.safeParse({
@@ -38,15 +39,21 @@ export async function GET(request: NextRequest) {
 
     if (!validation.success) {
       return NextResponse.json(
-        errorResponse('INVALID_INPUT', getValidationErrorMessage(validation.error)),
-        { status: 400 }
+        errorResponse(
+          "INVALID_INPUT",
+          getValidationErrorMessage(validation.error),
+        ),
+        { status: 400 },
       );
     }
 
     if (!sessionId && !userId) {
       return NextResponse.json(
-        errorResponse('INVALID_INPUT', 'Either sessionId or userId must be provided'),
-        { status: 400 }
+        errorResponse(
+          "INVALID_INPUT",
+          "Either sessionId or userId must be provided",
+        ),
+        { status: 400 },
       );
     }
 
@@ -70,7 +77,7 @@ export async function GET(request: NextRequest) {
             sortOrder: null,
           },
           isDefault: true,
-        })
+        }),
       );
     }
 
@@ -78,13 +85,13 @@ export async function GET(request: NextRequest) {
       successResponse({
         preferences,
         isDefault: false,
-      })
+      }),
     );
   } catch (error) {
-    console.error('Error fetching filter preferences:', error);
+    console.error("Error fetching filter preferences:", error);
     return NextResponse.json(
-      errorResponse('INTERNAL_ERROR', 'Failed to fetch filter preferences'),
-      { status: 500 }
+      errorResponse("INTERNAL_ERROR", "Failed to fetch filter preferences"),
+      { status: 500 },
     );
   }
 }
@@ -94,6 +101,15 @@ export async function GET(request: NextRequest) {
  * Save or update filter preferences
  */
 export async function POST(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.filterPreferences,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const body = await request.json();
 
@@ -102,8 +118,11 @@ export async function POST(request: NextRequest) {
 
     if (!validation.success) {
       return NextResponse.json(
-        errorResponse('INVALID_INPUT', getValidationErrorMessage(validation.error)),
-        { status: 400 }
+        errorResponse(
+          "INVALID_INPUT",
+          getValidationErrorMessage(validation.error),
+        ),
+        { status: 400 },
       );
     }
 
@@ -111,8 +130,11 @@ export async function POST(request: NextRequest) {
 
     if (!sessionId && !userId) {
       return NextResponse.json(
-        errorResponse('INVALID_INPUT', 'Either sessionId or userId must be provided'),
-        { status: 400 }
+        errorResponse(
+          "INVALID_INPUT",
+          "Either sessionId or userId must be provided",
+        ),
+        { status: 400 },
       );
     }
 
@@ -127,15 +149,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       successResponse({
         preferences,
-        message: 'Filter preferences saved successfully',
+        message: "Filter preferences saved successfully",
       }),
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
-    console.error('Error saving filter preferences:', error);
+    console.error("Error saving filter preferences:", error);
     return NextResponse.json(
-      errorResponse('INTERNAL_ERROR', 'Failed to save filter preferences'),
-      { status: 500 }
+      errorResponse("INTERNAL_ERROR", "Failed to save filter preferences"),
+      { status: 500 },
     );
   }
 }
@@ -145,15 +167,27 @@ export async function POST(request: NextRequest) {
  * Clear filter preferences for a session or user
  */
 export async function DELETE(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.filterPreferences,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
-    const sessionId = searchParams.get('sessionId') || undefined;
-    const userId = searchParams.get('userId') || undefined;
+    const sessionId = searchParams.get("sessionId") || undefined;
+    const userId = searchParams.get("userId") || undefined;
 
     if (!sessionId && !userId) {
       return NextResponse.json(
-        errorResponse('INVALID_INPUT', 'Either sessionId or userId must be provided'),
-        { status: 400 }
+        errorResponse(
+          "INVALID_INPUT",
+          "Either sessionId or userId must be provided",
+        ),
+        { status: 400 },
       );
     }
 
@@ -167,14 +201,14 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json(
       successResponse({
-        message: 'Filter preferences cleared successfully',
-      })
+        message: "Filter preferences cleared successfully",
+      }),
     );
   } catch (error) {
-    console.error('Error clearing filter preferences:', error);
+    console.error("Error clearing filter preferences:", error);
     return NextResponse.json(
-      errorResponse('INTERNAL_ERROR', 'Failed to clear filter preferences'),
-      { status: 500 }
+      errorResponse("INTERNAL_ERROR", "Failed to clear filter preferences"),
+      { status: 500 },
     );
   }
 }

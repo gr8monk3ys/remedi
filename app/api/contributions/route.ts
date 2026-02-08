@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 const contributionSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -46,9 +47,12 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;
 
+    const validStatuses = ["pending", "approved", "rejected"] as const;
+    const typedStatus = validStatuses.find((s) => s === status);
+
     const where = {
       userId: user.id,
-      ...(status && { status }),
+      ...(typedStatus && { status: typedStatus }),
     };
 
     const [contributions, total] = await Promise.all([
@@ -87,6 +91,15 @@ export async function GET(request: NextRequest) {
 
 // POST /api/contributions - Create a new contribution
 export async function POST(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.contributions,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const user = await getCurrentUser();
     if (!user) {

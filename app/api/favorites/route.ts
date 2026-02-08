@@ -27,6 +27,7 @@ import {
 } from "@/lib/validations/api";
 import { verifyOwnership, verifyResourceOwnership } from "@/lib/authorization";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 /**
  * GET /api/favorites
@@ -108,6 +109,15 @@ export async function GET(request: NextRequest) {
  * Add a remedy to favorites
  */
 export async function POST(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.favorites,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const body = await request.json();
 
@@ -176,6 +186,15 @@ export async function POST(request: NextRequest) {
  * Update favorite notes or collection
  */
 export async function PUT(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.favorites,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const body = await request.json();
 
@@ -194,6 +213,10 @@ export async function PUT(request: NextRequest) {
 
     const { id, ...updates } = validation.data;
 
+    // Extract the caller's session ID from query params for ownership verification
+    const requestSessionId =
+      request.nextUrl.searchParams.get("sessionId") || undefined;
+
     // Fetch existing favorite to verify ownership
     const existingFavorite = await getFavoriteById(id);
     if (!existingFavorite) {
@@ -207,6 +230,7 @@ export async function PUT(request: NextRequest) {
     const { authorized, error } = await verifyResourceOwnership(
       existingFavorite.userId,
       existingFavorite.sessionId,
+      requestSessionId,
     );
     if (!authorized && error) {
       return error;
@@ -246,6 +270,15 @@ export async function PUT(request: NextRequest) {
  * Remove a favorite
  */
 export async function DELETE(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.favorites,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const id = searchParams.get("id");
@@ -270,6 +303,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    // Extract the caller's session ID from query params for ownership verification
+    const requestSessionId = searchParams.get("sessionId") || undefined;
+
     // Fetch existing favorite to verify ownership
     const existingFavorite = await getFavoriteById(id);
     if (!existingFavorite) {
@@ -283,6 +319,7 @@ export async function DELETE(request: NextRequest) {
     const { authorized, error } = await verifyResourceOwnership(
       existingFavorite.userId,
       existingFavorite.sessionId,
+      requestSessionId,
     );
     if (!authorized && error) {
       return error;

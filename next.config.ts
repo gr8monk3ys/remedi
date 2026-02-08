@@ -7,6 +7,7 @@ const bundleAnalyzer = withBundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   reactStrictMode: true,
   images: {
     remotePatterns: [
@@ -67,11 +68,6 @@ const nextConfig: NextConfig = {
             key: "X-DNS-Prefetch-Control",
             value: "on",
           },
-          {
-            key: "Content-Security-Policy",
-            value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' js.stripe.com https://*.clerk.accounts.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: images.unsplash.com lh3.googleusercontent.com avatars.githubusercontent.com https://img.clerk.com; font-src 'self' fonts.gstatic.com; connect-src 'self' api.fda.gov api.openai.com *.stripe.com *.sentry.io *.ingest.sentry.io *.upstash.io https://*.clerk.accounts.dev https://api.clerk.com; frame-src 'self' js.stripe.com https://accounts.clerk.com; object-src 'none'; base-uri 'self'; form-action 'self';",
-          },
         ],
       },
       {
@@ -123,50 +119,8 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
 
-  // Webpack configuration for advanced code splitting
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      // Split chunks for better caching
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: "all",
-          cacheGroups: {
-            // Vendor chunk for third-party libraries
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: "vendors",
-              priority: 10,
-              reuseExistingChunk: true,
-            },
-            // React and React-DOM in separate chunk
-            react: {
-              test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-              name: "react",
-              priority: 20,
-              reuseExistingChunk: true,
-            },
-            // UI components chunk
-            components: {
-              test: /[\\/]components[\\/]/,
-              name: "components",
-              priority: 15,
-              minChunks: 2,
-              reuseExistingChunk: true,
-            },
-            // Common chunk for shared code
-            common: {
-              minChunks: 2,
-              priority: 5,
-              reuseExistingChunk: true,
-            },
-          },
-        },
-      };
-    }
-
-    return config;
-  },
+  // Turbopack handles code splitting automatically in Next.js 16+
+  turbopack: {},
 };
 
 // Sentry configuration options

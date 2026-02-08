@@ -2,7 +2,6 @@
 
 import { Component, type ReactNode } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   useUser,
   SignedIn,
@@ -10,12 +9,24 @@ import {
   SignInButton,
   UserButton,
 } from "@clerk/nextjs";
-import { GitCompare } from "lucide-react";
+import { GitCompare, Leaf, Menu } from "lucide-react";
 import { useCompare } from "@/context/CompareContext";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetDescription,
+} from "@/components/ui/sheet";
 
 /**
- * Error boundary for auth section — if Clerk hooks throw
- * (e.g., ClerkProvider failed), fall back to a simple sign-in link.
+ * Error boundary for auth section -- if Clerk hooks throw,
+ * fall back to a simple sign-in link.
  */
 class AuthErrorBoundary extends Component<
   { children: ReactNode },
@@ -33,9 +44,9 @@ class AuthErrorBoundary extends Component<
   override render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <Link href="/sign-in" className="neu-btn px-5 py-2 text-sm">
-          Sign In
-        </Link>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/sign-in">Sign In</Link>
+        </Button>
       );
     }
     return this.props.children;
@@ -44,10 +55,9 @@ class AuthErrorBoundary extends Component<
 
 function AuthSection(): ReactNode {
   const { isLoaded } = useUser();
-  const isLoading = !isLoaded;
 
-  if (isLoading) {
-    return <div className="w-8 h-8 rounded-full neu-pressed animate-pulse" />;
+  if (!isLoaded) {
+    return <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />;
   }
 
   return (
@@ -57,85 +67,127 @@ function AuthSection(): ReactNode {
       </SignedIn>
       <SignedOut>
         <SignInButton mode="modal">
-          <button className="neu-btn px-5 py-2 text-sm">Sign In</button>
+          <Button variant="outline" size="sm">
+            Sign In
+          </Button>
         </SignInButton>
       </SignedOut>
     </>
   );
 }
 
+const NAV_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "#about", label: "About" },
+  { href: "/faq", label: "FAQ" },
+];
+
 export function Header() {
   const { items, getCompareUrl } = useCompare();
 
   return (
-    <motion.header
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="fixed top-0 left-0 w-full z-50 backdrop-blur-md"
-      style={{
-        background: "color-mix(in srgb, var(--surface) 85%, transparent)",
-        boxShadow: "0 4px 12px var(--shadow-dark)",
-        borderBottom: "1px solid var(--shadow-light)",
-      }}
-    >
-      <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <Link
-          href="/"
-          className="font-bold text-xl"
-          style={{ color: "var(--primary)" }}
-        >
-          Remedi
+    <header className="fixed top-0 left-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 md:px-8">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-1.5 font-bold text-lg">
+          <Leaf className="h-5 w-5 text-primary" />
+          <span>Remedi</span>
         </Link>
-        <nav className="flex items-center space-x-6">
-          <Link
-            href="/"
-            className="text-sm font-medium hover:opacity-70 transition-opacity"
-            style={{ color: "var(--foreground-muted)" }}
-          >
-            Home
-          </Link>
-          <Link
-            href="#about"
-            className="text-sm font-medium hover:opacity-70 transition-opacity"
-            style={{ color: "var(--foreground-muted)" }}
-          >
-            About
-          </Link>
-          <Link
-            href="/faq"
-            className="text-sm font-medium hover:opacity-70 transition-opacity"
-            style={{ color: "var(--foreground-muted)" }}
-          >
-            FAQ
-          </Link>
 
-          {/* Compare link with badge */}
-          <Link
-            href={getCompareUrl()}
-            className="relative flex items-center gap-1 text-sm font-medium hover:opacity-70 transition-opacity"
-            style={{ color: "var(--foreground-muted)" }}
-            aria-label={`Compare remedies${items.length > 0 ? ` (${items.length} selected)` : ""}`}
-          >
-            <GitCompare size={16} />
-            <span className="hidden sm:inline">Compare</span>
-            {items.length > 0 && (
-              <span
-                className="absolute -top-2 -right-2 sm:relative sm:top-0 sm:right-0 sm:ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white rounded-full"
-                style={{ background: "var(--primary)" }}
-              >
-                {items.length}
-              </span>
-            )}
-          </Link>
+        {/* Desktop Navigation */}
+        <nav className="hidden items-center gap-1 md:flex">
+          {NAV_LINKS.map((link) => (
+            <Button key={link.href} variant="ghost" size="sm" asChild>
+              <Link href={link.href}>{link.label}</Link>
+            </Button>
+          ))}
 
-          {/* Authentication UI */}
-          <div className="ml-4 flex items-center">
+          {/* Compare link */}
+          <Button variant="ghost" size="sm" asChild>
+            <Link
+              href={getCompareUrl()}
+              className="gap-1.5"
+              aria-label={`Compare remedies${items.length > 0 ? ` (${items.length} selected)` : ""}`}
+            >
+              <GitCompare className="h-4 w-4" />
+              Compare
+              {items.length > 0 && (
+                <Badge className="h-5 px-1.5 text-xs">{items.length}</Badge>
+              )}
+            </Link>
+          </Button>
+
+          <Separator orientation="vertical" className="mx-1 h-6" />
+
+          <ThemeToggle />
+
+          <div className="ml-1">
             <AuthErrorBoundary>
               <AuthSection />
             </AuthErrorBoundary>
           </div>
         </nav>
+
+        {/* Mobile Navigation */}
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggle />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-72">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-1.5">
+                  <Leaf className="h-5 w-5 text-primary" />
+                  Remedi
+                </SheetTitle>
+                <SheetDescription className="text-sm">
+                  Natural alternatives to pharmaceuticals
+                </SheetDescription>
+              </SheetHeader>
+              <nav className="mt-6 flex flex-col gap-1">
+                {NAV_LINKS.map((link) => (
+                  <Button
+                    key={link.href}
+                    variant="ghost"
+                    className="w-full justify-start"
+                    asChild
+                  >
+                    <Link href={link.href}>{link.label}</Link>
+                  </Button>
+                ))}
+
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link href={getCompareUrl()} className="gap-1.5">
+                    <GitCompare className="h-4 w-4" />
+                    Compare
+                    {items.length > 0 && (
+                      <Badge className="h-5 px-1.5 text-xs">
+                        {items.length}
+                      </Badge>
+                    )}
+                  </Link>
+                </Button>
+
+                <Separator className="my-2" />
+
+                <div className="px-3 py-2">
+                  <AuthErrorBoundary>
+                    <AuthSection />
+                  </AuthErrorBoundary>
+                </div>
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
-    </motion.header>
+    </header>
   );
 }

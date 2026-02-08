@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 const reviewSchema = z.object({
   remedyId: z.string().min(1, "Remedy ID is required"),
@@ -12,27 +13,44 @@ const reviewSchema = z.object({
   comment: z.string().min(10, "Review must be at least 10 characters"),
 });
 
+const reviewsQuerySchema = z.object({
+  remedyId: z.string().min(1, "Remedy ID is required"),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(100, "Limit cannot exceed 100")
+    .default(10),
+});
+
 // GET /api/reviews - Get reviews for a remedy
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const remedyId = searchParams.get("remedyId");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const skip = (page - 1) * limit;
 
-    if (!remedyId) {
+    // Validate and sanitize query parameters with Zod
+    const parsed = reviewsQuerySchema.safeParse({
+      remedyId: searchParams.get("remedyId"),
+      page: searchParams.get("page") || undefined,
+      limit: searchParams.get("limit") || undefined,
+    });
+
+    if (!parsed.success) {
       return NextResponse.json(
         {
           success: false,
           error: {
-            code: "MISSING_REMEDY_ID",
-            message: "Remedy ID is required",
+            code: "INVALID_INPUT",
+            message: parsed.error.issues[0].message,
           },
         },
         { status: 400 },
       );
     }
+
+    const { remedyId, page, limit } = parsed.data;
+    const skip = (page - 1) * limit;
 
     const [reviews, total] = await Promise.all([
       prisma.remedyReview.findMany({
@@ -85,6 +103,15 @@ export async function GET(request: NextRequest) {
 
 // POST /api/reviews - Create a new review
 export async function POST(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.reviews,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const user = await getCurrentUser();
     if (!user) {

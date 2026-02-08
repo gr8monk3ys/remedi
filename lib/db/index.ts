@@ -78,3 +78,12 @@ export type {
   FilterPreferenceInput,
   FilterPreferenceOutput,
 } from "./filter-preferences";
+
+// Drug interaction operations
+export {
+  findInteractionsBySubstance,
+  checkPairInteraction,
+  checkMultipleInteractions,
+  getInteractionsForRemedy,
+} from "./interactions";
+export type { InteractionResult } from "./interactions";

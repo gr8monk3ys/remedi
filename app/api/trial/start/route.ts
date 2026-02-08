@@ -5,15 +5,25 @@
  * Starts a 7-day premium trial for the authenticated user.
  */
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { startTrial, isTrialEligible, TRIAL_CONFIG } from "@/lib/trial";
 import {
   trackTrialStarted,
   EVENT_SOURCES,
 } from "@/lib/analytics/conversion-events";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.trialStart,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const user = await getCurrentUser();
 

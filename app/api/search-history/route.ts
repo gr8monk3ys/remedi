@@ -6,20 +6,21 @@
  * DELETE /api/search-history - Clear search history
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   saveSearchHistory,
   getSearchHistory,
   clearSearchHistory,
   getPopularSearches,
-} from '@/lib/db';
-import { successResponse, errorResponse } from '@/lib/api/response';
+} from "@/lib/db";
+import { successResponse, errorResponse } from "@/lib/api/response";
 import {
   saveSearchHistorySchema,
   getSearchHistorySchema,
   getValidationErrorMessage,
-} from '@/lib/validations/api';
-import { verifyOwnership } from '@/lib/authorization';
+} from "@/lib/validations/api";
+import { verifyOwnership } from "@/lib/authorization";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 /**
  * GET /api/search-history
@@ -28,10 +29,10 @@ import { verifyOwnership } from '@/lib/authorization';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const sessionId = searchParams.get('sessionId') || undefined;
-    const userId = searchParams.get('userId') || undefined;
-    const limitParam = searchParams.get('limit');
-    const showPopular = searchParams.get('popular') === 'true';
+    const sessionId = searchParams.get("sessionId") || undefined;
+    const userId = searchParams.get("userId") || undefined;
+    const limitParam = searchParams.get("limit");
+    const showPopular = searchParams.get("popular") === "true";
 
     // If requesting popular searches (public data, no auth needed)
     if (showPopular) {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         successResponse({
           popular: popularSearches,
-        })
+        }),
       );
     }
 
@@ -60,8 +61,11 @@ export async function GET(request: NextRequest) {
 
     if (!validation.success) {
       return NextResponse.json(
-        errorResponse('INVALID_INPUT', getValidationErrorMessage(validation.error)),
-        { status: 400 }
+        errorResponse(
+          "INVALID_INPUT",
+          getValidationErrorMessage(validation.error),
+        ),
+        { status: 400 },
       );
     }
 
@@ -74,13 +78,13 @@ export async function GET(request: NextRequest) {
       successResponse({
         history,
         count: history.length,
-      })
+      }),
     );
   } catch (error) {
-    console.error('Error fetching search history:', error);
+    console.error("Error fetching search history:", error);
     return NextResponse.json(
-      errorResponse('INTERNAL_ERROR', 'Failed to fetch search history'),
-      { status: 500 }
+      errorResponse("INTERNAL_ERROR", "Failed to fetch search history"),
+      { status: 500 },
     );
   }
 }
@@ -90,6 +94,15 @@ export async function GET(request: NextRequest) {
  * Save a search query to history
  */
 export async function POST(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.searchHistory,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const body = await request.json();
 
@@ -98,8 +111,11 @@ export async function POST(request: NextRequest) {
 
     if (!validation.success) {
       return NextResponse.json(
-        errorResponse('INVALID_INPUT', getValidationErrorMessage(validation.error)),
-        { status: 400 }
+        errorResponse(
+          "INVALID_INPUT",
+          getValidationErrorMessage(validation.error),
+        ),
+        { status: 400 },
       );
     }
 
@@ -116,24 +132,24 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       successResponse({
-        message: 'Search history saved successfully',
+        message: "Search history saved successfully",
       }),
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
-    console.error('Error saving search history:', error);
+    console.error("Error saving search history:", error);
 
     // Handle unique constraint violations
-    if (error instanceof Error && error.message.includes('Unique constraint')) {
+    if (error instanceof Error && error.message.includes("Unique constraint")) {
       return NextResponse.json(
-        errorResponse('CONFLICT', 'Search history entry already exists'),
-        { status: 409 }
+        errorResponse("CONFLICT", "Search history entry already exists"),
+        { status: 409 },
       );
     }
 
     return NextResponse.json(
-      errorResponse('INTERNAL_ERROR', 'Failed to save search history'),
-      { status: 500 }
+      errorResponse("INTERNAL_ERROR", "Failed to save search history"),
+      { status: 500 },
     );
   }
 }
@@ -143,15 +159,27 @@ export async function POST(request: NextRequest) {
  * Clear search history for a session or user
  */
 export async function DELETE(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.searchHistory,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
-    const sessionId = searchParams.get('sessionId') || undefined;
-    const userId = searchParams.get('userId') || undefined;
+    const sessionId = searchParams.get("sessionId") || undefined;
+    const userId = searchParams.get("userId") || undefined;
 
     if (!sessionId && !userId) {
       return NextResponse.json(
-        errorResponse('INVALID_INPUT', 'Either sessionId or userId must be provided'),
-        { status: 400 }
+        errorResponse(
+          "INVALID_INPUT",
+          "Either sessionId or userId must be provided",
+        ),
+        { status: 400 },
       );
     }
 
@@ -165,15 +193,15 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json(
       successResponse({
-        message: 'Search history cleared successfully',
+        message: "Search history cleared successfully",
         deletedCount,
-      })
+      }),
     );
   } catch (error) {
-    console.error('Error clearing search history:', error);
+    console.error("Error clearing search history:", error);
     return NextResponse.json(
-      errorResponse('INTERNAL_ERROR', 'Failed to clear search history'),
-      { status: 500 }
+      errorResponse("INTERNAL_ERROR", "Failed to clear search history"),
+      { status: 500 },
     );
   }
 }

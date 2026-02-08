@@ -2,6 +2,9 @@
  * Admin Moderation API Route
  *
  * PATCH /api/admin/moderation/[id] - Approve/reject contribution or review
+ *
+ * On contribution approval/rejection, sends a notification email to the
+ * contributing user via the email service.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -9,6 +12,11 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser, isAdmin, isModerator } from "@/lib/auth";
 import { successResponse, errorResponse } from "@/lib/api/response";
 import { z } from "zod";
+import {
+  sendContributionApproved,
+  sendContributionRejected,
+} from "@/lib/email";
+import { getEmailUrl } from "@/lib/email/config";
 
 const moderationSchema = z.object({
   type: z.enum(["contribution", "review"]),
@@ -18,7 +26,7 @@ const moderationSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const currentUser = await getCurrentUser();
@@ -28,7 +36,7 @@ export async function PATCH(
     if (!currentUser || (!userIsAdmin && !userIsModerator)) {
       return NextResponse.json(
         errorResponse("UNAUTHORIZED", "Moderator access required"),
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -39,7 +47,7 @@ export async function PATCH(
     if (!validation.success) {
       return NextResponse.json(
         errorResponse("INVALID_INPUT", validation.error.issues[0].message),
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -47,20 +55,21 @@ export async function PATCH(
 
     if (type === "contribution") {
       if (action === "approve") {
-        // Get the contribution
+        // Get the contribution with its author
         const contribution = await prisma.remedyContribution.findUnique({
           where: { id },
+          include: { user: { select: { id: true, email: true, name: true } } },
         });
 
         if (!contribution) {
           return NextResponse.json(
             errorResponse("RESOURCE_NOT_FOUND", "Contribution not found"),
-            { status: 404 }
+            { status: 404 },
           );
         }
 
         // Create the natural remedy from the contribution
-        await prisma.naturalRemedy.create({
+        const remedy = await prisma.naturalRemedy.create({
           data: {
             name: contribution.name,
             description: contribution.description,
@@ -88,10 +97,44 @@ export async function PATCH(
           },
         });
 
+        // Send approval notification email to the contributor
+        try {
+          await sendContributionApproved(
+            contribution.user.email,
+            {
+              name: contribution.user.name || "there",
+              remedyName: contribution.name,
+              remedyUrl: getEmailUrl(`/remedy/${remedy.id}`),
+            },
+            contribution.user.id,
+          );
+        } catch (emailError) {
+          // Non-critical: do not fail the moderation action if email fails
+          console.error(
+            "Failed to send contribution approval email:",
+            emailError,
+          );
+        }
+
         return NextResponse.json(
-          successResponse({ message: "Contribution approved and remedy created" })
+          successResponse({
+            message: "Contribution approved and remedy created",
+          }),
         );
       } else {
+        // Get the contribution with its author before rejecting
+        const contribution = await prisma.remedyContribution.findUnique({
+          where: { id },
+          include: { user: { select: { id: true, email: true, name: true } } },
+        });
+
+        if (!contribution) {
+          return NextResponse.json(
+            errorResponse("RESOURCE_NOT_FOUND", "Contribution not found"),
+            { status: 404 },
+          );
+        }
+
         // Reject
         await prisma.remedyContribution.update({
           where: { id },
@@ -103,8 +146,27 @@ export async function PATCH(
           },
         });
 
+        // Send rejection notification email to the contributor
+        try {
+          await sendContributionRejected(
+            contribution.user.email,
+            {
+              name: contribution.user.name || "there",
+              remedyName: contribution.name,
+              moderatorNote: note,
+            },
+            contribution.user.id,
+          );
+        } catch (emailError) {
+          // Non-critical: do not fail the moderation action if email fails
+          console.error(
+            "Failed to send contribution rejection email:",
+            emailError,
+          );
+        }
+
         return NextResponse.json(
-          successResponse({ message: "Contribution rejected" })
+          successResponse({ message: "Contribution rejected" }),
         );
       }
     } else if (type === "review") {
@@ -115,7 +177,7 @@ export async function PATCH(
         });
 
         return NextResponse.json(
-          successResponse({ message: "Review verified" })
+          successResponse({ message: "Review verified" }),
         );
       } else {
         // Delete the review
@@ -124,20 +186,19 @@ export async function PATCH(
         });
 
         return NextResponse.json(
-          successResponse({ message: "Review removed" })
+          successResponse({ message: "Review removed" }),
         );
       }
     }
 
-    return NextResponse.json(
-      errorResponse("INVALID_INPUT", "Invalid type"),
-      { status: 400 }
-    );
+    return NextResponse.json(errorResponse("INVALID_INPUT", "Invalid type"), {
+      status: 400,
+    });
   } catch (error) {
     console.error("Error processing moderation action:", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to process moderation action"),
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

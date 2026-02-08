@@ -4,6 +4,10 @@ import { memo } from "react";
 import Image from "next/image";
 import { ExternalLink, Heart, GitCompare, Check } from "lucide-react";
 import { useCompare } from "@/context/CompareContext";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { SearchResult } from "./types";
 
 interface SearchResultCardProps {
@@ -29,7 +33,7 @@ export const SearchResultCard = memo(function SearchResultCard({
     useCompare();
   const isComparing = isInComparison(result.id);
 
-  const handleCompareToggle = (e: React.MouseEvent) => {
+  const handleCompareToggle = (e: React.MouseEvent): void => {
     e.stopPropagation();
     if (isComparing) {
       removeFromCompare(result.id);
@@ -44,163 +48,149 @@ export const SearchResultCard = memo(function SearchResultCard({
   };
 
   return (
-    <div
-      className={`neu-card-interactive p-4 rounded-2xl mb-4 transition-all cursor-pointer ${
-        isComparing ? "ring-2 ring-[var(--primary)]" : ""
-      }`}
+    <Card
+      className={cn(
+        "cursor-pointer transition-all hover:shadow-md",
+        isComparing && "ring-2 ring-primary",
+      )}
       onClick={() => onViewDetails(result.id)}
     >
-      <div className="flex gap-4">
-        {/* Image */}
-        <div className="relative w-16 h-16 rounded overflow-hidden flex-shrink-0">
-          {result.imageUrl ? (
-            <Image
-              src={result.imageUrl}
-              alt={result.name}
-              width={64}
-              height={64}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="neu-pressed w-full h-full flex items-center justify-center rounded">
-              <span
-                className="text-xs"
-                style={{ color: "var(--foreground-subtle)" }}
-              >
-                No Image
-              </span>
-            </div>
-          )}
-          {/* Compare indicator overlay */}
-          {isComparing && (
-            <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-              <Check className="w-6 h-6 text-primary" />
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center min-w-0">
-              <h3 className="font-bold truncate">{result.name}</h3>
-              <ExternalLink
-                size={14}
-                className="ml-2 text-primary flex-shrink-0"
+      <CardContent className="p-4">
+        <div className="flex gap-4">
+          {/* Image */}
+          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+            {result.imageUrl ? (
+              <Image
+                src={result.imageUrl}
+                alt={result.name}
+                width={64}
+                height={64}
+                className="h-full w-full object-cover"
               />
-            </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {/* Compare button */}
-              <button
-                data-compare-button
-                onClick={handleCompareToggle}
-                disabled={!isComparing && isFull}
-                className={`p-2 rounded-full transition-colors ${
-                  isComparing
-                    ? "hover:opacity-80"
-                    : isFull
-                      ? "cursor-not-allowed opacity-30"
-                      : "hover:opacity-80"
-                }`}
-                style={{
-                  color: isComparing
-                    ? "var(--primary)"
-                    : isFull
-                      ? "var(--foreground-subtle)"
-                      : "var(--foreground-subtle)",
-                }}
-                aria-label={
-                  isComparing ? "Remove from comparison" : "Add to comparison"
-                }
-                title={
-                  isComparing
-                    ? "Remove from comparison"
-                    : isFull
-                      ? "Comparison list is full (max 4)"
-                      : "Add to comparison"
-                }
-              >
-                <GitCompare size={18} className="transition-all" />
-              </button>
-              {/* Favorite button */}
-              <button
-                data-favorite-button
-                onClick={(e) => onFavoriteToggle(e, result.id, result.name)}
-                disabled={isLoading}
-                className={`p-2 rounded-full transition-colors ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                style={{
-                  color: isFavorite
-                    ? "var(--error)"
-                    : "var(--foreground-subtle)",
-                }}
-                aria-label={
-                  isFavorite ? "Remove from favorites" : "Add to favorites"
-                }
-              >
-                <Heart
-                  size={20}
-                  fill={isFavorite ? "currentColor" : "none"}
-                  className="transition-all"
-                />
-              </button>
-            </div>
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <span className="text-xs text-muted-foreground">No Image</span>
+              </div>
+            )}
+            {isComparing && (
+              <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+                <Check className="h-6 w-6 text-primary" />
+              </div>
+            )}
           </div>
 
-          {/* Category Badge */}
-          {result.category && (
-            <span
-              className="neu-pill inline-block px-2 py-1 mt-1 text-xs rounded-full"
-              style={{ color: "var(--foreground-muted)" }}
-            >
-              {result.category}
-            </span>
-          )}
-
-          {/* Description */}
-          <p
-            className="text-sm mt-1 line-clamp-2"
-            style={{ color: "var(--foreground-muted)" }}
-          >
-            {result.description}
-          </p>
-
-          {/* Matching Nutrients */}
-          <div className="mt-2">
-            <span
-              className="text-xs font-medium block mb-1"
-              style={{ color: "var(--foreground-subtle)" }}
-            >
-              Matching Nutrients:
-            </span>
-            <div className="flex flex-wrap gap-1">
-              {result.matchingNutrients.map((nutrient) => (
-                <span
-                  key={nutrient}
-                  className="neu-pill px-2 py-0.5 rounded-full text-xs"
-                  style={{ color: "var(--primary)" }}
+          {/* Content */}
+          <div className="min-w-0 flex-1">
+            {/* Header */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <h3 className="truncate font-semibold text-sm">
+                  {result.name}
+                </h3>
+                <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              </div>
+              <div className="flex items-center gap-0.5 shrink-0">
+                <Button
+                  data-compare-button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={handleCompareToggle}
+                  disabled={!isComparing && isFull}
+                  aria-label={
+                    isComparing ? "Remove from comparison" : "Add to comparison"
+                  }
+                  title={
+                    isComparing
+                      ? "Remove from comparison"
+                      : isFull
+                        ? "Comparison list is full (max 4)"
+                        : "Add to comparison"
+                  }
                 >
-                  {nutrient}
+                  <GitCompare
+                    className={cn(
+                      "h-4 w-4",
+                      isComparing ? "text-primary" : "text-muted-foreground",
+                    )}
+                  />
+                </Button>
+                <Button
+                  data-favorite-button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={(e) => onFavoriteToggle(e, result.id, result.name)}
+                  disabled={isLoading}
+                  aria-label={
+                    isFavorite ? "Remove from favorites" : "Add to favorites"
+                  }
+                >
+                  <Heart
+                    className={cn(
+                      "h-4 w-4 transition-colors",
+                      isFavorite
+                        ? "fill-red-500 text-red-500"
+                        : "text-muted-foreground",
+                    )}
+                  />
+                </Button>
+              </div>
+            </div>
+
+            {/* Category Badge */}
+            {result.category && (
+              <Badge variant="secondary" className="mt-1 text-xs">
+                {result.category}
+              </Badge>
+            )}
+
+            {/* Description */}
+            {result.description && (
+              <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">
+                {result.description}
+              </p>
+            )}
+
+            {/* Matching Nutrients */}
+            {result.matchingNutrients.length > 0 && (
+              <div className="mt-2">
+                <span className="text-xs text-muted-foreground">
+                  Nutrients:{" "}
                 </span>
-              ))}
-            </div>
-          </div>
+                <div className="mt-0.5 inline-flex flex-wrap gap-1">
+                  {result.matchingNutrients.map((nutrient) => (
+                    <Badge
+                      key={nutrient}
+                      variant="outline"
+                      className="text-xs py-0"
+                    >
+                      {nutrient}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          {/* Similarity Score */}
-          {result.similarityScore !== undefined && (
-            <div
-              className="mt-2 text-xs"
-              style={{ color: "var(--foreground-subtle)" }}
-            >
-              Match score: {(result.similarityScore * 100).toFixed(0)}%
-            </div>
-          )}
-
-          <div className="mt-2 text-xs text-primary">
-            Click for detailed information
+            {/* Similarity Score */}
+            {result.similarityScore !== undefined && (
+              <div className="mt-2 flex items-center gap-2">
+                <div className="h-1.5 w-16 rounded-full bg-secondary">
+                  <div
+                    className="h-1.5 rounded-full bg-primary"
+                    style={{
+                      width: `${result.similarityScore * 100}%`,
+                    }}
+                  />
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {(result.similarityScore * 100).toFixed(0)}% match
+                </span>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 });

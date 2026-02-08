@@ -42,6 +42,8 @@ export interface ResponseMetadata {
   processingTime?: number;
   /** API version */
   apiVersion?: string;
+  /** Data source indicator */
+  source?: "database" | "openfda" | "fallback";
 }
 
 /**
@@ -49,18 +51,18 @@ export interface ResponseMetadata {
  */
 export type ErrorCode =
   // Client errors (4xx)
-  | 'INVALID_INPUT'
-  | 'MISSING_PARAMETER'
-  | 'RESOURCE_NOT_FOUND'
-  | 'UNAUTHORIZED'
-  | 'FORBIDDEN'
-  | 'RATE_LIMIT_EXCEEDED'
-  | 'CONFLICT'
+  | "INVALID_INPUT"
+  | "MISSING_PARAMETER"
+  | "RESOURCE_NOT_FOUND"
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
+  | "RATE_LIMIT_EXCEEDED"
+  | "CONFLICT"
   // Server errors (5xx)
-  | 'INTERNAL_ERROR'
-  | 'DATABASE_ERROR'
-  | 'EXTERNAL_API_ERROR'
-  | 'SERVICE_UNAVAILABLE';
+  | "INTERNAL_ERROR"
+  | "DATABASE_ERROR"
+  | "EXTERNAL_API_ERROR"
+  | "SERVICE_UNAVAILABLE";
 
 /**
  * HTTP status code mapping for error codes
@@ -98,7 +100,7 @@ const ERROR_STATUS_MAP: Record<ErrorCode, number> = {
  */
 export function successResponse<T>(
   data: T,
-  metadata?: ResponseMetadata
+  metadata?: ResponseMetadata,
 ): ApiResponse<T> {
   const response: ApiResponse<T> = { success: true, data };
   if (metadata !== undefined) {
@@ -126,7 +128,7 @@ export function successResponse<T>(
 export function errorResponse(
   code: ErrorCode,
   message: string,
-  details?: unknown
+  details?: unknown,
 ): ApiResponse<never> {
   const statusCode = ERROR_STATUS_MAP[code];
   const error: ApiError = {
@@ -168,22 +170,36 @@ export function errorResponse(
  */
 export function errorResponseFromError(
   error: unknown,
-  code: ErrorCode = 'INTERNAL_ERROR'
+  code: ErrorCode = "INTERNAL_ERROR",
 ): ApiResponse<never> {
+  const isProduction = process.env.NODE_ENV === "production";
+
+  // Always log the full error details server-side for observability
+  console.error("[API Error]", {
+    code,
+    error:
+      error instanceof Error
+        ? { name: error.name, message: error.message, stack: error.stack }
+        : error,
+  });
+
   let message: string;
   let details: unknown;
 
   if (error instanceof Error) {
-    message = error.message;
-    details = {
-      name: error.name,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-    };
-  } else if (typeof error === 'string') {
-    message = error;
+    // In production, return a generic message to avoid leaking internals
+    message = isProduction ? "An unexpected error occurred" : error.message;
+    details = isProduction
+      ? undefined
+      : {
+          name: error.name,
+          stack: error.stack,
+        };
+  } else if (typeof error === "string") {
+    message = isProduction ? "An unexpected error occurred" : error;
   } else {
-    message = 'An unknown error occurred';
-    details = error;
+    message = "An unknown error occurred";
+    details = isProduction ? undefined : error;
   }
 
   return errorResponse(code, message, details);
@@ -206,7 +222,7 @@ export function errorResponseFromError(
  * ```
  */
 export function isSuccessResponse<T>(
-  response: ApiResponse<T>
+  response: ApiResponse<T>,
 ): response is { success: true; data: T; metadata?: ResponseMetadata } {
   return response.success === true;
 }
@@ -218,7 +234,7 @@ export function isSuccessResponse<T>(
  * @returns True if response is an error
  */
 export function isErrorResponse<T>(
-  response: ApiResponse<T>
+  response: ApiResponse<T>,
 ): response is { success: false; error: ApiError } {
   return response.success === false;
 }

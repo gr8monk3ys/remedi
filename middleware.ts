@@ -11,6 +11,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { csrfMiddleware } from "@/lib/csrf";
 
 /**
  * Routes that are publicly accessible without authentication.
@@ -106,6 +107,23 @@ const MAINTENANCE_ALLOWED_PATHS = [
   "/sitemap.xml",
 ];
 
+/**
+ * Build the list of allowed CORS origins.
+ * Localhost origins are only included in non-production environments.
+ */
+function getAllowedOrigins(): string[] {
+  const origins: string[] = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.NEXT_PUBLIC_BASE_URL,
+  ].filter(Boolean) as string[];
+
+  if (process.env.NODE_ENV !== "production") {
+    origins.push("http://localhost:3000", "http://localhost:3001");
+  }
+
+  return origins;
+}
+
 export default clerkMiddleware(async (authObj, req: NextRequest) => {
   const { pathname } = req.nextUrl;
 
@@ -121,7 +139,13 @@ export default clerkMiddleware(async (authObj, req: NextRequest) => {
 
   // Handle OPTIONS preflight for CORS
   if (req.method === "OPTIONS" && pathname.startsWith("/api/")) {
+    const origin = req.headers.get("origin");
+    const allowedOrigins = getAllowedOrigins();
     const response = new NextResponse(null, { status: 204 });
+    if (origin && allowedOrigins.includes(origin)) {
+      response.headers.set("Access-Control-Allow-Origin", origin);
+      response.headers.set("Vary", "Origin");
+    }
     response.headers.set(
       "Access-Control-Allow-Methods",
       "GET, POST, PUT, DELETE, OPTIONS",
@@ -168,6 +192,14 @@ export default clerkMiddleware(async (authObj, req: NextRequest) => {
     await authObj.protect();
   }
 
+  // CSRF validation for state-changing API requests
+  if (pathname.startsWith("/api/")) {
+    const csrfResponse = csrfMiddleware(req);
+    if (csrfResponse) {
+      return csrfResponse;
+    }
+  }
+
   // Continue with the request and add security headers
   const response = NextResponse.next();
   addSecurityHeaders(response);
@@ -175,12 +207,7 @@ export default clerkMiddleware(async (authObj, req: NextRequest) => {
   // CORS for API routes
   if (pathname.startsWith("/api/")) {
     const origin = req.headers.get("origin");
-    const allowedOrigins = [
-      process.env.NEXT_PUBLIC_APP_URL,
-      process.env.NEXT_PUBLIC_BASE_URL,
-      "http://localhost:3000",
-      "http://localhost:3001",
-    ].filter(Boolean);
+    const allowedOrigins = getAllowedOrigins();
 
     if (origin && allowedOrigins.includes(origin)) {
       response.headers.set("Access-Control-Allow-Origin", origin);

@@ -101,12 +101,7 @@ export interface RelatedRemedy {
 // ============================================================================
 
 /**
- * Raw Pharmaceutical type from database
- *
- * PostgreSQL Migration Note:
- * - In SQLite: array fields are JSON strings
- * - In PostgreSQL: array fields are native string[]
- * - Use parsePharmaceutical() from lib/db/parsers to get normalized types
+ * Pharmaceutical type from database (PostgreSQL native arrays)
  */
 export interface Pharmaceutical {
   id: string;
@@ -114,8 +109,8 @@ export interface Pharmaceutical {
   name: string;
   description: string | null;
   category: string;
-  ingredients: string | string[]; // JSON string (SQLite) or string[] (PostgreSQL)
-  benefits: string | string[];    // JSON string (SQLite) or string[] (PostgreSQL)
+  ingredients: string[];
+  benefits: string[];
   usage: string | null;
   warnings: string | null;
   interactions: string | null;
@@ -124,27 +119,22 @@ export interface Pharmaceutical {
 }
 
 /**
- * Raw NaturalRemedy type from database
- *
- * PostgreSQL Migration Note:
- * - In SQLite: array fields are JSON strings
- * - In PostgreSQL: array fields are native string[]
- * - Use parseNaturalRemedy() from lib/db/parsers to get normalized types
+ * NaturalRemedy type from database (PostgreSQL native arrays)
  */
 export interface NaturalRemedyDB {
   id: string;
   name: string;
   description: string | null;
   category: string;
-  ingredients: string | string[];      // JSON string (SQLite) or string[] (PostgreSQL)
-  benefits: string | string[];         // JSON string (SQLite) or string[] (PostgreSQL)
+  ingredients: string[];
+  benefits: string[];
   imageUrl: string | null;
   usage: string | null;
   dosage: string | null;
   precautions: string | null;
   scientificInfo: string | null;
-  references: string | string[] | null;      // JSON string (SQLite) or string[] (PostgreSQL)
-  relatedRemedies: string | string[] | null; // JSON string (SQLite) or string[] (PostgreSQL)
+  references: string[];
+  relatedRemedies: string[];
   sourceUrl: string | null;
   evidenceLevel: string | null;
   createdAt: Date;
@@ -152,19 +142,14 @@ export interface NaturalRemedyDB {
 }
 
 /**
- * Raw NaturalRemedyMapping type from database
- *
- * PostgreSQL Migration Note:
- * - In SQLite: array fields are JSON strings
- * - In PostgreSQL: array fields are native string[]
- * - Use parseRemedyMapping() from lib/db/parsers to get normalized types
+ * NaturalRemedyMapping type from database (PostgreSQL native arrays)
  */
 export interface NaturalRemedyMapping {
   id: string;
   pharmaceuticalId: string;
   naturalRemedyId: string;
   similarityScore: number;
-  matchingNutrients: string | string[]; // JSON string (SQLite) or string[] (PostgreSQL)
+  matchingNutrients: string[];
   replacementType: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -204,20 +189,6 @@ export interface FavoriteRemedy {
 }
 
 // ============================================================================
-// API Response Types
-// ============================================================================
-
-export interface ApiError {
-  error: string;
-  details?: string;
-}
-
-export interface ApiSuccess<T> {
-  data: T;
-  message?: string;
-}
-
-// ============================================================================
 // Component Prop Types
 // ============================================================================
 
@@ -245,32 +216,21 @@ export interface SearchComponentProps {
 // Utility Types
 // ============================================================================
 
-export type ReplacementType = 'Alternative' | 'Complementary' | 'Supportive';
-export type EvidenceLevel = 'Strong' | 'Moderate' | 'Limited' | 'Traditional';
-
-// Helper type to convert JSON string fields to their actual types
-export type ParsedPharmaceutical = Omit<Pharmaceutical, 'ingredients' | 'benefits'> & {
-  ingredients: string[];
-  benefits: string[];
-};
+export type ReplacementType = "Alternative" | "Complementary" | "Supportive";
+export type EvidenceLevel = "Strong" | "Moderate" | "Limited" | "Traditional";
 
 /**
- * Parsed NaturalRemedy with normalized array fields
- *
- * Note: references and relatedRemedies are parsed as string arrays
- * that may contain JSON objects or plain strings depending on data source.
- * Use appropriate type guards or parsing when accessing these fields.
+ * Parsed types are now identical to their base types since PostgreSQL
+ * uses native arrays. Kept as aliases for backward compatibility.
  */
+export type ParsedPharmaceutical = Pharmaceutical;
+
 export type ParsedNaturalRemedy = Omit<
   NaturalRemedyDB,
-  'ingredients' | 'benefits' | 'references' | 'relatedRemedies'
+  "references" | "relatedRemedies"
 > & {
-  ingredients: string[];
-  benefits: string[];
   references: string[] | Reference[];
   relatedRemedies: string[] | RelatedRemedy[];
 };
 
-export type ParsedRemedyMapping = Omit<NaturalRemedyMapping, 'matchingNutrients'> & {
-  matchingNutrients: string[];
-};
+export type ParsedRemedyMapping = NaturalRemedyMapping;

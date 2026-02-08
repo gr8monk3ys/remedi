@@ -7,6 +7,8 @@
  * Also stores the DB user ID and role in Clerk publicMetadata
  * so client components can access them without extra API calls.
  *
+ * Triggers welcome email on user.created via the email service.
+ *
  * @see https://clerk.com/docs/webhooks/overview
  */
 
@@ -15,8 +17,7 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import { clerkClient } from "@clerk/nextjs/server";
 import type { WebhookEvent } from "@clerk/nextjs/server";
-import { Resend } from "resend";
-import { EMAIL_SUBJECTS } from "@/lib/email/config";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function POST(req: Request): Promise<Response> {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -106,42 +107,31 @@ export async function POST(req: Request): Promise<Response> {
       },
     });
 
-    // Send welcome email via Resend
-    if (process.env.RESEND_API_KEY) {
-      try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Remedi <noreply@remedi.com>",
-          to: primaryEmail,
-          subject: EMAIL_SUBJECTS.welcome,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h1 style="color: #10B981;">Welcome to Remedi! 🌿</h1>
-              <p>Hi ${name || "there"},</p>
-              <p>Thank you for joining Remedi! We're excited to help you discover natural alternatives to pharmaceutical drugs.</p>
-              <p>Here's what you can do:</p>
-              <ul>
-                <li>Search for natural remedies by drug name</li>
-                <li>Save your favorites for quick access</li>
-                <li>Compare remedies side by side</li>
-                <li>Read evidence-based information</li>
-              </ul>
-              <p>
-                <a href="${process.env.NEXT_PUBLIC_BASE_URL || "https://remedi-iota.vercel.app"}"
-                   style="display: inline-block; padding: 12px 24px; background-color: #10B981; color: white; text-decoration: none; border-radius: 8px;">
-                  Start Exploring
-                </a>
-              </p>
-              <p style="color: #6B7280; font-size: 14px; margin-top: 32px;">
-                <em>Disclaimer: Remedi is for informational purposes only. Always consult a healthcare professional before making changes to your medication.</em>
-              </p>
-            </div>
-          `,
-        });
-      } catch (emailError) {
-        // Don't fail the webhook if email sending fails
-        console.error("Failed to send welcome email:", emailError);
-      }
+    // Create default email preferences for the new user
+    try {
+      await prisma.emailPreference.upsert({
+        where: { userId: dbUser.id },
+        update: {},
+        create: {
+          userId: dbUser.id,
+          weeklyDigest: true,
+          marketingEmails: false,
+          productUpdates: true,
+          subscriptionReminders: true,
+        },
+      });
+    } catch (prefError) {
+      // Non-critical: do not fail the webhook if preference creation fails
+      console.error("Failed to create email preferences:", prefError);
+    }
+
+    // Send welcome email via the email service (handles logging, preference
+    // checking, and graceful degradation if Resend is not configured)
+    try {
+      await sendWelcomeEmail(primaryEmail, name || "there", dbUser.id);
+    } catch (emailError) {
+      // Do not fail the webhook if email sending fails
+      console.error("Failed to send welcome email:", emailError);
     }
   }
 

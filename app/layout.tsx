@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Providers } from "@/components/providers";
 import { PWARegister } from "@/components/PWARegister";
 import { Analytics } from "@/components/analytics";
+import { Header } from "@/components/ui/header";
+import { Separator } from "@/components/ui/separator";
 import {
   generateOrganizationSchema,
   generateWebSiteSchema,
@@ -77,12 +79,7 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    // Add when available
-    // google: "your-google-site-verification",
-    // yandex: "your-yandex-verification",
-    // bing: "your-bing-verification",
-  },
+  verification: {},
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -109,28 +106,31 @@ export default function RootLayout({
   const organizationSchema = generateOrganizationSchema();
   const webSiteSchema = generateWebSiteSchema();
 
+  // Structured data is generated server-side from trusted internal functions,
+  // not from user input, so it is safe to serialize here.
+  const orgSchemaJson = JSON.stringify(organizationSchema);
+  const webSchemaJson = JSON.stringify(webSiteSchema);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Organization Structured Data */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationSchema),
-          }}
+          dangerouslySetInnerHTML={{ __html: orgSchemaJson }}
         />
-        {/* WebSite Structured Data */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+          dangerouslySetInnerHTML={{ __html: webSchemaJson }}
         />
       </head>
-      <body className="font-sans antialiased min-h-screen">
+      <body className="font-sans antialiased min-h-screen bg-background text-foreground">
         <a href="#main-content" className="skip-to-main">
           Skip to main content
         </a>
         <Providers>
-          <main id="main-content">{children}</main>
+          <Header />
+          <div id="main-content">{children}</div>
+          <Footer />
           <PWARegister />
         </Providers>
         <Analytics
@@ -139,5 +139,34 @@ export default function RootLayout({
         />
       </body>
     </html>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t">
+      <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
+        <Separator className="mb-6" />
+        <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <p className="text-sm text-muted-foreground">
+            Remedi. For informational purposes only.
+          </p>
+          <nav className="flex gap-4">
+            <a
+              href="/faq"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              FAQ
+            </a>
+            <a
+              href="#about"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              About
+            </a>
+          </nav>
+        </div>
+      </div>
+    </footer>
   );
 }

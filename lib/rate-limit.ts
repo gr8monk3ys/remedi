@@ -3,6 +3,7 @@
  *
  * Provides rate limiting for API routes to prevent abuse and control costs.
  * Uses Upstash Redis for distributed rate limiting that works across serverless functions.
+ * Falls back to an in-memory rate limiter when Redis is not configured.
  *
  * @see https://upstash.com/docs/redis/sdks/ratelimit-ts/overview
  */
@@ -38,8 +39,27 @@ export const RATE_LIMITS = {
   // AI search: 10 requests per minute (more expensive)
   aiSearch: { limit: 10, window: 60, identifier: "ai-search" },
 
-  // Favorites: 20 requests per minute
-  favorites: { limit: 20, window: 60, identifier: "favorites" },
+  // Favorites: 30 requests per minute
+  favorites: { limit: 30, window: 60, identifier: "favorites" },
+
+  // Search history: 30 requests per minute
+  searchHistory: { limit: 30, window: 60, identifier: "search-history" },
+
+  // Filter preferences: 20 requests per minute
+  filterPreferences: {
+    limit: 20,
+    window: 60,
+    identifier: "filter-preferences",
+  },
+
+  // Reviews: 10 requests per minute
+  reviews: { limit: 10, window: 60, identifier: "reviews" },
+
+  // Contributions: 10 requests per minute
+  contributions: { limit: 10, window: 60, identifier: "contributions" },
+
+  // Trial start: 5 requests per minute (prevent abuse)
+  trialStart: { limit: 5, window: 60, identifier: "trial-start" },
 
   // Auth: 5 requests per minute (prevent brute force)
   auth: { limit: 5, window: 60, identifier: "auth" },
@@ -65,9 +85,19 @@ export function isRateLimitEnabled(): boolean {
 }
 
 /**
- * Create Redis client for rate limiting
+ * Module-level singleton Redis client.
+ * Created once and reused across all requests to avoid connection churn.
  */
-function createRedisClient(): Redis | null {
+let redisClient: Redis | null = null;
+
+/**
+ * Get or create the singleton Redis client
+ */
+function getRedisClient(): Redis | null {
+  if (redisClient) {
+    return redisClient;
+  }
+
   if (!isRateLimitEnabled()) {
     return null;
   }
@@ -77,24 +107,117 @@ function createRedisClient(): Redis | null {
     return null;
   }
 
-  return new Redis({ url, token });
+  redisClient = new Redis({ url, token });
+  return redisClient;
 }
 
 /**
- * Create rate limiter for a specific endpoint
+ * Cache of Ratelimit instances keyed by identifier.
+ * Avoids creating a new Ratelimit instance per request.
  */
-function createRateLimiter(config: RateLimitConfig): Ratelimit | null {
-  const redis = createRedisClient();
+const rateLimiterCache = new Map<string, Ratelimit>();
+
+/**
+ * Get or create a cached rate limiter for a specific endpoint
+ */
+function getRateLimiter(config: RateLimitConfig): Ratelimit | null {
+  const cacheKey = `${config.identifier}:${config.limit}:${config.window}`;
+
+  const cached = rateLimiterCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const redis = getRedisClient();
   if (!redis) {
     return null;
   }
 
-  return new Ratelimit({
+  const limiter = new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(config.limit, `${config.window} s`),
     analytics: true,
     prefix: `remedi:ratelimit:${config.identifier}`,
   });
+
+  rateLimiterCache.set(cacheKey, limiter);
+  return limiter;
+}
+
+/**
+ * In-memory rate limiter fallback for when Redis is not configured.
+ * Tracks request counts per client identifier with automatic window expiry.
+ * Note: This does not persist across serverless cold starts, which is acceptable
+ * as a degraded-but-still-protective fallback.
+ */
+interface InMemoryEntry {
+  count: number;
+  resetTime: number;
+}
+
+const inMemoryStore = new Map<string, InMemoryEntry>();
+
+/**
+ * Periodically clean up expired entries to prevent memory leaks.
+ * Runs at most once per 60 seconds.
+ */
+let lastCleanup = 0;
+const CLEANUP_INTERVAL_MS = 60_000;
+
+function cleanupInMemoryStore(): void {
+  const now = Date.now();
+  if (now - lastCleanup < CLEANUP_INTERVAL_MS) {
+    return;
+  }
+  lastCleanup = now;
+  for (const [key, entry] of inMemoryStore) {
+    if (now >= entry.resetTime) {
+      inMemoryStore.delete(key);
+    }
+  }
+}
+
+function checkInMemoryRateLimit(
+  identifier: string,
+  config: RateLimitConfig,
+): RateLimitResult {
+  cleanupInMemoryStore();
+
+  const now = Date.now();
+  const key = `${config.identifier}:${identifier}`;
+  const entry = inMemoryStore.get(key);
+
+  // If no entry or window has expired, start a new window
+  if (!entry || now >= entry.resetTime) {
+    const resetTime = now + config.window * 1000;
+    inMemoryStore.set(key, { count: 1, resetTime });
+    return {
+      success: true,
+      limit: config.limit,
+      remaining: config.limit - 1,
+      reset: resetTime,
+    };
+  }
+
+  // Increment count within current window
+  entry.count += 1;
+
+  if (entry.count > config.limit) {
+    return {
+      success: false,
+      limit: config.limit,
+      remaining: 0,
+      reset: entry.resetTime,
+      retryAfter: Math.ceil((entry.resetTime - now) / 1000),
+    };
+  }
+
+  return {
+    success: true,
+    limit: config.limit,
+    remaining: config.limit - entry.count,
+    reset: entry.resetTime,
+  };
 }
 
 /**
@@ -125,25 +248,22 @@ export interface RateLimitResult {
 }
 
 /**
- * Check rate limit for a request
+ * Check rate limit for a request.
+ * Uses Redis-backed Ratelimit when configured, otherwise falls back
+ * to an in-memory rate limiter that enforces the same limits.
  */
 export async function checkRateLimit(
   request: NextRequest,
   config: RateLimitConfig = RATE_LIMITS.general,
 ): Promise<RateLimitResult> {
-  const ratelimiter = createRateLimiter(config);
+  const identifier = getClientIdentifier(request);
+  const ratelimiter = getRateLimiter(config);
 
-  // If rate limiting is not configured, allow all requests
+  // Fall back to in-memory rate limiting when Redis is not configured
   if (!ratelimiter) {
-    return {
-      success: true,
-      limit: config.limit,
-      remaining: config.limit,
-      reset: Date.now() + config.window * 1000,
-    };
+    return checkInMemoryRateLimit(identifier, config);
   }
 
-  const identifier = getClientIdentifier(request);
   const result = await ratelimiter.limit(identifier);
 
   return {
