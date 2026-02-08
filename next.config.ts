@@ -66,6 +66,10 @@ const nextConfig: NextConfig = {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
           },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: images.unsplash.com lh3.googleusercontent.com avatars.githubusercontent.com; font-src 'self' fonts.gstatic.com; connect-src 'self' api.fda.gov api.openai.com *.stripe.com *.sentry.io *.ingest.sentry.io *.upstash.io; frame-src 'self' js.stripe.com; object-src 'none'; base-uri 'self'; form-action 'self';",
+          },
         ],
       },
       {
