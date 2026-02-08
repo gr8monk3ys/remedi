@@ -18,7 +18,7 @@ import { getOrSetExperimentVariant } from "@/lib/experiments/client";
 import {
   CONVERSION_EVENT_TYPES,
   EVENT_SOURCES,
-} from "@/lib/analytics/conversion-events";
+} from "@/lib/analytics/conversion-event-types";
 
 interface PricingClientProps {
   currentPlan: PlanType;
