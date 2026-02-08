@@ -6,7 +6,7 @@
   "packageManager": "bun@1.3.8",
   "scripts": {
     "dev": "next dev",
-    "build": "bunx prisma generate && bunx prisma migrate deploy && next build --webpack",
+    "build": "bunx prisma generate && bunx prisma migrate resolve --rolled-back 20250207_clerk_migration 2>/dev/null; bunx prisma migrate deploy && next build --webpack",
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest",
