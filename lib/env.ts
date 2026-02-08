@@ -106,7 +106,8 @@ export function validateEnv(): void {
     if (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET) {
       missing.push("AUTH_SECRET or NEXTAUTH_SECRET");
     }
-    if (!process.env.NEXTAUTH_URL) {
+    // On Vercel, VERCEL_URL is auto-set, so NEXTAUTH_URL is not required
+    if (!process.env.NEXTAUTH_URL && !process.env.VERCEL_URL) {
       missing.push("NEXTAUTH_URL");
     }
   }
