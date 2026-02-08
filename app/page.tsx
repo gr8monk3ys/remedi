@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore, useCallback } from "react";
+import { useState, useMemo, useSyncExternalStore, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Heart, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -46,17 +46,13 @@ function useFavorites() {
     getServerSnapshot,
   );
 
-  const favorites = useSyncExternalStore(
-    () => () => {},
-    () => {
-      try {
-        return JSON.parse(favoritesJson) as FavoriteRemedy[];
-      } catch {
-        return [];
-      }
-    },
-    () => [] as FavoriteRemedy[],
-  );
+  const favorites = useMemo(() => {
+    try {
+      return JSON.parse(favoritesJson) as FavoriteRemedy[];
+    } catch {
+      return [];
+    }
+  }, [favoritesJson]);
 
   const clearFavorites = useCallback(() => {
     localStorage.removeItem("favoriteRemedies");
