@@ -71,7 +71,8 @@ export const EVENT_SOURCES = {
   API: "api",
 } as const;
 
-export type EventSource = (typeof EVENT_SOURCES)[keyof typeof EVENT_SOURCES];
+export type ConversionEventSource =
+  (typeof EVENT_SOURCES)[keyof typeof EVENT_SOURCES];
 
 /**
  * Event metadata structure

@@ -24,7 +24,7 @@ import {
   trackConversionEvent,
   CONVERSION_EVENT_TYPES,
   EVENT_SOURCES,
-  type EventSource as ConversionEventSource,
+  type ConversionEventSource,
 } from "@/lib/analytics/conversion-events";
 import { z } from "zod";
 

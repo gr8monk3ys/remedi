@@ -12,12 +12,21 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import type { PlanType } from "@/lib/stripe-config";
 
+// Import types for local use in function signatures
+import {
+  CONVERSION_EVENT_TYPES,
+  EVENT_SOURCES,
+  type ConversionEventType,
+  type ConversionEventSource,
+  type ConversionEventMetadata,
+} from "./conversion-event-types";
+
 // Re-export constants and types so existing server-side imports continue to work
 export {
   CONVERSION_EVENT_TYPES,
   EVENT_SOURCES,
   type ConversionEventType,
-  type EventSource,
+  type ConversionEventSource,
   type ConversionEventMetadata,
 } from "./conversion-event-types";
 
@@ -28,7 +37,7 @@ export async function trackConversionEvent(params: {
   userId?: string;
   sessionId?: string;
   eventType: ConversionEventType;
-  eventSource?: EventSource;
+  eventSource?: ConversionEventSource;
   planTarget?: PlanType;
   metadata?: ConversionEventMetadata;
 }): Promise<string> {
@@ -55,7 +64,7 @@ export async function trackConversionEvent(params: {
 export async function trackUpgradePromptShown(params: {
   userId?: string;
   sessionId?: string;
-  source: EventSource;
+  source: ConversionEventSource;
   targetPlan: PlanType;
   reason?: string;
   metadata?: ConversionEventMetadata;
@@ -79,7 +88,7 @@ export async function trackUpgradePromptShown(params: {
 export async function trackUpgradeClick(params: {
   userId?: string;
   sessionId?: string;
-  source: EventSource;
+  source: ConversionEventSource;
   targetPlan: PlanType;
   metadata?: ConversionEventMetadata;
 }): Promise<void> {
@@ -148,7 +157,7 @@ export async function trackLimitWarning(params: {
  */
 export async function trackTrialStarted(params: {
   userId: string;
-  source: EventSource;
+  source: ConversionEventSource;
   metadata?: ConversionEventMetadata;
 }): Promise<void> {
   await trackConversionEvent({
@@ -186,7 +195,7 @@ export async function trackTrialConverted(params: {
 export async function getConversionMetrics(params: {
   startDate: Date;
   endDate: Date;
-  source?: EventSource;
+  source?: ConversionEventSource;
 }): Promise<{
   promptsShown: number;
   promptsClicked: number;
