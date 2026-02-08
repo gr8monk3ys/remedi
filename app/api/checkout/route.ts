@@ -24,7 +24,7 @@ import {
   trackConversionEvent,
   CONVERSION_EVENT_TYPES,
   EVENT_SOURCES,
-  type EventSource,
+  type EventSource as ConversionEventSource,
 } from "@/lib/analytics/conversion-events";
 import { z } from "zod";
 
@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
       userId: session.user.id,
       eventType: CONVERSION_EVENT_TYPES.CHECKOUT_STARTED,
       eventSource:
-        (source as EventSource) || EVENT_SOURCES.PRICING_PAGE,
+        (source as ConversionEventSource) || EVENT_SOURCES.PRICING_PAGE,
       planTarget: targetPlan,
       metadata: {
         priceId,
