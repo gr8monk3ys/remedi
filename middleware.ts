@@ -71,12 +71,12 @@ function addSecurityHeaders(response: NextResponse): void {
   const cspDirectives = [
     "default-src 'self'",
     isProduction
-      ? "script-src 'self' 'unsafe-inline'"
-      : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      ? "script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev"
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' https://images.unsplash.com https://img.clerk.com data: blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://api.fda.gov https://api.openai.com https://api.clerk.com",
+    "connect-src 'self' https://api.fda.gov https://api.openai.com https://api.clerk.com https://*.clerk.accounts.dev",
     "frame-src 'self' https://accounts.clerk.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",

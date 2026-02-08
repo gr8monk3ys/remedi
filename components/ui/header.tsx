@@ -1,5 +1,6 @@
 "use client";
 
+import { Component, type ReactNode } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -12,10 +13,59 @@ import {
 import { GitCompare } from "lucide-react";
 import { useCompare } from "@/context/CompareContext";
 
-export function Header() {
+/**
+ * Error boundary for auth section — if Clerk hooks throw
+ * (e.g., ClerkProvider failed), fall back to a simple sign-in link.
+ */
+class AuthErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  override render(): ReactNode {
+    if (this.state.hasError) {
+      return (
+        <Link href="/sign-in" className="neu-btn px-5 py-2 text-sm">
+          Sign In
+        </Link>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function AuthSection(): ReactNode {
   const { isLoaded } = useUser();
-  const { items, getCompareUrl } = useCompare();
   const isLoading = !isLoaded;
+
+  if (isLoading) {
+    return <div className="w-8 h-8 rounded-full neu-pressed animate-pulse" />;
+  }
+
+  return (
+    <>
+      <SignedIn>
+        <UserButton afterSignOutUrl="/" />
+      </SignedIn>
+      <SignedOut>
+        <SignInButton mode="modal">
+          <button className="neu-btn px-5 py-2 text-sm">Sign In</button>
+        </SignInButton>
+      </SignedOut>
+    </>
+  );
+}
+
+export function Header() {
+  const { items, getCompareUrl } = useCompare();
 
   return (
     <motion.header
@@ -80,22 +130,9 @@ export function Header() {
 
           {/* Authentication UI */}
           <div className="ml-4 flex items-center">
-            {isLoading ? (
-              <div className="w-8 h-8 rounded-full neu-pressed animate-pulse" />
-            ) : (
-              <>
-                <SignedIn>
-                  <UserButton afterSignOutUrl="/" />
-                </SignedIn>
-                <SignedOut>
-                  <SignInButton mode="modal">
-                    <button className="neu-btn px-5 py-2 text-sm">
-                      Sign In
-                    </button>
-                  </SignInButton>
-                </SignedOut>
-              </>
-            )}
+            <AuthErrorBoundary>
+              <AuthSection />
+            </AuthErrorBoundary>
           </div>
         </nav>
       </div>
