@@ -109,6 +109,13 @@ export function OnboardingProvider({
   });
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // Memoize featureFlags to prevent re-render loops from new object references
+  const stableFeatureFlags = useMemo(
+    () => featureFlags,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(featureFlags)],
+  );
+
   // Load state from localStorage on mount
   useEffect(() => {
     const loadState = (): void => {
@@ -160,7 +167,7 @@ export function OnboardingProvider({
           healthInterests,
           currentWelcomeStep,
           guestSearchCount,
-          featureFlags,
+          featureFlags: stableFeatureFlags,
         });
       } catch (error) {
         // localStorage not available (SSR or private browsing)
@@ -170,7 +177,7 @@ export function OnboardingProvider({
     };
 
     loadState();
-  }, [featureFlags]);
+  }, [stableFeatureFlags]);
 
   // Action creators
   const completeWelcome = useCallback((): void => {
@@ -231,8 +238,8 @@ export function OnboardingProvider({
     Object.values(STORAGE_KEYS).forEach((key) => {
       localStorage.removeItem(key);
     });
-    setState({ ...defaultState, featureFlags });
-  }, [featureFlags]);
+    setState({ ...defaultState, featureFlags: stableFeatureFlags });
+  }, [stableFeatureFlags]);
 
   // Computed visibility flags
   const isFirstTimeUser = !state.welcomeCompleted && !state.dontShowWelcome;

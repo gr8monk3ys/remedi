@@ -82,12 +82,13 @@ export function WelcomeModal({
   const [demoQuery, setDemoQuery] = useState("");
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Sync with context step on mount
+  // Sync with context step on initial mount only
   useEffect(() => {
     if (currentWelcomeStep > 0) {
       setStep(currentWelcomeStep);
     }
-  }, [currentWelcomeStep]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Handle close
   const handleClose = useCallback((): void => {
