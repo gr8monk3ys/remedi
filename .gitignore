@@ -46,3 +46,4 @@ test-results/
 
 # clerk configuration (can include secrets)
 /.clerk/
+.env*.local

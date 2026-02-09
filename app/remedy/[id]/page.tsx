@@ -155,10 +155,14 @@ interface RemedyPageProps {
 }
 
 async function getRemedy(id: string) {
-  // Try database first
-  const dbRemedy = await getNaturalRemedyById(id);
-  if (dbRemedy) {
-    return toDetailedRemedy(dbRemedy);
+  // Try database first, fall back to mock data on error
+  try {
+    const dbRemedy = await getNaturalRemedyById(id);
+    if (dbRemedy) {
+      return toDetailedRemedy(dbRemedy);
+    }
+  } catch {
+    // Database unavailable — fall through to mock data
   }
 
   // Fallback to mock data

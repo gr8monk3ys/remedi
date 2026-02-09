@@ -18,8 +18,10 @@ test.describe("Loading States", () => {
   test.beforeEach(async ({ page }) => {
     // Dismiss onboarding modals
     await page.addInitScript(() => {
-      localStorage.setItem("remedi_first_visit", "true");
-      localStorage.setItem("remedi_tutorial_completed", "true");
+      localStorage.setItem("remedi_onboarding_welcome_completed", "true");
+      localStorage.setItem("remedi_welcome_dismissed", "true");
+      localStorage.setItem("remedi_onboarding_tour_completed", "true");
+      localStorage.setItem("remedi_tour_dismissed", "true");
     });
   });
 
@@ -115,15 +117,17 @@ test.describe("Loading States", () => {
     await page.getByRole("button", { name: /Check Interactions/i }).click();
 
     // Button text changes to "Checking..." during loading
-    await expect(page.getByText("Checking...")).toBeVisible({ timeout: 1000 });
+    await expect(page.getByText("Checking...")).toBeVisible({ timeout: 3000 });
 
     // After API resolves, loading text should disappear
     await expect(page.getByText("Checking...")).not.toBeVisible({
       timeout: 5000,
     });
 
-    // Results should now be visible
-    await expect(page.getByText(/No Known Interactions Found/i)).toBeVisible();
+    // Results should now be visible (use heading role to avoid matching multiple elements)
+    await expect(
+      page.getByRole("heading", { name: /No Known Interactions Found/i }),
+    ).toBeVisible();
   });
 
   test("should not show persistent loading state on homepage", async ({

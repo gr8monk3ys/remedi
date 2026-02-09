@@ -16,8 +16,10 @@ test.describe("Homepage", () => {
   test.beforeEach(async ({ page }) => {
     // Dismiss any onboarding modals by setting the localStorage flag
     await page.addInitScript(() => {
-      localStorage.setItem("remedi_first_visit", "true");
-      localStorage.setItem("remedi_tutorial_completed", "true");
+      localStorage.setItem("remedi_onboarding_welcome_completed", "true");
+      localStorage.setItem("remedi_welcome_dismissed", "true");
+      localStorage.setItem("remedi_onboarding_tour_completed", "true");
+      localStorage.setItem("remedi_tour_dismissed", "true");
     });
     await page.goto("/");
   });
@@ -96,15 +98,14 @@ test.describe("Homepage", () => {
     const header = page.locator("header");
     await expect(header).toBeVisible();
 
-    // Check for the Remedi logo link
-    const logoLink = header.getByRole("link", { name: /Remedi/i });
+    // Check for the Remedi logo link (exact match to avoid "Compare remedies")
+    const logoLink = header.getByRole("link", { name: "Remedi", exact: true });
     await expect(logoLink).toBeVisible();
 
-    // Check for desktop navigation links (hidden on mobile)
-    const desktopNav = header.locator("nav").first();
-    const homeLink = desktopNav.getByRole("link", { name: "Home" });
-    const aboutLink = desktopNav.getByRole("link", { name: "About" });
-    const faqLink = desktopNav.getByRole("link", { name: "FAQ" });
+    // Check for navigation links in header (rendered as links via Button asChild)
+    const homeLink = header.getByRole("link", { name: "Home" });
+    const aboutLink = header.getByRole("link", { name: "About" });
+    const faqLink = header.getByRole("link", { name: "FAQ" });
 
     // On desktop viewport these should be visible
     if (await homeLink.isVisible()) {

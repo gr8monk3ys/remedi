@@ -17,8 +17,10 @@ test.describe("Search Functionality", () => {
   test.beforeEach(async ({ page }) => {
     // Dismiss onboarding
     await page.addInitScript(() => {
-      localStorage.setItem("remedi_first_visit", "true");
-      localStorage.setItem("remedi_tutorial_completed", "true");
+      localStorage.setItem("remedi_onboarding_welcome_completed", "true");
+      localStorage.setItem("remedi_welcome_dismissed", "true");
+      localStorage.setItem("remedi_onboarding_tour_completed", "true");
+      localStorage.setItem("remedi_tour_dismissed", "true");
     });
     await page.goto("/");
     // Wait for the dynamically-loaded search component
@@ -55,28 +57,16 @@ test.describe("Search Functionality", () => {
         // API may not be running; we still verify the UI behavior
       });
 
-    // Check that some search outcome is visible:
-    // result cards (inside #search-results), no-results message, or error
-    const searchCompleted = await page.evaluate(() => {
-      const resultsContainer = document.getElementById("search-results");
-      if (!resultsContainer) return false;
+    // Wait for some search outcome to appear in the results area
+    const resultsArea = page.locator("#search-results");
+    const resultCard = resultsArea.locator("[data-favorite-button]").first();
+    const noResults = resultsArea.getByText(/no results found/i);
+    const errorMessage = resultsArea.getByText(/failed|error|try again/i);
 
-      // Check for result cards (shadcn Card elements within results)
-      const cards = resultsContainer.querySelectorAll("[data-favorite-button]");
-      if (cards.length > 0) return true;
-
-      // Check for no-results message
-      if (/no results found/i.test(resultsContainer.textContent || ""))
-        return true;
-
-      // Check for error message
-      if (/failed|error|try again/i.test(resultsContainer.textContent || ""))
-        return true;
-
-      return false;
+    // One of these outcomes should appear within 15s
+    await expect(resultCard.or(noResults).or(errorMessage)).toBeVisible({
+      timeout: 15000,
     });
-
-    expect(searchCompleted).toBeTruthy();
   });
 
   test("should perform a search by clicking the search button", async ({
@@ -285,9 +275,7 @@ test.describe("Search Functionality", () => {
 
       // Filter panel should become visible with filter cards
       // The Filter component renders as a Card with a CardTitle
-      const filterCard = page
-        .getByText("Filter by Category")
-        .or(page.getByText("Filter by Nutrients"));
+      const filterCard = page.getByText("Filter by Category").first();
 
       await expect(filterCard).toBeVisible({ timeout: 3000 });
     }

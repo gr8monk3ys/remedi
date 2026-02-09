@@ -7,7 +7,7 @@
  * @see https://playwright.dev/docs/test-configuration
  */
 
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Read environment variables from file.
@@ -19,7 +19,7 @@ import { defineConfig, devices } from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './e2e',
+  testDir: "./e2e",
 
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -35,31 +35,31 @@ export default defineConfig({
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
-    ['html', { open: 'never' }],
-    ['list'],
-    process.env.CI ? ['github'] : ['list'],
+    ["html", { open: "never" }],
+    ["list"],
+    process.env.CI ? ["github"] : ["list"],
   ],
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://127.0.0.1:3001',
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3000",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    trace: "on-first-retry",
 
     /* Screenshot on failure */
-    screenshot: 'only-on-failure',
+    screenshot: "only-on-failure",
 
     /* Video on failure */
-    video: 'retain-on-failure',
+    video: "retain-on-failure",
   },
 
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
 
     // Uncomment to test on more browsers
@@ -96,22 +96,11 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'bun run dev -- --hostname 127.0.0.1 --port 3001',
-    url: 'http://127.0.0.1:3001',
-    reuseExistingServer: !process.env.CI,
-    stdout: 'ignore',
-    stderr: 'pipe',
+    command: "bun run dev",
+    url: "http://localhost:3000",
+    reuseExistingServer: true,
+    stdout: "ignore",
+    stderr: "pipe",
     timeout: 120 * 1000,
-    env: {
-      ...process.env,
-      // Required for NextAuth.js to work in test environment
-      NEXTAUTH_SECRET: 'test-secret-for-e2e-testing-only-not-for-production',
-      NEXTAUTH_URL: 'http://127.0.0.1:3001',
-      // Use SQLite for tests
-      DATABASE_URL: 'file:./dev.db',
-      PORT: '3001',
-      HOST: '127.0.0.1',
-      HOSTNAME: '127.0.0.1',
-    },
   },
 });
