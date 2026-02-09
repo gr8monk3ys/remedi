@@ -11,8 +11,8 @@
  * - Medical disclaimer
  * - 404 handling for non-existent remedies
  *
- * Note: Section titles use shadcn CardTitle (renders as <div>, not <h2>/<h3>),
- * so tests use getByText() instead of getByRole("heading") for section titles.
+ * Section titles use shadcn CardTitle (renders as <h3>),
+ * so tests use getByRole("heading") for section titles.
  */
 
 import { test, expect } from "@playwright/test";
@@ -70,10 +70,7 @@ test.describe("Remedy Detail Page", () => {
   test("should display the Usage section", async ({ page }) => {
     await page.goto("/remedy/103");
 
-    // CardTitle renders as <div>, verify the section title text is present
-    await expect(
-      page.getByText("Usage", { exact: true }).first(),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Usage" })).toBeVisible();
 
     await expect(
       page.getByText(/cooking, taken as a supplement/i),
@@ -83,9 +80,7 @@ test.describe("Remedy Detail Page", () => {
   test("should display the Dosage section", async ({ page }) => {
     await page.goto("/remedy/103");
 
-    await expect(
-      page.getByText("Dosage", { exact: true }).first(),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Dosage" })).toBeVisible();
 
     await expect(
       page.getByText(/500-2,000 mg of turmeric extract/i),
@@ -96,7 +91,7 @@ test.describe("Remedy Detail Page", () => {
     await page.goto("/remedy/103");
 
     await expect(
-      page.getByText("Precautions", { exact: true }).first(),
+      page.getByRole("heading", { name: "Precautions" }),
     ).toBeVisible();
 
     await expect(page.getByText(/interact with blood thinners/i)).toBeVisible();
@@ -107,8 +102,9 @@ test.describe("Remedy Detail Page", () => {
   }) => {
     await page.goto("/remedy/103");
 
-    // Scientific Information is a CardTitle (div)
-    await expect(page.getByText("Scientific Information")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Scientific Information" }),
+    ).toBeVisible();
 
     // Should show scientific text
     await expect(page.getByText(/COX-2 and 5-LOX enzymes/i)).toBeVisible();
@@ -127,8 +123,9 @@ test.describe("Remedy Detail Page", () => {
   test("should display Related Remedies sidebar", async ({ page }) => {
     await page.goto("/remedy/103");
 
-    // Related Remedies is a CardTitle (div)
-    await expect(page.getByText("Related Remedies")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Related Remedies" }),
+    ).toBeVisible();
 
     // Should show related remedy links (Ginger and Willow Bark for Turmeric)
     const gingerLink = page.getByRole("link", { name: "Ginger" });

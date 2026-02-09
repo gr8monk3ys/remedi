@@ -274,8 +274,9 @@ test.describe("Search Functionality", () => {
       await filterButton.click();
 
       // Filter panel should become visible with filter cards
-      // The Filter component renders as a Card with a CardTitle
-      const filterCard = page.getByText("Filter by Category").first();
+      const filterCard = page.getByRole("heading", {
+        name: "Filter by Category",
+      });
 
       await expect(filterCard).toBeVisible({ timeout: 3000 });
     }
