@@ -82,21 +82,19 @@ const EVIDENCE_LEVELS = [
 
 export default function AboutPage(): React.JSX.Element {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+      <header className="border-b bg-card">
+        <div className="max-w-4xl mx-auto px-4 py-6 md:px-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4"
           >
             <ChevronLeft className="w-4 h-4" />
             Back to Home
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            About Remedi
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
+          <h1 className="text-3xl font-bold">About Remedi</h1>
+          <p className="text-muted-foreground mt-2">
             Discover how we help you find natural alternatives backed by
             evidence.
           </p>
@@ -104,16 +102,14 @@ export default function AboutPage(): React.JSX.Element {
       </header>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-4xl mx-auto px-4 py-8 md:px-8 space-y-8">
         {/* Mission */}
-        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <section className="rounded-xl border bg-card p-6">
           <div className="flex items-center gap-3 mb-4">
             <Leaf className="w-6 h-6 text-green-600 dark:text-green-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Our Mission
-            </h2>
+            <h2 className="text-xl font-semibold">Our Mission</h2>
           </div>
-          <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+          <p className="text-muted-foreground leading-relaxed">
             Remedi helps you discover evidence-based natural alternatives to
             pharmaceutical drugs and supplements. We believe everyone deserves
             access to information about natural health options.
@@ -121,31 +117,27 @@ export default function AboutPage(): React.JSX.Element {
         </section>
 
         {/* How It Works */}
-        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <section className="rounded-xl border bg-card p-6">
           <div className="flex items-center gap-3 mb-6">
             <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              How It Works
-            </h2>
+            <h2 className="text-xl font-semibold">How It Works</h2>
           </div>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <p className="text-muted-foreground mb-6">
             Remedi uses a three-tier search strategy to find the most relevant
             natural alternatives for any pharmaceutical.
           </p>
           <div className="space-y-6">
             {SEARCH_STEPS.map(({ step, icon: Icon, title, description }) => (
               <div key={step} className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <Icon className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">
+                  <h3 className="font-medium">
                     <span className="text-primary mr-2">Step {step}:</span>
                     {title}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mt-1">
-                    {description}
-                  </p>
+                  <p className="text-muted-foreground mt-1">{description}</p>
                 </div>
               </div>
             ))}
@@ -153,40 +145,34 @@ export default function AboutPage(): React.JSX.Element {
         </section>
 
         {/* Data Sources */}
-        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <section className="rounded-xl border bg-card p-6">
           <div className="flex items-center gap-3 mb-4">
             <BookOpen className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Data Sources
-            </h2>
+            <h2 className="text-xl font-semibold">Data Sources</h2>
           </div>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
+          <p className="text-muted-foreground mb-4">
             Our recommendations are built on data from trusted, diverse sources.
           </p>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {DATA_SOURCES.map(({ icon: Icon, label }) => (
               <li
                 key={label}
-                className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50"
+                className="flex items-center gap-3 p-3 rounded-lg bg-muted/50"
               >
-                <Icon className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                <span className="text-gray-700 dark:text-gray-300">
-                  {label}
-                </span>
+                <Icon className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm">{label}</span>
               </li>
             ))}
           </ul>
         </section>
 
         {/* Evidence Levels */}
-        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <section className="rounded-xl border bg-card p-6">
           <div className="flex items-center gap-3 mb-4">
             <FlaskConical className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Evidence Levels
-            </h2>
+            <h2 className="text-xl font-semibold">Evidence Levels</h2>
           </div>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
+          <p className="text-muted-foreground mb-4">
             Every remedy in our database is classified by the strength of its
             supporting scientific evidence.
           </p>
@@ -202,9 +188,7 @@ export default function AboutPage(): React.JSX.Element {
                   >
                     {level}
                   </span>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    {description}
-                  </p>
+                  <p className="text-muted-foreground text-sm">{description}</p>
                 </div>
               ),
             )}
@@ -216,10 +200,8 @@ export default function AboutPage(): React.JSX.Element {
           <div className="flex items-start gap-3">
             <AlertCircle className="w-6 h-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Disclaimer
-              </h2>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+              <h2 className="text-xl font-semibold mb-2">Disclaimer</h2>
+              <p className="text-muted-foreground leading-relaxed">
                 Remedi is for informational purposes only and should not replace
                 professional medical advice. Always consult with a healthcare
                 provider before making changes to your health regimen.

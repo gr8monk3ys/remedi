@@ -114,51 +114,45 @@ const faqSections = [
 
 export default function FAQPage() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+      <header className="border-b bg-card">
+        <div className="max-w-4xl mx-auto px-4 py-6 md:px-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4"
           >
             <ChevronLeft className="w-4 h-4" />
             Back to Home
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Frequently Asked Questions
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
+          <h1 className="text-3xl font-bold">Frequently Asked Questions</h1>
+          <p className="text-muted-foreground mt-2">
             Find answers to common questions about Remedi and natural remedies.
           </p>
         </div>
       </header>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 py-8 md:px-8">
         <div className="space-y-8">
           {faqSections.map((section) => (
             <section key={section.title}>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                {section.title}
-              </h2>
+              <h2 className="text-xl font-semibold mb-4">{section.title}</h2>
               <FAQAccordion items={section.items} />
             </section>
           ))}
         </div>
 
         {/* Contact Section */}
-        <div className="mt-12 p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Still have questions?
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            Can&apos;t find what you&apos;re looking for? Feel free to reach out to our
-            support team.
+        <div className="mt-12 p-6 rounded-xl border bg-card">
+          <h2 className="text-lg font-semibold mb-2">Still have questions?</h2>
+          <p className="text-muted-foreground mb-4">
+            Can&apos;t find what you&apos;re looking for? Feel free to reach out
+            to our support team.
           </p>
           <a
             href="mailto:support@remedi.app"
-            className="inline-flex items-center px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors"
           >
             Contact Support
           </a>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useCallback, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -252,15 +252,15 @@ function AddRemedySlot({ onClick }: { onClick: () => void }) {
  */
 function ComparisonSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
-      <div className="pt-24 pb-12 px-4">
-        <div className="container mx-auto max-w-7xl">
+    <div className="min-h-screen">
+      <div className="pt-24 pb-12 px-4 md:px-8">
+        <div className="mx-auto max-w-7xl">
           <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm h-96 animate-pulse"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm h-96 animate-pulse"
               />
             ))}
           </div>
@@ -285,11 +285,13 @@ function CompareContent() {
   const [error, setError] = useState<string | null>(null);
   const [showShareToast, setShowShareToast] = useState(false);
 
-  // Get IDs from URL or context
+  // Get IDs from URL or context — memoize to prevent unstable array reference
   const idsFromUrl = searchParams.get("ids");
-  const ids = idsFromUrl
-    ? idsFromUrl.split(",").filter((id) => id.trim())
-    : items.map((item) => item.id);
+  const ids = useMemo(() => {
+    return idsFromUrl
+      ? idsFromUrl.split(",").filter((id) => id.trim())
+      : items.map((item) => item.id);
+  }, [idsFromUrl, items]);
 
   // Fetch remedies data
   const fetchRemedies = useCallback(async () => {
@@ -325,12 +327,15 @@ function CompareContent() {
     fetchRemedies();
   }, [fetchRemedies]);
 
-  // Save comparison to history when remedies are loaded
+  // Save comparison to history when remedies are loaded.
+  // Use ids.join as the key instead of remedies to avoid re-triggering after setRemedies.
+  const idsKey = ids.join(",");
   useEffect(() => {
     if (remedies.length >= 2) {
       saveComparisonToHistory(remedies);
     }
-  }, [remedies]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idsKey]);
 
   // Handle removing a remedy from comparison
   const handleRemoveRemedy = (id: string) => {
@@ -381,10 +386,10 @@ function CompareContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
+    <div className="min-h-screen">
       {/* Main content */}
-      <div className="pt-24 pb-12 px-4">
-        <div className="container mx-auto max-w-7xl">
+      <div className="pt-24 pb-12 px-4 md:px-8">
+        <div className="mx-auto max-w-7xl">
           {/* Page header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div className="flex items-center gap-4">
@@ -405,7 +410,7 @@ function CompareContent() {
                 <ExportComparison remedies={remedies} />
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   aria-label="Share comparison"
                 >
                   <Share2 className="w-4 h-4" />
@@ -413,7 +418,7 @@ function CompareContent() {
                 </button>
                 <button
                   onClick={handleClearAll}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-zinc-800 border border-red-300 dark:border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-gray-800 border border-red-300 dark:border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 >
                   <X className="w-4 h-4" />
                   Clear All
@@ -485,12 +490,12 @@ function CompareContent() {
 
               {/* Desktop grid view */}
               <div
-                className={`bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden print:shadow-none ${isMobile ? "hidden md:block" : ""}`}
+                className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden print:shadow-none ${isMobile ? "hidden md:block" : ""}`}
                 id="comparison-content"
               >
                 {/* Remedy headers */}
                 <div
-                  className="grid gap-4 p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-zinc-800/50"
+                  className="grid gap-4 p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
                   style={{
                     gridTemplateColumns: `repeat(${Math.min(remedies.length + (remedies.length < 4 ? 1 : 0), 4)}, minmax(0, 1fr))`,
                   }}
