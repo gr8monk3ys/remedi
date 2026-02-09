@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   Grid3X3,
   List,
@@ -111,8 +112,10 @@ export function FavoritesPageClient({
       }
 
       router.refresh();
+      toast.success("Removed from favorites");
     } catch {
       setError("Failed to remove favorite. Please try again.");
+      toast.error("Failed to remove favorite");
     } finally {
       setIsRemoving(null);
     }

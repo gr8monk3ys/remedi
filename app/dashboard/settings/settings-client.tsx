@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -102,11 +103,13 @@ export function SettingsClient({
         }
 
         setSaveStatus("saved");
+        toast.success("Preferences saved");
         setTimeout(() => setSaveStatus("idle"), 2000);
       } catch {
         // Revert on error
         setPreferences(previousPreferences);
         setSaveStatus("error");
+        toast.error("Failed to save preferences");
         setTimeout(() => setSaveStatus("idle"), 3000);
       } finally {
         setIsSaving(false);

@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { CompareProvider } from "@/context/CompareContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
 import { ComparisonBar } from "@/components/compare/ComparisonBar";
+import { Toaster } from "@/components/ui/toaster";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -64,6 +65,7 @@ function AppProviders({ children }: ProvidersProps): ReactNode {
           <ComparisonBar />
         </CompareProvider>
       </OnboardingProvider>
+      <Toaster />
     </ThemeProvider>
   );
 }

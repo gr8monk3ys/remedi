@@ -7,6 +7,7 @@
  */
 
 import { useReducer, useCallback } from "react";
+import { toast } from "sonner";
 import { fetchWithCSRF } from "@/lib/fetch";
 import type { FormState, FormAction, Reference } from "./types";
 import { initialFormState } from "./types";
@@ -145,12 +146,14 @@ export function useContributionForm(onSuccess?: () => void) {
         }
 
         dispatch({ type: "SUBMIT_SUCCESS" });
+        toast.success("Contribution submitted for review");
         onSuccess?.();
       } catch {
         dispatch({
           type: "SUBMIT_ERROR",
           error: "Failed to submit contribution. Please try again.",
         });
+        toast.error("Failed to submit contribution");
       }
     },
     [state, onSuccess],

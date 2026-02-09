@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { useDbUser } from "@/hooks/use-db-user";
 import { useSessionId } from "./use-session-id";
 import { fetchWithCSRF } from "@/lib/fetch";
@@ -79,10 +80,9 @@ export function useFavorites(): UseFavoritesReturn {
           setFavorites(data.data.favorites);
         }
       } catch (err) {
-        console.error("Error fetching favorites:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to load favorites",
-        );
+        const message =
+          err instanceof Error ? err.message : "Failed to load favorites";
+        setError(message);
       } finally {
         setIsLoading(false);
       }
@@ -142,10 +142,13 @@ export function useFavorites(): UseFavoritesReturn {
 
         if (data.success && data.data?.favorite) {
           setFavorites((prev) => [...prev, data.data!.favorite]);
+          toast.success("Added to favorites");
         }
       } catch (err) {
-        console.error("Error adding favorite:", err);
-        setError(err instanceof Error ? err.message : "Failed to add favorite");
+        const message =
+          err instanceof Error ? err.message : "Failed to add favorite";
+        setError(message);
+        toast.error(message);
         throw err;
       } finally {
         setIsLoading(false);
@@ -178,11 +181,12 @@ export function useFavorites(): UseFavoritesReturn {
         }
 
         setFavorites((prev) => prev.filter((fav) => fav.id !== favorite.id));
+        toast.success("Removed from favorites");
       } catch (err) {
-        console.error("Error removing favorite:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to remove favorite",
-        );
+        const message =
+          err instanceof Error ? err.message : "Failed to remove favorite";
+        setError(message);
+        toast.error(message);
         throw err;
       } finally {
         setIsLoading(false);
