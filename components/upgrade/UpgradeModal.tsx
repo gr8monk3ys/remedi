@@ -182,8 +182,7 @@ export function UpgradeModal({
       } else {
         alert(data.error?.message || "Failed to start trial");
       }
-    } catch (error) {
-      console.error("Trial start error:", error);
+    } catch {
       alert("Failed to start trial. Please try again.");
     } finally {
       setIsStartingTrial(false);
@@ -213,8 +212,7 @@ export function UpgradeModal({
       } else {
         alert(data.error?.message || "Failed to start checkout");
       }
-    } catch (error) {
-      console.error("Checkout error:", error);
+    } catch {
       alert("Failed to start checkout. Please try again.");
     } finally {
       setLoadingCheckout(null);

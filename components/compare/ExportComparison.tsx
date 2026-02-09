@@ -13,6 +13,12 @@ import {
   Loader2,
 } from "lucide-react";
 import type { DetailedRemedy } from "@/lib/types";
+import {
+  exportAsPdf,
+  exportAsImage,
+  copyComparisonLink,
+  emailComparison,
+} from "@/lib/export-formats";
 
 /**
  * Props for ExportComparison component
@@ -91,7 +97,6 @@ export function ExportComparison({
     }
   };
 
-  // Add/remove click listener using useEffect
   useEffect(() => {
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
@@ -102,279 +107,42 @@ export function ExportComparison({
   }, [isOpen]);
 
   /**
-   * Generate comparison text content for export
+   * Run an export action with loading and success state management.
    */
-  const generateTextContent = (): string => {
-    const lines: string[] = [
-      "REMEDY COMPARISON",
-      "=================",
-      `Generated: ${new Date().toLocaleDateString()}`,
-      "",
-      "REMEDIES COMPARED:",
-      ...remedies.map((r, i) => `${i + 1}. ${r.name} (${r.category || "N/A"})`),
-      "",
-    ];
-
-    // Add comparison details for each remedy
-    remedies.forEach((remedy) => {
-      lines.push(`--- ${remedy.name} ---`);
-      lines.push("");
-      lines.push(`Category: ${remedy.category || "N/A"}`);
-      lines.push(`Description: ${remedy.description || "N/A"}`);
-      lines.push(`Dosage: ${remedy.dosage || "N/A"}`);
-      lines.push(`Usage: ${remedy.usage || "N/A"}`);
-      lines.push(`Precautions: ${remedy.precautions || "N/A"}`);
-      lines.push(`Scientific Info: ${remedy.scientificInfo || "N/A"}`);
-      lines.push("");
-    });
-
-    lines.push("");
-    lines.push("DISCLAIMER:");
-    lines.push(
-      "This comparison is for informational purposes only and should not be considered medical advice.",
-    );
-    lines.push(
-      "Always consult with a qualified healthcare professional before making changes to your health regimen.",
-    );
-    lines.push("");
-    lines.push(`Comparison URL: ${window.location.href}`);
-
-    return lines.join("\n");
-  };
-
-  /**
-   * Handle PDF export using browser print
-   */
-  const handlePdfExport = async () => {
-    setIsExporting("pdf");
-
+  async function runExport(
+    format: ExportFormat,
+    action: () => void | Promise<void>,
+  ): Promise<void> {
+    setIsExporting(format);
     try {
-      // Add print-specific styles
-      const styleSheet = document.createElement("style");
-      styleSheet.id = "print-styles";
-      styleSheet.textContent = `
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #comparison-content, #comparison-content * {
-            visibility: visible;
-          }
-          #comparison-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-          }
-          .print\\:hidden {
-            display: none !important;
-          }
-        }
-      `;
-      document.head.appendChild(styleSheet);
-
-      // Trigger print
-      window.print();
-
-      // Clean up styles after print dialog closes
-      setTimeout(() => {
-        const printStyles = document.getElementById("print-styles");
-        if (printStyles) {
-          printStyles.remove();
-        }
-      }, 1000);
-
-      setExportSuccess("pdf");
-    } catch (error) {
-      console.error("PDF export failed:", error);
+      await action();
+      setExportSuccess(format);
     } finally {
       setIsExporting(null);
       setTimeout(() => setExportSuccess(null), 2000);
     }
-  };
-
-  /**
-   * Handle image export using html2canvas-like approach
-   */
-  const handleImageExport = async () => {
-    setIsExporting("image");
-
-    try {
-      // Create a simple canvas-based image of the comparison data
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      if (!ctx) {
-        throw new Error("Canvas context not available");
-      }
-
-      // Set canvas size
-      const width = 1200;
-      const height = 800 + remedies.length * 200;
-      canvas.width = width;
-      canvas.height = height;
-
-      // Draw background
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, width, height);
-
-      // Draw title
-      ctx.fillStyle = "#1a1a1a";
-      ctx.font = "bold 32px Inter, system-ui, sans-serif";
-      ctx.fillText("Remedy Comparison", 40, 60);
-
-      // Draw date
-      ctx.fillStyle = "#666666";
-      ctx.font = "14px Inter, system-ui, sans-serif";
-      ctx.fillText(`Generated: ${new Date().toLocaleDateString()}`, 40, 90);
-
-      // Draw remedies
-      const yOffset = 140;
-      const columnWidth = (width - 80) / remedies.length;
-
-      remedies.forEach((remedy, index) => {
-        const xOffset = 40 + index * columnWidth;
-
-        // Remedy name
-        ctx.fillStyle = "#1a1a1a";
-        ctx.font = "bold 18px Inter, system-ui, sans-serif";
-        ctx.fillText(remedy.name, xOffset, yOffset);
-
-        // Category
-        ctx.fillStyle = "#666666";
-        ctx.font = "14px Inter, system-ui, sans-serif";
-        ctx.fillText(remedy.category || "N/A", xOffset, yOffset + 25);
-
-        // Dosage
-        ctx.fillStyle = "#1a1a1a";
-        ctx.font = "bold 14px Inter, system-ui, sans-serif";
-        ctx.fillText("Dosage:", xOffset, yOffset + 60);
-        ctx.font = "14px Inter, system-ui, sans-serif";
-        ctx.fillStyle = "#333333";
-        const dosageLines = wrapText(
-          ctx,
-          remedy.dosage || "N/A",
-          columnWidth - 20,
-        );
-        dosageLines.forEach((line, i) => {
-          ctx.fillText(line, xOffset, yOffset + 80 + i * 18);
-        });
-
-        // Usage
-        const usageStart = yOffset + 80 + dosageLines.length * 18 + 20;
-        ctx.fillStyle = "#1a1a1a";
-        ctx.font = "bold 14px Inter, system-ui, sans-serif";
-        ctx.fillText("Usage:", xOffset, usageStart);
-        ctx.font = "14px Inter, system-ui, sans-serif";
-        ctx.fillStyle = "#333333";
-        const usageLines = wrapText(
-          ctx,
-          remedy.usage || "N/A",
-          columnWidth - 20,
-        );
-        usageLines.forEach((line, i) => {
-          ctx.fillText(line, xOffset, usageStart + 20 + i * 18);
-        });
-      });
-
-      // Draw disclaimer
-      ctx.fillStyle = "#996600";
-      ctx.font = "italic 12px Inter, system-ui, sans-serif";
-      ctx.fillText(
-        "Disclaimer: This comparison is for informational purposes only. Consult a healthcare professional.",
-        40,
-        height - 40,
-      );
-
-      // Convert to blob and download
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = `remedy-comparison-${Date.now()}.png`;
-          link.click();
-          URL.revokeObjectURL(url);
-        }
-      }, "image/png");
-
-      setExportSuccess("image");
-    } catch (error) {
-      console.error("Image export failed:", error);
-    } finally {
-      setIsExporting(null);
-      setTimeout(() => setExportSuccess(null), 2000);
-    }
-  };
-
-  /**
-   * Handle link copy
-   */
-  const handleLinkCopy = async () => {
-    setIsExporting("link");
-
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setExportSuccess("link");
-    } catch (error) {
-      console.error("Link copy failed:", error);
-      // Fallback for older browsers
-      const textArea = document.createElement("textarea");
-      textArea.value = window.location.href;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      setExportSuccess("link");
-    } finally {
-      setIsExporting(null);
-      setTimeout(() => setExportSuccess(null), 2000);
-    }
-  };
-
-  /**
-   * Handle email export
-   */
-  const handleEmailExport = () => {
-    setIsExporting("email");
-
-    try {
-      const subject = encodeURIComponent(
-        `Remedy Comparison: ${remedies.map((r) => r.name).join(", ")}`,
-      );
-      const body = encodeURIComponent(generateTextContent());
-      const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
-
-      window.location.href = mailtoUrl;
-      setExportSuccess("email");
-    } catch (error) {
-      console.error("Email export failed:", error);
-    } finally {
-      setIsExporting(null);
-      setTimeout(() => setExportSuccess(null), 2000);
-    }
-  };
+  }
 
   /**
    * Handle export based on format
    */
-  const handleExport = async (format: ExportFormat) => {
+  async function handleExport(format: ExportFormat): Promise<void> {
     switch (format) {
       case "pdf":
-        await handlePdfExport();
+        await runExport("pdf", () => exportAsPdf());
         break;
       case "image":
-        await handleImageExport();
+        await runExport("image", () => exportAsImage(remedies));
         break;
       case "link":
-        await handleLinkCopy();
+        await runExport("link", () => copyComparisonLink());
         break;
       case "email":
-        handleEmailExport();
+        await runExport("email", () => emailComparison(remedies));
         break;
     }
     setIsOpen(false);
-  };
+  }
 
   return (
     <div ref={menuRef} className={`relative ${className}`}>
@@ -441,37 +209,6 @@ export function ExportComparison({
       </AnimatePresence>
     </div>
   );
-}
-
-/**
- * Helper function to wrap text for canvas drawing
- */
-function wrapText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-): string[] {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let currentLine = "";
-
-  words.forEach((word) => {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    const metrics = ctx.measureText(testLine);
-
-    if (metrics.width > maxWidth && currentLine) {
-      lines.push(currentLine);
-      currentLine = word;
-    } else {
-      currentLine = testLine;
-    }
-  });
-
-  if (currentLine) {
-    lines.push(currentLine);
-  }
-
-  return lines.slice(0, 5); // Limit to 5 lines
 }
 
 export default ExportComparison;

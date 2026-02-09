@@ -8,6 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { createLogger } from "@/lib/logger";
 import {
   addFavorite,
   getFavorites,
@@ -28,6 +29,8 @@ import {
 import { verifyOwnership, verifyResourceOwnership } from "@/lib/authorization";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+
+const logger = createLogger("favorites-api");
 
 /**
  * GET /api/favorites
@@ -96,7 +99,7 @@ export async function GET(request: NextRequest) {
       }),
     );
   } catch (error) {
-    console.error("Error fetching favorites:", error);
+    logger.error("Error fetching favorites:", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to fetch favorites"),
       { status: 500 },
@@ -164,7 +167,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Error adding favorite:", error);
+    logger.error("Error adding favorite:", error);
 
     // Handle unique constraint violations (already favorited)
     if (error instanceof Error && error.message.includes("Unique constraint")) {
@@ -245,7 +248,7 @@ export async function PUT(request: NextRequest) {
       }),
     );
   } catch (error) {
-    console.error("Error updating favorite:", error);
+    logger.error("Error updating favorite:", error);
 
     // Handle not found errors
     if (
@@ -343,7 +346,7 @@ export async function DELETE(request: NextRequest) {
       }),
     );
   } catch (error) {
-    console.error("Error deleting favorite:", error);
+    logger.error("Error deleting favorite:", error);
 
     // Handle not found errors
     if (
