@@ -81,6 +81,24 @@ export interface WeeklyDigestData {
   searchCount: number;
   periodStart: string;
   periodEnd: string;
+  personalizedRemedies?: Array<{
+    name: string;
+    category: string;
+    matchReason: string;
+    url: string;
+  }>;
+  interactionAlerts?: Array<{
+    medication: string;
+    substance: string;
+    severity: string;
+    description: string;
+  }>;
+  journalSummary?: {
+    entriesThisWeek: number;
+    avgRating: number;
+    topRemedy: string | null;
+  };
+  aiInsight?: string;
 }
 
 /**
