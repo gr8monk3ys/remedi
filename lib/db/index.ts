@@ -87,3 +87,38 @@ export {
   getInteractionsForRemedy,
 } from "./interactions";
 export type { InteractionResult } from "./interactions";
+
+// Health profile operations
+export { getHealthProfile, upsertHealthProfile } from "./health-profile";
+
+// Medication cabinet operations
+export {
+  getMedications,
+  getMedicationById,
+  addMedication,
+  updateMedication,
+  removeMedication,
+  countMedications,
+  checkCabinetInteractions,
+} from "./medication-cabinet";
+
+// Journal operations
+export {
+  createJournalEntry,
+  updateJournalEntry,
+  deleteJournalEntry,
+  getJournalEntryById,
+  getJournalEntries,
+  getTrackedRemedies,
+  getRemedyInsights,
+} from "./journal";
+
+// Report operations
+export {
+  createReport,
+  updateReportContent,
+  getReportById,
+  getUserReports,
+  deleteReport,
+  countMonthlyReports,
+} from "./reports";

@@ -21,6 +21,12 @@ export const PLAN_LIMITS = {
     maxCompareItems: 0,
     canAccessHistory: false,
     prioritySupport: false,
+    // Subscription-justifying features
+    maxMedications: 3,
+    canViewCabinetInteractions: false,
+    hasPersonalizedSearch: false,
+    canTrackJournal: false,
+    maxReportsPerMonth: 0,
   },
   BASIC: {
     maxFavorites: 50,
@@ -31,6 +37,12 @@ export const PLAN_LIMITS = {
     maxCompareItems: 4,
     canAccessHistory: true,
     prioritySupport: false,
+    // Subscription-justifying features
+    maxMedications: 20,
+    canViewCabinetInteractions: true,
+    hasPersonalizedSearch: true,
+    canTrackJournal: true,
+    maxReportsPerMonth: 2,
   },
   PREMIUM: {
     maxFavorites: -1, // Unlimited
@@ -41,6 +53,12 @@ export const PLAN_LIMITS = {
     maxCompareItems: 10,
     canAccessHistory: true,
     prioritySupport: true,
+    // Subscription-justifying features
+    maxMedications: -1, // Unlimited
+    canViewCabinetInteractions: true,
+    hasPersonalizedSearch: true,
+    canTrackJournal: true,
+    maxReportsPerMonth: -1, // Unlimited
   },
 } as const;
 
@@ -87,10 +105,11 @@ export const PLANS = {
     description: "Get started with basic natural remedy search",
     price: 0,
     features: [
-      "Basic search functionality",
-      "View remedy details",
-      "Save up to 3 favorites",
       "5 searches per day",
+      "Save up to 3 favorites",
+      "Health profile (categories & goals)",
+      "3 medications in cabinet",
+      "Generic weekly digest",
     ],
     limits: {
       favorites: PLAN_LIMITS.FREE.maxFavorites,
@@ -100,16 +119,20 @@ export const PLANS = {
   },
   basic: {
     name: "Basic",
-    description: "Enhanced access with more features",
+    description: "Personalized health tracking & insights",
     price: 9.99,
     yearlyPrice: 95.9, // 20% off annual (saves $24)
     features: [
       "100 searches per day",
-      "Save up to 50 favorites",
       "10 AI-powered searches per day",
+      "Full health profile with conditions & allergies",
+      "20 medications with auto-interaction alerts",
+      "Personalized search results",
+      "Remedy tracking journal with charts",
+      "2 AI remedy reports per month",
+      "Personalized weekly digest",
+      "50 favorites, compare & export",
       "Full search history",
-      "Compare up to 4 remedies",
-      "Export your data",
     ],
     limits: {
       favorites: PLAN_LIMITS.BASIC.maxFavorites,
@@ -119,18 +142,19 @@ export const PLANS = {
   },
   premium: {
     name: "Premium",
-    description: "Full access with AI-powered features",
+    description: "Unlimited AI-powered health intelligence",
     price: 19.99,
     yearlyPrice: 191.9, // 20% off annual (saves $48)
     features: [
-      "Unlimited searches",
-      "Unlimited favorites",
+      "Unlimited searches & favorites",
       "50 AI-powered searches per day",
-      "Full search history",
+      "Unlimited medication cabinet",
+      "AI-powered journal insights",
+      "Unlimited AI remedy reports",
+      "Premium digest with AI health insights",
       "Compare up to 10 remedies",
-      "Export your data",
+      "Export & search history",
       "Priority support",
-      "Early access to new features",
     ],
     limits: {
       favorites: PLAN_LIMITS.PREMIUM.maxFavorites,

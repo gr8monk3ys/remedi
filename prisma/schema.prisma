@@ -218,6 +218,12 @@ model User {
   favorites        Favorite[]
   searchHistory    SearchHistory[]
 
+  // Subscription-justifying features
+  healthProfile      HealthProfile?
+  medicationCabinet  MedicationCabinet[]
+  journalEntries     RemedyJournal[]
+  reports            RemedyReport[]
+
   @@index([email])
   @@index([role])
   @@index([clerkId])
@@ -443,4 +449,83 @@ model ConversionEvent {
   @@index([eventType])
   @@index([createdAt(sort: Desc)])
   @@index([eventSource])
+}
+
+// ============================================================================
+// Subscription-Justifying Feature Models
+// ============================================================================
+
+// User health profile for personalized recommendations
+model HealthProfile {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @unique @db.Uuid
+  categories   String[] // Pain Relief, Sleep, Energy, etc.
+  goals        String[] // Reduce pharma, natural-first, etc.
+  allergies    String[]
+  conditions   String[]
+  dietaryPrefs String[]
+  createdAt    DateTime @default(now()) @db.Timestamptz
+  updatedAt    DateTime @updatedAt @db.Timestamptz
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Medication cabinet for tracking current medications/supplements
+model MedicationCabinet {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  name      String
+  type      String    // pharmaceutical | supplement | natural_remedy
+  dosage    String?
+  frequency String?   // daily | twice_daily | as_needed | weekly
+  startDate DateTime? @db.Date
+  notes     String?   @db.Text
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+// Remedy tracking journal for logging effectiveness
+model RemedyJournal {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  remedyId     String   @db.Uuid
+  remedyName   String
+  date         DateTime @db.Date
+  rating       Int      // 1-5 effectiveness
+  symptoms     String[]
+  sideEffects  String[]
+  dosageTaken  String?
+  notes        String?  @db.Text
+  mood         Int?     // 1-5
+  energyLevel  Int?     // 1-5
+  sleepQuality Int?     // 1-5
+  createdAt    DateTime @default(now()) @db.Timestamptz
+  updatedAt    DateTime @updatedAt @db.Timestamptz
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, remedyId, date])
+  @@index([userId, remedyId])
+  @@index([date])
+}
+
+// AI-generated remedy reports
+model RemedyReport {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  title     String
+  queryType String   // condition | drug_alternative | custom
+  queryInput String
+  content   Json     // Structured: summary, recommendations[], interactionWarnings[], sources[]
+  status    String   @default("generating") // generating | complete | failed
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
