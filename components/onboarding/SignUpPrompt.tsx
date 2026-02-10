@@ -173,7 +173,7 @@ export function SignUpPrompt({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         className={cn(
-          "bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4",
+          "bg-card rounded-xl shadow-lg border border-border p-4",
           className,
         )}
       >
@@ -182,10 +182,8 @@ export function SignUpPrompt({
             <Sparkles className="w-6 h-6 text-green-600 dark:text-green-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-gray-900 dark:text-white">
-              Enjoying Remedi?
-            </h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            <h4 className="font-semibold text-foreground">Enjoying Remedi?</h4>
+            <p className="text-sm text-muted-foreground mb-3">
               Create a free account to save your progress and unlock more
               features.
             </p>
@@ -199,7 +197,7 @@ export function SignUpPrompt({
               </Link>
               <button
                 onClick={handleRemindLater}
-                className="px-3 py-1.5 text-gray-600 dark:text-gray-400 text-sm hover:text-gray-900 dark:hover:text-white transition-colors"
+                className="px-3 py-1.5 text-muted-foreground text-sm hover:text-foreground transition-colors"
               >
                 Maybe later
               </button>
@@ -207,7 +205,7 @@ export function SignUpPrompt({
           </div>
           <button
             onClick={handleDismiss}
-            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Dismiss"
           >
             <X className="w-4 h-4" />
@@ -231,7 +229,7 @@ export function SignUpPrompt({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           className={cn(
-            "bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full overflow-hidden",
+            "bg-card rounded-2xl shadow-xl max-w-md w-full overflow-hidden",
             className,
           )}
         >
@@ -265,7 +263,7 @@ export function SignUpPrompt({
 
           {/* Content */}
           <div className="p-6 space-y-6">
-            <p className="text-gray-600 dark:text-gray-300">
+            <p className="text-muted-foreground">
               Create a free account to unlock these features and enhance your
               experience:
             </p>
@@ -275,10 +273,7 @@ export function SignUpPrompt({
               {ACCOUNT_BENEFITS.map((benefit) => {
                 const colors = colorClasses[benefit.color];
                 return (
-                  <div
-                    key={benefit.title}
-                    className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
-                  >
+                  <div key={benefit.title} className="p-3 bg-muted rounded-xl">
                     <div
                       className={cn(
                         "inline-flex p-2 rounded-lg mb-2",
@@ -287,10 +282,10 @@ export function SignUpPrompt({
                     >
                       <span className={colors.text}>{benefit.icon}</span>
                     </div>
-                    <h4 className="font-medium text-gray-900 dark:text-white text-sm">
+                    <h4 className="font-medium text-foreground text-sm">
                       {benefit.title}
                     </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {benefit.description}
                     </p>
                   </div>
@@ -311,10 +306,10 @@ export function SignUpPrompt({
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+                  <div className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
+                  <span className="px-2 bg-card text-muted-foreground">
                     or continue with
                   </span>
                 </div>
@@ -324,7 +319,7 @@ export function SignUpPrompt({
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirects require <a> tags */}
                 <a
                   href="/sign-in"
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-card border border-border rounded-lg hover:bg-muted transition-colors"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path
@@ -344,7 +339,7 @@ export function SignUpPrompt({
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     />
                   </svg>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span className="text-sm font-medium text-foreground">
                     Google
                   </span>
                 </a>
@@ -352,7 +347,7 @@ export function SignUpPrompt({
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirects require <a> tags */}
                 <a
                   href="/sign-in"
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors"
                 >
                   <svg
                     className="w-5 h-5"
@@ -372,18 +367,18 @@ export function SignUpPrompt({
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700">
+          <div className="px-6 py-4 bg-muted border-t border-border">
             <div className="flex items-center justify-between">
               <button
                 onClick={handleRemindLater}
-                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Clock className="w-4 h-4" />
                 Remind me later
               </button>
               <button
                 onClick={handleDismiss}
-                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Bell className="w-4 h-4" />
                 Do not show again

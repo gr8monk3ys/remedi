@@ -24,19 +24,19 @@ export function DemoSearchStep({
 }: DemoSearchStepProps): React.ReactNode {
   return (
     <div className="space-y-6">
-      <p className="text-gray-600 dark:text-gray-300">
+      <p className="text-muted-foreground">
         Try a search to see how Remedi works. Click on any suggestion below:
       </p>
 
       <div className="relative">
-        <div className="flex items-center gap-2 p-4 bg-gray-100 dark:bg-gray-700 rounded-xl">
-          <Search className="w-5 h-5 text-gray-400" />
+        <div className="flex items-center gap-2 p-4 bg-muted rounded-xl">
+          <Search className="w-5 h-5 text-muted-foreground" />
           <input
             type="text"
             value={demoQuery}
             onChange={(e) => setDemoQuery(e.target.value)}
             placeholder="Try searching for a remedy..."
-            className="flex-1 bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-400"
+            className="flex-1 bg-transparent border-none outline-none text-foreground placeholder-muted-foreground"
             onKeyDown={(e) => {
               if (e.key === "Enter" && demoQuery.trim()) {
                 handleDemoSearch(demoQuery);
@@ -47,7 +47,7 @@ export function DemoSearchStep({
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <h3 className="text-sm font-medium text-foreground">
           Popular searches:
         </h3>
         <div className="flex flex-wrap gap-2">
@@ -59,7 +59,7 @@ export function DemoSearchStep({
                 "px-4 py-2 text-sm rounded-full transition-all",
                 demoQuery === search
                   ? "bg-green-500 text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600",
+                  : "bg-muted text-foreground hover:bg-muted/80",
               )}
             >
               {search}

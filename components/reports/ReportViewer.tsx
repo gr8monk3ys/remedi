@@ -54,7 +54,7 @@ const SEVERITY_COLORS: Record<string, string> = {
 const EVIDENCE_COLORS: Record<string, string> = {
   strong: "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300",
   moderate: "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300",
-  limited: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
+  limited: "bg-muted text-muted-foreground",
   traditional:
     "bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300",
 };

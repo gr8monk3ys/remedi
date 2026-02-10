@@ -226,13 +226,13 @@ export function WelcomeModal({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden"
+        className="bg-card rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden"
       >
         {/* Header */}
-        <div className="relative p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="relative p-6 pb-4 border-b border-border">
           <button
             onClick={handleSkip}
-            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors"
             aria-label="Close welcome modal"
           >
             <X className="w-5 h-5" />
@@ -255,7 +255,7 @@ export function WelcomeModal({
                     ? "bg-green-500"
                     : index < step
                       ? "bg-green-500/50"
-                      : "bg-gray-200 dark:bg-gray-700",
+                      : "bg-muted",
                 )}
                 aria-label={`Go to step ${index + 1}`}
               />
@@ -269,11 +269,11 @@ export function WelcomeModal({
             <div>
               <h2
                 id="welcome-modal-title"
-                className="text-2xl font-bold text-gray-900 dark:text-white"
+                className="text-2xl font-bold text-foreground"
               >
                 {STEP_TITLES[step]}
               </h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
+              <p className="text-muted-foreground text-sm">
                 Step {step + 1} of {TOTAL_STEPS}
               </p>
             </div>
@@ -298,7 +298,7 @@ export function WelcomeModal({
         </div>
 
         {/* Footer */}
-        <div className="p-6 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+        <div className="p-6 pt-4 border-t border-border space-y-4">
           <div className="flex items-center justify-between gap-4">
             <button
               onClick={prevStep}
@@ -306,8 +306,8 @@ export function WelcomeModal({
               className={cn(
                 "flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors",
                 step === 0
-                  ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
+                  ? "text-muted-foreground/40 cursor-not-allowed"
+                  : "text-muted-foreground hover:bg-muted",
               )}
             >
               <ChevronLeft className="w-4 h-4" />
@@ -329,12 +329,12 @@ export function WelcomeModal({
             </button>
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 cursor-pointer">
+          <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
             <input
               type="checkbox"
               checked={dontShowAgain}
               onChange={(e) => setDontShowAgain(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-green-600 focus:ring-green-500"
+              className="w-4 h-4 rounded border-border text-green-600 focus:ring-green-500"
             />
             Do not show this again
           </label>

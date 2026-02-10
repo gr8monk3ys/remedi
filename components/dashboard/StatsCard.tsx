@@ -36,17 +36,17 @@ export function StatsCard({
     return (
       <div
         className={cn(
-          "bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6",
+          "bg-card rounded-xl shadow-sm border border-border p-6",
           className,
         )}
       >
         <div className="animate-pulse">
           <div className="flex items-center justify-between mb-4">
-            <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded" />
-            <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+            <div className="h-4 w-24 bg-muted rounded" />
+            <div className="h-10 w-10 bg-muted rounded-lg" />
           </div>
-          <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
-          <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-8 w-16 bg-muted rounded mb-2" />
+          <div className="h-3 w-20 bg-muted rounded" />
         </div>
       </div>
     );
@@ -55,14 +55,12 @@ export function StatsCard({
   return (
     <div
       className={cn(
-        "bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-all hover:shadow-md",
+        "bg-card rounded-xl shadow-sm border border-border p-6 transition-all hover:shadow-md",
         className,
       )}
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-          {title}
-        </h3>
+        <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
         <div className="p-2 bg-primary/10 rounded-lg">
           <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
         </div>
@@ -70,13 +68,9 @@ export function StatsCard({
 
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            {value}
-          </p>
+          <p className="text-2xl font-bold text-foreground">{value}</p>
           {subtitle && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {subtitle}
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
           )}
         </div>
 

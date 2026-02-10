@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Loader2, Sparkles } from "lucide-react";
+import { apiClient, ApiClientError } from "@/lib/api/client";
 
 interface ReportGeneratorProps {
   onCreated: (report: Record<string, unknown>) => void;
@@ -29,25 +30,23 @@ export function ReportGenerator({
     setError(null);
 
     try {
-      const res = await fetch("/api/reports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const data = await apiClient.post<{ report: Record<string, unknown> }>(
+        "/api/reports",
+        {
           title: title.trim(),
           queryType,
           queryInput: queryInput.trim(),
           includeCabinetInteractions,
           includeJournalData,
-        }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        onCreated(json.data.report);
-      } else {
-        setError(json.error?.message ?? "Failed to generate report");
-      }
-    } catch {
-      setError("Failed to generate report");
+        },
+      );
+      onCreated(data.report);
+    } catch (err) {
+      setError(
+        err instanceof ApiClientError
+          ? err.message
+          : "Failed to generate report",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -141,7 +140,7 @@ export function ReportGenerator({
                 onChange={(e) =>
                   setIncludeCabinetInteractions(e.target.checked)
                 }
-                className="rounded border-gray-300"
+                className="rounded border-border"
               />
               <div>
                 <span className="text-sm font-medium">
@@ -157,7 +156,7 @@ export function ReportGenerator({
                 type="checkbox"
                 checked={includeJournalData}
                 onChange={(e) => setIncludeJournalData(e.target.checked)}
-                className="rounded border-gray-300"
+                className="rounded border-border"
               />
               <div>
                 <span className="text-sm font-medium">

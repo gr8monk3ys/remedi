@@ -61,10 +61,8 @@ export default async function SubscriptionPage(): Promise<React.JSX.Element | nu
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Subscription
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Subscription</h1>
+        <p className="text-muted-foreground mt-1">
           Manage your plan, view usage, and explore available upgrades.
         </p>
       </div>

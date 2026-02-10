@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, X, Plus, Loader2 } from "lucide-react";
+import { apiClient } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
 const HEALTH_CATEGORIES = [
@@ -76,21 +77,17 @@ export function HealthProfileForm({
     setSaving(true);
     setSaved(false);
     try {
-      const res = await fetch("/api/health-profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          categories,
-          goals,
-          allergies,
-          conditions,
-          dietaryPrefs,
-        }),
+      await apiClient.put("/api/health-profile", {
+        categories,
+        goals,
+        allergies,
+        conditions,
+        dietaryPrefs,
       });
-      if (res.ok) {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
-      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch {
+      // Silently fail to match previous behavior
     } finally {
       setSaving(false);
     }

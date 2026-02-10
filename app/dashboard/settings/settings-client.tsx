@@ -124,7 +124,7 @@ export function SettingsClient({
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            <User className="h-5 w-5 text-muted-foreground" />
             <CardTitle>Profile</CardTitle>
           </div>
           <CardDescription>
@@ -133,20 +133,14 @@ export function SettingsClient({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-1">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Name
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm font-medium text-foreground">Name</p>
+            <p className="text-sm text-muted-foreground">
               {userName ?? "Not set"}
             </p>
           </div>
           <div className="grid gap-1">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Email
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {userEmail}
-            </p>
+            <p className="text-sm font-medium text-foreground">Email</p>
+            <p className="text-sm text-muted-foreground">{userEmail}</p>
           </div>
           <Separator />
           <a
@@ -164,11 +158,11 @@ export function SettingsClient({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+              <Bell className="h-5 w-5 text-muted-foreground" />
               <CardTitle>Email Notifications</CardTitle>
             </div>
             {isSaving && (
-              <span className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+              <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
                 <Loader2 className="h-3 w-3 animate-spin" />
                 Saving...
               </span>
@@ -198,11 +192,11 @@ export function SettingsClient({
                 <div className="grid gap-1">
                   <Label
                     htmlFor={toggle.key}
-                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                    className="text-sm font-medium text-foreground"
                   >
                     {toggle.label}
                   </Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     {toggle.description}
                   </p>
                 </div>
@@ -225,7 +219,7 @@ export function SettingsClient({
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            <Shield className="h-5 w-5 text-muted-foreground" />
             <CardTitle>Data & Privacy</CardTitle>
           </div>
           <CardDescription>
@@ -235,16 +229,16 @@ export function SettingsClient({
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="grid gap-1">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <p className="text-sm font-medium text-foreground">
                 Search History
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 View and manage your past searches.
               </p>
             </div>
             <Link
               href="/dashboard/history"
-              className="inline-flex items-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Manage History
             </Link>
@@ -252,10 +246,8 @@ export function SettingsClient({
           <Separator />
           <div className="flex items-center justify-between">
             <div className="grid gap-1">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Export Data
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm font-medium text-foreground">Export Data</p>
+              <p className="text-sm text-muted-foreground">
                 Download a copy of your data including search history,
                 favorites, and preferences.
               </p>
@@ -263,7 +255,7 @@ export function SettingsClient({
             <button
               type="button"
               disabled
-              className="inline-flex items-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-500 shadow-sm cursor-not-allowed opacity-60"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm cursor-not-allowed opacity-60"
             >
               Coming Soon
             </button>
@@ -287,17 +279,17 @@ export function SettingsClient({
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div className="grid gap-1">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <p className="text-sm font-medium text-foreground">
                 Delete Account
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Permanently delete your account and all associated data. This
                 action cannot be undone.
               </p>
             </div>
             <a
               href="/user-profile"
-              className="inline-flex items-center gap-2 rounded-md border border-red-300 dark:border-red-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 whitespace-nowrap"
+              className="inline-flex items-center gap-2 rounded-md border border-red-300 dark:border-red-700 bg-card px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 whitespace-nowrap"
             >
               Delete Account
               <ExternalLink className="h-4 w-4" />

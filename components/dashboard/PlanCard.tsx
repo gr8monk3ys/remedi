@@ -27,13 +27,13 @@ const planIcons: Record<PlanType, typeof Sparkles> = {
 };
 
 const planColors: Record<PlanType, string> = {
-  free: "border-gray-200 dark:border-gray-700",
+  free: "border-border",
   basic: "border-blue-200 dark:border-blue-800",
   premium: "border-purple-200 dark:border-purple-800",
 };
 
 const planBgColors: Record<PlanType, string> = {
-  free: "bg-gray-50 dark:bg-gray-800/50",
+  free: "bg-muted",
   basic: "bg-blue-50 dark:bg-blue-900/20",
   premium: "bg-purple-50 dark:bg-purple-900/20",
 };
@@ -72,7 +72,7 @@ export function PlanCard({
         "relative rounded-xl border-2 p-6 transition-all",
         planColors[plan],
         isCurrentPlan &&
-          "ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900",
+          "ring-2 ring-primary ring-offset-2 dark:ring-offset-background",
         isPopular && !isCurrentPlan && "shadow-lg",
         className,
       )}
@@ -97,35 +97,29 @@ export function PlanCard({
         <Icon
           className={cn(
             "h-6 w-6",
-            plan === "free" && "text-gray-600 dark:text-gray-400",
+            plan === "free" && "text-muted-foreground",
             plan === "basic" && "text-blue-600 dark:text-blue-400",
             plan === "premium" && "text-purple-600 dark:text-purple-400",
           )}
         />
       </div>
 
-      <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-        {name}
-      </h3>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-        {description}
-      </p>
+      <h3 className="text-xl font-bold text-foreground">{name}</h3>
+      <p className="text-sm text-muted-foreground mt-1">{description}</p>
 
       <div className="mt-4 mb-6">
         {price === 0 ? (
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            Free
-          </p>
+          <p className="text-3xl font-bold text-foreground">Free</p>
         ) : (
           <>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">
+            <p className="text-3xl font-bold text-foreground">
               ${monthlyEquivalent.toFixed(2)}
-              <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+              <span className="text-sm font-normal text-muted-foreground">
                 /mo
               </span>
             </p>
             {interval === "yearly" && yearlyPrice && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 ${yearlyPrice.toFixed(2)} billed annually
               </p>
             )}
@@ -140,9 +134,7 @@ export function PlanCard({
               className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5"
               aria-hidden="true"
             />
-            <span className="text-sm text-gray-600 dark:text-gray-300">
-              {feature}
-            </span>
+            <span className="text-sm text-muted-foreground">{feature}</span>
           </li>
         ))}
       </ul>
@@ -151,12 +143,12 @@ export function PlanCard({
         onManage ? (
           <button
             onClick={onManage}
-            className="w-full py-2.5 px-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="w-full py-2.5 px-4 rounded-lg border-2 border-border text-foreground font-medium hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           >
             Manage Subscription
           </button>
         ) : (
-          <div className="w-full py-2.5 px-4 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-center font-medium">
+          <div className="w-full py-2.5 px-4 rounded-lg bg-muted text-muted-foreground text-center font-medium">
             Current Plan
           </div>
         )
@@ -167,7 +159,7 @@ export function PlanCard({
           className={cn(
             "w-full py-2.5 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
             plan === "free"
-              ? "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+              ? "bg-muted text-foreground hover:bg-muted"
               : "bg-primary text-white hover:bg-primary/90",
             !onSelect && "opacity-50 cursor-not-allowed",
           )}
@@ -186,23 +178,23 @@ export function PlanCardSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "rounded-xl border-2 border-gray-200 dark:border-gray-700 p-6 animate-pulse",
+        "rounded-xl border-2 border-border p-6 animate-pulse",
         className,
       )}
     >
-      <div className="h-12 w-12 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4" />
-      <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
-      <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded mb-4" />
-      <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded mb-6" />
+      <div className="h-12 w-12 bg-muted rounded-lg mb-4" />
+      <div className="h-6 w-24 bg-muted rounded mb-2" />
+      <div className="h-4 w-32 bg-muted rounded mb-4" />
+      <div className="h-8 w-20 bg-muted rounded mb-6" />
       <div className="space-y-3 mb-6">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="flex items-center gap-2">
-            <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded" />
-            <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded" />
+            <div className="h-5 w-5 bg-muted rounded" />
+            <div className="h-4 w-full bg-muted rounded" />
           </div>
         ))}
       </div>
-      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-lg" />
+      <div className="h-10 w-full bg-muted rounded-lg" />
     </div>
   );
 }

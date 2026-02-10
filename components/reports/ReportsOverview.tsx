@@ -27,7 +27,16 @@ export function ReportsOverview({
   const [showGenerator, setShowGenerator] = useState(false);
 
   function handleReportCreated(report: Record<string, unknown>): void {
-    setReports([report as unknown as Report, ...reports]);
+    const parsed: Report = {
+      id: String(report.id ?? ""),
+      title: String(report.title ?? ""),
+      queryType: String(report.queryType ?? ""),
+      queryInput: String(report.queryInput ?? ""),
+      status: String(report.status ?? "completed"),
+      createdAt:
+        report.createdAt instanceof Date ? report.createdAt : new Date(),
+    };
+    setReports([parsed, ...reports]);
     setShowGenerator(false);
   }
 

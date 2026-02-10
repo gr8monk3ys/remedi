@@ -109,13 +109,11 @@ export function DashboardSidebar({
   const NavContent = () => (
     <>
       {/* Header */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-6 border-b border-border">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold text-primary">Remedi</span>
         </Link>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Your Dashboard
-        </p>
+        <p className="text-sm text-muted-foreground mt-1">Your Dashboard</p>
       </div>
 
       {/* Navigation */}
@@ -136,7 +134,7 @@ export function DashboardSidebar({
                 "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors group",
                 isActive
                   ? "bg-primary/10 text-primary"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
+                  : "text-muted-foreground hover:bg-muted",
               )}
               aria-current={isActive ? "page" : undefined}
             >
@@ -156,10 +154,10 @@ export function DashboardSidebar({
       </nav>
 
       {/* Back to Site */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-t border-border">
         <Link
           href="/"
-          className="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
         >
           <ArrowLeft className="w-5 h-5" aria-hidden="true" />
           <span className="font-medium">Back to Site</span>
@@ -167,7 +165,7 @@ export function DashboardSidebar({
       </div>
 
       {/* User Info */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-t border-border">
         <div className="flex items-center gap-3">
           {user.image ? (
             <Image
@@ -183,10 +181,10 @@ export function DashboardSidebar({
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+            <p className="text-sm font-medium text-foreground truncate">
               {displayName}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            <p className="text-xs text-muted-foreground truncate">
               {planLabels[currentPlan]}
             </p>
           </div>
@@ -200,16 +198,16 @@ export function DashboardSidebar({
       {/* Mobile menu button */}
       <button
         type="button"
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-card shadow-md border border-border"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         aria-expanded={isMobileOpen}
         aria-controls="mobile-sidebar"
         aria-label={isMobileOpen ? "Close sidebar" : "Open sidebar"}
       >
         {isMobileOpen ? (
-          <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+          <X className="w-6 h-6 text-muted-foreground" />
         ) : (
-          <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+          <Menu className="w-6 h-6 text-muted-foreground" />
         )}
       </button>
 
@@ -226,7 +224,7 @@ export function DashboardSidebar({
       <aside
         id="mobile-sidebar"
         className={cn(
-          "lg:hidden fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-transform duration-300",
+          "lg:hidden fixed inset-y-0 left-0 z-40 w-64 bg-card border-r border-border flex flex-col transition-transform duration-300",
           isMobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Mobile sidebar"
@@ -236,7 +234,7 @@ export function DashboardSidebar({
 
       {/* Desktop sidebar */}
       <aside
-        className="hidden lg:flex lg:flex-col w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
+        className="hidden lg:flex lg:flex-col w-64 bg-card border-r border-border"
         aria-label="Desktop sidebar"
       >
         <NavContent />

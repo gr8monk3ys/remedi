@@ -2,6 +2,9 @@
 
 import { memo } from "react";
 import type { SearchHistoryItem } from "./types";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("search-history");
 
 interface SearchHistoryProps {
   history: SearchHistoryItem[];
@@ -72,7 +75,7 @@ export const SearchHistory = memo(function SearchHistory({
           try {
             await onClearHistory();
           } catch (error) {
-            console.error("Failed to clear history:", error);
+            logger.error("Failed to clear history", error);
           }
         }}
         disabled={isLoading}

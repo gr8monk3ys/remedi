@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api/client";
 import { fetchWithCSRF } from "@/lib/fetch-with-csrf";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useSearchHistory } from "@/hooks/use-search-history";
@@ -13,17 +14,30 @@ import { SearchHistory } from "./SearchHistory";
 import { SearchResults } from "./SearchResults";
 import type { SearchResult, AIInsights, AIRecommendation } from "./types";
 
-const log = createLogger('search-component');
+const log = createLogger("search-component");
 
 interface SearchComponentProps extends React.HTMLProps<HTMLDivElement> {
   onSearch?: (results: SearchResult[]) => void;
   className?: string;
 }
 
-export function SearchComponent({ className, onSearch, ...props }: SearchComponentProps) {
+export function SearchComponent({
+  className,
+  onSearch,
+  ...props
+}: SearchComponentProps) {
   const router = useRouter();
-  const { isFavorite, addFavorite, removeFavorite, isLoading: favoritesLoading } = useFavorites();
-  const { history: searchHistory, clearHistory, isLoading: historyLoading } = useSearchHistory(10);
+  const {
+    isFavorite,
+    addFavorite,
+    removeFavorite,
+    isLoading: favoritesLoading,
+  } = useFavorites();
+  const {
+    history: searchHistory,
+    clearHistory,
+    isLoading: historyLoading,
+  } = useSearchHistory(10);
 
   // Search state
   const [query, setQuery] = useState<string>("");
@@ -54,9 +68,8 @@ export function SearchComponent({ className, onSearch, ...props }: SearchCompone
   useEffect(() => {
     const checkAiAvailability = async () => {
       try {
-        const response = await fetch("/api/ai-search");
-        const apiResponse = await response.json();
-        if (apiResponse.success && apiResponse.data?.status === "available") {
+        const data = await apiClient.get<{ status: string }>("/api/ai-search");
+        if (data.status === "available") {
           setAiSearchAvailable(true);
         }
       } catch (error) {
@@ -74,7 +87,7 @@ export function SearchComponent({ className, onSearch, ...props }: SearchCompone
       if (result.category) {
         categoryCountMap.set(
           result.category,
-          (categoryCountMap.get(result.category) || 0) + 1
+          (categoryCountMap.get(result.category) || 0) + 1,
         );
       }
     }
@@ -93,7 +106,7 @@ export function SearchComponent({ className, onSearch, ...props }: SearchCompone
       for (const nutrient of result.matchingNutrients) {
         nutrientCountMap.set(
           nutrient,
-          (nutrientCountMap.get(nutrient) || 0) + 1
+          (nutrientCountMap.get(nutrient) || 0) + 1,
         );
       }
     }
@@ -110,12 +123,16 @@ export function SearchComponent({ className, onSearch, ...props }: SearchCompone
     let filtered = [...results];
 
     if (categoryFilters.length > 0) {
-      filtered = filtered.filter((r) => r.category && categoryFilters.includes(r.category));
+      filtered = filtered.filter(
+        (r) => r.category && categoryFilters.includes(r.category),
+      );
     }
 
     if (nutrientFilters.length > 0) {
       filtered = filtered.filter((r) =>
-        r.matchingNutrients.some((nutrient) => nutrientFilters.includes(nutrient))
+        r.matchingNutrients.some((nutrient) =>
+          nutrientFilters.includes(nutrient),
+        ),
       );
     }
 
@@ -125,93 +142,100 @@ export function SearchComponent({ className, onSearch, ...props }: SearchCompone
 
   // Search handler - memoized with useCallback
   // Accepts optional searchQuery parameter for direct invocation (e.g., from history selection)
-  const handleSearch = useCallback(async (searchQuery?: string) => {
-    const queryToSearch = searchQuery ?? query;
-    if (!queryToSearch.trim()) return;
+  const handleSearch = useCallback(
+    async (searchQuery?: string) => {
+      const queryToSearch = searchQuery ?? query;
+      if (!queryToSearch.trim()) return;
 
-    // Update query state if a specific search query was provided
-    if (searchQuery && searchQuery !== query) {
-      setQuery(searchQuery);
-    }
-
-    setIsLoading(true);
-    setError(null);
-    setAiInsights(null);
-
-    try {
-      log.info("Searching", { query: queryToSearch, aiPowered: useAiSearch });
-
-      let response;
-      let apiResponse;
-
-      if (useAiSearch && aiSearchAvailable) {
-        // Use fetchWithCSRF for POST requests to include CSRF token
-        response = await fetchWithCSRF("/api/ai-search", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: queryToSearch }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        apiResponse = await response.json();
-
-        if (apiResponse.success === false) {
-          setError(apiResponse.error?.message || "AI search failed");
-          setResults([]);
-          setFilteredResults([]);
-          return;
-        }
-
-        const { recommendations, intent, extractedInfo } = apiResponse.data;
-
-        const aiResults: SearchResult[] = (recommendations as AIRecommendation[]).map((rec) => ({
-          id: rec.remedy.id,
-          name: rec.remedy.name,
-          description: rec.remedy.description || rec.reasoning,
-          imageUrl: rec.remedy.imageUrl || "",
-          category: rec.remedy.category,
-          matchingNutrients: rec.remedy.matchingNutrients || [],
-          similarityScore: rec.confidence,
-        }));
-
-        setAiInsights({ intent, extractedInfo, recommendations });
-        setResults(aiResults);
-        setFilteredResults(aiResults);
-        if (onSearch) onSearch(aiResults);
-      } else {
-        response = await fetch(`/api/search?query=${encodeURIComponent(queryToSearch)}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        apiResponse = await response.json();
-
-        if (apiResponse.success === false) {
-          setError(apiResponse.error?.message || "Search failed");
-          setResults([]);
-          setFilteredResults([]);
-          return;
-        }
-
-        const data = apiResponse.data || apiResponse;
-        setResults(data);
-        setFilteredResults(data);
-        if (onSearch) onSearch(data);
+      // Update query state if a specific search query was provided
+      if (searchQuery && searchQuery !== query) {
+        setQuery(searchQuery);
       }
 
-      setCurrentPage(1);
-      setCategoryFilters([]);
-      setNutrientFilters([]);
-      setActiveTab("results");
-    } catch (error) {
-      log.error("Error searching", error);
-      setError("Failed to retrieve search results. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [query, useAiSearch, aiSearchAvailable, onSearch]);
+      setIsLoading(true);
+      setError(null);
+      setAiInsights(null);
+
+      try {
+        log.info("Searching", { query: queryToSearch, aiPowered: useAiSearch });
+
+        let response;
+        let apiResponse;
+
+        if (useAiSearch && aiSearchAvailable) {
+          // Use fetchWithCSRF for POST requests to include CSRF token
+          response = await fetchWithCSRF("/api/ai-search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: queryToSearch }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          apiResponse = await response.json();
+
+          if (apiResponse.success === false) {
+            setError(apiResponse.error?.message || "AI search failed");
+            setResults([]);
+            setFilteredResults([]);
+            return;
+          }
+
+          const { recommendations, intent, extractedInfo } = apiResponse.data;
+
+          const aiResults: SearchResult[] = (
+            recommendations as AIRecommendation[]
+          ).map((rec) => ({
+            id: rec.remedy.id,
+            name: rec.remedy.name,
+            description: rec.remedy.description || rec.reasoning,
+            imageUrl: rec.remedy.imageUrl || "",
+            category: rec.remedy.category,
+            matchingNutrients: rec.remedy.matchingNutrients || [],
+            similarityScore: rec.confidence,
+          }));
+
+          setAiInsights({ intent, extractedInfo, recommendations });
+          setResults(aiResults);
+          setFilteredResults(aiResults);
+          if (onSearch) onSearch(aiResults);
+        } else {
+          response = await fetch(
+            `/api/search?query=${encodeURIComponent(queryToSearch)}`,
+          );
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          apiResponse = await response.json();
+
+          if (apiResponse.success === false) {
+            setError(apiResponse.error?.message || "Search failed");
+            setResults([]);
+            setFilteredResults([]);
+            return;
+          }
+
+          const data = apiResponse.data || apiResponse;
+          setResults(data);
+          setFilteredResults(data);
+          if (onSearch) onSearch(data);
+        }
+
+        setCurrentPage(1);
+        setCategoryFilters([]);
+        setNutrientFilters([]);
+        setActiveTab("results");
+      } catch (error) {
+        log.error("Error searching", error);
+        setError("Failed to retrieve search results. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [query, useAiSearch, aiSearchAvailable, onSearch],
+  );
 
   const handlePageChange = useCallback((pageNumber: number) => {
     setCurrentPage(pageNumber);
@@ -224,28 +248,30 @@ export function SearchComponent({ className, onSearch, ...props }: SearchCompone
     }
   }, []);
 
-  const handleFavoriteToggle = useCallback(async (
-    e: React.MouseEvent,
-    remedyId: string,
-    remedyName: string
-  ) => {
-    e.stopPropagation();
-    try {
-      if (isFavorite(remedyId)) {
-        await removeFavorite(remedyId);
-      } else {
-        await addFavorite(remedyId, remedyName);
+  const handleFavoriteToggle = useCallback(
+    async (e: React.MouseEvent, remedyId: string, remedyName: string) => {
+      e.stopPropagation();
+      try {
+        if (isFavorite(remedyId)) {
+          await removeFavorite(remedyId);
+        } else {
+          await addFavorite(remedyId, remedyName);
+        }
+      } catch (error) {
+        log.error("Failed to toggle favorite", error);
       }
-    } catch (error) {
-      log.error("Failed to toggle favorite", error);
-    }
-  }, [isFavorite, addFavorite, removeFavorite]);
+    },
+    [isFavorite, addFavorite, removeFavorite],
+  );
 
-  const handleSelectHistoryQuery = useCallback((selectedQuery: string) => {
-    // Directly call handleSearch with the selected query
-    // This avoids DOM manipulation and follows React patterns
-    handleSearch(selectedQuery);
-  }, [handleSearch]);
+  const handleSelectHistoryQuery = useCallback(
+    (selectedQuery: string) => {
+      // Directly call handleSearch with the selected query
+      // This avoids DOM manipulation and follows React patterns
+      handleSearch(selectedQuery);
+    },
+    [handleSearch],
+  );
 
   const toggleFilters = useCallback(() => {
     setShowFilters((prev) => !prev);

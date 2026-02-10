@@ -128,10 +128,10 @@ export function FavoritesPageClient({
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-pink-100 dark:bg-pink-900/30">
           <Heart className="h-8 w-8 text-pink-600 dark:text-pink-400" />
         </div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+        <h2 className="text-xl font-semibold text-foreground mb-2">
           No favorites yet
         </h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
           Start searching for natural remedies and save the ones you find
           helpful. Your favorites will appear here for quick access.
         </p>
@@ -164,7 +164,7 @@ export function FavoritesPageClient({
 
       {/* Action Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-muted-foreground">
           {totalCount} {totalCount === 1 ? "favorite" : "favorites"}
           {currentCollection ? ` in "${currentCollection}"` : ""}
         </p>
@@ -174,19 +174,19 @@ export function FavoritesPageClient({
           {collections.length > 0 && (
             <div className="relative group">
               <button
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted transition-colors"
                 aria-label="Filter by collection"
               >
                 <SlidersHorizontal className="h-4 w-4" />
                 {currentCollection || "All Collections"}
               </button>
-              <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+              <div className="absolute right-0 mt-1 w-48 bg-card rounded-lg shadow-lg border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
                 <button
                   onClick={() => handleCollectionChange(null)}
                   className={`block w-full px-4 py-2 text-sm text-left transition-colors ${
                     !currentCollection
                       ? "text-primary font-medium bg-primary/5"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      : "text-foreground hover:bg-muted"
                   }`}
                 >
                   All Collections
@@ -198,7 +198,7 @@ export function FavoritesPageClient({
                     className={`block w-full px-4 py-2 text-sm text-left transition-colors ${
                       currentCollection === name
                         ? "text-primary font-medium bg-primary/5"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        : "text-foreground hover:bg-muted"
                     }`}
                   >
                     {name}
@@ -211,12 +211,12 @@ export function FavoritesPageClient({
           {/* Sort Dropdown */}
           <div className="relative group">
             <button
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted transition-colors"
               aria-label="Sort favorites"
             >
               {SORT_LABELS[currentSort as FavoritesSortOption] || "Sort"}
             </button>
-            <div className="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+            <div className="absolute right-0 mt-1 w-40 bg-card rounded-lg shadow-lg border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
               {(
                 Object.entries(SORT_LABELS) as [FavoritesSortOption, string][]
               ).map(([value, label]) => (
@@ -226,7 +226,7 @@ export function FavoritesPageClient({
                   className={`block w-full px-4 py-2 text-sm text-left transition-colors ${
                     currentSort === value
                       ? "text-primary font-medium bg-primary/5"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      : "text-foreground hover:bg-muted"
                   }`}
                 >
                   {label}
@@ -236,13 +236,13 @@ export function FavoritesPageClient({
           </div>
 
           {/* View Toggle */}
-          <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <div className="flex items-center border border-border rounded-lg overflow-hidden">
             <button
               onClick={() => setViewMode("grid")}
               className={`p-2 transition-colors ${
                 viewMode === "grid"
-                  ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                  : "bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  ? "bg-muted text-foreground"
+                  : "bg-card text-muted-foreground hover:bg-muted"
               }`}
               aria-label="Grid view"
               aria-pressed={viewMode === "grid"}
@@ -253,8 +253,8 @@ export function FavoritesPageClient({
               onClick={() => setViewMode("list")}
               className={`p-2 transition-colors ${
                 viewMode === "list"
-                  ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                  : "bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  ? "bg-muted text-foreground"
+                  : "bg-card text-muted-foreground hover:bg-muted"
               }`}
               aria-label="List view"
               aria-pressed={viewMode === "list"}
@@ -268,7 +268,7 @@ export function FavoritesPageClient({
       {/* Empty state for filtered results */}
       {favorites.length === 0 && currentCollection && (
         <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
+          <p className="text-muted-foreground mb-4">
             No favorites found in the &quot;{currentCollection}&quot;
             collection.
           </p>
@@ -316,7 +316,7 @@ export function FavoritesPageClient({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Page {currentPage} of {totalPages}
           </p>
 
@@ -324,14 +324,14 @@ export function FavoritesPageClient({
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage <= 1 || isPending}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage >= totalPages || isPending}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>

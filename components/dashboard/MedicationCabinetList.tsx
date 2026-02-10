@@ -10,6 +10,7 @@ import {
   FlaskConical,
   Loader2,
 } from "lucide-react";
+import { apiClient } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import { MedicationForm } from "./MedicationForm";
 
@@ -65,29 +66,25 @@ export function MedicationCabinetList({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function handleAdd(data: Record<string, unknown>): Promise<void> {
-    const res = await fetch("/api/medication-cabinet", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success) {
-        setMedications([...medications, json.data.medication]);
-        setShowForm(false);
-      }
+    try {
+      const result = await apiClient.post<{ medication: Medication }>(
+        "/api/medication-cabinet",
+        data,
+      );
+      setMedications([...medications, result.medication]);
+      setShowForm(false);
+    } catch {
+      // Silently fail to match previous behavior
     }
   }
 
   async function handleDelete(id: string): Promise<void> {
     setDeletingId(id);
     try {
-      const res = await fetch(`/api/medication-cabinet?id=${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setMedications(medications.filter((m) => m.id !== id));
-      }
+      await apiClient.delete(`/api/medication-cabinet?id=${id}`);
+      setMedications(medications.filter((m) => m.id !== id));
+    } catch {
+      // Silently fail to match previous behavior
     } finally {
       setDeletingId(null);
     }
@@ -96,11 +93,17 @@ export function MedicationCabinetList({
   async function checkInteractions(): Promise<void> {
     setLoadingInteractions(true);
     try {
-      const res = await fetch("/api/medication-cabinet/interactions");
-      const json = await res.json();
-      if (json.success) {
-        setInteractions(json.data.interactions);
-      }
+      const data = await apiClient.get<{
+        interactions: Array<{
+          substanceA: string;
+          substanceB: string;
+          severity: string;
+          description: string;
+        }>;
+      }>("/api/medication-cabinet/interactions");
+      setInteractions(data.interactions);
+    } catch {
+      // Silently fail to match previous behavior
     } finally {
       setLoadingInteractions(false);
     }

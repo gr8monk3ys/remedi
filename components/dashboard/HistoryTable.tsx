@@ -60,7 +60,7 @@ export function HistoryTable({
 
     if (!isActive) {
       return (
-        <ChevronDown className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100" />
+        <ChevronDown className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
       );
     }
 
@@ -74,11 +74,9 @@ export function HistoryTable({
   if (history.length === 0) {
     return (
       <div className={cn("text-center py-12", className)}>
-        <Search className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
-        <p className="text-gray-500 dark:text-gray-400">
-          No search history yet
-        </p>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+        <Search className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+        <p className="text-muted-foreground">No search history yet</p>
+        <p className="text-sm text-muted-foreground mt-1">
           Start searching to build your history
         </p>
         <Link
@@ -96,12 +94,12 @@ export function HistoryTable({
     <div className={cn("overflow-x-auto", className)}>
       <table className="w-full">
         <thead>
-          <tr className="border-b border-gray-200 dark:border-gray-700">
-            <th className="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400">
+          <tr className="border-b border-border">
+            <th className="text-left py-3 px-4 font-medium text-muted-foreground">
               Search Query
             </th>
             <th
-              className="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400 cursor-pointer group"
+              className="text-left py-3 px-4 font-medium text-muted-foreground cursor-pointer group"
               onClick={() => handleSort("results")}
             >
               <span className="flex items-center gap-1">
@@ -110,7 +108,7 @@ export function HistoryTable({
               </span>
             </th>
             <th
-              className="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400 cursor-pointer group"
+              className="text-left py-3 px-4 font-medium text-muted-foreground cursor-pointer group"
               onClick={() => handleSort("date")}
             >
               <span className="flex items-center gap-1">
@@ -118,30 +116,27 @@ export function HistoryTable({
                 <SortIcon column="date" />
               </span>
             </th>
-            <th className="text-right py-3 px-4 font-medium text-gray-600 dark:text-gray-400">
+            <th className="text-right py-3 px-4 font-medium text-muted-foreground">
               Actions
             </th>
           </tr>
         </thead>
         <tbody>
           {history.map((item) => (
-            <tr
-              key={item.id}
-              className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-            >
+            <tr key={item.id} className="border-b border-border hover:bg-muted">
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <Search className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                  <span className="font-medium text-gray-900 dark:text-white truncate max-w-xs">
+                  <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="font-medium text-foreground truncate max-w-xs">
                     {item.query}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
+              <td className="py-3 px-4 text-muted-foreground">
                 {item.resultsCount}{" "}
                 {item.resultsCount === 1 ? "result" : "results"}
               </td>
-              <td className="py-3 px-4 text-gray-500 dark:text-gray-400">
+              <td className="py-3 px-4 text-muted-foreground">
                 <time dateTime={item.createdAt.toISOString()}>
                   {format(item.createdAt, "MMM d, yyyy h:mm a")}
                 </time>
@@ -151,7 +146,7 @@ export function HistoryTable({
                   {onRerun && (
                     <button
                       onClick={() => onRerun(item.query)}
-                      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400 hover:text-primary"
+                      className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-primary"
                       aria-label={`Re-run search for "${item.query}"`}
                       title="Re-run search"
                     >
@@ -161,7 +156,7 @@ export function HistoryTable({
                   {onDelete && (
                     <button
                       onClick={() => onDelete(item.id)}
-                      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400 hover:text-red-500"
+                      className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-red-500"
                       aria-label={`Delete search "${item.query}"`}
                       title="Delete"
                     >
@@ -186,38 +181,35 @@ export function HistoryTableSkeleton({ rows = 5 }: { rows?: number }) {
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-gray-200 dark:border-gray-700">
+          <tr className="border-b border-border">
             <th className="text-left py-3 px-4">
-              <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-4 w-24 bg-muted rounded animate-pulse" />
             </th>
             <th className="text-left py-3 px-4">
-              <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-4 w-16 bg-muted rounded animate-pulse" />
             </th>
             <th className="text-left py-3 px-4">
-              <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-4 w-12 bg-muted rounded animate-pulse" />
             </th>
             <th className="text-right py-3 px-4">
-              <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ml-auto" />
+              <div className="h-4 w-16 bg-muted rounded animate-pulse ml-auto" />
             </th>
           </tr>
         </thead>
         <tbody>
           {Array.from({ length: rows }).map((_, i) => (
-            <tr
-              key={i}
-              className="border-b border-gray-200 dark:border-gray-700"
-            >
+            <tr key={i} className="border-b border-border">
               <td className="py-3 px-4">
-                <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="h-4 w-48 bg-muted rounded animate-pulse" />
               </td>
               <td className="py-3 px-4">
-                <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="h-4 w-20 bg-muted rounded animate-pulse" />
               </td>
               <td className="py-3 px-4">
-                <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="h-4 w-32 bg-muted rounded animate-pulse" />
               </td>
               <td className="py-3 px-4">
-                <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ml-auto" />
+                <div className="h-8 w-16 bg-muted rounded animate-pulse ml-auto" />
               </td>
             </tr>
           ))}

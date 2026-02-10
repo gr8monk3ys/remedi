@@ -5,9 +5,7 @@ import { HistoryTableSkeleton } from "@/components/dashboard/HistoryTable";
 import { HistoryPageClient } from "./history-client";
 import type { SearchHistoryItem } from "@/types/dashboard";
 import type { Metadata } from "next";
-export const dynamic = 'force-dynamic';
-
-
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Search History",
@@ -41,10 +39,8 @@ export default async function HistoryPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Search History
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Search History</h1>
+        <p className="text-muted-foreground mt-1">
           View and manage your past searches. Re-run searches or export your
           history.
         </p>
@@ -144,15 +140,15 @@ function HistoryPageSkeleton() {
     <div className="space-y-4">
       {/* Action bar skeleton */}
       <div className="flex items-center justify-between">
-        <div className="h-10 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+        <div className="h-10 w-48 bg-muted rounded animate-pulse" />
         <div className="flex gap-2">
-          <div className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          <div className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          <div className="h-10 w-24 bg-muted rounded animate-pulse" />
+          <div className="h-10 w-24 bg-muted rounded animate-pulse" />
         </div>
       </div>
 
       {/* Table skeleton */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
         <HistoryTableSkeleton rows={10} />
       </div>
     </div>

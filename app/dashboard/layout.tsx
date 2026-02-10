@@ -2,8 +2,11 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import type { PlanType } from "@/lib/stripe";
+import { parsePlanType, type PlanType } from "@/lib/stripe";
 import type { Metadata } from "next";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("dashboard");
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -44,14 +47,14 @@ export default async function DashboardLayout({
     });
 
     if (subscription && subscription.status === "active") {
-      currentPlan = subscription.plan as PlanType;
+      currentPlan = parsePlanType(subscription.plan);
     }
   } catch (error) {
-    console.error("[dashboard] Error fetching subscription:", error);
+    logger.error("Error fetching subscription", error);
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex bg-muted">
       <DashboardSidebar user={user} currentPlan={currentPlan} />
 
       <main className="flex-1 lg:ml-0 min-h-screen">

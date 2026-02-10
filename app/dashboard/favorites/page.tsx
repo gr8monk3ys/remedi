@@ -44,10 +44,8 @@ export default async function FavoritesPage({
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Favorites
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Favorites</h1>
+        <p className="text-muted-foreground mt-1">
           View and manage your saved natural remedies. Organize them into
           collections for quick access.
         </p>
@@ -180,12 +178,12 @@ function FavoritesPageSkeleton(): React.JSX.Element {
     <div className="space-y-4">
       {/* Action bar skeleton */}
       <div className="flex items-center justify-between">
-        <div className="h-10 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+        <div className="h-10 w-48 bg-muted rounded animate-pulse" />
         <div className="flex gap-2">
-          <div className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          <div className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          <div className="h-10 w-24 bg-muted rounded animate-pulse" />
+          <div className="h-10 w-24 bg-muted rounded animate-pulse" />
+          <div className="h-10 w-10 bg-muted rounded animate-pulse" />
+          <div className="h-10 w-10 bg-muted rounded animate-pulse" />
         </div>
       </div>
 

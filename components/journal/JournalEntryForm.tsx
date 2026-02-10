@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Loader2, Star, Plus } from "lucide-react";
+import { apiClient, ApiClientError } from "@/lib/api/client";
 
 interface JournalEntryFormProps {
   onSubmit: (entry: Record<string, unknown>) => void;
@@ -54,19 +55,15 @@ export function JournalEntryForm({
     };
 
     try {
-      const res = await fetch("/api/journal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json();
-      if (json.success) {
-        onSubmit(json.data.entry);
-      } else {
-        setError(json.error?.message ?? "Failed to create entry");
-      }
-    } catch {
-      setError("Failed to create entry");
+      const data = await apiClient.post<{ entry: Record<string, unknown> }>(
+        "/api/journal",
+        body,
+      );
+      onSubmit(data.entry);
+    } catch (err) {
+      setError(
+        err instanceof ApiClientError ? err.message : "Failed to create entry",
+      );
     } finally {
       setSubmitting(false);
     }

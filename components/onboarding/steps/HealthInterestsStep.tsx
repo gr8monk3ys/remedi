@@ -37,15 +37,13 @@ export function HealthInterestsStep({
 }: HealthInterestsStepProps): React.ReactNode {
   return (
     <div className="space-y-6">
-      <p className="text-gray-600 dark:text-gray-300">
+      <p className="text-muted-foreground">
         Help us personalize your experience. What health areas interest you?
-        <span className="text-sm text-gray-400 ml-1">(Optional)</span>
+        <span className="text-sm text-muted-foreground ml-1">(Optional)</span>
       </p>
 
       <div className="space-y-4">
-        <h3 className="font-medium text-gray-900 dark:text-white">
-          Health Categories
-        </h3>
+        <h3 className="font-medium text-foreground">Health Categories</h3>
         <div className="flex flex-wrap gap-2">
           {HEALTH_CATEGORIES.map((category) => (
             <button
@@ -55,7 +53,7 @@ export function HealthInterestsStep({
                 "px-4 py-2 rounded-full text-sm font-medium transition-all",
                 selectedCategories.includes(category.id)
                   ? "bg-green-500 text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600",
+                  : "bg-muted text-foreground hover:bg-muted/80",
               )}
             >
               {selectedCategories.includes(category.id) && (
@@ -68,9 +66,7 @@ export function HealthInterestsStep({
       </div>
 
       <div className="space-y-4">
-        <h3 className="font-medium text-gray-900 dark:text-white">
-          Your Goals
-        </h3>
+        <h3 className="font-medium text-foreground">Your Goals</h3>
         <div className="space-y-2">
           {HEALTH_GOALS.map((goal) => (
             <button
@@ -80,7 +76,7 @@ export function HealthInterestsStep({
                 "w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-all text-left",
                 selectedGoals.includes(goal.id)
                   ? "bg-green-500 text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600",
+                  : "bg-muted text-foreground hover:bg-muted/80",
               )}
             >
               {goal.label}

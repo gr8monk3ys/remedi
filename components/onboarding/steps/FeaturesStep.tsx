@@ -3,13 +3,12 @@
 import { motion } from "framer-motion";
 import { Heart, Search, Sparkles } from "lucide-react";
 
- 
 interface FeaturesStepProps {}
 
 export function FeaturesStep(_props: FeaturesStepProps): React.ReactNode {
   return (
     <div className="space-y-6">
-      <p className="text-gray-600 dark:text-gray-300">
+      <p className="text-muted-foreground">
         Explore our powerful features designed to help you on your wellness
         journey.
       </p>
@@ -25,10 +24,8 @@ export function FeaturesStep(_props: FeaturesStepProps): React.ReactNode {
             <Search className="w-6 h-6 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              Smart Search
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <h3 className="font-semibold text-foreground">Smart Search</h3>
+            <p className="text-sm text-muted-foreground">
               Search any pharmaceutical or supplement to find natural
               alternatives. Our database includes FDA-approved drugs and
               evidence-based remedies.
@@ -46,10 +43,10 @@ export function FeaturesStep(_props: FeaturesStepProps): React.ReactNode {
             <Sparkles className="w-6 h-6 text-purple-600 dark:text-purple-400" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">
+            <h3 className="font-semibold text-foreground">
               AI-Powered Matching
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Describe your symptoms in natural language. Our AI understands
               queries like &quot;I have trouble sleeping&quot; or &quot;natural
               pain relief.&quot;
@@ -67,10 +64,8 @@ export function FeaturesStep(_props: FeaturesStepProps): React.ReactNode {
             <Heart className="w-6 h-6 text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              Save Favorites
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <h3 className="font-semibold text-foreground">Save Favorites</h3>
+            <p className="text-sm text-muted-foreground">
               Build your personal collection of natural remedies. Access your
               favorites anytime, from any device.
             </p>

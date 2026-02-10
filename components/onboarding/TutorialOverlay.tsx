@@ -172,13 +172,13 @@ export function TutorialOverlay({ onComplete, onSkip }: TutorialOverlayProps) {
 
       {/* Tooltip */}
       <div
-        className="absolute w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6"
+        className="absolute w-80 bg-card rounded-xl shadow-2xl p-6"
         style={getTooltipPosition()}
       >
         {/* Close button */}
         <button
           onClick={onSkip}
-          className="absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          className="absolute top-3 right-3 p-1 text-muted-foreground hover:text-foreground"
           aria-label="Skip tutorial"
         >
           <X className="w-4 h-4" />
@@ -194,19 +194,17 @@ export function TutorialOverlay({ onComplete, onSkip }: TutorialOverlayProps) {
                   ? "bg-primary"
                   : index < currentStep
                     ? "bg-primary/50"
-                    : "bg-gray-200 dark:bg-gray-700"
+                    : "bg-muted"
               }`}
             />
           ))}
         </div>
 
         {/* Content */}
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           {step.title}
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
-          {step.description}
-        </p>
+        <p className="text-sm text-muted-foreground mb-6">{step.description}</p>
 
         {/* Navigation */}
         <div className="flex items-center justify-between">
@@ -215,15 +213,15 @@ export function TutorialOverlay({ onComplete, onSkip }: TutorialOverlayProps) {
             disabled={isFirstStep}
             className={`flex items-center gap-1 text-sm font-medium ${
               isFirstStep
-                ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                ? "text-muted-foreground/40 cursor-not-allowed"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <ChevronLeft className="w-4 h-4" />
             Back
           </button>
 
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-muted-foreground">
             {currentStep + 1} of {tutorialSteps.length}
           </span>
 

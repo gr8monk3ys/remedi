@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { Check, Leaf } from "lucide-react";
 
- 
 interface GetStartedStepProps {}
 
 export function GetStartedStep(_props: GetStartedStepProps): React.ReactNode {
   return (
     <div className="space-y-6">
-      <p className="text-gray-600 dark:text-gray-300">
+      <p className="text-muted-foreground">
         Create a free account to unlock all features, or continue exploring as a
         guest.
       </p>
@@ -25,10 +24,10 @@ export function GetStartedStep(_props: GetStartedStepProps): React.ReactNode {
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+            <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
+            <span className="px-2 bg-card text-muted-foreground">
               or sign up with
             </span>
           </div>
@@ -38,7 +37,7 @@ export function GetStartedStep(_props: GetStartedStepProps): React.ReactNode {
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirects require <a> tags */}
           <a
             href="/sign-in"
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-card border border-border rounded-lg hover:bg-muted transition-colors"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -58,15 +57,13 @@ export function GetStartedStep(_props: GetStartedStepProps): React.ReactNode {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Google
-            </span>
+            <span className="text-sm font-medium text-foreground">Google</span>
           </a>
 
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirects require <a> tags */}
           <a
             href="/sign-in"
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <path
@@ -80,11 +77,11 @@ export function GetStartedStep(_props: GetStartedStepProps): React.ReactNode {
         </div>
       </div>
 
-      <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-        <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+      <div className="p-4 bg-muted rounded-xl">
+        <h4 className="font-medium text-foreground mb-2">
           Benefits of an account:
         </h4>
-        <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+        <ul className="space-y-2 text-sm text-muted-foreground">
           <li className="flex items-center gap-2">
             <Check className="w-4 h-4 text-green-500" />
             Save favorites across devices

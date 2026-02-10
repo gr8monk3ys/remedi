@@ -41,7 +41,24 @@ export function JournalOverview({
   const [entries, setEntries] = useState(recentEntries);
 
   function handleNewEntry(entry: Record<string, unknown>): void {
-    setEntries([entry as unknown as JournalEntry, ...entries]);
+    const parsed: JournalEntry = {
+      id: String(entry.id ?? ""),
+      remedyId: String(entry.remedyId ?? ""),
+      remedyName: String(entry.remedyName ?? ""),
+      date: entry.date instanceof Date ? entry.date : new Date(),
+      rating: Number(entry.rating ?? 0),
+      symptoms: Array.isArray(entry.symptoms) ? entry.symptoms : [],
+      sideEffects: Array.isArray(entry.sideEffects) ? entry.sideEffects : [],
+      dosageTaken:
+        typeof entry.dosageTaken === "string" ? entry.dosageTaken : null,
+      notes: typeof entry.notes === "string" ? entry.notes : null,
+      mood: typeof entry.mood === "number" ? entry.mood : null,
+      energyLevel:
+        typeof entry.energyLevel === "number" ? entry.energyLevel : null,
+      sleepQuality:
+        typeof entry.sleepQuality === "number" ? entry.sleepQuality : null,
+    };
+    setEntries([parsed, ...entries]);
     setShowForm(false);
   }
 

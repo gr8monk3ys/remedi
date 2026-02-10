@@ -1,10 +1,9 @@
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { PLANS, type PlanType } from "@/lib/stripe";
+import { PLANS, parsePlanType } from "@/lib/stripe";
 import { StatsCard, StatsGridSkeleton } from "@/components/dashboard/StatsCard";
 import {
-
   ActivityFeed,
   ActivityFeedSkeleton,
 } from "@/components/dashboard/ActivityFeed";
@@ -13,8 +12,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Search, Heart, Star, Sparkles } from "lucide-react";
 import type { ActivityItem, UsageData } from "@/types/dashboard";
 import type { Metadata } from "next";
-export const dynamic = 'force-dynamic';
-
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Overview",
@@ -38,10 +36,10 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       {/* Welcome Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl font-bold text-foreground">
           Welcome back, {user.name?.split(" ")[0] || "there"}!
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-muted-foreground mt-1">
           Here is an overview of your activity and account.
         </p>
       </div>
@@ -65,7 +63,7 @@ export default async function DashboardPage() {
           {/* Usage Stats */}
           <Suspense
             fallback={
-              <div className="h-48 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-xl" />
+              <div className="h-48 animate-pulse bg-muted rounded-xl" />
             }
           >
             <UsageStats userId={user.id} />
@@ -109,7 +107,7 @@ async function DashboardStats({ userId }: { userId: string }) {
       }),
     ]);
 
-  const currentPlan = (subscription?.plan as PlanType) || "free";
+  const currentPlan = parsePlanType(subscription?.plan);
   const planDetails = PLANS[currentPlan];
   const aiLimit = planDetails.limits.aiSearches;
   // AI searches are always capped (0, 10, or 50), never unlimited
@@ -227,7 +225,7 @@ async function UsageStats({ userId }: { userId: string }) {
     select: { plan: true },
   });
 
-  const currentPlan = (subscription?.plan as PlanType) || "free";
+  const currentPlan = parsePlanType(subscription?.plan);
   const planDetails = PLANS[currentPlan];
 
   // Get current usage

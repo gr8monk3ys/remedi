@@ -2,82 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Search,
-  Sparkles,
-  SlidersHorizontal,
-  Heart,
-  Moon,
-} from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useOnboarding } from "@/context/OnboardingContext";
 import { cn } from "@/lib/utils";
-
-// Tour step configuration
-interface TourStep {
-  id: string;
-  title: string;
-  description: string;
-  targetSelector: string;
-  position: "top" | "bottom" | "left" | "right";
-  icon: React.ReactNode;
-  highlight?: boolean;
-}
-
-const TOUR_STEPS: TourStep[] = [
-  {
-    id: "search",
-    title: "Smart Search",
-    description:
-      "Enter any pharmaceutical or supplement name to find natural alternatives. Try 'ibuprofen' or 'vitamin D' to get started.",
-    targetSelector: "[data-search-input]",
-    position: "bottom",
-    icon: <Search className="w-5 h-5" />,
-    highlight: true,
-  },
-  {
-    id: "ai-toggle",
-    title: "AI-Powered Search",
-    description:
-      "Toggle on AI search for smarter results. You can describe symptoms in natural language like 'I have trouble sleeping' or 'need help with joint pain'.",
-    targetSelector: "[data-ai-toggle]",
-    position: "bottom",
-    icon: <Sparkles className="w-5 h-5" />,
-    highlight: true,
-  },
-  {
-    id: "filters",
-    title: "Filter Results",
-    description:
-      "Use filters to narrow down results by category or nutrient type. Find exactly what you're looking for faster.",
-    targetSelector: "[data-filter-toggle]",
-    position: "bottom",
-    icon: <SlidersHorizontal className="w-5 h-5" />,
-    highlight: true,
-  },
-  {
-    id: "favorites",
-    title: "Save Your Favorites",
-    description:
-      "Click the heart icon on any remedy to save it to your collection. Access your favorites anytime, from any device.",
-    targetSelector: "[data-favorite-button]",
-    position: "left",
-    icon: <Heart className="w-5 h-5" />,
-    highlight: true,
-  },
-  {
-    id: "dark-mode",
-    title: "Dark Mode",
-    description:
-      "Toggle between light and dark mode for comfortable viewing. Your preference is saved automatically.",
-    targetSelector: "[data-theme-toggle]",
-    position: "bottom",
-    icon: <Moon className="w-5 h-5" />,
-    highlight: true,
-  },
-];
+import { TOUR_STEPS } from "./feature-tour.constants";
 
 interface FeatureTourProps {
   onComplete?: () => void;
@@ -357,7 +285,7 @@ export function FeatureTour({ onComplete, onSkip }: FeatureTourProps) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
-        className="absolute w-[340px] bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden"
+        className="absolute w-[340px] bg-card rounded-xl shadow-2xl overflow-hidden"
         style={getTooltipPosition()}
       >
         {/* Header */}
@@ -398,14 +326,14 @@ export function FeatureTour({ onComplete, onSkip }: FeatureTourProps) {
                     ? "bg-green-500"
                     : index < currentStep
                       ? "bg-green-500/50"
-                      : "bg-gray-200 dark:bg-gray-700",
+                      : "bg-muted",
                 )}
                 aria-label={`Go to step ${index + 1}`}
               />
             ))}
           </div>
 
-          <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+          <p className="text-muted-foreground text-sm mb-4">
             {step?.description}
           </p>
 
@@ -417,15 +345,15 @@ export function FeatureTour({ onComplete, onSkip }: FeatureTourProps) {
               className={cn(
                 "flex items-center gap-1 text-sm font-medium transition-colors",
                 isFirstStep
-                  ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white",
+                  ? "text-muted-foreground/40 cursor-not-allowed"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <ChevronLeft className="w-4 h-4" />
               Back
             </button>
 
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-muted-foreground">
               {currentStep + 1} of {TOUR_STEPS.length}
             </span>
 
@@ -439,12 +367,12 @@ export function FeatureTour({ onComplete, onSkip }: FeatureTourProps) {
           </div>
 
           {/* Don't show again */}
-          <label className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400 cursor-pointer">
+          <label className="flex items-center gap-2 mt-4 pt-4 border-t border-border text-sm text-muted-foreground cursor-pointer">
             <input
               type="checkbox"
               checked={dontShowAgain}
               onChange={(e) => setDontShowAgain(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-green-600 focus:ring-green-500"
+              className="w-4 h-4 rounded border-border text-green-600 focus:ring-green-500"
             />
             Do not show this tour again
           </label>
