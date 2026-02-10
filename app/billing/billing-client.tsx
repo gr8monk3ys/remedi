@@ -7,9 +7,13 @@
  */
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Check, Loader2, CreditCard, Sparkles } from "lucide-react";
 import { PLANS, type PlanType } from "@/lib/stripe-config";
 import { fetchWithCSRF } from "@/lib/fetch";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("billing");
 
 interface BillingClientProps {
   currentPlan: PlanType;
@@ -43,11 +47,11 @@ export function BillingClient({
       if (data.success && data.data.url) {
         window.location.href = data.data.url;
       } else {
-        alert(data.error?.message || "Failed to start checkout");
+        toast.error(data.error?.message || "Failed to start checkout");
       }
     } catch (error) {
-      console.error("Checkout error:", error);
-      alert("Failed to start checkout. Please try again.");
+      logger.error("Checkout error", error);
+      toast.error("Failed to start checkout. Please try again.");
     } finally {
       setLoading(null);
     }
@@ -65,11 +69,11 @@ export function BillingClient({
       if (data.success && data.data.url) {
         window.location.href = data.data.url;
       } else {
-        alert(data.error?.message || "Failed to open billing portal");
+        toast.error(data.error?.message || "Failed to open billing portal");
       }
     } catch (error) {
-      console.error("Billing portal error:", error);
-      alert("Failed to open billing portal. Please try again.");
+      logger.error("Billing portal error", error);
+      toast.error("Failed to open billing portal. Please try again.");
     } finally {
       setLoading(null);
     }
@@ -79,13 +83,13 @@ export function BillingClient({
     <div>
       {/* Billing Interval Toggle */}
       <div className="flex justify-center mb-8">
-        <div className="bg-gray-100 dark:bg-zinc-800 p-1 rounded-lg inline-flex">
+        <div className="bg-muted p-1 rounded-lg inline-flex">
           <button
             onClick={() => setIsYearly(false)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               !isYearly
-                ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-sm"
-                : "text-gray-600 dark:text-gray-400"
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground"
             }`}
           >
             Monthly
@@ -94,8 +98,8 @@ export function BillingClient({
             onClick={() => setIsYearly(true)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               isYearly
-                ? "bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-sm"
-                : "text-gray-600 dark:text-gray-400"
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground"
             }`}
           >
             Yearly
@@ -159,7 +163,7 @@ export function BillingClient({
           <button
             onClick={handleManageBilling}
             disabled={loading === "manage"}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 text-gray-800 dark:text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-muted hover:bg-muted/80 text-foreground rounded-lg font-medium transition-colors disabled:opacity-50"
           >
             {loading === "manage" ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -168,7 +172,7 @@ export function BillingClient({
             )}
             Manage Subscription
           </button>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             Update payment method, view invoices, or cancel subscription
           </p>
         </div>
@@ -205,10 +209,10 @@ function PlanCard({
 }: PlanCardProps) {
   return (
     <div
-      className={`relative bg-white dark:bg-zinc-800 rounded-xl shadow-md overflow-hidden ${
+      className={`relative bg-card rounded-xl shadow-md overflow-hidden ${
         highlighted
           ? "ring-2 ring-blue-500 dark:ring-blue-400"
-          : "border border-gray-200 dark:border-zinc-700"
+          : "border border-border"
       }`}
     >
       {highlighted && (
@@ -219,20 +223,16 @@ function PlanCard({
       )}
 
       <div className={`p-6 ${highlighted ? "pt-10" : ""}`}>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-          {name}
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-          {description}
-        </p>
+        <h3 className="text-xl font-bold text-foreground mb-2">{name}</h3>
+        <p className="text-muted-foreground text-sm mb-4">{description}</p>
 
         <div className="mb-6">
-          <span className="text-4xl font-bold text-gray-900 dark:text-white">
+          <span className="text-4xl font-bold text-foreground">
             ${price.toFixed(2)}
           </span>
-          <span className="text-gray-500 dark:text-gray-400">/month</span>
+          <span className="text-muted-foreground">/month</span>
           {yearlyPrice && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Billed ${yearlyPrice.toFixed(2)}/year
             </p>
           )}
@@ -245,10 +245,10 @@ function PlanCard({
             isCurrentPlan
               ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 cursor-default"
               : disabled
-                ? "bg-gray-100 dark:bg-zinc-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                ? "bg-muted text-muted-foreground cursor-not-allowed"
                 : highlighted
                   ? "bg-blue-500 hover:bg-blue-600 text-white"
-                  : "bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
           }`}
         >
           {loading ? (
@@ -269,7 +269,7 @@ function PlanCard({
           {features.map((feature) => (
             <li
               key={feature}
-              className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
+              className="flex items-start gap-2 text-sm text-muted-foreground"
             >
               <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
               {feature}

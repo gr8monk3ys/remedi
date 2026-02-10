@@ -13,6 +13,8 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { type PlanType, PLAN_LIMITS } from "@/lib/stripe-config";
+import { apiClient } from "@/lib/api/client";
+import { logger } from "@/lib/logger";
 import { UpgradeModal } from "./UpgradeModal";
 
 type FeatureKey =
@@ -126,30 +128,25 @@ export function FeatureGate({
 
       // User is authenticated - check their plan (session used for auth status above)
       try {
-        const response = await fetch("/api/usage");
-        const data = await response.json();
+        const data = await apiClient.get<{ plan: string }>("/api/usage");
+        const userPlan = data.plan as PlanType;
+        setCurrentPlan(userPlan);
 
-        if (data.success) {
-          const userPlan = data.data.plan as PlanType;
-          setCurrentPlan(userPlan);
+        // Check if user's plan has access to this feature
+        const planLimits =
+          PLAN_LIMITS[userPlan.toUpperCase() as keyof typeof PLAN_LIMITS];
+        const hasFeatureAccess = planLimits[feature] === true;
 
-          // Check if user's plan has access to this feature
-          const planLimits =
-            PLAN_LIMITS[userPlan.toUpperCase() as keyof typeof PLAN_LIMITS];
-          const hasFeatureAccess = planLimits[feature] === true;
+        // Also check minimum plan requirement
+        const minPlan = requiredPlan || featureMinPlan[feature];
+        const planOrder: PlanType[] = ["free", "basic", "premium"];
+        const userPlanIndex = planOrder.indexOf(userPlan);
+        const requiredPlanIndex = planOrder.indexOf(minPlan);
+        const meetsMinPlan = userPlanIndex >= requiredPlanIndex;
 
-          // Also check minimum plan requirement
-          const minPlan = requiredPlan || featureMinPlan[feature];
-          const planOrder: PlanType[] = ["free", "basic", "premium"];
-          const userPlanIndex = planOrder.indexOf(userPlan);
-          const requiredPlanIndex = planOrder.indexOf(minPlan);
-          const meetsMinPlan = userPlanIndex >= requiredPlanIndex;
-
-          setHasAccess(hasFeatureAccess && meetsMinPlan);
-        } else {
-          setHasAccess(false);
-        }
-      } catch {
+        setHasAccess(hasFeatureAccess && meetsMinPlan);
+      } catch (error) {
+        logger.warn("Feature gate check failed", { error, feature });
         setHasAccess(false);
       }
 
@@ -179,7 +176,7 @@ export function FeatureGate({
     return (
       <div className={`relative ${className}`}>
         <div className="flex items-center justify-center p-8">
-          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       </div>
     );
@@ -220,24 +217,22 @@ export function FeatureGate({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-lg"
+            className="absolute inset-0 bg-background/80 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-lg"
           >
             <div className="text-center p-6 max-w-sm">
               {/* Lock icon */}
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-100 dark:bg-zinc-800 mb-4">
-                <Lock className="w-7 h-7 text-gray-400 dark:text-gray-500" />
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-muted mb-4">
+                <Lock className="w-7 h-7 text-muted-foreground" />
               </div>
 
               {/* Message */}
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 {featureNames[feature]}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 {featureDescriptions[feature]}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
-                {message}
-              </p>
+              <p className="text-xs text-muted-foreground mb-4">{message}</p>
 
               {/* Upgrade button */}
               <motion.button
@@ -251,7 +246,7 @@ export function FeatureGate({
               </motion.button>
 
               {!isSignedIn && isAuthLoaded && (
-                <p className="text-xs text-gray-500 dark:text-gray-500 mt-3">
+                <p className="text-xs text-muted-foreground mt-3">
                   Sign in required
                 </p>
               )}
@@ -311,20 +306,15 @@ export function useFeatureAccess(feature: FeatureKey): {
       }
 
       try {
-        const response = await fetch("/api/usage");
-        const data = await response.json();
+        const data = await apiClient.get<{ plan: string }>("/api/usage");
+        const userPlan = data.plan as PlanType;
+        setCurrentPlan(userPlan);
 
-        if (data.success) {
-          const userPlan = data.data.plan as PlanType;
-          setCurrentPlan(userPlan);
-
-          const planLimits =
-            PLAN_LIMITS[userPlan.toUpperCase() as keyof typeof PLAN_LIMITS];
-          setHasAccess(planLimits[feature] === true);
-        } else {
-          setHasAccess(false);
-        }
-      } catch {
+        const planLimits =
+          PLAN_LIMITS[userPlan.toUpperCase() as keyof typeof PLAN_LIMITS];
+        setHasAccess(planLimits[feature] === true);
+      } catch (error) {
+        logger.warn("Feature access check failed", { error, feature });
         setHasAccess(false);
       }
 

@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 import { Metadata } from "next";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { type PlanType } from "@/lib/stripe";
+import { parsePlanType, type PlanType } from "@/lib/stripe";
 import { getTrialStatus } from "@/lib/trial";
 import { PricingClient } from "./pricing-client";
 
@@ -39,7 +39,7 @@ export default async function PricingPage() {
     });
 
     if (subscription?.status === "active") {
-      currentPlan = subscription.plan as PlanType;
+      currentPlan = parsePlanType(subscription.plan);
     }
 
     hasActiveSubscription = !!subscription?.stripeSubscriptionId;
@@ -50,14 +50,14 @@ export default async function PricingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-zinc-900 dark:to-zinc-950">
+    <main className="min-h-screen bg-gradient-to-b from-background to-muted">
       {/* Hero Section */}
       <section className="pt-24 pb-12 px-4">
         <div className="container mx-auto max-w-6xl text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Simple, Transparent Pricing
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
             Choose the plan that fits your natural wellness journey. All plans
             include a 14-day money-back guarantee.
           </p>
@@ -95,23 +95,23 @@ export default async function PricingPage() {
       </section>
 
       {/* Feature Comparison Table */}
-      <section className="py-16 px-4 bg-white dark:bg-zinc-800/50">
+      <section className="py-16 px-4 bg-card">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
+          <h2 className="text-3xl font-bold text-center text-foreground mb-12">
             Compare All Features
           </h2>
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b-2 border-gray-200 dark:border-zinc-700">
-                  <th className="text-left py-4 px-4 font-semibold text-gray-900 dark:text-white">
+                <tr className="border-b-2 border-border">
+                  <th className="text-left py-4 px-4 font-semibold text-foreground">
                     Feature
                   </th>
-                  <th className="text-center py-4 px-4 font-semibold text-gray-900 dark:text-white">
+                  <th className="text-center py-4 px-4 font-semibold text-foreground">
                     Free
                   </th>
-                  <th className="text-center py-4 px-4 font-semibold text-gray-900 dark:text-white">
+                  <th className="text-center py-4 px-4 font-semibold text-foreground">
                     Basic
                   </th>
                   <th className="text-center py-4 px-4 font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-t-lg">
@@ -123,11 +123,11 @@ export default async function PricingPage() {
                 {featureComparison.map((feature, index) => (
                   <tr
                     key={feature.name}
-                    className={`border-b border-gray-100 dark:border-zinc-700 ${
-                      index % 2 === 0 ? "bg-gray-50/50 dark:bg-zinc-800/30" : ""
+                    className={`border-b border-border ${
+                      index % 2 === 0 ? "bg-muted/50" : ""
                     }`}
                   >
-                    <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                    <td className="py-4 px-4 text-foreground">
                       {feature.name}
                     </td>
                     <td className="py-4 px-4 text-center">
@@ -150,16 +150,13 @@ export default async function PricingPage() {
       {/* Testimonials */}
       <section className="py-16 px-4">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
+          <h2 className="text-3xl font-bold text-center text-foreground mb-12">
             What Our Users Say
           </h2>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="bg-white dark:bg-zinc-800 rounded-xl p-6 shadow-md"
-              >
+              <div key={index} className="bg-card rounded-xl p-6 shadow-md">
                 <div className="flex items-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
                     <svg
@@ -172,7 +169,7 @@ export default async function PricingPage() {
                     </svg>
                   ))}
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 mb-4 italic">
+                <p className="text-muted-foreground mb-4 italic">
                   &ldquo;{testimonial.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
@@ -180,10 +177,10 @@ export default async function PricingPage() {
                     {testimonial.name[0]}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className="font-semibold text-foreground">
                       {testimonial.name}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       {testimonial.title}
                     </p>
                   </div>
@@ -195,24 +192,21 @@ export default async function PricingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16 px-4 bg-white dark:bg-zinc-800/50">
+      <section className="py-16 px-4 bg-card">
         <div className="container mx-auto max-w-3xl">
-          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
+          <h2 className="text-3xl font-bold text-center text-foreground mb-12">
             Frequently Asked Questions
           </h2>
 
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <details
-                key={index}
-                className="group bg-gray-50 dark:bg-zinc-800 rounded-lg"
-              >
+              <details key={index} className="group bg-muted rounded-lg">
                 <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                  <h3 className="font-semibold text-gray-900 dark:text-white pr-4">
+                  <h3 className="font-semibold text-foreground pr-4">
                     {faq.question}
                   </h3>
                   <svg
-                    className="w-5 h-5 text-gray-500 dark:text-gray-400 group-open:rotate-180 transition-transform"
+                    className="w-5 h-5 text-muted-foreground group-open:rotate-180 transition-transform"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -226,9 +220,7 @@ export default async function PricingPage() {
                   </svg>
                 </summary>
                 <div className="px-6 pb-6 pt-0">
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {faq.answer}
-                  </p>
+                  <p className="text-muted-foreground">{faq.answer}</p>
                 </div>
               </details>
             ))}
@@ -239,10 +231,10 @@ export default async function PricingPage() {
       {/* CTA Section */}
       <section className="py-16 px-4">
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-3xl font-bold text-foreground mb-4">
             Ready to Start Your Natural Wellness Journey?
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
+          <p className="text-xl text-muted-foreground mb-8">
             Join thousands of users discovering natural alternatives with
             Remedi.
           </p>
@@ -295,7 +287,7 @@ function FeatureValue({
         />
       </svg>
     ) : (
-      <span className="text-gray-400 dark:text-gray-600">-</span>
+      <span className="text-muted-foreground">-</span>
     );
   }
 
@@ -304,7 +296,7 @@ function FeatureValue({
       className={`${
         highlight
           ? "text-blue-600 dark:text-blue-400 font-medium"
-          : "text-gray-700 dark:text-gray-300"
+          : "text-foreground"
       }`}
     >
       {value}

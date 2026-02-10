@@ -9,7 +9,9 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { fetchWithCSRF } from "@/lib/fetch";
+import { apiClient, ApiClientError } from "@/lib/api/client";
+import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Clock, X, Loader2 } from "lucide-react";
@@ -61,14 +63,10 @@ export function TrialBanner({
 
     const fetchTrialStatus = async () => {
       try {
-        const response = await fetch("/api/trial/check");
-        const data = await response.json();
-
-        if (data.success) {
-          setTrialStatus(data.data);
-        }
-      } catch {
-        // Silently fail
+        const data = await apiClient.get<TrialStatus>("/api/trial/check");
+        setTrialStatus(data);
+      } catch (error) {
+        logger.warn("Failed to fetch trial status", { error });
       }
 
       setIsLoading(false);
@@ -132,7 +130,7 @@ export function TrialBanner({
             <div className="flex items-center gap-3">
               <button
                 onClick={handleUpgrade}
-                className="px-4 py-1.5 bg-white text-gray-900 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors flex items-center gap-1.5"
+                className="px-4 py-1.5 bg-white text-gray-900 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5"
               >
                 Upgrade Now
               </button>
@@ -170,14 +168,10 @@ export function TrialBadge({ className = "" }: { className?: string }) {
 
     const fetchTrialStatus = async () => {
       try {
-        const response = await fetch("/api/trial/check");
-        const data = await response.json();
-
-        if (data.success) {
-          setTrialStatus(data.data);
-        }
-      } catch {
-        // Silently fail
+        const data = await apiClient.get<TrialStatus>("/api/trial/check");
+        setTrialStatus(data);
+      } catch (error) {
+        logger.warn("Failed to fetch trial status for badge", { error });
       }
 
       setIsLoading(false);
@@ -232,14 +226,12 @@ export function StartTrialButton({
 
     const checkEligibility = async () => {
       try {
-        const response = await fetch("/api/trial/check");
-        const data = await response.json();
-
-        if (data.success) {
-          setIsEligible(data.data.isEligible);
-        }
-      } catch {
-        // Silently fail
+        const data = await apiClient.get<{ isEligible: boolean }>(
+          "/api/trial/check",
+        );
+        setIsEligible(data.isEligible);
+      } catch (error) {
+        logger.warn("Failed to check trial eligibility", { error });
       }
 
       setIsLoading(false);
@@ -258,20 +250,15 @@ export function StartTrialButton({
 
     setIsStarting(true);
     try {
-      const response = await fetchWithCSRF("/api/trial/start", {
-        method: "POST",
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        router.refresh();
-      } else {
-        alert(data.error?.message || "Failed to start trial");
-      }
+      await apiClient.post("/api/trial/start");
+      router.refresh();
     } catch (error) {
-      console.error("Trial start error:", error);
-      alert("Failed to start trial. Please try again.");
+      logger.error("Trial start error", error);
+      toast.error(
+        error instanceof ApiClientError
+          ? error.message
+          : "Failed to start trial. Please try again.",
+      );
     } finally {
       setIsStarting(false);
     }
@@ -290,8 +277,7 @@ export function StartTrialButton({
   const variantClasses = {
     primary:
       "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white",
-    secondary:
-      "bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-zinc-700",
+    secondary: "bg-muted text-foreground hover:bg-muted/80",
     outline:
       "border-2 border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20",
   };

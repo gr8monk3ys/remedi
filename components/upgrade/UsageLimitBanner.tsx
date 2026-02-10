@@ -18,6 +18,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
+import { apiClient } from "@/lib/api/client";
+import { logger } from "@/lib/logger";
 import { type PlanType } from "@/lib/stripe-config";
 import { UpgradeModal } from "./UpgradeModal";
 
@@ -111,14 +113,10 @@ export function UsageLimitBanner({
     }
 
     try {
-      const response = await fetch("/api/usage");
-      const data = await response.json();
-
-      if (data.success) {
-        setUsage(data.data as UsageSummary);
-      }
-    } catch {
-      // Silently fail
+      const data = await apiClient.get<UsageSummary>("/api/usage");
+      setUsage(data);
+    } catch (error) {
+      logger.warn("Failed to fetch usage data", { error });
     }
 
     setIsLoading(false);
@@ -277,7 +275,7 @@ export function UsageLimitBanner({
                 </p>
 
                 {/* Progress bar */}
-                <div className="mt-3 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{
@@ -296,7 +294,7 @@ export function UsageLimitBanner({
 
                 {/* Reset time */}
                 <div className="flex items-center gap-4 mt-3">
-                  <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Clock className="w-3.5 h-3.5" />
                     <span>
                       Resets in {hoursUntilReset} hour
@@ -306,7 +304,7 @@ export function UsageLimitBanner({
 
                   <button
                     onClick={handleRefresh}
-                    className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     Refresh
@@ -328,7 +326,7 @@ export function UsageLimitBanner({
                   </button>
 
                   {usage.plan === "free" && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                    <span className="text-xs text-muted-foreground">
                       Trial available with Premium
                     </span>
                   )}
@@ -395,13 +393,10 @@ export function UsageIndicator({
 
     const fetchUsage = async () => {
       try {
-        const response = await fetch("/api/usage");
-        const data = await response.json();
-        if (data.success) {
-          setUsage(data.data as UsageSummary);
-        }
-      } catch {
-        // Silently fail
+        const data = await apiClient.get<UsageSummary>("/api/usage");
+        setUsage(data);
+      } catch (error) {
+        logger.warn("Failed to fetch usage indicator data", { error });
       }
     };
 
@@ -425,12 +420,15 @@ export function UsageIndicator({
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       {showLabel && (
-        <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+        <span
+          className="text-xs text-muted-foreground capitalize"
+          aria-label={`${limitNames[limitType]} usage`}
+        >
           {limitNames[limitType]}:
         </span>
       )}
       <div className="flex items-center gap-1.5">
-        <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all ${
               isExhausted
@@ -448,7 +446,7 @@ export function UsageIndicator({
               ? "text-red-600 dark:text-red-400"
               : isLow
                 ? "text-yellow-600 dark:text-yellow-400"
-                : "text-gray-600 dark:text-gray-400"
+                : "text-muted-foreground"
           }`}
         >
           {limitData.used}/{limitData.limit}

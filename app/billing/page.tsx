@@ -10,7 +10,7 @@ import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { PLANS, type PlanType } from "@/lib/stripe";
+import { PLANS, parsePlanType } from "@/lib/stripe";
 import { BillingClient } from "./billing-client";
 
 export const metadata: Metadata = {
@@ -35,11 +35,11 @@ export default async function BillingPage({
     where: { userId: user.id },
   });
 
-  const currentPlan = (subscription?.plan || "free") as PlanType;
+  const currentPlan = parsePlanType(subscription?.plan);
   const planDetails = PLANS[currentPlan] || PLANS.free;
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-12">
+    <main className="min-h-screen bg-muted py-12">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Success/Cancel Messages */}
         {params.success === "true" && (
@@ -59,23 +59,21 @@ export default async function BillingPage({
 
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-3xl font-bold text-foreground mb-4">
             Choose Your Plan
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             Get access to more features and unlock the full potential of Remedi.
             All plans include a 14-day money-back guarantee.
           </p>
         </div>
 
         {/* Current Plan Banner */}
-        <div className="mb-8 p-6 bg-white dark:bg-zinc-800 rounded-xl shadow-md">
+        <div className="mb-8 p-6 bg-card rounded-xl shadow-md">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Current Plan
-              </p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm text-muted-foreground">Current Plan</p>
+              <p className="text-2xl font-bold text-foreground">
                 {planDetails.name}
               </p>
               {subscription?.status && subscription.status !== "active" && (
@@ -91,10 +89,10 @@ export default async function BillingPage({
             </div>
             {subscription?.currentPeriodEnd && currentPlan !== "free" && (
               <div className="text-right">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   Next billing date
                 </p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">
+                <p className="text-lg font-medium text-foreground">
                   {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
                 </p>
               </div>
@@ -110,42 +108,42 @@ export default async function BillingPage({
 
         {/* FAQ Section */}
         <div className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
             Frequently Asked Questions
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-zinc-800 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+            <div className="bg-card rounded-lg p-6">
+              <h3 className="font-semibold text-foreground mb-2">
                 Can I cancel anytime?
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-muted-foreground">
                 Yes, you can cancel your subscription at any time. You will
                 continue to have access until the end of your billing period.
               </p>
             </div>
-            <div className="bg-white dark:bg-zinc-800 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+            <div className="bg-card rounded-lg p-6">
+              <h3 className="font-semibold text-foreground mb-2">
                 What payment methods do you accept?
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-muted-foreground">
                 We accept all major credit cards including Visa, Mastercard,
                 American Express, and Discover.
               </p>
             </div>
-            <div className="bg-white dark:bg-zinc-800 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+            <div className="bg-card rounded-lg p-6">
+              <h3 className="font-semibold text-foreground mb-2">
                 Is there a free trial?
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-muted-foreground">
                 We offer a 14-day money-back guarantee. If you are not
                 satisfied, contact us for a full refund.
               </p>
             </div>
-            <div className="bg-white dark:bg-zinc-800 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+            <div className="bg-card rounded-lg p-6">
+              <h3 className="font-semibold text-foreground mb-2">
                 Can I change plans later?
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-muted-foreground">
                 Yes, you can upgrade or downgrade your plan at any time. Changes
                 take effect on your next billing cycle.
               </p>
