@@ -93,6 +93,9 @@ export function getUsagePercentage(
   return Math.min(100, Math.round((currentUsage / limit) * 100));
 }
 
+/** Yearly billing discount percentage */
+export const YEARLY_DISCOUNT_PERCENT = 20;
+
 /**
  * Subscription plan configuration
  *
@@ -165,6 +168,19 @@ export const PLANS = {
 } as const;
 
 export type PlanType = keyof typeof PLANS;
+
+const VALID_PLANS = Object.keys(PLANS) as PlanType[];
+
+/**
+ * Safely parse an unknown string into a valid PlanType.
+ * Returns 'free' for null, undefined, or unrecognised values.
+ */
+export function parsePlanType(value: string | null | undefined): PlanType {
+  const normalised = (value || "free").toLowerCase();
+  return VALID_PLANS.includes(normalised as PlanType)
+    ? (normalised as PlanType)
+    : "free";
+}
 
 /**
  * Check if a feature is available for a plan

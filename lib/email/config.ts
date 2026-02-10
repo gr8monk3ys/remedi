@@ -4,6 +4,8 @@
  * Configuration settings for email functionality.
  */
 
+import { getBaseUrl } from "@/lib/url";
+
 /**
  * Email rate limiting configuration
  * Prevents sending too many emails to the same address
@@ -50,12 +52,7 @@ export const EMAIL_URLS = {
  * Get full URL from relative path
  */
 export function getEmailUrl(path: string): string {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    (process.env.VERCEL_URL
-      ? "https://" + process.env.VERCEL_URL
-      : "http://localhost:3000");
-  return `${baseUrl}${path}`;
+  return `${getBaseUrl()}${path}`;
 }
 
 /**

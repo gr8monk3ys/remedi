@@ -7,47 +7,59 @@
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
  */
 
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("pwa");
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
 export function PWARegister() {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [showUpdatePrompt, setShowUpdatePrompt] = useState(false);
 
   useEffect(() => {
     // Only register service worker in production
-    if (process.env.NODE_ENV !== 'production' || typeof window === 'undefined') {
+    if (
+      process.env.NODE_ENV !== "production" ||
+      typeof window === "undefined"
+    ) {
       return;
     }
 
     // Check if service workers are supported
-    if ('serviceWorker' in navigator) {
+    if ("serviceWorker" in navigator) {
       // Register service worker
       navigator.serviceWorker
-        .register('/sw.js')
+        .register("/sw.js")
         .then((registration) => {
-          console.log('[PWA] Service worker registered:', registration.scope);
+          logger.info("Service worker registered", {
+            scope: registration.scope,
+          });
 
           // Check for updates every hour
-          setInterval(() => {
-            registration.update();
-          }, 60 * 60 * 1000);
+          setInterval(
+            () => {
+              registration.update();
+            },
+            60 * 60 * 1000,
+          );
 
           // Handle service worker updates
-          registration.addEventListener('updatefound', () => {
+          registration.addEventListener("updatefound", () => {
             const newWorker = registration.installing;
 
             if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
+              newWorker.addEventListener("statechange", () => {
                 if (
-                  newWorker.state === 'installed' &&
+                  newWorker.state === "installed" &&
                   navigator.serviceWorker.controller
                 ) {
                   // New service worker available
@@ -58,12 +70,12 @@ export function PWARegister() {
           });
         })
         .catch((error) => {
-          console.error('[PWA] Service worker registration failed:', error);
+          logger.error("Service worker registration failed", error);
         });
 
       // Handle controller change (new service worker activated)
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('[PWA] New service worker activated');
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        logger.info("New service worker activated");
         window.location.reload();
       });
     }
@@ -78,17 +90,20 @@ export function PWARegister() {
       setShowInstallPrompt(true);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     // Handle app installed
-    window.addEventListener('appinstalled', () => {
-      console.log('[PWA] App installed');
+    window.addEventListener("appinstalled", () => {
+      logger.info("App installed");
       setShowInstallPrompt(false);
       setDeferredPrompt(null);
     });
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
     };
   }, []);
 
@@ -100,7 +115,7 @@ export function PWARegister() {
 
     // Wait for the user's response
     const { outcome } = await deferredPrompt.userChoice;
-    console.log(`[PWA] User response to install prompt: ${outcome}`);
+    logger.info("User response to install prompt", { outcome });
 
     // Clear the deferred prompt
     setDeferredPrompt(null);
@@ -110,13 +125,13 @@ export function PWARegister() {
   const handleDismissInstall = () => {
     setShowInstallPrompt(false);
     // Store dismissal in localStorage to not show again for a while
-    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+    localStorage.setItem("pwa-install-dismissed", Date.now().toString());
   };
 
   const handleUpdate = () => {
     // Tell service worker to skip waiting and activate immediately
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: "SKIP_WAITING" });
     }
     setShowUpdatePrompt(false);
   };
@@ -125,14 +140,15 @@ export function PWARegister() {
     <>
       {/* Install Prompt */}
       {showInstallPrompt && (
-        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 z-50 border border-gray-200 dark:border-gray-700">
+        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-card shadow-lg rounded-lg p-4 z-50 border border-border">
           <div className="flex items-start">
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+              <h3 className="font-semibold text-foreground mb-1">
                 Install Remedi App
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                Install Remedi on your device for a better experience and offline access.
+              <p className="text-sm text-muted-foreground mb-3">
+                Install Remedi on your device for a better experience and
+                offline access.
               </p>
               <div className="flex gap-2">
                 <button
@@ -143,7 +159,7 @@ export function PWARegister() {
                 </button>
                 <button
                   onClick={handleDismissInstall}
-                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="px-4 py-2 bg-muted text-foreground rounded-lg text-sm font-medium hover:bg-muted/80 transition-colors"
                 >
                   Not Now
                 </button>
@@ -151,7 +167,7 @@ export function PWARegister() {
             </div>
             <button
               onClick={handleDismissInstall}
-              className="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              className="ml-2 text-muted-foreground hover:text-foreground"
               aria-label="Close"
             >
               <svg

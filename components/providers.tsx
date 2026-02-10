@@ -5,8 +5,19 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CompareProvider } from "@/context/CompareContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
-import { ComparisonBar } from "@/components/compare/ComparisonBar";
+import dynamic from "next/dynamic";
 import { Toaster } from "@/components/ui/toaster";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("providers");
+
+const ComparisonBar = dynamic(
+  () =>
+    import("@/components/compare/ComparisonBar").then((mod) => ({
+      default: mod.ComparisonBar,
+    })),
+  { ssr: false },
+);
 
 interface ProvidersProps {
   children: ReactNode;
@@ -39,10 +50,9 @@ class ClerkErrorBoundary extends Component<
   }
 
   override componentDidCatch(error: Error): void {
-    console.warn(
-      "Clerk failed to load, app will render without auth:",
-      error.message,
-    );
+    logger.warn("Clerk failed to load, app will render without auth", {
+      error: error.message,
+    });
   }
 
   override render(): ReactNode {

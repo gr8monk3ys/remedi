@@ -7,6 +7,9 @@
 import { getOpenAIClient } from "./client";
 import { buildNLPPrompt } from "./prompts";
 import type { NLPQueryResult } from "./types";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("ai-nlp");
 
 /**
  * Process natural language query to extract intent and entities
@@ -36,7 +39,7 @@ export async function processNaturalLanguageQuery(
 
     return JSON.parse(response);
   } catch (error) {
-    console.error("NLP processing error:", error);
+    logger.error("NLP processing error", error);
     return { intent: "search" };
   }
 }

@@ -141,9 +141,11 @@ export async function getTrackedRemedies(userId: string) {
  * Get effectiveness insights for a specific remedy
  */
 export async function getRemedyInsights(userId: string, remedyId: string) {
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
   const entries = await prisma.remedyJournal.findMany({
-    where: { userId, remedyId },
+    where: { userId, remedyId, date: { gte: ninetyDaysAgo } },
     orderBy: { date: "asc" },
+    take: 365,
   });
 
   if (entries.length === 0) {

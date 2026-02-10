@@ -81,7 +81,7 @@ Respond in JSON format with this structure:
  */
 export async function generateRemedyReport(
   params: ReportParams,
-): Promise<Record<string, unknown>> {
+): Promise<ReportContent | Record<string, unknown>> {
   const {
     userId,
     queryType,
@@ -237,7 +237,7 @@ export async function generateRemedyReport(
         "This report is for informational purposes only. Always consult a healthcare professional before making changes to your health regimen.",
     };
 
-    return reportContent as unknown as Record<string, unknown>;
+    return reportContent;
   } catch (error) {
     logger.error("Report generation failed", error);
     throw error;

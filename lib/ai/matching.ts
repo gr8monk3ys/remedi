@@ -7,6 +7,9 @@
 import { prisma } from "../db";
 import { getOpenAIClient } from "./client";
 import { buildMatchingPrompt, SYSTEM_PROMPT } from "./prompts";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("ai-matching");
 import type {
   AIMatchingOptions,
   AIRemedyRecommendation,
@@ -55,7 +58,7 @@ function parseAIResponse(
         );
     }
   } catch (error) {
-    console.error("Failed to parse AI response:", error);
+    logger.error("Failed to parse AI response", error);
   }
 
   return [];
@@ -119,7 +122,7 @@ export async function enhanceRemedyMatching(
 
     return parseAIResponse(response, allRemedies);
   } catch (error) {
-    console.error("AI matching error:", error);
+    logger.error("AI matching error", error);
     return [];
   }
 }

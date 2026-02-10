@@ -76,6 +76,9 @@ export class EnvValidationError extends Error {
 export function validateEnv(): void {
   // Skip validation during build (Vercel sets env vars at runtime, not build time)
   if (process.env.SKIP_ENV_VALIDATION === "true") {
+    console.warn(
+      "⚠️  SKIP_ENV_VALIDATION is active — environment variables are NOT being validated.",
+    );
     return;
   }
 

@@ -6,18 +6,22 @@
  * without requiring user authentication.
  */
 
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("session");
+
 /**
  * Generate a UUID v4
  */
 function generateUUID(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();
   }
 
   // Fallback for older browsers
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -30,11 +34,11 @@ function generateUUID(): string {
  */
 export function getSessionId(): string {
   // Check if we're in a browser environment
-  if (typeof window === 'undefined') {
-    return '';
+  if (typeof window === "undefined") {
+    return "";
   }
 
-  const SESSION_KEY = 'remedi_session_id';
+  const SESSION_KEY = "remedi_session_id";
 
   try {
     // Try to get existing session ID
@@ -49,7 +53,9 @@ export function getSessionId(): string {
     return sessionId;
   } catch (error) {
     // If localStorage is not available (e.g., private browsing), generate temporary ID
-    console.warn('localStorage not available, using temporary session:', error);
+    logger.warn("localStorage not available, using temporary session", {
+      error,
+    });
     return generateUUID();
   }
 }
@@ -59,16 +65,16 @@ export function getSessionId(): string {
  * Useful for testing or when user wants to start fresh
  */
 export function clearSessionId(): void {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return;
   }
 
-  const SESSION_KEY = 'remedi_session_id';
+  const SESSION_KEY = "remedi_session_id";
 
   try {
     localStorage.removeItem(SESSION_KEY);
   } catch (error) {
-    console.warn('Failed to clear session ID:', error);
+    logger.warn("Failed to clear session ID", { error });
   }
 }
 
@@ -76,11 +82,11 @@ export function clearSessionId(): void {
  * Check if session ID exists
  */
 export function hasSessionId(): boolean {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return false;
   }
 
-  const SESSION_KEY = 'remedi_session_id';
+  const SESSION_KEY = "remedi_session_id";
 
   try {
     return localStorage.getItem(SESSION_KEY) !== null;

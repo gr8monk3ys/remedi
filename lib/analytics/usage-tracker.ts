@@ -10,6 +10,7 @@ import {
   getPlanLimits,
   getUsagePercentage,
   isWithinLimit,
+  parsePlanType,
   type PlanType,
 } from "@/lib/stripe-config";
 import { getTrialStatus } from "@/lib/trial";
@@ -152,7 +153,7 @@ export async function incrementUsage(
       select: { plan: true, status: true },
     });
     if (subscription?.status === "active") {
-      plan = subscription.plan as PlanType;
+      plan = parsePlanType(subscription.plan);
     }
   }
 
@@ -222,7 +223,7 @@ export async function canPerformAction(
       select: { plan: true, status: true },
     });
     if (subscription?.status === "active") {
-      plan = subscription.plan as PlanType;
+      plan = parsePlanType(subscription.plan);
     }
   }
 
@@ -267,7 +268,7 @@ export async function getUsageSummary(userId: string): Promise<UsageSummary> {
       select: { plan: true, status: true },
     });
     if (subscription?.status === "active") {
-      plan = subscription.plan as PlanType;
+      plan = parsePlanType(subscription.plan);
     }
   }
 

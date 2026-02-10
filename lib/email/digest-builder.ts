@@ -15,9 +15,73 @@ import type { WeeklyDigestData } from "./types";
 
 const log = createLogger("digest-builder");
 
+/**
+ * Shared data that is identical across all users and can be pre-fetched once.
+ */
+export interface SharedDigestData {
+  newRemedies: Array<{
+    id: string;
+    name: string;
+    category: string | null;
+  }>;
+  topSearches: Array<{
+    query: string;
+    count: number;
+  }>;
+  weekAgo: Date;
+  periodStart: string;
+  periodEnd: string;
+}
+
+/**
+ * Fetches platform-wide data that is shared across all user digests.
+ * Call this once before processing users to avoid N+1 queries.
+ */
+export async function fetchSharedDigestData(): Promise<SharedDigestData> {
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const periodStart = weekAgo.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+  const periodEnd = now.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const [newRemedies, recentSearches] = await Promise.all([
+    prisma.naturalRemedy.findMany({
+      where: { createdAt: { gte: weekAgo } },
+      select: { id: true, name: true, category: true },
+      take: 10,
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.searchHistory.groupBy({
+      by: ["query"],
+      where: { createdAt: { gte: weekAgo } },
+      _count: { query: true },
+      orderBy: { _count: { query: "desc" } },
+      take: 5,
+    }),
+  ]);
+
+  return {
+    newRemedies,
+    topSearches: recentSearches.map((s) => ({
+      query: s.query,
+      count: s._count.query,
+    })),
+    weekAgo,
+    periodStart,
+    periodEnd,
+  };
+}
+
 export async function buildDigestData(
   userId: string,
   plan: PlanType,
+  sharedData?: SharedDigestData,
 ): Promise<WeeklyDigestData | null> {
   try {
     const user = await prisma.user.findUnique({
@@ -27,40 +91,18 @@ export async function buildDigestData(
 
     if (!user) return null;
 
-    const now = new Date();
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const periodStart = weekAgo.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-    const periodEnd = now.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    // Use pre-fetched shared data or fetch inline (backward-compatible)
+    const shared = sharedData ?? (await fetchSharedDigestData());
+    const { weekAgo, periodStart, periodEnd, newRemedies, topSearches } =
+      shared;
 
-    // Base data for all tiers
-    const [newRemedies, favoriteCount, searchHistoryCount] = await Promise.all([
-      prisma.naturalRemedy.findMany({
-        where: { createdAt: { gte: weekAgo } },
-        select: { id: true, name: true, category: true },
-        take: 10,
-        orderBy: { createdAt: "desc" },
-      }),
+    // Per-user data only
+    const [favoriteCount, searchHistoryCount] = await Promise.all([
       prisma.favorite.count({ where: { userId } }),
       prisma.searchHistory.count({
         where: { userId, createdAt: { gte: weekAgo } },
       }),
     ]);
-
-    // Top searches across platform
-    const recentSearches = await prisma.searchHistory.groupBy({
-      by: ["query"],
-      where: { createdAt: { gte: weekAgo } },
-      _count: { query: true },
-      orderBy: { _count: { query: "desc" } },
-      take: 5,
-    });
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://remedi.app";
 
@@ -71,10 +113,7 @@ export async function buildDigestData(
         category: r.category ?? "General",
         url: `${baseUrl}/remedy/${r.id}`,
       })),
-      topSearches: recentSearches.map((s) => ({
-        query: s.query,
-        count: s._count.query,
-      })),
+      topSearches,
       savedRemedies: favoriteCount,
       searchCount: searchHistoryCount,
       periodStart,

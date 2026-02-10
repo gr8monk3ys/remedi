@@ -8,6 +8,9 @@
  */
 
 import type { DrugSearchResult, FdaDrugResult, ProcessedDrug } from "./types";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("openfda");
 
 const FDA_BASE_URL = "https://api.fda.gov";
 const FDA_API_KEY = process.env.OPENFDA_API_KEY;
@@ -41,7 +44,7 @@ async function fetchWithRetry(
 
     // Handle rate limiting (429 Too Many Requests)
     if (response.status === 429) {
-      console.warn("FDA API rate limit reached. Waiting before retry...");
+      logger.warn("FDA API rate limit reached, waiting before retry");
       if (retries > 0) {
         await sleep(RATE_LIMIT_DELAY_MS);
         return fetchWithRetry(url, retries - 1);
@@ -51,9 +54,10 @@ async function fetchWithRetry(
 
     // Handle server errors (5xx) with retry
     if (response.status >= 500 && retries > 0) {
-      console.warn(
-        `FDA API server error (${response.status}). Retrying in ${RETRY_DELAY_MS}ms...`,
-      );
+      logger.warn("FDA API server error, retrying", {
+        status: response.status,
+        retryDelayMs: RETRY_DELAY_MS,
+      });
       await sleep(RETRY_DELAY_MS);
       return fetchWithRetry(url, retries - 1);
     }
@@ -62,9 +66,9 @@ async function fetchWithRetry(
   } catch (error) {
     // Handle network errors with retry
     if (retries > 0) {
-      console.warn(
-        `Network error fetching from FDA API. Retrying in ${RETRY_DELAY_MS}ms...`,
-      );
+      logger.warn("Network error fetching from FDA API, retrying", {
+        retryDelayMs: RETRY_DELAY_MS,
+      });
       await sleep(RETRY_DELAY_MS);
       return fetchWithRetry(url, retries - 1);
     }
@@ -104,7 +108,7 @@ export async function searchFdaDrugs(
 
     if (!response.ok) {
       if (response.status === 404) {
-        console.log(`No results found for "${query}"`);
+        logger.debug("No results found", { query });
         return [];
       }
       throw new Error(
@@ -117,7 +121,7 @@ export async function searchFdaDrugs(
     // Process the FDA API results into our application format
     return processFdaResults(data.results);
   } catch (error) {
-    console.error("Error searching FDA drugs:", error);
+    logger.error("Error searching FDA drugs", error);
     // Return empty array instead of throwing to allow fallback to mock data
     return [];
   }
@@ -139,7 +143,7 @@ export async function getFdaDrugById(
 
     if (!response.ok) {
       if (response.status === 404) {
-        console.log(`Drug with ID "${fdaId}" not found`);
+        logger.debug("Drug not found by ID", { fdaId });
         return null;
       }
       throw new Error(
@@ -157,7 +161,7 @@ export async function getFdaDrugById(
     const processedDrugs = processFdaResults(data.results);
     return processedDrugs[0] || null;
   } catch (error) {
-    console.error("Error fetching FDA drug by ID:", error);
+    logger.error("Error fetching FDA drug by ID", error);
     return null;
   }
 }

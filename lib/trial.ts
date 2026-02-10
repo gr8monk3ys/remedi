@@ -8,6 +8,7 @@
 import { prisma } from "@/lib/db";
 import {
   PLAN_LIMITS,
+  parsePlanType,
   type PlanType,
   type PlanLimits,
 } from "@/lib/stripe-config";
@@ -104,7 +105,7 @@ export async function getTrialStatus(userId: string): Promise<TrialStatus> {
   // Determine current plan based on trial and subscription status
   let currentPlan: PlanType = "free";
   if (user.subscription?.status === "active") {
-    currentPlan = user.subscription.plan as PlanType;
+    currentPlan = parsePlanType(user.subscription.plan);
   } else if (isActive) {
     currentPlan = TRIAL_CONFIG.plan;
   }
@@ -260,7 +261,7 @@ export async function getEffectivePlanLimits(userId: string): Promise<{
     const planKey = subscription.plan.toUpperCase() as keyof typeof PLAN_LIMITS;
     return {
       limits: PLAN_LIMITS[planKey] || PLAN_LIMITS.FREE,
-      plan: subscription.plan as PlanType,
+      plan: parsePlanType(subscription.plan),
       isTrial: false,
     };
   }
@@ -307,22 +308,32 @@ export async function getExpiringTrials(withinDays: number = 2): Promise<
     },
   });
 
-  return users.map(
-    (user: {
-      id: string;
-      email: string;
-      name: string | null;
-      trialEndDate: Date | null;
-    }) => ({
-      userId: user.id,
-      email: user.email,
-      name: user.name,
-      trialEndDate: user.trialEndDate!,
-      daysRemaining: Math.ceil(
-        (user.trialEndDate!.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-      ),
-    }),
-  );
+  return users
+    .filter(
+      (user: {
+        id: string;
+        email: string;
+        name: string | null;
+        trialEndDate: Date | null;
+      }) => user.trialEndDate !== null,
+    )
+    .map(
+      (user: {
+        id: string;
+        email: string;
+        name: string | null;
+        trialEndDate: Date | null;
+      }) => ({
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        trialEndDate: user.trialEndDate as Date,
+        daysRemaining: Math.ceil(
+          ((user.trialEndDate as Date).getTime() - now.getTime()) /
+            (1000 * 60 * 60 * 24),
+        ),
+      }),
+    );
 }
 
 /**

@@ -11,6 +11,9 @@
 
 import React from "react";
 import * as Sentry from "@sentry/nextjs";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("error-boundary");
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -45,7 +48,9 @@ export class ErrorBoundary extends React.Component<
     });
 
     // Also log to console for development
-    console.error("Error caught by ErrorBoundary:", error, errorInfo);
+    logger.error("Error caught by ErrorBoundary", error, {
+      componentStack: errorInfo.componentStack,
+    });
   }
 
   handleRetry = (): void => {
@@ -69,10 +74,10 @@ export class ErrorBoundary extends React.Component<
       return (
         <div className="min-h-[400px] flex flex-col items-center justify-center p-8 text-center">
           <div className="max-w-md">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-2xl font-bold text-foreground mb-4">
               Something went wrong
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-muted-foreground mb-6">
               We are sorry, but something unexpected happened. Our team has been
               notified and we are working on fixing it.
             </p>
@@ -86,7 +91,7 @@ export class ErrorBoundary extends React.Component<
               {this.state.eventId && (
                 <button
                   onClick={this.handleReport}
-                  className="px-6 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg transition-colors"
+                  className="px-6 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg transition-colors"
                 >
                   Report Feedback
                 </button>
@@ -94,10 +99,10 @@ export class ErrorBoundary extends React.Component<
             </div>
             {process.env.NODE_ENV === "development" && this.state.error && (
               <details className="mt-6 text-left">
-                <summary className="cursor-pointer text-sm text-gray-500">
+                <summary className="cursor-pointer text-sm text-muted-foreground">
                   Error Details (Development Only)
                 </summary>
-                <pre className="mt-2 p-4 bg-gray-100 dark:bg-gray-800 rounded text-xs overflow-auto">
+                <pre className="mt-2 p-4 bg-muted rounded text-xs overflow-auto">
                   {this.state.error.message}
                   {"\n\n"}
                   {this.state.error.stack}
@@ -118,7 +123,7 @@ export class ErrorBoundary extends React.Component<
  */
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  fallback?: React.ReactNode
+  fallback?: React.ReactNode,
 ): React.FC<P> {
   return function WithErrorBoundary(props: P) {
     return (

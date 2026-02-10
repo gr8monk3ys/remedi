@@ -15,6 +15,7 @@ import type {
   ParsedNaturalRemedy,
   ParsedRemedyMapping,
 } from "../types";
+import { logger } from "@/lib/logger";
 
 /**
  * Normalize a field that could be:
@@ -24,7 +25,9 @@ import type {
  *
  * Returns an empty array for null/undefined or invalid input
  */
-export function parseJsonArray(value: string | string[] | null | undefined): string[] {
+export function parseJsonArray(
+  value: string | string[] | null | undefined,
+): string[] {
   // Already an array (PostgreSQL native arrays)
   if (Array.isArray(value)) {
     return value;
@@ -44,9 +47,13 @@ export function parseJsonArray(value: string | string[] | null | undefined): str
   try {
     const parsed = JSON.parse(value);
     return Array.isArray(parsed) ? parsed : [];
-  } catch {
+  } catch (error) {
     // If it's not valid JSON, treat it as a single-item array
     // This handles edge cases where a plain string was stored
+    logger.warn("Failed to parse JSON array, treating as plain string", {
+      value,
+      error,
+    });
     return value.trim() ? [value.trim()] : [];
   }
 }
@@ -59,7 +66,9 @@ export function parseJsonArray(value: string | string[] | null | undefined): str
  *
  * Returns null for null/undefined or invalid input
  */
-export function parseJsonObject<T>(value: string | T | null | undefined): T | null {
+export function parseJsonObject<T>(
+  value: string | T | null | undefined,
+): T | null {
   // Already an object (PostgreSQL native JSON)
   if (value !== null && typeof value === "object") {
     return value as T;
@@ -78,7 +87,8 @@ export function parseJsonObject<T>(value: string | T | null | undefined): T | nu
   // JSON string (SQLite)
   try {
     return JSON.parse(value as string);
-  } catch {
+  } catch (error) {
+    logger.warn("Failed to parse JSON object", { value, error });
     return null;
   }
 }
@@ -96,7 +106,7 @@ export interface RawPharmaceutical {
   description: string | null;
   category: string;
   ingredients: string | string[]; // string (SQLite) or string[] (PostgreSQL)
-  benefits: string | string[];    // string (SQLite) or string[] (PostgreSQL)
+  benefits: string | string[]; // string (SQLite) or string[] (PostgreSQL)
   usage: string | null;
   warnings: string | null;
   interactions: string | null;
@@ -109,7 +119,7 @@ export interface RawPharmaceutical {
  * Handles both SQLite JSON strings and PostgreSQL native arrays
  */
 export function parsePharmaceutical(
-  pharma: RawPharmaceutical
+  pharma: RawPharmaceutical,
 ): ParsedPharmaceutical {
   return {
     ...pharma,
@@ -146,7 +156,7 @@ export interface RawNaturalRemedy {
  * Handles both SQLite JSON strings and PostgreSQL native arrays
  */
 export function parseNaturalRemedy(
-  remedy: RawNaturalRemedy
+  remedy: RawNaturalRemedy,
 ): ParsedNaturalRemedy {
   return {
     ...remedy,
@@ -176,7 +186,7 @@ export interface RawRemedyMapping {
  * Handles both SQLite JSON strings and PostgreSQL native arrays
  */
 export function parseRemedyMapping(
-  mapping: RawRemedyMapping
+  mapping: RawRemedyMapping,
 ): ParsedRemedyMapping {
   return {
     ...mapping,
@@ -196,7 +206,10 @@ export function parseRemedyMapping(
  * @param arr - Array to serialize
  * @param forSqlite - If true, serialize as JSON string (default: false)
  */
-export function serializeArray(arr: string[], forSqlite = false): string | string[] {
+export function serializeArray(
+  arr: string[],
+  forSqlite = false,
+): string | string[] {
   if (forSqlite) {
     return JSON.stringify(arr);
   }

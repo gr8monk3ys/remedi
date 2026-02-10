@@ -7,6 +7,9 @@
 import { getOpenAIClient } from "./client";
 import { buildInteractionPrompt, INTERACTION_SYSTEM_PROMPT } from "./prompts";
 import type { DrugInteractionResult } from "./types";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("ai-interactions");
 
 /**
  * Check for drug interactions using AI
@@ -58,7 +61,7 @@ export async function checkDrugInteractions(
 
     return JSON.parse(response);
   } catch (error) {
-    console.error("Drug interaction check error:", error);
+    logger.error("Drug interaction check error", error);
     return {
       hasInteractions: true,
       warnings: ["Unable to verify interactions. Consult healthcare provider."],

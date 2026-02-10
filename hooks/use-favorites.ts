@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { useDbUser } from "@/hooks/use-db-user";
 import { useSessionId } from "./use-session-id";
-import { fetchWithCSRF } from "@/lib/fetch";
+import { apiClient, ApiClientError } from "@/lib/api/client";
 
 interface Favorite {
   id: string;
@@ -20,15 +20,6 @@ interface FavoriteRequestBody {
   remedyName: string;
   userId?: string;
   sessionId?: string;
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-  };
 }
 
 interface UseFavoritesReturn {
@@ -67,18 +58,10 @@ export function useFavorites(): UseFavoritesReturn {
           params.append("sessionId", sessionId);
         }
 
-        const response = await fetch(`/api/favorites?${params.toString()}`);
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch favorites: ${response.status}`);
-        }
-
-        const data: ApiResponse<{ favorites: Favorite[] }> =
-          await response.json();
-
-        if (data.success && data.data?.favorites) {
-          setFavorites(data.data.favorites);
-        }
+        const data = await apiClient.get<{ favorites: Favorite[] }>(
+          `/api/favorites?${params.toString()}`,
+        );
+        setFavorites(data.favorites);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Failed to load favorites";
@@ -122,29 +105,17 @@ export function useFavorites(): UseFavoritesReturn {
           body.sessionId = sessionId;
         }
 
-        const response = await fetchWithCSRF("/api/favorites", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-
-        const data: ApiResponse<{ favorite: Favorite }> = await response.json();
-
-        if (!response.ok) {
-          if (response.status === 409) {
-            // Already favorited - just refresh the list
-            return;
-          }
-          throw new Error(data.error?.message || "Failed to add favorite");
-        }
-
-        if (data.success && data.data?.favorite) {
-          setFavorites((prev) => [...prev, data.data!.favorite]);
-          toast.success("Added to favorites");
-        }
+        const data = await apiClient.post<{ favorite: Favorite }>(
+          "/api/favorites",
+          body,
+        );
+        setFavorites((prev) => [...prev, data.favorite]);
+        toast.success("Added to favorites");
       } catch (err) {
+        // Already favorited - silently ignore
+        if (err instanceof ApiClientError && err.statusCode === 409) {
+          return;
+        }
         const message =
           err instanceof Error ? err.message : "Failed to add favorite";
         setError(message);
@@ -167,19 +138,7 @@ export function useFavorites(): UseFavoritesReturn {
       setError(null);
 
       try {
-        const response = await fetchWithCSRF(
-          `/api/favorites?id=${favorite.id}`,
-          {
-            method: "DELETE",
-          },
-        );
-
-        const data: ApiResponse<null> = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error?.message || "Failed to remove favorite");
-        }
-
+        await apiClient.delete(`/api/favorites?id=${favorite.id}`);
         setFavorites((prev) => prev.filter((fav) => fav.id !== favorite.id));
         toast.success("Removed from favorites");
       } catch (err) {

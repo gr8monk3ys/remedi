@@ -5,6 +5,10 @@
  * All API routes should return ApiResponse<T> type for consistent error handling.
  */
 
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-response");
+
 /**
  * Standard API response wrapper
  * Success responses include data and optional metadata
@@ -175,12 +179,9 @@ export function errorResponseFromError(
   const isProduction = process.env.NODE_ENV === "production";
 
   // Always log the full error details server-side for observability
-  console.error("[API Error]", {
+  logger.error("API error", error instanceof Error ? error : undefined, {
     code,
-    error:
-      error instanceof Error
-        ? { name: error.name, message: error.message, stack: error.stack }
-        : error,
+    ...(!(error instanceof Error) && { rawError: error }),
   });
 
   let message: string;

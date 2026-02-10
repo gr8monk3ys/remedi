@@ -22,6 +22,7 @@ export {
   getUsagePercentage,
   isPlanFeatureAvailable,
   getPlanLimit,
+  parsePlanType,
 } from "./stripe-config";
 
 import { type PlanType } from "./stripe-config";

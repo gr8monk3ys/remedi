@@ -3,7 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDbUser } from "@/hooks/use-db-user";
 import { useSessionId } from "./use-session-id";
-import { fetchWithCSRF } from "@/lib/fetch";
+import { apiClient } from "@/lib/api/client";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("use-search-history");
 
 interface SearchHistoryItem {
   id: string;
@@ -47,21 +50,12 @@ export function useSearchHistory(limit: number = 10): UseSearchHistoryReturn {
         }
         params.append("limit", limit.toString());
 
-        const response = await fetch(
+        const data = await apiClient.get<{ history: SearchHistoryItem[] }>(
           `/api/search-history?${params.toString()}`,
         );
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch search history: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.success && data.data?.history) {
-          setHistory(data.data.history);
-        }
+        setHistory(data.history);
       } catch (err) {
-        console.error("Error fetching search history:", err);
+        logger.error("Error fetching search history", err);
         setError(
           err instanceof Error ? err.message : "Failed to load search history",
         );
@@ -88,22 +82,10 @@ export function useSearchHistory(limit: number = 10): UseSearchHistoryReturn {
         params.append("sessionId", sessionId);
       }
 
-      const response = await fetchWithCSRF(
-        `/api/search-history?${params.toString()}`,
-        {
-          method: "DELETE",
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || "Failed to clear history");
-      }
-
+      await apiClient.delete(`/api/search-history?${params.toString()}`);
       setHistory([]);
     } catch (err) {
-      console.error("Error clearing search history:", err);
+      logger.error("Error clearing search history", err);
       setError(err instanceof Error ? err.message : "Failed to clear history");
       throw err;
     } finally {

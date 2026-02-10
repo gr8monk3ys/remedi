@@ -9,6 +9,9 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("onboarding");
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -171,7 +174,7 @@ export function OnboardingProvider({
         });
       } catch (error) {
         // localStorage not available (SSR or private browsing)
-        console.warn("Failed to load onboarding state:", error);
+        logger.warn("Failed to load onboarding state", { error });
       }
       setIsLoaded(true);
     };

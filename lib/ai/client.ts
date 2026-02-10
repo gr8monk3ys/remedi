@@ -5,6 +5,9 @@
  */
 
 import OpenAI from "openai";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("ai-client");
 
 let openaiClient: OpenAI | null = null;
 let aiDisabled = false;
@@ -27,7 +30,7 @@ export function getOpenAIClient(): OpenAI | null {
   if (!openaiClient) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      console.warn("OPENAI_API_KEY not configured - AI features disabled");
+      logger.warn("OPENAI_API_KEY not configured - AI features disabled");
       aiDisabled = true;
       return null;
     }

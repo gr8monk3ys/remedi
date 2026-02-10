@@ -27,15 +27,13 @@ export default function GlobalError({
   return (
     <html>
       <body>
-        <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-white dark:bg-zinc-900">
+        <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-background">
           <div className="max-w-md text-center">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Oops!
-            </h1>
-            <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+            <h1 className="text-4xl font-bold text-foreground mb-4">Oops!</h1>
+            <h2 className="text-xl font-semibold text-muted-foreground mb-4">
               Something went wrong
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-8">
+            <p className="text-muted-foreground mb-8">
               We apologize for the inconvenience. Our team has been notified and
               is working on fixing this issue.
             </p>
@@ -46,7 +44,7 @@ export default function GlobalError({
               Try Again
             </button>
             {error.digest && (
-              <p className="mt-4 text-sm text-gray-500">
+              <p className="mt-4 text-sm text-muted-foreground">
                 Error ID: {error.digest}
               </p>
             )}

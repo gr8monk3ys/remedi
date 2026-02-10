@@ -8,6 +8,7 @@ import {
   generateOrganizationSchema,
   generateWebSiteSchema,
 } from "@/lib/structured-data";
+import { getBaseUrl } from "@/lib/url";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -37,9 +38,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
-  ),
+  metadataBase: new URL(getBaseUrl()),
   alternates: {
     canonical: "/",
   },

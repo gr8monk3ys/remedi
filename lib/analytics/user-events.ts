@@ -9,6 +9,9 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import type { NextRequest } from "next/server";
 import crypto from "node:crypto";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("analytics");
 
 export type UserEventType =
   | "search"
@@ -78,6 +81,6 @@ export async function trackUserEventSafe(
   try {
     await trackUserEvent(params);
   } catch (error) {
-    console.error("[analytics] Failed to track user event", error);
+    logger.error("Failed to track user event", error);
   }
 }

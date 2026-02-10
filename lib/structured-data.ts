@@ -6,21 +6,23 @@
  * @see https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data
  */
 
-import type { DetailedRemedy } from './types';
+import type { DetailedRemedy } from "./types";
+import { getBaseUrl } from "./url";
 
 /**
  * Organization schema for Remedi
  */
 export function generateOrganizationSchema() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const baseUrl = getBaseUrl();
 
   return {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Remedi',
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Remedi",
     url: baseUrl,
     logo: `${baseUrl}/logo.png`,
-    description: 'Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.',
+    description:
+      "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.",
     sameAs: [
       // Add social media profiles when available
       // 'https://twitter.com/remedi',
@@ -33,21 +35,22 @@ export function generateOrganizationSchema() {
  * WebSite schema for the homepage
  */
 export function generateWebSiteSchema() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const baseUrl = getBaseUrl();
 
   return {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'Remedi',
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Remedi",
     url: baseUrl,
-    description: 'Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.',
+    description:
+      "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.",
     potentialAction: {
-      '@type': 'SearchAction',
+      "@type": "SearchAction",
       target: {
-        '@type': 'EntryPoint',
+        "@type": "EntryPoint",
         urlTemplate: `${baseUrl}/?query={search_term_string}`,
       },
-      'query-input': 'required name=search_term_string',
+      "query-input": "required name=search_term_string",
     },
   };
 }
@@ -56,54 +59,57 @@ export function generateWebSiteSchema() {
  * MedicalWebPage schema for remedy detail pages
  */
 export function generateRemedySchema(remedy: DetailedRemedy) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const baseUrl = getBaseUrl();
 
   return {
-    '@context': 'https://schema.org',
-    '@type': 'MedicalWebPage',
+    "@context": "https://schema.org",
+    "@type": "MedicalWebPage",
     name: remedy.name,
     url: `${baseUrl}/remedy/${remedy.id}`,
     description: remedy.description,
     image: remedy.imageUrl,
     mainEntity: {
-      '@type': 'MedicalEntity',
+      "@type": "MedicalEntity",
       name: remedy.name,
       description: remedy.description,
       code: {
-        '@type': 'MedicalCode',
-        codingSystem: 'Natural Remedy',
+        "@type": "MedicalCode",
+        codingSystem: "Natural Remedy",
       },
     },
     about: {
-      '@type': 'Thing',
+      "@type": "Thing",
       name: remedy.category,
       description: remedy.description,
     },
-    ...(remedy.references && remedy.references.length > 0 && {
-      citation: remedy.references.map((ref) => ({
-        '@type': 'CreativeWork',
-        name: ref.title,
-        url: ref.url,
-      })),
-    }),
+    ...(remedy.references &&
+      remedy.references.length > 0 && {
+        citation: remedy.references.map((ref) => ({
+          "@type": "CreativeWork",
+          name: ref.title,
+          url: ref.url,
+        })),
+      }),
     medicalAudience: {
-      '@type': 'MedicalAudience',
-      audienceType: 'Patient',
+      "@type": "MedicalAudience",
+      audienceType: "Patient",
     },
     datePublished: new Date().toISOString(),
-    inLanguage: 'en-US',
+    inLanguage: "en-US",
   };
 }
 
 /**
  * BreadcrumbList schema for navigation
  */
-export function generateBreadcrumbSchema(items: Array<{ name: string; url: string }>) {
+export function generateBreadcrumbSchema(
+  items: Array<{ name: string; url: string }>,
+) {
   return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
     itemListElement: items.map((item, index) => ({
-      '@type': 'ListItem',
+      "@type": "ListItem",
       position: index + 1,
       name: item.name,
       item: item.url,

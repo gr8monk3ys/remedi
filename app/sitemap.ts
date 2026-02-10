@@ -1,19 +1,23 @@
-import { MetadataRoute } from 'next';
-import { prisma } from '@/lib/db';
+import { MetadataRoute } from "next";
+import { prisma } from "@/lib/db";
+import { createLogger } from "@/lib/logger";
+import { getBaseUrl } from "@/lib/url";
+
+const logger = createLogger("sitemap");
 
 /**
  * Generates sitemap.xml for search engines
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const baseUrl = getBaseUrl();
 
   // Static pages
   const routes: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: 'daily',
+      changeFrequency: "daily",
       priority: 1.0,
     },
   ];
@@ -26,21 +30,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         updatedAt: true,
       },
       orderBy: {
-        updatedAt: 'desc',
+        updatedAt: "desc",
       },
     });
 
     // Add remedy pages to sitemap
-    const remedyRoutes: MetadataRoute.Sitemap = remedies.map((remedy: { id: string; updatedAt: Date }) => ({
-      url: `${baseUrl}/remedy/${remedy.id}`,
-      lastModified: remedy.updatedAt,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    }));
+    const remedyRoutes: MetadataRoute.Sitemap = remedies.map(
+      (remedy: { id: string; updatedAt: Date }) => ({
+        url: `${baseUrl}/remedy/${remedy.id}`,
+        lastModified: remedy.updatedAt,
+        changeFrequency: "weekly",
+        priority: 0.8,
+      }),
+    );
 
     routes.push(...remedyRoutes);
   } catch (error) {
-    console.error('Error generating sitemap:', error);
+    logger.error("Error generating sitemap", error);
     // Continue with static pages only if database query fails
   }
 
@@ -50,5 +56,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 /**
  * Revalidate sitemap every 24 hours
  */
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const revalidate = 86400; // 24 hours in seconds

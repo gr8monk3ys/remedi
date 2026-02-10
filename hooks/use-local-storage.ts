@@ -1,8 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createLogger } from "@/lib/logger";
 
-export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+const logger = createLogger("use-local-storage");
+
+export function useLocalStorage<T>(
+  key: string,
+  initialValue: T,
+): [T, (value: T) => void] {
   // Get from local storage then parse stored json or return initialValue
   const [storedValue, setStoredValue] = useState<T>(() => {
     if (typeof window === "undefined") {
@@ -12,7 +18,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      console.log("Error reading from localStorage", error);
+      logger.warn("Error reading from localStorage", { error });
       return initialValue;
     }
   });
@@ -24,16 +30,16 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
         try {
           setStoredValue(JSON.parse(e.newValue));
         } catch (error) {
-          console.log("Error parsing storage event value", error);
+          logger.warn("Error parsing storage event value", { error });
         }
       }
     };
-    
+
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [key]);
 
-  // Return a wrapped version of useState's setter function that 
+  // Return a wrapped version of useState's setter function that
   // persists the new value to localStorage.
   const setValue = (value: T) => {
     try {
@@ -47,7 +53,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
-      console.log("Error writing to localStorage", error);
+      logger.warn("Error writing to localStorage", { error });
     }
   };
 

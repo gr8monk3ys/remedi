@@ -63,6 +63,7 @@ export async function getFavorites(
       ...(collectionName ? { collectionName } : {}),
     },
     orderBy: { createdAt: "desc" },
+    take: 100,
   });
 }
 

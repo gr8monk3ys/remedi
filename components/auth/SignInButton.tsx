@@ -20,7 +20,7 @@ export function SignInButton({ className = "" }: SignInButtonProps) {
         text-white font-medium text-sm
         transition-colors duration-200
         focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
-        dark:focus:ring-offset-zinc-900
+        dark:focus:ring-offset-background
         ${className}
       `}
       aria-label="Sign in"

@@ -75,6 +75,16 @@ export const RATE_LIMITS = {
 
   // Analytics events: 120 requests per minute
   analytics: { limit: 120, window: 60, identifier: "analytics" },
+
+  // Interactions lookup: 30 requests per minute
+  interactions: { limit: 30, window: 60, identifier: "interactions" },
+
+  // Interactions multi-check: 15 requests per minute (computationally expensive)
+  interactionsCheck: {
+    limit: 15,
+    window: 60,
+    identifier: "interactions-check",
+  },
 } as const;
 
 /**

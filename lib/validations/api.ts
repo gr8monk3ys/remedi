@@ -6,6 +6,9 @@
  */
 
 import { z } from "zod";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("validations");
 
 /**
  * Search query validation schema
@@ -133,7 +136,7 @@ export function validateQueryParams<T extends z.ZodType>(
     return schema.parse(params);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error("Validation error:", error.issues);
+      logger.warn("Validation error", { issues: error.issues });
     }
     return null;
   }

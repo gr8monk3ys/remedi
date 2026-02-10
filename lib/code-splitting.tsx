@@ -7,16 +7,16 @@
  * @see https://nextjs.org/docs/advanced-features/dynamic-import
  */
 
-import dynamic from 'next/dynamic';
-import type { ComponentType } from 'react';
+import dynamic from "next/dynamic";
+import type { ComponentType } from "react";
 
 /**
  * Generic loading skeleton for components
  */
-export const LoadingSkeleton = ({ className = '' }: { className?: string }) => (
+export const LoadingSkeleton = ({ className = "" }: { className?: string }) => (
   <div className={`animate-pulse ${className}`}>
-    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
-    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+    <div className="h-4 bg-muted rounded w-full mb-2"></div>
+    <div className="h-4 bg-muted rounded w-5/6"></div>
   </div>
 );
 
@@ -25,7 +25,7 @@ export const LoadingSkeleton = ({ className = '' }: { className?: string }) => (
  */
 export const SearchLoadingSkeleton = () => (
   <div className="animate-pulse">
-    <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-full"></div>
+    <div className="h-12 bg-muted rounded-lg w-full"></div>
   </div>
 );
 
@@ -33,11 +33,11 @@ export const SearchLoadingSkeleton = () => (
  * Loading skeleton for card components
  */
 export const CardLoadingSkeleton = () => (
-  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden p-6">
+  <div className="bg-card rounded-xl shadow-md overflow-hidden p-6">
     <div className="animate-pulse">
-      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
-      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+      <div className="h-6 bg-muted rounded w-1/3 mb-4"></div>
+      <div className="h-4 bg-muted rounded w-full mb-2"></div>
+      <div className="h-4 bg-muted rounded w-5/6"></div>
     </div>
   </div>
 );
@@ -74,7 +74,10 @@ export const dynamicOptions = {
 /**
  * Type for module exports containing React components
  */
-type ModuleWithComponents = Record<string, ComponentType<Record<string, unknown>>>;
+type ModuleWithComponents = Record<
+  string,
+  ComponentType<Record<string, unknown>>
+>;
 
 /**
  * Helper to create dynamically imported components with type safety
@@ -88,12 +91,14 @@ type ModuleWithComponents = Record<string, ComponentType<Record<string, unknown>
  */
 export function createDynamicComponent<
   T extends ModuleWithComponents,
-  K extends keyof T
+  K extends keyof T,
 >(
   importFn: () => Promise<T>,
   exportName: K,
-  options: keyof typeof dynamicOptions = 'clientOnly'
-): ComponentType<T[K] extends ComponentType<infer P> ? P : Record<string, unknown>> {
+  options: keyof typeof dynamicOptions = "clientOnly",
+): ComponentType<
+  T[K] extends ComponentType<infer P> ? P : Record<string, unknown>
+> {
   const opts = dynamicOptions[options];
 
   // Use explicit loader function type that Next.js expects
@@ -105,7 +110,9 @@ export function createDynamicComponent<
   return dynamic(loader, {
     ssr: opts.ssr,
     loading: opts.loading,
-  }) as ComponentType<T[K] extends ComponentType<infer P> ? P : Record<string, unknown>>;
+  }) as ComponentType<
+    T[K] extends ComponentType<infer P> ? P : Record<string, unknown>
+  >;
 }
 
 /**
@@ -116,11 +123,14 @@ export function createDynamicComponent<
  * Dynamically import search component
  */
 export const DynamicSearchComponent = dynamic(
-  () => import('@/components/ui/search').then((mod) => ({ default: mod.SearchComponent })),
+  () =>
+    import("@/components/ui/search").then((mod) => ({
+      default: mod.SearchComponent,
+    })),
   {
     loading: SearchLoadingSkeleton,
     ssr: false,
-  }
+  },
 );
 
 /**
@@ -136,15 +146,17 @@ export function createRouteChunks() {
      * Homepage chunks
      */
     home: {
-      search: () => import('@/components/ui/search'),
+      search: () => import("@/components/ui/search"),
     },
 
     /**
      * Remedy detail chunks
      */
     remedy: {
-      scientificSection: () => import('@/components/remedy/RemedyScientificSection'),
-      relatedRemedies: () => import('@/components/remedy/RelatedRemediesSection'),
+      scientificSection: () =>
+        import("@/components/remedy/RemedyScientificSection"),
+      relatedRemedies: () =>
+        import("@/components/remedy/RelatedRemediesSection"),
     },
   };
 }
@@ -163,7 +175,7 @@ export function createRouteChunks() {
  */
 export function prefetchComponent(importFn: () => Promise<unknown>): void {
   // Only prefetch in browser
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     importFn().catch(() => {
       // Silently fail - component will be loaded on demand
     });
@@ -202,9 +214,9 @@ export function lazyLoadImage(src: string): Promise<string> {
  */
 export function createIntersectionObserver(
   callback: () => void,
-  options?: IntersectionObserverInit
+  options?: IntersectionObserverInit,
 ): IntersectionObserver | null {
-  if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+  if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
     return null;
   }
 
