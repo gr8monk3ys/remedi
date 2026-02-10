@@ -29,7 +29,7 @@ export function DynamicListInput({
 }: DynamicListInputProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+      <label className="block text-sm font-medium text-foreground mb-1">
         {label} {required && "*"}
       </label>
       {items.map((item, index) => (
@@ -38,7 +38,7 @@ export function DynamicListInput({
             type="text"
             value={item}
             onChange={(e) => onItemChange(index, e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+            className="flex-1 px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder={placeholder}
           />
           {items.length > 1 && (

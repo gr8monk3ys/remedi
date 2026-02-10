@@ -5,10 +5,10 @@
  * Lazy-loaded to improve initial page load performance.
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Beaker, ExternalLink } from 'lucide-react';
+import { useState } from "react";
+import { Beaker, ExternalLink } from "lucide-react";
 
 interface Reference {
   title: string;
@@ -27,7 +27,7 @@ export function RemedyScientificSection({
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden mb-6">
+    <div className="bg-card rounded-xl shadow-md overflow-hidden mb-6">
       <div className="p-6">
         <div
           className="flex items-center justify-between cursor-pointer"
@@ -35,13 +35,13 @@ export function RemedyScientificSection({
         >
           <div className="flex items-center">
             <Beaker className="h-5 w-5 text-primary mr-2" />
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-xl font-bold text-foreground">
               Scientific Information
             </h2>
           </div>
           <svg
             className={`w-5 h-5 transition-transform ${
-              isExpanded ? 'transform rotate-180' : ''
+              isExpanded ? "transform rotate-180" : ""
             }`}
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
@@ -54,10 +54,10 @@ export function RemedyScientificSection({
             />
           </svg>
         </div>
-        <div className={`mt-4 ${isExpanded ? 'block' : 'hidden'}`}>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">{scientificInfo}</p>
+        <div className={`mt-4 ${isExpanded ? "block" : "hidden"}`}>
+          <p className="text-muted-foreground mb-4">{scientificInfo}</p>
           <div className="mt-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            <h3 className="text-lg font-medium text-foreground mb-2">
               Scientific Studies & References
             </h3>
             <ul className="space-y-2">

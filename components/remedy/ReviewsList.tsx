@@ -42,7 +42,9 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
   const fetchReviews = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/reviews?remedyId=${remedyId}&page=${page}&limit=5`);
+      const response = await fetch(
+        `/api/reviews?remedyId=${remedyId}&page=${page}&limit=5`,
+      );
       const result = await response.json();
 
       if (!result.success) {
@@ -68,11 +70,11 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
         {[1, 2, 3].map((i) => (
           <div key={i} className="animate-pulse">
             <div className="flex gap-4">
-              <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full" />
+              <div className="w-10 h-10 bg-muted rounded-full" />
               <div className="flex-1">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-2" />
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-1" />
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                <div className="h-4 bg-muted rounded w-1/4 mb-2" />
+                <div className="h-3 bg-muted rounded w-full mb-1" />
+                <div className="h-3 bg-muted rounded w-3/4" />
               </div>
             </div>
           </div>
@@ -98,9 +100,9 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
   if (!data || data.reviews.length === 0) {
     return (
       <div className="text-center py-8">
-        <MessageSquare className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-        <p className="text-gray-500 dark:text-gray-400">No reviews yet</p>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+        <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground/40 mb-4" />
+        <p className="text-muted-foreground">No reviews yet</p>
+        <p className="text-sm text-muted-foreground mt-1">
           Be the first to share your experience!
         </p>
       </div>
@@ -115,7 +117,7 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
           className={`w-4 h-4 ${
             star <= rating
               ? "text-yellow-400 fill-yellow-400"
-              : "text-gray-300 dark:text-gray-600"
+              : "text-muted-foreground/40"
           }`}
         />
       ))}
@@ -125,15 +127,16 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
   return (
     <div>
       {/* Summary */}
-      <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center gap-4 mb-6 pb-4 border-b border-border">
         <div className="text-center">
-          <div className="text-4xl font-bold text-gray-900 dark:text-white">
+          <div className="text-4xl font-bold text-foreground">
             {data.averageRating.toFixed(1)}
           </div>
           {renderStars(Math.round(data.averageRating))}
         </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          Based on {data.totalReviews} review{data.totalReviews !== 1 ? "s" : ""}
+        <div className="text-sm text-muted-foreground">
+          Based on {data.totalReviews} review
+          {data.totalReviews !== 1 ? "s" : ""}
         </div>
       </div>
 
@@ -142,7 +145,7 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
         {data.reviews.map((review) => (
           <div
             key={review.id}
-            className="border-b border-gray-100 dark:border-gray-800 pb-6 last:border-0"
+            className="border-b border-border pb-6 last:border-0"
           >
             <div className="flex items-start gap-4">
               {/* User Avatar */}
@@ -155,8 +158,8 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
                   className="rounded-full"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                  <span className="text-gray-600 dark:text-gray-300 font-medium">
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <span className="text-muted-foreground font-medium">
                     {review.user.name?.charAt(0) || "U"}
                   </span>
                 </div>
@@ -165,7 +168,7 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
               {/* Review Content */}
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-gray-900 dark:text-white">
+                  <span className="font-medium text-foreground">
                     {review.user.name || "Anonymous"}
                   </span>
                   {review.verified && (
@@ -177,23 +180,23 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
 
                 <div className="flex items-center gap-2 mb-2">
                   {renderStars(review.rating)}
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-muted-foreground">
                     {new Date(review.createdAt).toLocaleDateString()}
                   </span>
                 </div>
 
                 {review.title && (
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+                  <h4 className="font-medium text-foreground mb-1">
                     {review.title}
                   </h4>
                 )}
 
-                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                <p className="text-muted-foreground text-sm">
                   {review.comment}
                 </p>
 
                 {review.helpful > 0 && (
-                  <div className="flex items-center gap-1 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
                     <ThumbsUp className="w-3 h-3" />
                     <span>{review.helpful} found this helpful</span>
                   </div>
@@ -210,17 +213,17 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 text-sm border border-border rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
           </button>
-          <span className="px-3 py-1 text-sm text-gray-500 dark:text-gray-400">
+          <span className="px-3 py-1 text-sm text-muted-foreground">
             Page {page} of {data.totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
             disabled={page === data.totalPages}
-            className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 text-sm border border-border rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next
           </button>

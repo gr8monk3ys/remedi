@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { AlertTriangle, Shield } from "lucide-react";
 import Link from "next/link";
+import { apiClient, ApiClientError } from "@/lib/api/client";
 
 interface Interaction {
   substance1: string;
@@ -25,23 +26,20 @@ export function CabinetInteractionAlert({
   useEffect(() => {
     async function check(): Promise<void> {
       try {
-        const res = await fetch("/api/medication-cabinet/interactions");
-        if (res.status === 403) {
+        const data = await apiClient.get<{ interactions: Interaction[] }>(
+          "/api/medication-cabinet/interactions",
+        );
+        setHasAccess(true);
+        const relevant = data.interactions.filter(
+          (i) =>
+            i.substance1.toLowerCase() === remedyName.toLowerCase() ||
+            i.substance2.toLowerCase() === remedyName.toLowerCase(),
+        );
+        setInteractions(relevant);
+      } catch (err) {
+        if (err instanceof ApiClientError && err.statusCode === 403) {
           setHasAccess(false);
-          setLoading(false);
-          return;
         }
-        const json = await res.json();
-        if (json.success) {
-          setHasAccess(true);
-          const relevant = (json.data.interactions as Interaction[]).filter(
-            (i) =>
-              i.substance1.toLowerCase() === remedyName.toLowerCase() ||
-              i.substance2.toLowerCase() === remedyName.toLowerCase(),
-          );
-          setInteractions(relevant);
-        }
-      } catch {
         // Silently fail — cabinet interactions are optional
       } finally {
         setLoading(false);

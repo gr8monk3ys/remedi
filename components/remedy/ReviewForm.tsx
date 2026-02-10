@@ -79,8 +79,8 @@ export function ReviewForm({
 
   if (!isSignedIn) {
     return (
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 text-center">
-        <p className="text-gray-600 dark:text-gray-300 mb-4">
+      <div className="bg-muted rounded-lg p-6 text-center">
+        <p className="text-muted-foreground mb-4">
           Sign in to write a review and share your experience with this remedy.
         </p>
         <Link
@@ -94,19 +94,16 @@ export function ReviewForm({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6"
-    >
+    <form onSubmit={handleSubmit} className="bg-muted rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-foreground">
           Write a Review
         </h3>
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="p-1 text-muted-foreground hover:text-foreground"
           >
             <X className="w-5 h-5" />
           </button>
@@ -115,7 +112,7 @@ export function ReviewForm({
 
       {/* Star Rating */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Your Rating *
         </label>
         <div className="flex gap-1">
@@ -132,12 +129,12 @@ export function ReviewForm({
                 className={`w-7 h-7 transition-colors ${
                   star <= (hoverRating || rating)
                     ? "text-yellow-400 fill-yellow-400"
-                    : "text-gray-300 dark:text-gray-600"
+                    : "text-muted-foreground/40"
                 }`}
               />
             </button>
           ))}
-          <span className="ml-2 text-sm text-gray-500 dark:text-gray-400 self-center">
+          <span className="ml-2 text-sm text-muted-foreground self-center">
             {rating > 0
               ? `${rating} star${rating > 1 ? "s" : ""}`
               : "Select rating"}
@@ -149,7 +146,7 @@ export function ReviewForm({
       <div className="mb-4">
         <label
           htmlFor="review-title"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Title (optional)
         </label>
@@ -160,7 +157,7 @@ export function ReviewForm({
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Summarize your experience"
           maxLength={100}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
 
@@ -168,7 +165,7 @@ export function ReviewForm({
       <div className="mb-4">
         <label
           htmlFor="review-comment"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Your Review *
         </label>
@@ -179,9 +176,9 @@ export function ReviewForm({
           placeholder="Share your experience with this remedy. What worked well? Any tips for others?"
           rows={4}
           minLength={10}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
         />
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-xs text-muted-foreground">
           {comment.length}/10 minimum characters
         </p>
       </div>

@@ -1,52 +1,49 @@
-'use client'
+"use client";
 
-import { useState, useRef, useEffect, useCallback } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { motion, AnimatePresence, PanInfo } from 'framer-motion'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import type { DetailedRemedy } from '@/lib/types'
+import { useState, useRef, useEffect, useCallback } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import type { DetailedRemedy } from "@/lib/types";
 
 /**
  * Evidence level configuration
  */
-const EVIDENCE_LEVELS: Record<
-  string,
-  { color: string; bgColor: string }
-> = {
+const EVIDENCE_LEVELS: Record<string, { color: string; bgColor: string }> = {
   Strong: {
-    color: 'text-green-700 dark:text-green-400',
-    bgColor: 'bg-green-100 dark:bg-green-900/30',
+    color: "text-green-700 dark:text-green-400",
+    bgColor: "bg-green-100 dark:bg-green-900/30",
   },
   Moderate: {
-    color: 'text-blue-700 dark:text-blue-400',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+    color: "text-blue-700 dark:text-blue-400",
+    bgColor: "bg-blue-100 dark:bg-blue-900/30",
   },
   Limited: {
-    color: 'text-yellow-700 dark:text-yellow-400',
-    bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
+    color: "text-yellow-700 dark:text-yellow-400",
+    bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
   },
   Traditional: {
-    color: 'text-purple-700 dark:text-purple-400',
-    bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+    color: "text-purple-700 dark:text-purple-400",
+    bgColor: "bg-purple-100 dark:bg-purple-900/30",
   },
-}
+};
 
 /**
  * Extended remedy type for comparison
  */
 interface CompareRemedy extends DetailedRemedy {
-  evidenceLevel?: string
-  benefits?: string[]
+  evidenceLevel?: string;
+  benefits?: string[];
 }
 
 /**
  * Props for MobileComparisonSwiper
  */
 interface MobileComparisonSwiperProps {
-  remedies: CompareRemedy[]
-  onRemoveRemedy: (id: string) => void
-  className?: string
+  remedies: CompareRemedy[];
+  onRemoveRemedy: (id: string) => void;
+  className?: string;
 }
 
 /**
@@ -61,62 +58,62 @@ interface MobileComparisonSwiperProps {
 export function MobileComparisonSwiper({
   remedies,
   onRemoveRemedy,
-  className = '',
+  className = "",
 }: MobileComparisonSwiperProps) {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const goToNext = useCallback(() => {
+    if (currentIndex < remedies.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  }, [currentIndex, remedies.length]);
+
+  const goToPrevious = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  }, [currentIndex]);
 
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        goToPrevious()
-      } else if (e.key === 'ArrowRight') {
-        goToNext()
+      if (e.key === "ArrowLeft") {
+        goToPrevious();
+      } else if (e.key === "ArrowRight") {
+        goToNext();
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentIndex, remedies.length])
-
-  const goToNext = useCallback(() => {
-    if (currentIndex < remedies.length - 1) {
-      setCurrentIndex(currentIndex + 1)
-    }
-  }, [currentIndex, remedies.length])
-
-  const goToPrevious = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1)
-    }
-  }, [currentIndex])
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [goToNext, goToPrevious]);
 
   const goToIndex = (index: number) => {
-    setCurrentIndex(index)
-  }
+    setCurrentIndex(index);
+  };
 
   /**
    * Handle swipe gesture
    */
   const handleDragEnd = (
     _event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
+    info: PanInfo,
   ) => {
-    const threshold = 50
+    const threshold = 50;
 
     if (info.offset.x < -threshold && currentIndex < remedies.length - 1) {
-      goToNext()
+      goToNext();
     } else if (info.offset.x > threshold && currentIndex > 0) {
-      goToPrevious()
+      goToPrevious();
     }
-  }
+  };
 
   if (remedies.length === 0) {
-    return null
+    return null;
   }
 
-  const currentRemedy = remedies[currentIndex]
+  const currentRemedy = remedies[currentIndex];
 
   return (
     <div className={`relative ${className}`}>
@@ -124,10 +121,8 @@ export function MobileComparisonSwiper({
       <button
         onClick={goToPrevious}
         disabled={currentIndex === 0}
-        className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 dark:bg-zinc-800/80 shadow-md backdrop-blur-sm transition-opacity ${
-          currentIndex === 0
-            ? 'opacity-50 cursor-not-allowed'
-            : 'hover:bg-white dark:hover:bg-zinc-700'
+        className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-card/80 shadow-md backdrop-blur-sm transition-opacity ${
+          currentIndex === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-card"
         }`}
         aria-label="Previous remedy"
       >
@@ -137,10 +132,10 @@ export function MobileComparisonSwiper({
       <button
         onClick={goToNext}
         disabled={currentIndex === remedies.length - 1}
-        className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 dark:bg-zinc-800/80 shadow-md backdrop-blur-sm transition-opacity ${
+        className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-card/80 shadow-md backdrop-blur-sm transition-opacity ${
           currentIndex === remedies.length - 1
-            ? 'opacity-50 cursor-not-allowed'
-            : 'hover:bg-white dark:hover:bg-zinc-700'
+            ? "opacity-50 cursor-not-allowed"
+            : "hover:bg-card"
         }`}
         aria-label="Next remedy"
       >
@@ -148,10 +143,7 @@ export function MobileComparisonSwiper({
       </button>
 
       {/* Swipeable content */}
-      <div
-        ref={containerRef}
-        className="overflow-hidden rounded-xl"
-      >
+      <div ref={containerRef} className="overflow-hidden rounded-xl">
         <motion.div
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
@@ -166,7 +158,7 @@ export function MobileComparisonSwiper({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.2 }}
-              className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden"
+              className="bg-card rounded-xl shadow-sm overflow-hidden"
             >
               {/* Remove button */}
               <button
@@ -178,7 +170,7 @@ export function MobileComparisonSwiper({
               </button>
 
               {/* Remedy image */}
-              <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
+              <div className="relative h-48 bg-muted">
                 {currentRemedy.imageUrl ? (
                   <Image
                     src={currentRemedy.imageUrl}
@@ -187,7 +179,7 @@ export function MobileComparisonSwiper({
                     className="object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                     No Image
                   </div>
                 )}
@@ -197,13 +189,13 @@ export function MobileComparisonSwiper({
               <div className="p-4">
                 <Link
                   href={`/remedy/${currentRemedy.id}`}
-                  className="text-xl font-bold text-gray-900 dark:text-white hover:text-primary transition-colors"
+                  className="text-xl font-bold text-foreground hover:text-primary transition-colors"
                 >
                   {currentRemedy.name}
                 </Link>
 
                 {currentRemedy.category && (
-                  <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded ml-2">
+                  <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded ml-2">
                     {currentRemedy.category}
                   </span>
                 )}
@@ -211,38 +203,43 @@ export function MobileComparisonSwiper({
                 {/* Evidence level */}
                 {currentRemedy.evidenceLevel && (
                   <div className="mt-3">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">
+                    <span className="text-xs font-medium text-muted-foreground block mb-1">
                       Evidence Level
                     </span>
                     {(() => {
-                      const config =
-                        EVIDENCE_LEVELS[currentRemedy.evidenceLevel] || {
-                          color: 'text-gray-700',
-                          bgColor: 'bg-gray-100',
-                        }
+                      const config = EVIDENCE_LEVELS[
+                        currentRemedy.evidenceLevel
+                      ] || {
+                        color: "text-muted-foreground",
+                        bgColor: "bg-muted",
+                      };
                       return (
                         <span
                           className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium ${config.color} ${config.bgColor}`}
                         >
                           {currentRemedy.evidenceLevel}
                         </span>
-                      )
+                      );
                     })()}
                   </div>
                 )}
 
                 {/* Benefits */}
                 <div className="mt-4">
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-2">
+                  <span className="text-xs font-medium text-muted-foreground block mb-2">
                     Benefits
                   </span>
                   <ul className="space-y-1">
-                    {(currentRemedy.benefits || currentRemedy.matchingNutrients || [])
+                    {(
+                      currentRemedy.benefits ||
+                      currentRemedy.matchingNutrients ||
+                      []
+                    )
                       .slice(0, 4)
                       .map((benefit, index) => (
                         <li
                           key={index}
-                          className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2"
+                          className="text-sm text-foreground flex items-start gap-2"
                         >
                           <span className="text-primary mt-1.5 w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
                           <span>{benefit}</span>
@@ -253,32 +250,32 @@ export function MobileComparisonSwiper({
 
                 {/* Dosage */}
                 <div className="mt-4">
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">
+                  <span className="text-xs font-medium text-muted-foreground block mb-1">
                     Dosage
                   </span>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    {currentRemedy.dosage || 'Dosage information not available'}
+                  <p className="text-sm text-foreground">
+                    {currentRemedy.dosage || "Dosage information not available"}
                   </p>
                 </div>
 
                 {/* Usage */}
                 <div className="mt-4">
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">
+                  <span className="text-xs font-medium text-muted-foreground block mb-1">
                     Usage
                   </span>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3">
-                    {currentRemedy.usage || 'Usage information not available'}
+                  <p className="text-sm text-foreground line-clamp-3">
+                    {currentRemedy.usage || "Usage information not available"}
                   </p>
                 </div>
 
                 {/* Precautions */}
                 <div className="mt-4">
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">
+                  <span className="text-xs font-medium text-muted-foreground block mb-1">
                     Precautions
                   </span>
                   <p className="text-sm text-amber-700 dark:text-amber-400 line-clamp-3">
                     {currentRemedy.precautions ||
-                      'Precaution information not available'}
+                      "Precaution information not available"}
                   </p>
                 </div>
 
@@ -304,21 +301,21 @@ export function MobileComparisonSwiper({
             onClick={() => goToIndex(index)}
             className={`w-2.5 h-2.5 rounded-full transition-colors ${
               index === currentIndex
-                ? 'bg-primary'
-                : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                ? "bg-primary"
+                : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
             }`}
             aria-label={`Go to ${remedy.name}`}
-            aria-current={index === currentIndex ? 'true' : 'false'}
+            aria-current={index === currentIndex ? "true" : "false"}
           />
         ))}
       </div>
 
       {/* Current position text */}
-      <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+      <p className="text-center text-sm text-muted-foreground mt-2">
         {currentIndex + 1} of {remedies.length}
       </p>
     </div>
-  )
+  );
 }
 
-export default MobileComparisonSwiper
+export default MobileComparisonSwiper;

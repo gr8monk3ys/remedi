@@ -26,7 +26,7 @@ export function ReferencesInput({
 }: ReferencesInputProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+      <label className="block text-sm font-medium text-foreground mb-1">
         References & Sources
       </label>
       {references.map((ref, index) => (
@@ -35,14 +35,14 @@ export function ReferencesInput({
             type="text"
             value={ref.title}
             onChange={(e) => onReferenceChange(index, "title", e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+            className="flex-1 px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Reference title"
           />
           <input
             type="url"
             value={ref.url || ""}
             onChange={(e) => onReferenceChange(index, "url", e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+            className="flex-1 px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="URL (optional)"
           />
           {references.length > 1 && (

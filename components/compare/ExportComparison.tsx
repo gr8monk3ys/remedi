@@ -149,7 +149,7 @@ export function ExportComparison({
       {/* Export button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted transition-colors"
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
@@ -168,7 +168,7 @@ export function ExportComparison({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 overflow-hidden"
+            className="absolute right-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden"
             role="menu"
           >
             {EXPORT_OPTIONS.map((option) => {
@@ -181,7 +181,7 @@ export function ExportComparison({
                   key={option.id}
                   onClick={() => handleExport(option.id)}
                   disabled={isLoading}
-                  className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                  className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-muted transition-colors disabled:opacity-50"
                   role="menuitem"
                 >
                   <div className="flex-shrink-0 mt-0.5">
@@ -190,14 +190,14 @@ export function ExportComparison({
                     ) : isSuccess ? (
                       <Check className="w-5 h-5 text-green-500" />
                     ) : (
-                      <Icon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                      <Icon className="w-5 h-5 text-muted-foreground" />
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    <p className="text-sm font-medium text-foreground">
                       {option.label}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-muted-foreground">
                       {isSuccess ? "Done!" : option.description}
                     </p>
                   </div>

@@ -3,6 +3,9 @@
 import { Heart } from "lucide-react";
 import { useFavorites } from "@/hooks/use-favorites";
 import { Button } from "@/components/ui/button";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("favorite-toggle");
 
 interface FavoriteToggleProps {
   remedyId: string;
@@ -21,7 +24,7 @@ export function FavoriteToggle({ remedyId, remedyName }: FavoriteToggleProps) {
         await addFavorite(remedyId, remedyName);
       }
     } catch (error) {
-      console.error("Failed to toggle favorite:", error);
+      logger.error("Failed to toggle favorite", error);
     }
   };
 

@@ -40,8 +40,8 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
 
   if (!isSignedIn) {
     return (
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-8 text-center">
-        <p className="text-gray-600 dark:text-gray-300 mb-4">
+      <div className="bg-muted rounded-lg p-8 text-center">
+        <p className="text-muted-foreground mb-4">
           Sign in to contribute a new natural remedy to our database.
         </p>
         <Link
@@ -93,7 +93,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
         <div>
           <label
             htmlFor="name"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Remedy Name *
           </label>
@@ -104,7 +104,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             onChange={(e) => setField("name", e.target.value)}
             required
             minLength={2}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="e.g., Turmeric Extract"
           />
         </div>
@@ -112,7 +112,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
         <div>
           <label
             htmlFor="category"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Category *
           </label>
@@ -121,7 +121,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             value={state.category}
             onChange={(e) => setField("category", e.target.value)}
             required
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="">Select a category</option>
             {CATEGORIES.map((cat) => (
@@ -137,7 +137,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
       <div>
         <label
           htmlFor="description"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-medium text-foreground mb-1"
         >
           Description *
         </label>
@@ -148,7 +148,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
           required
           minLength={20}
           rows={3}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
           placeholder="Describe the remedy and its traditional uses..."
         />
       </div>
@@ -182,7 +182,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
         <div>
           <label
             htmlFor="usage"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Usage Instructions
           </label>
@@ -191,7 +191,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             value={state.usage}
             onChange={(e) => setField("usage", e.target.value)}
             rows={2}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+            className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
             placeholder="How to use this remedy..."
           />
         </div>
@@ -199,7 +199,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
         <div>
           <label
             htmlFor="dosage"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Recommended Dosage
           </label>
@@ -208,7 +208,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             value={state.dosage}
             onChange={(e) => setField("dosage", e.target.value)}
             rows={2}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+            className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
             placeholder="Typical dosage recommendations..."
           />
         </div>
@@ -218,7 +218,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
       <div>
         <label
           htmlFor="precautions"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-medium text-foreground mb-1"
         >
           Precautions & Warnings
         </label>
@@ -227,7 +227,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
           value={state.precautions}
           onChange={(e) => setField("precautions", e.target.value)}
           rows={2}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
           placeholder="Any contraindications or warnings..."
         />
       </div>
@@ -236,7 +236,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
       <div>
         <label
           htmlFor="scientificInfo"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-medium text-foreground mb-1"
         >
           Scientific Information
         </label>
@@ -245,7 +245,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
           value={state.scientificInfo}
           onChange={(e) => setField("scientificInfo", e.target.value)}
           rows={3}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
           placeholder="Any scientific studies or evidence..."
         />
       </div>
