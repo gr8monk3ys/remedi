@@ -19,7 +19,9 @@ type FeatureKey =
   | "canExport"
   | "canCompare"
   | "canAccessHistory"
-  | "prioritySupport";
+  | "prioritySupport"
+  | "canViewCabinetInteractions"
+  | "canTrackJournal";
 
 interface FeatureGateProps {
   /**
@@ -63,6 +65,8 @@ const featureNames: Record<FeatureKey, string> = {
   canCompare: "Compare Remedies",
   canAccessHistory: "Search History",
   prioritySupport: "Priority Support",
+  canViewCabinetInteractions: "Cabinet Interaction Alerts",
+  canTrackJournal: "Remedy Journal",
 };
 
 // Feature descriptions
@@ -71,6 +75,9 @@ const featureDescriptions: Record<FeatureKey, string> = {
   canCompare: "Compare multiple remedies side by side",
   canAccessHistory: "Access your complete search history",
   prioritySupport: "Get priority customer support",
+  canViewCabinetInteractions:
+    "Auto-check interactions between remedies and your medications",
+  canTrackJournal: "Track remedy effectiveness over time with charts",
 };
 
 // Minimum plan required for each feature
@@ -79,6 +86,8 @@ const featureMinPlan: Record<FeatureKey, PlanType> = {
   canCompare: "basic",
   canAccessHistory: "basic",
   prioritySupport: "premium",
+  canViewCabinetInteractions: "basic",
+  canTrackJournal: "basic",
 };
 
 export function FeatureGate({

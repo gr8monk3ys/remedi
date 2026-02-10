@@ -322,6 +322,60 @@ const featureComparison = [
     basic: "10/day",
     premium: "50/day",
   },
+  {
+    name: "Health profile",
+    free: "Basic",
+    basic: "Full",
+    premium: "Full",
+  },
+  {
+    name: "Medication cabinet",
+    free: "3 meds",
+    basic: "20 meds",
+    premium: "Unlimited",
+  },
+  {
+    name: "Auto-interaction alerts",
+    free: false,
+    basic: true,
+    premium: true,
+  },
+  {
+    name: "Personalized search",
+    free: false,
+    basic: true,
+    premium: true,
+  },
+  {
+    name: "Remedy tracking journal",
+    free: false,
+    basic: true,
+    premium: true,
+  },
+  {
+    name: "Effectiveness charts",
+    free: false,
+    basic: "Per remedy",
+    premium: "Cross-remedy",
+  },
+  {
+    name: "AI remedy reports",
+    free: false,
+    basic: "2/month",
+    premium: "Unlimited",
+  },
+  {
+    name: "AI-powered journal insights",
+    free: false,
+    basic: false,
+    premium: true,
+  },
+  {
+    name: "Weekly digest",
+    free: "Generic",
+    basic: "Personalized",
+    premium: "Full + AI insights",
+  },
   { name: "Search history", free: false, basic: true, premium: true },
   {
     name: "Compare remedies",
@@ -331,13 +385,6 @@ const featureComparison = [
   },
   { name: "Export data", free: false, basic: true, premium: true },
   { name: "Priority support", free: false, basic: false, premium: true },
-  {
-    name: "Early access to features",
-    free: false,
-    basic: false,
-    premium: true,
-  },
-  { name: "API access", free: false, basic: false, premium: true },
 ];
 
 // Testimonials data

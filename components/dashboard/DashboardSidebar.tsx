@@ -15,6 +15,9 @@ import {
   X,
   ChevronRight,
   User as UserIcon,
+  UserCircle,
+  BookOpen,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 interface DashboardUser {
@@ -43,6 +46,24 @@ const navItems = [
     label: "Search History",
     icon: History,
     description: "View past searches",
+  },
+  {
+    href: "/dashboard/health-profile",
+    label: "Health Profile",
+    icon: UserCircle,
+    description: "Profile & medications",
+  },
+  {
+    href: "/dashboard/journal",
+    label: "Journal",
+    icon: BookOpen,
+    description: "Track remedy effectiveness",
+  },
+  {
+    href: "/dashboard/reports",
+    label: "Reports",
+    icon: FileText,
+    description: "AI-generated reports",
   },
   {
     href: "/dashboard/favorites",
