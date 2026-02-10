@@ -1,8 +1,6 @@
 import { prisma } from "@/lib/db";
 import { SubscriptionTable } from "@/components/admin/SubscriptionTable";
-export const dynamic = 'force-dynamic';
-
-
+export const dynamic = "force-dynamic";
 
 interface SubscriptionGroupStat {
   plan: string;
@@ -28,13 +26,16 @@ async function getSubscriptions() {
 
   // Calculate stats
   const planCounts = stats.reduce(
-    (acc: Record<string, { total: number; active: number }>, s: SubscriptionGroupStat) => {
+    (
+      acc: Record<string, { total: number; active: number }>,
+      s: SubscriptionGroupStat,
+    ) => {
       if (!acc[s.plan]) acc[s.plan] = { total: 0, active: 0 };
       acc[s.plan].total += s._count.plan;
       if (s.status === "active") acc[s.plan].active += s._count.plan;
       return acc;
     },
-    {} as Record<string, { total: number; active: number }>
+    {} as Record<string, { total: number; active: number }>,
   );
 
   return { subscriptions, planCounts };
@@ -49,10 +50,10 @@ export default async function SubscriptionsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-3xl font-bold text-foreground">
           Subscription Management
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-muted-foreground mt-1">
           Manage user subscriptions and plans
         </p>
       </div>
@@ -71,17 +72,17 @@ export default async function SubscriptionsPage() {
           return (
             <div
               key={plan}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+              className="bg-card rounded-xl p-6 shadow-sm border border-border"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                  <p className="text-sm text-muted-foreground capitalize">
                     {plan} Plan
                   </p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
+                  <p className="text-3xl font-bold text-foreground mt-1">
                     {data.active}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {data.total} total ({data.total - data.active} inactive)
                   </p>
                 </div>

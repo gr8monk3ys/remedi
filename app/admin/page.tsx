@@ -1,8 +1,13 @@
 import { prisma } from "@/lib/db";
-import { Users, FileText, Search, Heart, TrendingUp, Clock } from "lucide-react";
-export const dynamic = 'force-dynamic';
-
-
+import {
+  Users,
+  FileText,
+  Search,
+  Heart,
+  TrendingUp,
+  Clock,
+} from "lucide-react";
+export const dynamic = "force-dynamic";
 
 interface RecentSearch {
   query: string;
@@ -122,10 +127,8 @@ export default async function AdminDashboard() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Dashboard
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
+        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-muted-foreground mt-1">
           Overview of your Remedi platform
         </p>
       </div>
@@ -137,14 +140,12 @@ export default async function AdminDashboard() {
           return (
             <div
               key={stat.label}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+              className="bg-card rounded-xl p-6 shadow-sm border border-border"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {stat.label}
-                  </p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
+                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">
                     {stat.value.toLocaleString()}
                   </p>
                 </div>
@@ -160,15 +161,15 @@ export default async function AdminDashboard() {
       {/* Activity Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Searches */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <div className="bg-card rounded-xl shadow-sm border border-border">
+          <div className="p-6 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground">
               Recent Searches
             </h2>
           </div>
           <div className="p-6">
             {activity.recentSearches.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+              <p className="text-muted-foreground text-center py-4">
                 No recent searches
               </p>
             ) : (
@@ -176,17 +177,17 @@ export default async function AdminDashboard() {
                 {activity.recentSearches.map((search, i) => (
                   <li
                     key={i}
-                    className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                    className="flex items-center justify-between py-2 border-b border-border last:border-0"
                   >
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-foreground">
                         {search.query}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         {search.resultsCount} results
                       </p>
                     </div>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-muted-foreground">
                       {new Date(search.createdAt).toLocaleTimeString()}
                     </span>
                   </li>
@@ -197,15 +198,15 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Pending Contributions */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <div className="bg-card rounded-xl shadow-sm border border-border">
+          <div className="p-6 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground">
               Pending Contributions
             </h2>
           </div>
           <div className="p-6">
             {activity.recentContributions.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+              <p className="text-muted-foreground text-center py-4">
                 No pending contributions
               </p>
             ) : (
@@ -213,13 +214,13 @@ export default async function AdminDashboard() {
                 {activity.recentContributions.map((contribution) => (
                   <li
                     key={contribution.id}
-                    className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                    className="flex items-center justify-between py-2 border-b border-border last:border-0"
                   >
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-foreground">
                         {contribution.name}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         by {contribution.user.name || contribution.user.email}
                       </p>
                     </div>

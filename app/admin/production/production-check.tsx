@@ -18,7 +18,9 @@ export function ProductionCheckButton() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/production-check", { method: "POST" });
+      const res = await fetch("/api/admin/production-check", {
+        method: "POST",
+      });
       if (!res.ok) {
         throw new Error(`Check failed (${res.status})`);
       }
@@ -32,20 +34,18 @@ export function ProductionCheckButton() {
   };
 
   return (
-    <div className="rounded-lg border border-gray-100 dark:border-gray-700 px-4 py-3">
+    <div className="rounded-lg border border-border px-4 py-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Production check
-          </p>
-          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+          <p className="text-sm text-muted-foreground">Production check</p>
+          <p className="text-lg font-semibold text-foreground">
             {result ? (result.ok ? "Ready" : "Needs work") : "Not run"}
           </p>
         </div>
         <button
           type="button"
           onClick={() => void runCheck()}
-          className="px-3 py-1.5 text-xs font-semibold rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="px-3 py-1.5 text-xs font-semibold rounded-md border border-border hover:bg-muted"
           disabled={loading}
         >
           {loading ? "Running..." : "Run checks"}
@@ -55,7 +55,7 @@ export function ProductionCheckButton() {
         <p className="mt-2 text-xs text-red-600 dark:text-red-300">{error}</p>
       )}
       {result && (
-        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 space-y-1">
+        <div className="mt-2 text-xs text-muted-foreground space-y-1">
           <p>DB: {result.dbOk ? "OK" : "Failed"}</p>
           <p>Missing required: {result.missingRequired.length}</p>
           <p>Missing recommended: {result.missingRecommended.length}</p>

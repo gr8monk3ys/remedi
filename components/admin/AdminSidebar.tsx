@@ -74,16 +74,14 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   );
 
   return (
-    <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+    <aside className="w-64 bg-card border-r border-border flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-6 border-b border-border">
         <div className="flex items-center gap-2">
           <Shield className="w-6 h-6 text-primary" />
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            Admin Panel
-          </h1>
+          <h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
         </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 capitalize">
+        <p className="text-sm text-muted-foreground mt-1 capitalize">
           {userRole}
         </p>
       </div>
@@ -102,7 +100,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                 "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
                 isActive
                   ? "bg-primary/10 text-primary"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
+                  : "text-muted-foreground hover:bg-muted",
               )}
             >
               <Icon className="w-5 h-5" />
@@ -113,10 +111,10 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-t border-border">
         <Link
           href="/"
-          className="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           <span className="font-medium">Back to Site</span>
@@ -124,7 +122,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       </div>
 
       {/* User Info */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-t border-border">
         <div className="flex items-center gap-3">
           {user.image ? (
             <Image
@@ -135,17 +133,17 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
               className="w-10 h-10 rounded-full"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-              <span className="text-gray-600 dark:text-gray-300 font-medium">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+              <span className="text-muted-foreground font-medium">
                 {user.name?.charAt(0) || user.email?.charAt(0) || "U"}
               </span>
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+            <p className="text-sm font-medium text-foreground truncate">
               {user.name || "User"}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            <p className="text-xs text-muted-foreground truncate">
               {user.email}
             </p>
           </div>

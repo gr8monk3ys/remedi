@@ -17,6 +17,9 @@ import {
   sendContributionRejected,
 } from "@/lib/email";
 import { getEmailUrl } from "@/lib/email/config";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-moderation");
 
 const moderationSchema = z.object({
   type: z.enum(["contribution", "review"]),
@@ -68,6 +71,17 @@ export async function PATCH(
           );
         }
 
+        // Idempotency: reject if already moderated
+        if (contribution.status !== "pending") {
+          return NextResponse.json(
+            errorResponse(
+              "CONFLICT",
+              `Contribution has already been ${contribution.status}`,
+            ),
+            { status: 409 },
+          );
+        }
+
         // Create the natural remedy from the contribution
         const remedy = await prisma.naturalRemedy.create({
           data: {
@@ -110,8 +124,8 @@ export async function PATCH(
           );
         } catch (emailError) {
           // Non-critical: do not fail the moderation action if email fails
-          console.error(
-            "Failed to send contribution approval email:",
+          logger.error(
+            "Failed to send contribution approval email",
             emailError,
           );
         }
@@ -132,6 +146,17 @@ export async function PATCH(
           return NextResponse.json(
             errorResponse("RESOURCE_NOT_FOUND", "Contribution not found"),
             { status: 404 },
+          );
+        }
+
+        // Idempotency: reject if already moderated
+        if (contribution.status !== "pending") {
+          return NextResponse.json(
+            errorResponse(
+              "CONFLICT",
+              `Contribution has already been ${contribution.status}`,
+            ),
+            { status: 409 },
           );
         }
 
@@ -159,8 +184,8 @@ export async function PATCH(
           );
         } catch (emailError) {
           // Non-critical: do not fail the moderation action if email fails
-          console.error(
-            "Failed to send contribution rejection email:",
+          logger.error(
+            "Failed to send contribution rejection email",
             emailError,
           );
         }
@@ -195,7 +220,7 @@ export async function PATCH(
       status: 400,
     });
   } catch (error) {
-    console.error("Error processing moderation action:", error);
+    logger.error("Error processing moderation action", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to process moderation action"),
       { status: 500 },

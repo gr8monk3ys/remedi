@@ -25,7 +25,9 @@ export function SentryStatus() {
       const json = (await res.json()) as SentryStats;
       setData(json);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load Sentry stats");
+      setError(
+        err instanceof Error ? err.message : "Failed to load Sentry stats",
+      );
     } finally {
       setLoading(false);
     }
@@ -37,7 +39,7 @@ export function SentryStatus() {
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-gray-100 dark:border-gray-700 px-4 py-3 text-sm text-gray-500">
+      <div className="rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground">
         Loading Sentry stats...
       </div>
     );
@@ -52,15 +54,15 @@ export function SentryStatus() {
   }
 
   return (
-    <div className="rounded-lg border border-gray-100 dark:border-gray-700 px-4 py-3">
+    <div className="rounded-lg border border-border px-4 py-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Sentry (24h)</p>
-          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+          <p className="text-sm text-muted-foreground">Sentry (24h)</p>
+          <p className="text-lg font-semibold text-foreground">
             {data?.ok ? `${data?.errorCount24h ?? 0} events` : "Unavailable"}
           </p>
           {data?.lastEventAt && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               Last event: {new Date(data.lastEventAt).toLocaleString()}
             </p>
           )}
@@ -68,13 +70,13 @@ export function SentryStatus() {
         <button
           type="button"
           onClick={() => void load()}
-          className="px-3 py-1.5 text-xs font-semibold rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="px-3 py-1.5 text-xs font-semibold rounded-md border border-border hover:bg-muted"
         >
           Refresh
         </button>
       </div>
       {!data?.ok && data?.message && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{data.message}</p>
+        <p className="text-xs text-muted-foreground mt-2">{data.message}</p>
       )}
     </div>
   );

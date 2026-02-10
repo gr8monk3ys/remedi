@@ -5,7 +5,10 @@ import { useEffect, useState } from "react";
 type HealthResponse = {
   status: string;
   timestamp?: string;
-  services?: Record<string, { status: string; message?: string; latency?: number }>;
+  services?: Record<
+    string,
+    { status: string; message?: string; latency?: number }
+  >;
 };
 
 export function HealthStatus() {
@@ -36,7 +39,7 @@ export function HealthStatus() {
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-gray-100 dark:border-gray-700 px-4 py-3 text-sm text-gray-500">
+      <div className="rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground">
         Loading /api/health status...
       </div>
     );
@@ -51,21 +54,21 @@ export function HealthStatus() {
   }
 
   return (
-    <div className="rounded-lg border border-gray-100 dark:border-gray-700 px-4 py-3">
+    <div className="rounded-lg border border-border px-4 py-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">/api/health</p>
-          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+          <p className="text-sm text-muted-foreground">/api/health</p>
+          <p className="text-lg font-semibold text-foreground">
             {data?.status || "unknown"}
           </p>
           {data?.services && (
             <div className="mt-2 grid md:grid-cols-3 gap-2 text-xs">
               {Object.entries(data.services).map(([name, value]) => (
                 <div key={name} className="flex items-center gap-2">
-                  <span className="capitalize text-gray-500 dark:text-gray-400">
+                  <span className="capitalize text-muted-foreground">
                     {name}:
                   </span>
-                  <span className="font-medium text-gray-700 dark:text-gray-200">
+                  <span className="font-medium text-foreground">
                     {value.status}
                   </span>
                 </div>
@@ -76,7 +79,7 @@ export function HealthStatus() {
         <button
           type="button"
           onClick={() => void fetchHealth()}
-          className="px-3 py-1.5 text-xs font-semibold rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="px-3 py-1.5 text-xs font-semibold rounded-md border border-border hover:bg-muted"
         >
           Refresh
         </button>

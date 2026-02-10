@@ -4,8 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { MoreVertical, Shield, User as UserIcon, Crown, Trash2 } from "lucide-react";
+import {
+  MoreVertical,
+  Shield,
+  User as UserIcon,
+  Crown,
+  Trash2,
+} from "lucide-react";
 import { fetchWithCSRF } from "@/lib/fetch";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("admin-users");
 
 interface User {
   id: string;
@@ -48,7 +57,7 @@ export function UserTable({ users, currentPage, totalPages }: UserTableProps) {
         router.refresh();
       }
     } catch (error) {
-      console.error("Failed to update user role:", error);
+      logger.error("Failed to update user role", error);
     } finally {
       setUpdating(null);
       setActionMenuOpen(null);
@@ -62,15 +71,17 @@ export function UserTable({ users, currentPage, totalPages }: UserTableProps) {
       case "moderator":
         return <Shield className="w-4 h-4 text-blue-500" />;
       default:
-        return <UserIcon className="w-4 h-4 text-gray-400" />;
+        return <UserIcon className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
   const getRoleBadge = (role: string) => {
     const colors = {
-      admin: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-      moderator: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-      user: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+      admin:
+        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+      moderator:
+        "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+      user: "bg-muted text-foreground",
     };
     return colors[role as keyof typeof colors] || colors.user;
   };
@@ -78,42 +89,45 @@ export function UserTable({ users, currentPage, totalPages }: UserTableProps) {
   const getPlanBadge = (plan: string | undefined) => {
     if (!plan || plan === "free") return null;
     const colors = {
-      basic: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-      premium: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-      enterprise: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+      basic:
+        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+      premium:
+        "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+      enterprise:
+        "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
     };
     return colors[plan as keyof typeof colors] || null;
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 dark:bg-gray-700">
+          <thead className="bg-muted">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 User
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Role
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Plan
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Activity
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Joined
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody className="divide-y divide-border">
             {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-750">
+              <tr key={user.id} className="hover:bg-muted">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     {user.image ? (
@@ -125,17 +139,18 @@ export function UserTable({ users, currentPage, totalPages }: UserTableProps) {
                         className="w-10 h-10 rounded-full"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                        <span className="text-gray-600 dark:text-gray-300 font-medium">
-                          {user.name?.charAt(0) || user.email.charAt(0).toUpperCase()}
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                        <span className="text-muted-foreground font-medium">
+                          {user.name?.charAt(0) ||
+                            user.email.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      <div className="text-sm font-medium text-foreground">
                         {user.name || "Unnamed User"}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <div className="text-sm text-muted-foreground">
                         {user.email}
                       </div>
                     </div>
@@ -146,7 +161,7 @@ export function UserTable({ users, currentPage, totalPages }: UserTableProps) {
                     {getRoleIcon(user.role)}
                     <span
                       className={`px-2 py-1 text-xs rounded-full capitalize ${getRoleBadge(
-                        user.role
+                        user.role,
                       )}`}
                     >
                       {user.role}
@@ -158,64 +173,66 @@ export function UserTable({ users, currentPage, totalPages }: UserTableProps) {
                     <span
                       className={`px-2 py-1 text-xs rounded-full capitalize ${
                         getPlanBadge(user.subscription.plan) ||
-                        "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                        "bg-muted text-foreground"
                       }`}
                     >
                       {user.subscription.plan}
                     </span>
                   ) : (
-                    <span className="text-sm text-gray-400">Free</span>
+                    <span className="text-sm text-muted-foreground">Free</span>
                   )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                   <div className="flex gap-4">
                     <span>{user._count.reviews} reviews</span>
                     <span>{user._count.contributions} contributions</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="relative">
                     <button
                       onClick={() =>
-                        setActionMenuOpen(actionMenuOpen === user.id ? null : user.id)
+                        setActionMenuOpen(
+                          actionMenuOpen === user.id ? null : user.id,
+                        )
                       }
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                      className="p-2 hover:bg-muted rounded-lg"
                       disabled={updating === user.id}
                     >
                       <MoreVertical className="w-4 h-4" />
                     </button>
 
                     {actionMenuOpen === user.id && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+                      <div className="absolute right-0 mt-2 w-48 bg-card rounded-lg shadow-lg border border-border z-10">
                         <div className="py-1">
                           <button
                             onClick={() => handleRoleChange(user.id, "user")}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            className="w-full px-4 py-2 text-left text-sm hover:bg-muted flex items-center gap-2"
                           >
                             <UserIcon className="w-4 h-4" />
                             Set as User
                           </button>
                           <button
-                            onClick={() => handleRoleChange(user.id, "moderator")}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            onClick={() =>
+                              handleRoleChange(user.id, "moderator")
+                            }
+                            className="w-full px-4 py-2 text-left text-sm hover:bg-muted flex items-center gap-2"
                           >
                             <Shield className="w-4 h-4" />
                             Set as Moderator
                           </button>
                           <button
                             onClick={() => handleRoleChange(user.id, "admin")}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            className="w-full px-4 py-2 text-left text-sm hover:bg-muted flex items-center gap-2"
                           >
                             <Crown className="w-4 h-4" />
                             Set as Admin
                           </button>
-                          <hr className="my-1 border-gray-200 dark:border-gray-700" />
-                          <button
-                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
-                          >
+                          <hr className="my-1 border-border" />
+                          <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2">
                             <Trash2 className="w-4 h-4" />
                             Delete User
                           </button>
@@ -232,15 +249,15 @@ export function UserTable({ users, currentPage, totalPages }: UserTableProps) {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
             Page {currentPage} of {totalPages}
           </p>
           <div className="flex gap-2">
             {currentPage > 1 && (
               <Link
                 href={`/admin/users?page=${currentPage - 1}`}
-                className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="px-4 py-2 text-sm border border-border rounded-lg hover:bg-muted"
               >
                 Previous
               </Link>
@@ -248,7 +265,7 @@ export function UserTable({ users, currentPage, totalPages }: UserTableProps) {
             {currentPage < totalPages && (
               <Link
                 href={`/admin/users?page=${currentPage + 1}`}
-                className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="px-4 py-2 text-sm border border-border rounded-lg hover:bg-muted"
               >
                 Next
               </Link>

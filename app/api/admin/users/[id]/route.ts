@@ -10,6 +10,9 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { successResponse, errorResponse } from "@/lib/api/response";
 import { z } from "zod";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-admin-users");
 
 const updateUserSchema = z.object({
   role: z.enum(["user", "admin"]).optional(),
@@ -68,7 +71,7 @@ export async function PATCH(
 
     return NextResponse.json(successResponse(user));
   } catch (error) {
-    console.error("Error updating user:", error);
+    logger.error("Error updating user", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to update user"),
       { status: 500 },
@@ -109,7 +112,7 @@ export async function DELETE(
       successResponse({ message: "User deleted successfully" }),
     );
   } catch (error) {
-    console.error("Error deleting user:", error);
+    logger.error("Error deleting user", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to delete user"),
       { status: 500 },

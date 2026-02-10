@@ -61,10 +61,10 @@ export default async function ProductionReadinessPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-3xl font-bold text-foreground">
           Production Readiness
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-muted-foreground mt-1">
           Deployment checklist and environment validation.
         </p>
       </div>
@@ -98,8 +98,8 @@ export default async function ProductionReadinessPage() {
         />
       </section>
 
-      <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
+        <h2 className="text-xl font-semibold text-foreground mb-4">
           Required Environment Variables
         </h2>
         <div className="grid md:grid-cols-2 gap-3">
@@ -113,8 +113,8 @@ export default async function ProductionReadinessPage() {
         </div>
       </section>
 
-      <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
+        <h2 className="text-xl font-semibold text-foreground mb-4">
           Recommended Services
         </h2>
         <div className="grid md:grid-cols-2 gap-3">
@@ -128,8 +128,8 @@ export default async function ProductionReadinessPage() {
         </div>
       </section>
 
-      <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
+        <h2 className="text-xl font-semibold text-foreground mb-4">
           Runtime Services
         </h2>
         <div className="grid md:grid-cols-2 gap-4">
@@ -168,8 +168,8 @@ export default async function ProductionReadinessPage() {
         </div>
       </section>
 
-      <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
+        <h2 className="text-xl font-semibold text-foreground mb-4">
           Production Checks
         </h2>
         <div className="grid md:grid-cols-2 gap-4">
@@ -177,8 +177,8 @@ export default async function ProductionReadinessPage() {
         </div>
       </section>
 
-      <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
+        <h2 className="text-xl font-semibold text-foreground mb-4">
           Ops Links & Webhooks
         </h2>
         <div className="grid md:grid-cols-2 gap-4">
@@ -211,8 +211,8 @@ function StatusCard({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+    <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
+      <p className="text-sm text-muted-foreground">{label}</p>
       <p className={`text-2xl font-bold mt-1 ${colors[status]}`}>{value}</p>
     </div>
   );
@@ -220,8 +220,8 @@ function StatusCard({
 
 function ChecklistRow({ name, present }: { name: string; present: boolean }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-gray-100 dark:border-gray-700 px-4 py-2">
-      <span className="text-sm text-gray-700 dark:text-gray-200">{name}</span>
+    <div className="flex items-center justify-between rounded-lg border border-border px-4 py-2">
+      <span className="text-sm text-foreground">{name}</span>
       <span
         className={`text-xs font-semibold px-2 py-1 rounded-full ${
           present
@@ -253,12 +253,10 @@ function ServiceRow({
   };
 
   return (
-    <div className="rounded-lg border border-gray-100 dark:border-gray-700 px-4 py-3">
-      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+    <div className="rounded-lg border border-border px-4 py-3">
+      <p className="text-sm text-muted-foreground">{label}</p>
       <p className={`text-lg font-semibold ${colors[status]}`}>{value}</p>
-      {subtitle && (
-        <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
-      )}
+      {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
     </div>
   );
 }
@@ -267,8 +265,8 @@ function LinkRow({ label, envKey }: { label: string; envKey: string }) {
   const value = process.env[envKey];
 
   return (
-    <div className="rounded-lg border border-gray-100 dark:border-gray-700 px-4 py-3">
-      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+    <div className="rounded-lg border border-border px-4 py-3">
+      <p className="text-sm text-muted-foreground">{label}</p>
       {value ? (
         <a
           href={value}
@@ -277,9 +275,7 @@ function LinkRow({ label, envKey }: { label: string; envKey: string }) {
           {value}
         </a>
       ) : (
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Not configured
-        </p>
+        <p className="text-sm text-muted-foreground">Not configured</p>
       )}
     </div>
   );

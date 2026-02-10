@@ -5,6 +5,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { MoreVertical, RefreshCw, XCircle, ArrowUp } from "lucide-react";
 import { fetchWithCSRF } from "@/lib/fetch";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("admin-subscriptions");
 
 interface User {
   name: string | null;
@@ -47,7 +50,7 @@ export function SubscriptionTable({ subscriptions }: SubscriptionTableProps) {
         router.refresh();
       }
     } catch (error) {
-      console.error("Failed to update subscription:", error);
+      logger.error("Failed to update subscription", error);
     } finally {
       setProcessing(null);
       setActionMenuOpen(null);
@@ -56,66 +59,68 @@ export function SubscriptionTable({ subscriptions }: SubscriptionTableProps) {
 
   const getStatusBadge = (status: string) => {
     const colors = {
-      active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-      cancelled: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+      active:
+        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+      cancelled: "bg-muted text-foreground",
       expired: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-      suspended: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+      suspended:
+        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
     };
     return colors[status as keyof typeof colors] || colors.cancelled;
   };
 
   const getPlanBadge = (plan: string) => {
     const colors = {
-      free: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
-      basic: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-      premium: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-      enterprise: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+      free: "bg-muted text-foreground",
+      basic:
+        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+      premium:
+        "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+      enterprise:
+        "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
     };
     return colors[plan as keyof typeof colors] || colors.free;
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 dark:bg-gray-700">
+          <thead className="bg-muted">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 User
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Plan
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Billing
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Expires
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody className="divide-y divide-border">
             {subscriptions.length === 0 ? (
               <tr>
                 <td
                   colSpan={6}
-                  className="px-6 py-8 text-center text-gray-500 dark:text-gray-400"
+                  className="px-6 py-8 text-center text-muted-foreground"
                 >
                   No subscriptions found
                 </td>
               </tr>
             ) : (
               subscriptions.map((sub) => (
-                <tr
-                  key={sub.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-750"
-                >
+                <tr key={sub.id} className="hover:bg-muted">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       {sub.user.image ? (
@@ -127,18 +132,18 @@ export function SubscriptionTable({ subscriptions }: SubscriptionTableProps) {
                           className="w-10 h-10 rounded-full"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                          <span className="text-gray-600 dark:text-gray-300 font-medium">
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                          <span className="text-muted-foreground font-medium">
                             {sub.user.name?.charAt(0) ||
                               sub.user.email.charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        <div className="text-sm font-medium text-foreground">
                           {sub.user.name || "Unnamed User"}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="text-sm text-muted-foreground">
                           {sub.user.email}
                         </div>
                       </div>
@@ -147,7 +152,7 @@ export function SubscriptionTable({ subscriptions }: SubscriptionTableProps) {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 py-1 text-xs rounded-full capitalize ${getPlanBadge(
-                        sub.plan
+                        sub.plan,
                       )}`}
                     >
                       {sub.plan}
@@ -156,16 +161,16 @@ export function SubscriptionTable({ subscriptions }: SubscriptionTableProps) {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 py-1 text-xs rounded-full capitalize ${getStatusBadge(
-                        sub.status
+                        sub.status,
                       )}`}
                     >
                       {sub.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 capitalize">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground capitalize">
                     {sub.interval || "One-time"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {sub.expiresAt
                       ? new Date(sub.expiresAt).toLocaleDateString()
                       : "Never"}
@@ -175,17 +180,17 @@ export function SubscriptionTable({ subscriptions }: SubscriptionTableProps) {
                       <button
                         onClick={() =>
                           setActionMenuOpen(
-                            actionMenuOpen === sub.id ? null : sub.id
+                            actionMenuOpen === sub.id ? null : sub.id,
                           )
                         }
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                        className="p-2 hover:bg-muted rounded-lg"
                         disabled={processing === sub.id}
                       >
                         <MoreVertical className="w-4 h-4" />
                       </button>
 
                       {actionMenuOpen === sub.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-card rounded-lg shadow-lg border border-border z-10">
                           <div className="py-1">
                             {sub.plan !== "premium" && (
                               <button
@@ -194,7 +199,7 @@ export function SubscriptionTable({ subscriptions }: SubscriptionTableProps) {
                                     plan: "premium",
                                   })
                                 }
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                className="w-full px-4 py-2 text-left text-sm hover:bg-muted flex items-center gap-2"
                               >
                                 <ArrowUp className="w-4 h-4" />
                                 Upgrade to Premium
@@ -203,7 +208,7 @@ export function SubscriptionTable({ subscriptions }: SubscriptionTableProps) {
                             {sub.status === "active" && (
                               <button
                                 onClick={() => handleAction(sub.id, "cancel")}
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                className="w-full px-4 py-2 text-left text-sm hover:bg-muted flex items-center gap-2"
                               >
                                 <XCircle className="w-4 h-4" />
                                 Cancel Subscription
@@ -211,8 +216,10 @@ export function SubscriptionTable({ subscriptions }: SubscriptionTableProps) {
                             )}
                             {sub.status === "cancelled" && (
                               <button
-                                onClick={() => handleAction(sub.id, "reactivate")}
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                onClick={() =>
+                                  handleAction(sub.id, "reactivate")
+                                }
+                                className="w-full px-4 py-2 text-left text-sm hover:bg-muted flex items-center gap-2"
                               >
                                 <RefreshCw className="w-4 h-4" />
                                 Reactivate

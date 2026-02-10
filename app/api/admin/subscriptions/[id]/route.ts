@@ -9,6 +9,9 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { successResponse, errorResponse } from "@/lib/api/response";
 import { z } from "zod";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-admin-subscriptions");
 
 const updateSubscriptionSchema = z.object({
   action: z.enum(["upgrade", "cancel", "reactivate", "suspend"]),
@@ -17,7 +20,7 @@ const updateSubscriptionSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const currentUser = await getCurrentUser();
@@ -26,7 +29,7 @@ export async function PATCH(
     if (!currentUser || !userIsAdmin) {
       return NextResponse.json(
         errorResponse("UNAUTHORIZED", "Admin access required"),
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -37,7 +40,7 @@ export async function PATCH(
     if (!validation.success) {
       return NextResponse.json(
         errorResponse("INVALID_INPUT", validation.error.issues[0].message),
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -49,7 +52,7 @@ export async function PATCH(
         if (!plan) {
           return NextResponse.json(
             errorResponse("INVALID_INPUT", "Plan is required for upgrade"),
-            { status: 400 }
+            { status: 400 },
           );
         }
         updateData = {
@@ -92,10 +95,10 @@ export async function PATCH(
 
     return NextResponse.json(successResponse(subscription));
   } catch (error) {
-    console.error("Error updating subscription:", error);
+    logger.error("Error updating subscription", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to update subscription"),
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

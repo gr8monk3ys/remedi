@@ -1,8 +1,6 @@
 import { prisma } from "@/lib/db";
 import { UserTable } from "@/components/admin/UserTable";
-export const dynamic = 'force-dynamic';
-
-
+export const dynamic = "force-dynamic";
 
 async function getUsers(page: number = 1, limit: number = 20) {
   const skip = (page - 1) * limit;
@@ -51,12 +49,10 @@ export default async function UsersPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-foreground">
             User Management
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            {total} total users
-          </p>
+          <p className="text-muted-foreground mt-1">{total} total users</p>
         </div>
       </div>
 
