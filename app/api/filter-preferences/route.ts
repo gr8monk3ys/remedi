@@ -20,6 +20,9 @@ import {
 } from "@/lib/validations/api";
 import { verifyOwnership } from "@/lib/authorization";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-filter-preferences");
 
 /**
  * GET /api/filter-preferences
@@ -88,7 +91,7 @@ export async function GET(request: NextRequest) {
       }),
     );
   } catch (error) {
-    console.error("Error fetching filter preferences:", error);
+    logger.error("Error fetching filter preferences", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to fetch filter preferences"),
       { status: 500 },
@@ -154,7 +157,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Error saving filter preferences:", error);
+    logger.error("Error saving filter preferences", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to save filter preferences"),
       { status: 500 },
@@ -205,7 +208,7 @@ export async function DELETE(request: NextRequest) {
       }),
     );
   } catch (error) {
-    console.error("Error clearing filter preferences:", error);
+    logger.error("Error clearing filter preferences", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to clear filter preferences"),
       { status: 500 },

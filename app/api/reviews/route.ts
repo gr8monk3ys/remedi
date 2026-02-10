@@ -4,6 +4,9 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-reviews");
 
 const reviewSchema = z.object({
   remedyId: z.string().min(1, "Remedy ID is required"),
@@ -90,7 +93,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching reviews:", error);
+    logger.error("Error fetching reviews", error);
     return NextResponse.json(
       {
         success: false,
@@ -198,7 +201,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: review }, { status: 201 });
   } catch (error) {
-    console.error("Error creating review:", error);
+    logger.error("Error creating review", error);
     return NextResponse.json(
       {
         success: false,

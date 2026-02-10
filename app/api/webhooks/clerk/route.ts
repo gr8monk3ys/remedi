@@ -18,12 +18,15 @@ import { prisma } from "@/lib/db";
 import { clerkClient } from "@clerk/nextjs/server";
 import type { WebhookEvent } from "@clerk/nextjs/server";
 import { sendWelcomeEmail } from "@/lib/email";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("webhook-clerk");
 
 export async function POST(req: Request): Promise<Response> {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
   if (!WEBHOOK_SECRET) {
-    console.error("Missing CLERK_WEBHOOK_SECRET environment variable");
+    logger.error("Missing CLERK_WEBHOOK_SECRET environment variable");
     return new Response("Server configuration error", { status: 500 });
   }
 
@@ -52,7 +55,7 @@ export async function POST(req: Request): Promise<Response> {
       "svix-signature": svixSignature,
     }) as WebhookEvent;
   } catch (err) {
-    console.error("Webhook verification failed:", err);
+    logger.error("Webhook verification failed", err);
     return new Response("Webhook verification failed", { status: 400 });
   }
 
@@ -122,7 +125,7 @@ export async function POST(req: Request): Promise<Response> {
       });
     } catch (prefError) {
       // Non-critical: do not fail the webhook if preference creation fails
-      console.error("Failed to create email preferences:", prefError);
+      logger.error("Failed to create email preferences", prefError);
     }
 
     // Send welcome email via the email service (handles logging, preference
@@ -131,7 +134,7 @@ export async function POST(req: Request): Promise<Response> {
       await sendWelcomeEmail(primaryEmail, name || "there", dbUser.id);
     } catch (emailError) {
       // Do not fail the webhook if email sending fails
-      console.error("Failed to send welcome email:", emailError);
+      logger.error("Failed to send welcome email", emailError);
     }
   }
 

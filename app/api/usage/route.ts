@@ -11,6 +11,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { z } from "zod";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-usage");
 import {
   getUsageSummary,
   incrementUsage,
@@ -79,7 +82,7 @@ export async function GET(request: NextRequest) {
       data: response,
     });
   } catch (error) {
-    console.error("[usage] Error getting usage:", error);
+    logger.error("Error getting usage", error);
     return NextResponse.json(
       {
         success: false,
@@ -184,7 +187,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[usage] Error recording usage:", error);
+    logger.error("Error recording usage", error);
     return NextResponse.json(
       {
         success: false,
@@ -241,7 +244,8 @@ export async function HEAD(request: NextRequest) {
         },
       });
     }
-  } catch {
+  } catch (error) {
+    logger.error("Usage check failed", error);
     return new NextResponse(null, { status: 500 });
   }
 }

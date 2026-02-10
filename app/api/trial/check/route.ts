@@ -8,6 +8,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getTrialStatus, isTrialEligible, TRIAL_CONFIG } from "@/lib/trial";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-trial-check");
 
 export async function GET() {
   try {
@@ -49,7 +52,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("[trial/check] Error checking trial eligibility:", error);
+    logger.error("Error checking trial eligibility", error);
     return NextResponse.json(
       {
         success: false,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { checkMultipleInteractions } from "@/lib/db";
 import { interactionsCheckMultipleSchema } from "@/lib/validations/api";
 import {
@@ -23,6 +24,15 @@ import {
  * sorted by severity (most severe first).
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    req,
+    RATE_LIMITS.interactionsCheck,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     let body: unknown;
     try {

@@ -21,6 +21,9 @@ import {
 } from "@/lib/validations/api";
 import { verifyOwnership } from "@/lib/authorization";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-search-history");
 
 /**
  * GET /api/search-history
@@ -81,7 +84,7 @@ export async function GET(request: NextRequest) {
       }),
     );
   } catch (error) {
-    console.error("Error fetching search history:", error);
+    logger.error("Error fetching search history", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to fetch search history"),
       { status: 500 },
@@ -137,7 +140,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Error saving search history:", error);
+    logger.error("Error saving search history", error);
 
     // Handle unique constraint violations
     if (error instanceof Error && error.message.includes("Unique constraint")) {
@@ -198,7 +201,7 @@ export async function DELETE(request: NextRequest) {
       }),
     );
   } catch (error) {
-    console.error("Error clearing search history:", error);
+    logger.error("Error clearing search history", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to clear search history"),
       { status: 500 },

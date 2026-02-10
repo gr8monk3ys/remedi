@@ -12,10 +12,32 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { createLogger } from "@/lib/logger";
 import { sendWeeklyDigest, sendBatchEmails } from "@/lib/email";
-import { buildDigestData } from "@/lib/email/digest-builder";
+import {
+  buildDigestData,
+  fetchSharedDigestData,
+} from "@/lib/email/digest-builder";
 import type { PlanType } from "@/lib/stripe-config";
 
 const log = createLogger("cron:weekly-digest");
+
+const BATCH_SIZE = 10;
+
+/**
+ * Processes items in sequential batches with a concurrency limit per batch.
+ */
+async function processBatches<T, R>(
+  items: T[],
+  batchSize: number,
+  processor: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    const batchResults = await Promise.all(batch.map(processor));
+    results.push(...batchResults);
+  }
+  return results;
+}
 
 export async function GET(request: Request): Promise<NextResponse> {
   // Verify cron secret
@@ -52,21 +74,21 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     log.info(`Building digests for ${users.length} users`);
 
-    // Build email sending functions for batch processing
-    const emailFns = await Promise.all(
-      users.map(async (user) => {
-        const plan = (
-          user.subscription?.status === "active"
-            ? user.subscription.plan
-            : "free"
-        ) as PlanType;
-        const digestData = await buildDigestData(user.id, plan);
+    // Pre-fetch shared data once (new remedies + trending searches)
+    // to avoid redundant identical queries per user
+    const sharedData = await fetchSharedDigestData();
 
-        if (!digestData) return null;
+    // Build email sending functions in batches to limit concurrency
+    const emailFns = await processBatches(users, BATCH_SIZE, async (user) => {
+      const plan = (
+        user.subscription?.status === "active" ? user.subscription.plan : "free"
+      ) as PlanType;
+      const digestData = await buildDigestData(user.id, plan, sharedData);
 
-        return () => sendWeeklyDigest(user.email, digestData, user.id);
-      }),
-    );
+      if (!digestData) return null;
+
+      return () => sendWeeklyDigest(user.email, digestData, user.id);
+    });
 
     // Filter out nulls
     const validFns = emailFns.filter(

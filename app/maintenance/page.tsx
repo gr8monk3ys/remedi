@@ -1,15 +1,21 @@
-'use client'
+import type { Metadata } from "next";
+import { RefreshButton } from "./RefreshButton";
+
+export const metadata: Metadata = {
+  title: "Under Maintenance | Remedi",
+  description: "Remedi is currently undergoing scheduled maintenance.",
+};
 
 /**
- * Maintenance Mode Page
+ * Maintenance Mode Page - Server Component
  *
  * Displayed when MAINTENANCE_MODE=true is set in environment variables.
- * Users are redirected here by the middleware.
+ * Users are redirected here by the middleware. All static content is
+ * server-rendered; only the refresh button requires client interactivity.
  */
-
 export default function MaintenancePage(): React.ReactElement {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted px-4">
       <div className="max-w-md w-full text-center">
         {/* Maintenance Icon */}
         <div className="mb-8">
@@ -36,52 +42,37 @@ export default function MaintenancePage(): React.ReactElement {
         </div>
 
         {/* Heading */}
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
+        <h1 className="text-3xl font-bold text-foreground mb-4">
           Under Maintenance
         </h1>
 
         {/* Description */}
-        <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
-          We are currently performing scheduled maintenance to improve your experience.
-          Please check back soon.
+        <p className="text-lg text-muted-foreground mb-8">
+          We are currently performing scheduled maintenance to improve your
+          experience. Please check back soon.
         </p>
 
         {/* Estimated Time */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6 mb-8">
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
+        <div className="bg-card rounded-lg shadow-sm p-6 mb-8">
+          <p className="text-sm text-muted-foreground mb-2">
             Estimated downtime
           </p>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-white">
+          <p className="text-2xl font-semibold text-foreground">
             Less than 30 minutes
           </p>
         </div>
 
         {/* Status Updates */}
-        <div className="text-sm text-slate-500 dark:text-slate-400">
-          <p>For status updates, follow us on social media or check our status page.</p>
+        <div className="text-sm text-muted-foreground">
+          <p>
+            For status updates, follow us on social media or check our status
+            page.
+          </p>
         </div>
 
-        {/* Refresh Button */}
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-8 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
-        >
-          <svg
-            className="w-5 h-5 mr-2 -ml-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
-          </svg>
-          Try Again
-        </button>
+        {/* Refresh Button - client component */}
+        <RefreshButton />
       </div>
     </div>
-  )
+  );
 }

@@ -74,9 +74,8 @@ const EVIDENCE_LEVELS = [
   {
     level: "Traditional",
     description: "Historically used in traditional medicine",
-    badgeClasses:
-      "bg-gray-100 text-gray-800 dark:bg-gray-700/50 dark:text-gray-300",
-    borderClasses: "border-gray-200 dark:border-gray-600",
+    badgeClasses: "bg-muted text-foreground",
+    borderClasses: "border-border",
   },
 ] as const;
 

@@ -60,21 +60,19 @@ export default async function AuthErrorPage({
   const errorInfo = errorDescriptions[errorKey] || errorDescriptions.Default;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted px-4">
       <div className="w-full max-w-md text-center">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+        <div className="bg-card rounded-2xl shadow-xl p-8">
           {/* Error Icon */}
           <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6">
             <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
 
           {/* Error Message */}
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
             {errorInfo.title}
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-8">
-            {errorInfo.description}
-          </p>
+          <p className="text-muted-foreground mb-8">{errorInfo.description}</p>
 
           {/* Actions */}
           <div className="space-y-3">
@@ -88,7 +86,7 @@ export default async function AuthErrorPage({
 
             <Link
               href="/"
-              className="flex items-center justify-center gap-2 w-full px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 border border-border text-foreground font-medium rounded-lg hover:bg-muted transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Home
@@ -96,7 +94,7 @@ export default async function AuthErrorPage({
           </div>
 
           {/* Support Link */}
-          <p className="mt-8 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-8 text-sm text-muted-foreground">
             If this problem persists, please{" "}
             <a
               href="mailto:support@remedi.app"

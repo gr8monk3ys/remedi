@@ -9,7 +9,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getRemedyInsights } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api/response";
 import { createLogger } from "@/lib/logger";
-import { getPlanLimits } from "@/lib/stripe-config";
+import { getPlanLimits, parsePlanType } from "@/lib/stripe-config";
 import type { PlanType } from "@/lib/stripe-config";
 
 const logger = createLogger("journal-insights-api");
@@ -21,7 +21,7 @@ async function getUserPlan(userId: string): Promise<PlanType> {
     select: { plan: true, status: true },
   });
   if (sub && sub.status === "active") {
-    return sub.plan as PlanType;
+    return parsePlanType(sub.plan);
   }
   return "free";
 }

@@ -7,6 +7,9 @@ import {
   trackConversionEvent,
 } from "@/lib/analytics/conversion-events";
 import { RATE_LIMITS, withRateLimit } from "@/lib/rate-limit";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-conversion-events");
 
 const conversionEventSchema = z.object({
   eventType: z.enum(
@@ -69,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[conversion-events] Error tracking event", error);
+    logger.error("Error tracking event", error);
     return NextResponse.json(
       {
         success: false,

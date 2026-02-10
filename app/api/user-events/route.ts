@@ -6,6 +6,9 @@ import {
   type UserEventType,
 } from "@/lib/analytics/user-events";
 import { RATE_LIMITS, withRateLimit } from "@/lib/rate-limit";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-user-events");
 
 const userEventSchema = z.object({
   eventType: z.enum([
@@ -64,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[user-events] Error tracking event", error);
+    logger.error("Error tracking event", error);
     return NextResponse.json(
       {
         success: false,

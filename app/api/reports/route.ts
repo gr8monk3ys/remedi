@@ -17,7 +17,11 @@ import { successResponse, errorResponse } from "@/lib/api/response";
 import { reportGenerateSchema } from "@/lib/validations/reports";
 import { getValidationErrorMessage } from "@/lib/validations/api";
 import { createLogger } from "@/lib/logger";
-import { getPlanLimits, isWithinLimit } from "@/lib/stripe-config";
+import {
+  getPlanLimits,
+  isWithinLimit,
+  parsePlanType,
+} from "@/lib/stripe-config";
 import type { PlanType } from "@/lib/stripe-config";
 import { generateRemedyReport } from "@/lib/ai/report-generator";
 
@@ -30,7 +34,7 @@ async function getUserPlan(userId: string): Promise<PlanType> {
     select: { plan: true, status: true },
   });
   if (sub && sub.status === "active") {
-    return sub.plan as PlanType;
+    return parsePlanType(sub.plan);
   }
   return "free";
 }
@@ -45,9 +49,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const page = Number(request.nextUrl.searchParams.get("page") || "1");
-    const pageSize = Number(
-      request.nextUrl.searchParams.get("pageSize") || "10",
+    const page = Math.max(
+      Number(request.nextUrl.searchParams.get("page") || "1"),
+      1,
+    );
+    const pageSize = Math.min(
+      Math.max(Number(request.nextUrl.searchParams.get("pageSize") || "10"), 1),
+      50,
     );
 
     const result = await getUserReports(user.id, page, pageSize);

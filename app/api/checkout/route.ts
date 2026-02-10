@@ -27,6 +27,10 @@ import {
   type ConversionEventSource,
 } from "@/lib/analytics/conversion-events";
 import { z } from "zod";
+import { createLogger } from "@/lib/logger";
+import { getBaseUrl } from "@/lib/url";
+
+const logger = createLogger("api-checkout");
 
 // Build map of plan+interval to price IDs
 const PLAN_PRICE_MAP: Record<string, string | undefined> = {
@@ -190,7 +194,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get base URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getBaseUrl();
 
     // Create checkout session
     const checkoutSession = await createCheckoutSession({
@@ -220,7 +224,7 @@ export async function POST(request: NextRequest) {
       data: { url: checkoutSession.url },
     });
   } catch (error) {
-    console.error("[checkout] Error creating checkout session:", error);
+    logger.error("Error creating checkout session", error);
     return NextResponse.json(
       {
         success: false,

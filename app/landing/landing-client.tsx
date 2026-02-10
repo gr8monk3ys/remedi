@@ -46,7 +46,7 @@ export function LandingClient({ trackView = true }: { trackView?: boolean }) {
       <Link
         href="/"
         onClick={handleCtaClick("secondary_search")}
-        className="inline-flex items-center justify-center px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 transition-colors"
+        className="inline-flex items-center justify-center px-6 py-3 rounded-lg border border-border text-foreground font-semibold hover:bg-muted transition-colors"
       >
         Try a Search
       </Link>

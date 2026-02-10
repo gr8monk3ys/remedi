@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { findInteractionsBySubstance, checkPairInteraction } from "@/lib/db";
 import {
   interactionsBySubstanceSchema,
@@ -25,6 +26,15 @@ import {
  * - GET /api/interactions?check=Warfarin,Ginkgo Biloba
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    req,
+    RATE_LIMITS.interactions,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const substanceParam = searchParams.get("substance");

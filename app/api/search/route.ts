@@ -276,7 +276,7 @@ export async function GET(req: NextRequest) {
     const scoredRemedies = mockRemedies.map((remedy) => {
       const matchScore =
         remedy.matchingNutrients.length /
-        Math.max(pharmaceutical!.ingredients.length, 1);
+        Math.max(pharmaceutical?.ingredients?.length ?? 0, 1);
 
       return {
         ...remedy,

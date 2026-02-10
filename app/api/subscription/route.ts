@@ -10,7 +10,10 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { PLANS, type PlanType } from "@/lib/stripe";
+import { PLANS, type PlanType, parsePlanType } from "@/lib/stripe";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-subscription");
 
 export async function GET() {
   try {
@@ -48,7 +51,7 @@ export async function GET() {
       });
     }
 
-    const plan = subscription.plan as PlanType;
+    const plan = parsePlanType(subscription.plan);
     const planDetails = PLANS[plan] || PLANS.free;
 
     return NextResponse.json({
@@ -67,7 +70,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("[subscription] Error fetching subscription:", error);
+    logger.error("Error fetching subscription", error);
     return NextResponse.json(
       {
         success: false,

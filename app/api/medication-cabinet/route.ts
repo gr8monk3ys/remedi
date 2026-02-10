@@ -24,7 +24,11 @@ import {
 } from "@/lib/validations/health-profile";
 import { getValidationErrorMessage } from "@/lib/validations/api";
 import { createLogger } from "@/lib/logger";
-import { getPlanLimits, isWithinLimit } from "@/lib/stripe-config";
+import {
+  getPlanLimits,
+  isWithinLimit,
+  parsePlanType,
+} from "@/lib/stripe-config";
 import type { PlanType } from "@/lib/stripe-config";
 
 const logger = createLogger("medication-cabinet-api");
@@ -36,7 +40,7 @@ async function getUserPlan(userId: string): Promise<PlanType> {
     select: { plan: true, status: true },
   });
   if (sub && sub.status === "active") {
-    return sub.plan as PlanType;
+    return parsePlanType(sub.plan);
   }
   return "free";
 }

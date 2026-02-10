@@ -23,18 +23,18 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
         return (
           <div
             key={index}
-            className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+            className="bg-card rounded-lg border border-border overflow-hidden"
           >
             <button
               onClick={() => setOpenIndex(isOpen ? null : index)}
-              className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+              className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-muted transition-colors"
               aria-expanded={isOpen}
             >
-              <span className="font-medium text-gray-900 dark:text-white pr-4">
+              <span className="font-medium text-foreground pr-4">
                 {item.question}
               </span>
               <ChevronDown
-                className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform ${
+                className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform ${
                   isOpen ? "rotate-180" : ""
                 }`}
               />
@@ -42,7 +42,7 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
 
             {isOpen && (
               <div className="px-5 pb-4">
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {item.answer}
                 </p>
               </div>

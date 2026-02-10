@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50">
+    <main className="min-h-screen bg-gradient-to-b from-muted via-background to-blue-50">
       <section className="pt-24 pb-16 px-4">
         <div className="container mx-auto max-w-5xl">
           <div className="flex flex-col gap-10">
@@ -16,11 +16,11 @@ export default function LandingPage() {
               <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-700 text-sm font-semibold px-3 py-1">
                 Launching Early Access
               </span>
-              <h1 className="mt-6 text-4xl md:text-5xl font-bold text-gray-900">
+              <h1 className="mt-6 text-4xl md:text-5xl font-bold text-foreground">
                 Find natural alternatives that are practical, safe, and
                 evidence-based.
               </h1>
-              <p className="mt-4 text-lg text-gray-600 max-w-2xl">
+              <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
                 Remedi helps people compare pharmaceuticals with natural
                 options, understand risks, and make informed decisions fast.
                 Built for everyday users and professionals.
@@ -46,12 +46,14 @@ export default function LandingPage() {
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-xl bg-white shadow-sm border border-gray-100 p-6"
+                  className="rounded-xl bg-card shadow-sm border border-border p-6"
                 >
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-foreground">
                     {item.title}
                   </h3>
-                  <p className="mt-2 text-sm text-gray-600">{item.body}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {item.body}
+                  </p>
                 </div>
               ))}
             </div>
@@ -59,17 +61,17 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="py-16 px-4 bg-white">
+      <section className="py-16 px-4 bg-card">
         <div className="container mx-auto max-w-5xl grid md:grid-cols-2 gap-10">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="text-3xl font-bold text-foreground">
               Built to increase trust and conversion
             </h2>
-            <p className="mt-4 text-gray-600">
+            <p className="mt-4 text-muted-foreground">
               We focus on the decisions that lead to upgrades: confidence in the
               science, clarity of value, and a frictionless path to start.
             </p>
-            <ul className="mt-6 space-y-3 text-gray-700">
+            <ul className="mt-6 space-y-3 text-foreground">
               <li>• Clear evidence levels on every remedy</li>
               <li>• Trial-friendly onboarding</li>
               <li>• Premium workflows for professionals</li>

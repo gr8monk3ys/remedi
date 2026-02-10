@@ -13,6 +13,9 @@ import {
   EVENT_SOURCES,
 } from "@/lib/analytics/conversion-events";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-trial-start");
 
 export async function POST(request: NextRequest) {
   // Check rate limit
@@ -78,7 +81,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[trial/start] Error starting trial:", error);
+    logger.error("Error starting trial", error);
 
     // Handle specific error cases
     if (error instanceof Error && error.message.includes("not eligible")) {

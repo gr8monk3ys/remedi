@@ -13,6 +13,9 @@ import { getCurrentUser } from "@/lib/auth";
 import { successResponse, errorResponse } from "@/lib/api/response";
 import { z } from "zod";
 import { DEFAULT_EMAIL_PREFERENCES } from "@/lib/email/types";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-email-preferences");
 
 /**
  * Zod schema for PATCH body - all fields are optional to allow partial updates
@@ -77,7 +80,7 @@ export async function GET() {
 
     return NextResponse.json(successResponse(preferences));
   } catch (error) {
-    console.error("Error fetching email preferences:", error);
+    logger.error("Error fetching email preferences", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to fetch email preferences"),
       { status: 500 },
@@ -146,7 +149,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json(successResponse(preferences));
   } catch (error) {
-    console.error("Error updating email preferences:", error);
+    logger.error("Error updating email preferences", error);
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to update email preferences"),
       { status: 500 },

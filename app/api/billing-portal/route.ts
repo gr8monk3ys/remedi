@@ -12,6 +12,10 @@ import { getCurrentUser } from "@/lib/auth";
 import { createBillingPortalSession, isStripeConfigured } from "@/lib/stripe";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
+import { createLogger } from "@/lib/logger";
+import { getBaseUrl } from "@/lib/url";
+
+const logger = createLogger("api-billing-portal");
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get base URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getBaseUrl();
 
     // Create billing portal session
     const portalSession = await createBillingPortalSession(
@@ -83,7 +87,7 @@ export async function POST(request: NextRequest) {
       data: { url: portalSession.url },
     });
   } catch (error) {
-    console.error("[billing-portal] Error creating portal session:", error);
+    logger.error("Error creating portal session", error);
     return NextResponse.json(
       {
         success: false,

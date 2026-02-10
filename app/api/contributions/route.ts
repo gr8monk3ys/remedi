@@ -3,6 +3,9 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("api-contributions");
 
 const contributionSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -43,8 +46,11 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const page = Math.max(parseInt(searchParams.get("page") || "1"), 1);
+    const limit = Math.min(
+      Math.max(parseInt(searchParams.get("limit") || "10"), 1),
+      100,
+    );
     const skip = (page - 1) * limit;
 
     const validStatuses = ["pending", "approved", "rejected"] as const;
@@ -75,7 +81,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching contributions:", error);
+    logger.error("Error fetching contributions", error);
     return NextResponse.json(
       {
         success: false,
@@ -172,7 +178,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Error creating contribution:", error);
+    logger.error("Error creating contribution", error);
     return NextResponse.json(
       {
         success: false,
