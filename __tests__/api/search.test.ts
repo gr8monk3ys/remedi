@@ -14,6 +14,7 @@ import { NextRequest } from "next/server";
 vi.mock("@/lib/db", () => ({
   searchPharmaceuticals: vi.fn(),
   getNaturalRemediesForPharmaceutical: vi.fn(),
+  generateRemedyMappingsForPharmaceutical: vi.fn().mockResolvedValue([]),
   upsertPharmaceutical: vi.fn(),
   saveSearchHistory: vi.fn(),
 }));
@@ -26,11 +27,6 @@ vi.mock("@/lib/openFDA", () => ({
 // Mock the fuzzy search
 vi.mock("@/lib/fuzzy-search", () => ({
   fuzzySearch: vi.fn(),
-}));
-
-// Mock the remedy mapping
-vi.mock("@/lib/remedyMapping", () => ({
-  findNaturalRemediesForDrug: vi.fn().mockResolvedValue([]),
 }));
 
 // Mock rate limiting

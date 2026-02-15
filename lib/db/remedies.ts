@@ -9,10 +9,17 @@ import { parseNaturalRemedy, parseRemedyMapping } from "./parsers";
 import type {
   NaturalRemedy,
   DetailedRemedy,
+  ProcessedDrug,
   ParsedNaturalRemedy,
   ParsedRemedyMapping,
 } from "../types";
 import { normalizeReferences } from "@/lib/references";
+import {
+  rankRemedyCandidatesForDrug,
+  replacementTypeForScore,
+  shouldForceSupportiveReplacement,
+  type RemedyMatchCandidate,
+} from "../remedy-matcher";
 
 /**
  * Get natural remedy by ID
@@ -84,6 +91,62 @@ export async function getNaturalRemediesForPharmaceutical(
     matchingNutrients: mapping.matchingNutrients,
     similarityScore: mapping.similarityScore,
   }));
+}
+
+/**
+ * Generate and persist mappings for a pharmaceutical when explicit mappings are missing.
+ *
+ * This is a deterministic, DB-backed matcher (non-AI) that:
+ * - ranks remedies using token overlap heuristics
+ * - inserts NaturalRemedyMapping rows (skip duplicates)
+ * - returns the ranked results for immediate use
+ */
+export async function generateRemedyMappingsForPharmaceutical(params: {
+  pharmaceuticalId: string;
+  drug: ProcessedDrug;
+  limit?: number;
+  minScore?: number;
+}): Promise<NaturalRemedy[]> {
+  const { pharmaceuticalId, drug, limit = 10, minScore = 0.12 } = params;
+
+  const candidates = (await prisma.naturalRemedy.findMany({
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      imageUrl: true,
+      category: true,
+      ingredients: true,
+      benefits: true,
+      evidenceLevel: true,
+    },
+  })) as RemedyMatchCandidate[];
+
+  const matches = rankRemedyCandidatesForDrug(drug, candidates, {
+    limit,
+    minScore,
+  });
+
+  if (matches.length === 0) {
+    return [];
+  }
+
+  const forceSupportive = shouldForceSupportiveReplacement(drug);
+
+  await prisma.naturalRemedyMapping.createMany({
+    data: matches.map((match) => ({
+      pharmaceuticalId,
+      naturalRemedyId: match.id,
+      similarityScore: match.similarityScore,
+      matchingNutrients: match.matchingNutrients,
+      replacementType: forceSupportive
+        ? "Supportive"
+        : replacementTypeForScore(match.similarityScore),
+    })),
+    skipDuplicates: true,
+  });
+
+  return matches;
 }
 
 /**
