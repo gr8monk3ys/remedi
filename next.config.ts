@@ -1,10 +1,25 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 import withBundleAnalyzer from "@next/bundle-analyzer";
+import path from "node:path";
 
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
+
+const projectRoot = path.resolve(__dirname);
+const e2eLocalAuthEnabled = process.env.E2E_LOCAL_AUTH === "true";
+const e2eDisableSentry = process.env.E2E_DISABLE_SENTRY === "true";
+const clerkClientMockSpecifier = "./lib/e2e/clerk-nextjs-client-mock.tsx";
+const clerkServerMockSpecifier = "./lib/e2e/clerk-nextjs-mock/server.ts";
+const clerkClientMockPath = path.join(
+  projectRoot,
+  clerkClientMockSpecifier.replace("./", ""),
+);
+const clerkServerMockPath = path.join(
+  projectRoot,
+  clerkServerMockSpecifier.replace("./", ""),
+);
 
 const nextConfig: NextConfig = {
   // NOTE: Do NOT set `output: "standalone"` when deploying to Vercel.
@@ -122,7 +137,30 @@ const nextConfig: NextConfig = {
   },
 
   // Turbopack handles code splitting automatically in Next.js 16+
-  turbopack: {},
+  turbopack: {
+    root: projectRoot,
+    ...(e2eLocalAuthEnabled
+      ? {
+          resolveAlias: {
+            "@clerk/nextjs/server": clerkServerMockSpecifier,
+            "@clerk/nextjs": clerkClientMockSpecifier,
+          },
+        }
+      : {}),
+  },
+
+  webpack(config) {
+    if (e2eLocalAuthEnabled) {
+      config.resolve = config.resolve || {};
+      config.resolve.alias = {
+        ...(config.resolve.alias || {}),
+        "@clerk/nextjs/server": clerkServerMockPath,
+        "@clerk/nextjs$": clerkClientMockPath,
+      };
+    }
+
+    return config;
+  },
 };
 
 // Sentry configuration options
@@ -152,7 +190,9 @@ const sentryWebpackPluginOptions = {
 
 // Wrap Next.js config with Sentry and Bundle Analyzer
 const configWithAnalyzer = bundleAnalyzer(nextConfig);
+const sentryEnabled =
+  Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN) && !e2eDisableSentry;
 
-export default process.env.NEXT_PUBLIC_SENTRY_DSN
+export default sentryEnabled
   ? withSentryConfig(configWithAnalyzer, sentryWebpackPluginOptions)
   : configWithAnalyzer;

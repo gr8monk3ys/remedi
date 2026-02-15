@@ -30,7 +30,7 @@ vi.mock("@clerk/nextjs/server", () => ({
   }),
 }));
 
-import middleware from "@/middleware";
+import middleware from "@/proxy";
 import { csrfMiddleware, generateCSRFToken, setCSRFCookie } from "@/lib/csrf";
 
 /**
@@ -603,7 +603,7 @@ describe("Middleware", () => {
 
   describe("Middleware Config", () => {
     it("should export a config object with matcher patterns", async () => {
-      const { config } = await import("@/middleware");
+      const { config } = await import("@/proxy");
 
       expect(config).toBeDefined();
       expect(config.matcher).toBeDefined();
@@ -612,7 +612,7 @@ describe("Middleware", () => {
     });
 
     it("should have a matcher that includes API routes", async () => {
-      const { config } = await import("@/middleware");
+      const { config } = await import("@/proxy");
 
       const hasApiMatcher = config.matcher.some(
         (pattern: string) =>

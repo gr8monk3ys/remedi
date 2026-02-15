@@ -44,8 +44,11 @@ const isPublicRoute = createRouteMatcher([
   "/api/favorites(.*)", // Supports anonymous sessionId-based access
   "/api/search-history(.*)", // Supports anonymous sessionId-based access
   "/api/filter-preferences(.*)", // Supports anonymous sessionId-based access
+  "/api/plan(.*)", // Lightweight plan/limits lookup (safe for anonymous)
   "/api/user-events(.*)", // Anonymous event tracking
   "/api/conversion-events(.*)", // Anonymous conversion tracking
+  "/api/ai-search(.*)", // AI availability check is public
+  "/api/interactions/check(.*)", // Public interaction checker
 ]);
 
 /**
@@ -58,6 +61,18 @@ const BLOCKED_USER_AGENTS = [
   "gptbot",
   "claudebot",
 ];
+
+const E2E_AUTH_COOKIE_NAMES = ["e2e_auth", "__session"] as const;
+
+function isE2ELocalAuthEnabled(): boolean {
+  return process.env.E2E_LOCAL_AUTH === "true";
+}
+
+function isE2EAuthenticated(req: NextRequest): boolean {
+  return E2E_AUTH_COOKIE_NAMES.some((name) =>
+    Boolean(req.cookies.get(name)?.value),
+  );
+}
 
 /**
  * Add security headers to response
@@ -132,6 +147,7 @@ function getAllowedOrigins(): string[] {
 
 export default clerkMiddleware(async (authObj, req: NextRequest) => {
   const { pathname } = req.nextUrl;
+  const e2eLocalAuthEnabled = isE2ELocalAuthEnabled();
 
   // Block bots/scrapers
   const userAgent = req.headers.get("user-agent") || "";
@@ -195,7 +211,29 @@ export default clerkMiddleware(async (authObj, req: NextRequest) => {
 
   // Protect non-public routes with Clerk
   if (!isPublicRoute(req)) {
-    await authObj.protect();
+    if (e2eLocalAuthEnabled) {
+      if (!isE2EAuthenticated(req)) {
+        if (pathname.startsWith("/api/")) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: "UNAUTHORIZED",
+                message: "Authentication required",
+              },
+            },
+            { status: 401 },
+          );
+        }
+
+        const signInUrl = req.nextUrl.clone();
+        signInUrl.pathname = "/sign-in";
+        signInUrl.searchParams.set("redirect_url", req.nextUrl.href);
+        return NextResponse.redirect(signInUrl);
+      }
+    } else {
+      await authObj.protect();
+    }
   }
 
   // CSRF validation for state-changing API requests
