@@ -7,6 +7,13 @@ import {
   remedyMappings,
 } from "./seed-data/index.ts";
 import { seedInteractions } from "./seeds/interactions.ts";
+import type { ProcessedDrug } from "../lib/types.ts";
+import {
+  rankRemedyCandidatesForDrug,
+  replacementTypeForScore,
+  shouldForceSupportiveReplacement,
+  type RemedyMatchCandidate,
+} from "../lib/remedy-matcher.ts";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -55,6 +62,61 @@ function parseSeedArray(value: string | string[] | null | undefined): string[] {
   } catch {
     return value.trim() ? [value.trim()] : [];
   }
+}
+
+function isLikelyUrl(value: string): boolean {
+  return /^https?:\/\//i.test(value);
+}
+
+// https://www.crossref.org/blog/dois-and-matching-regular-expressions/
+function extractDoi(value: string): string | null {
+  const match = value.match(/\b(10\.\d{4,9}\/[-._;()/:A-Z0-9]+)\b/i);
+  return match?.[1] ?? null;
+}
+
+function deriveSourceUrlFromReferences(references: string[]): string | null {
+  const first = references.find((ref) => typeof ref === "string" && ref.trim());
+  if (!first) return null;
+
+  const trimmed = first.trim();
+  if (isLikelyUrl(trimmed)) return trimmed;
+
+  const doi = extractDoi(trimmed);
+  if (doi) return `https://doi.org/${doi}`;
+
+  // Fallback: make the source clickable via PubMed search.
+  return `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(trimmed)}`;
+}
+
+async function backfillRemedySourceUrls(): Promise<void> {
+  console.log("\nBackfilling remedy source URLs...");
+
+  const missing = await prisma.naturalRemedy.findMany({
+    where: { OR: [{ sourceUrl: null }, { sourceUrl: "" }] },
+    select: { id: true, references: true },
+  });
+
+  if (missing.length === 0) {
+    console.log("  All remedies already have source URLs.");
+    return;
+  }
+
+  let updated = 0;
+  for (const row of missing) {
+    const refs = parseSeedArray(row.references);
+    const derived = deriveSourceUrlFromReferences(refs);
+    if (!derived) continue;
+
+    await prisma.naturalRemedy.update({
+      where: { id: row.id },
+      data: { sourceUrl: derived },
+    });
+    updated += 1;
+  }
+
+  console.log(
+    `  Updated ${updated}/${missing.length} remedies missing source URLs.`,
+  );
 }
 
 async function main(): Promise<void> {
@@ -106,28 +168,35 @@ async function main(): Promise<void> {
   for (let i = 0; i < allNaturalRemedies.length; i += BATCH_SIZE) {
     const batch = allNaturalRemedies.slice(i, i + BATCH_SIZE);
     await prisma.naturalRemedy.createMany({
-      data: batch.map((remedy) => ({
-        name: remedy.name,
-        description: remedy.description || null,
-        category: remedy.category,
-        ingredients: parseSeedArray(remedy.ingredients),
-        benefits: parseSeedArray(remedy.benefits),
-        imageUrl:
-          "imageUrl" in remedy && typeof remedy.imageUrl === "string"
-            ? remedy.imageUrl
-            : null,
-        usage: remedy.usage || null,
-        dosage: remedy.dosage || null,
-        precautions: remedy.precautions || null,
-        scientificInfo: remedy.scientificInfo || null,
-        references: parseSeedArray(remedy.references),
-        relatedRemedies: parseSeedArray(remedy.relatedRemedies),
-        sourceUrl:
+      data: batch.map((remedy) => {
+        const references = parseSeedArray(remedy.references);
+        const relatedRemedies = parseSeedArray(remedy.relatedRemedies);
+        const explicitSourceUrl =
           "sourceUrl" in remedy && typeof remedy.sourceUrl === "string"
-            ? remedy.sourceUrl
-            : null,
-        evidenceLevel: remedy.evidenceLevel || null,
-      })),
+            ? remedy.sourceUrl.trim()
+            : "";
+
+        return {
+          name: remedy.name,
+          description: remedy.description || null,
+          category: remedy.category,
+          ingredients: parseSeedArray(remedy.ingredients),
+          benefits: parseSeedArray(remedy.benefits),
+          imageUrl:
+            "imageUrl" in remedy && typeof remedy.imageUrl === "string"
+              ? remedy.imageUrl
+              : null,
+          usage: remedy.usage || null,
+          dosage: remedy.dosage || null,
+          precautions: remedy.precautions || null,
+          scientificInfo: remedy.scientificInfo || null,
+          references,
+          relatedRemedies,
+          sourceUrl:
+            explicitSourceUrl || deriveSourceUrlFromReferences(references),
+          evidenceLevel: remedy.evidenceLevel || null,
+        };
+      }),
       skipDuplicates: true,
     });
     console.log(
@@ -135,6 +204,7 @@ async function main(): Promise<void> {
     );
   }
   console.log(`Created ${allNaturalRemedies.length} natural remedies.`);
+  await backfillRemedySourceUrls();
 
   // Create mappings between pharmaceuticals and natural remedies
   console.log("\nCreating remedy mappings...");
@@ -207,6 +277,8 @@ async function main(): Promise<void> {
     `Created ${createdMappings} mappings (${skippedMappings} duplicates skipped).`,
   );
 
+  await ensureBaselineMappingCoverage();
+
   // Print summary
   console.log("\n========================================");
   console.log("Seed completed successfully!");
@@ -235,6 +307,112 @@ async function main(): Promise<void> {
     .forEach(([category, count]) => {
       console.log(`  ${category}: ${count}`);
     });
+}
+
+async function ensureBaselineMappingCoverage(): Promise<void> {
+  console.log("\nEnsuring baseline remedy mapping coverage...");
+
+  const MIN_MAPPINGS_PER_PHARMA = 3;
+  const MAX_CANDIDATES_PER_PHARMA = 8;
+
+  const [allPharmas, allRemedies, existingPairs] = await Promise.all([
+    prisma.pharmaceutical.findMany({
+      select: {
+        id: true,
+        fdaId: true,
+        name: true,
+        description: true,
+        category: true,
+        ingredients: true,
+        benefits: true,
+        usage: true,
+        warnings: true,
+        interactions: true,
+      },
+    }),
+    prisma.naturalRemedy.findMany({
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        imageUrl: true,
+        category: true,
+        ingredients: true,
+        benefits: true,
+        evidenceLevel: true,
+      },
+    }),
+    prisma.naturalRemedyMapping.findMany({
+      select: { pharmaceuticalId: true, naturalRemedyId: true },
+    }),
+  ]);
+
+  const existingByPharma = new Map<string, Set<string>>();
+  for (const pair of existingPairs) {
+    const set =
+      existingByPharma.get(pair.pharmaceuticalId) ?? new Set<string>();
+    set.add(pair.naturalRemedyId);
+    existingByPharma.set(pair.pharmaceuticalId, set);
+  }
+
+  const candidates = allRemedies as RemedyMatchCandidate[];
+  let created = 0;
+
+  for (const pharma of allPharmas) {
+    const mapped = existingByPharma.get(pharma.id) ?? new Set<string>();
+    if (mapped.size >= MIN_MAPPINGS_PER_PHARMA) continue;
+
+    const drug: ProcessedDrug = {
+      id: pharma.id,
+      fdaId: pharma.fdaId || "",
+      name: pharma.name,
+      description: pharma.description || "",
+      category: pharma.category,
+      ingredients: pharma.ingredients,
+      benefits: pharma.benefits,
+      usage: pharma.usage || undefined,
+      warnings: pharma.warnings || undefined,
+      interactions: pharma.interactions || undefined,
+    };
+
+    const matches = rankRemedyCandidatesForDrug(drug, candidates, {
+      limit: MAX_CANDIDATES_PER_PHARMA,
+    });
+
+    const forceSupportive = shouldForceSupportiveReplacement(drug);
+
+    const needed = Math.max(MIN_MAPPINGS_PER_PHARMA - mapped.size, 0);
+    if (needed === 0) continue;
+
+    const toCreate = matches
+      .filter((match) => !mapped.has(match.id))
+      .slice(0, needed);
+
+    if (toCreate.length === 0) continue;
+
+    await prisma.naturalRemedyMapping.createMany({
+      data: toCreate.map((match) => ({
+        pharmaceuticalId: pharma.id,
+        naturalRemedyId: match.id,
+        similarityScore: match.similarityScore,
+        matchingNutrients: match.matchingNutrients,
+        replacementType: forceSupportive
+          ? "Supportive"
+          : replacementTypeForScore(match.similarityScore),
+      })),
+      skipDuplicates: true,
+    });
+
+    created += toCreate.length;
+  }
+
+  const pharmaWithNoMappings = await prisma.pharmaceutical.count({
+    where: { remedies: { none: {} } },
+  });
+
+  console.log(
+    `  Generated ${created} additional mappings. Pharmaceuticals with 0 mappings: ${pharmaWithNoMappings}.`,
+  );
 }
 
 async function ensureSubscriptionFeatureData(): Promise<void> {

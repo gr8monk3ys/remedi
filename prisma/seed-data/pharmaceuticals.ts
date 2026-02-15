@@ -524,6 +524,101 @@ export const pharmaceuticals = [
     warnings: "Muscle effects still possible. Liver monitoring.",
     interactions: "Cyclosporine, gemfibrozil, niacin.",
   },
+  // Cardiovascular - Anticoagulants / Antiplatelets
+  {
+    fdaId: "anticoag-001",
+    name: "Warfarin",
+    description:
+      "Vitamin K antagonist anticoagulant (blood thinner) used to prevent and treat blood clots. Brand name Coumadin.",
+    category: "Anticoagulant (Vitamin K Antagonist)",
+    ingredients: JSON.stringify(["Warfarin sodium"]),
+    benefits: JSON.stringify([
+      "Prevents blood clots",
+      "Treats deep vein thrombosis (DVT)",
+      "Prevents stroke in atrial fibrillation",
+    ]),
+    usage:
+      "Prescription only. Dose is individualized based on INR monitoring. Take at the same time daily.",
+    warnings:
+      "High bleeding risk. Requires INR monitoring. Many drug and food interactions (vitamin K). Do not stop or change dose without medical supervision.",
+    interactions:
+      "Many interactions including antibiotics, antifungals, amiodarone, NSAIDs, aspirin, and numerous supplements. Monitor INR closely with any changes.",
+  },
+  {
+    fdaId: "anticoag-002",
+    name: "Apixaban",
+    description:
+      "Direct oral anticoagulant (DOAC) factor Xa inhibitor used to prevent stroke and treat blood clots. Brand name Eliquis.",
+    category: "Anticoagulant (DOAC)",
+    ingredients: JSON.stringify(["Apixaban"]),
+    benefits: JSON.stringify([
+      "Prevents stroke in atrial fibrillation",
+      "Treats DVT/PE",
+      "No routine INR monitoring",
+    ]),
+    usage:
+      "Prescription only. Take exactly as prescribed (often twice daily). Do not skip doses.",
+    warnings:
+      "Bleeding risk. Stopping suddenly increases clot risk. Not appropriate for all patients (kidney/liver disease, certain valve conditions).",
+    interactions:
+      "Other anticoagulants/antiplatelets, strong CYP3A4/P-gp inhibitors or inducers (ketoconazole, rifampin), NSAIDs.",
+  },
+  {
+    fdaId: "anticoag-003",
+    name: "Rivaroxaban",
+    description:
+      "Direct oral anticoagulant (DOAC) factor Xa inhibitor for stroke prevention and clot treatment. Brand name Xarelto.",
+    category: "Anticoagulant (DOAC)",
+    ingredients: JSON.stringify(["Rivaroxaban"]),
+    benefits: JSON.stringify([
+      "Prevents stroke in atrial fibrillation",
+      "Treats DVT/PE",
+      "Prevents postoperative clots",
+    ]),
+    usage:
+      "Prescription only. Some doses must be taken with food. Follow dosing instructions carefully.",
+    warnings:
+      "Bleeding risk. Stopping suddenly increases clot risk. Use caution in kidney/liver impairment.",
+    interactions:
+      "Other anticoagulants/antiplatelets, strong CYP3A4/P-gp inhibitors or inducers, NSAIDs.",
+  },
+  {
+    fdaId: "anticoag-004",
+    name: "Dabigatran",
+    description:
+      "Direct oral anticoagulant (DOAC) direct thrombin inhibitor used to prevent stroke and treat blood clots. Brand name Pradaxa.",
+    category: "Anticoagulant (DOAC)",
+    ingredients: JSON.stringify(["Dabigatran etexilate"]),
+    benefits: JSON.stringify([
+      "Prevents stroke in atrial fibrillation",
+      "Treats DVT/PE",
+      "No routine INR monitoring",
+    ]),
+    usage:
+      "Prescription only. Swallow capsules whole. Keep in original container to protect from moisture.",
+    warnings:
+      "Bleeding risk. Stopping suddenly increases clot risk. Use caution in kidney impairment.",
+    interactions:
+      "Other anticoagulants/antiplatelets, P-gp inhibitors (amiodarone, verapamil), NSAIDs.",
+  },
+  {
+    fdaId: "antiplatelet-001",
+    name: "Clopidogrel",
+    description:
+      "Antiplatelet medication used to reduce risk of heart attack and stroke after certain cardiovascular events or stent placement. Brand name Plavix.",
+    category: "Antiplatelet",
+    ingredients: JSON.stringify(["Clopidogrel bisulfate"]),
+    benefits: JSON.stringify([
+      "Prevents platelet aggregation",
+      "Reduces heart attack risk",
+      "Reduces stroke risk",
+    ]),
+    usage: "Prescription only. Take once daily. Do not stop without guidance.",
+    warnings:
+      "Bleeding risk. Rare but serious TTP. Tell clinicians before surgery or dental work.",
+    interactions:
+      "Aspirin/NSAIDs increase bleeding risk. Some PPIs (omeprazole) may reduce effectiveness. Warfarin and other anticoagulants increase bleeding risk.",
+  },
   // Cardiovascular - Blood Pressure
   {
     fdaId: "ace-001",
