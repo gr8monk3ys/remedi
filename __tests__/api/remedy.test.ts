@@ -52,6 +52,8 @@ vi.mock("@/lib/analytics/user-events", () => ({
 import { GET } from "@/app/api/remedy/[id]/route";
 import { getNaturalRemedyById } from "@/lib/db";
 
+type RemedyLookupResult = Awaited<ReturnType<typeof getNaturalRemedyById>>;
+
 describe("GET /api/remedy/[id]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -90,7 +92,9 @@ describe("GET /api/remedy/[id]", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(getNaturalRemedyById).mockResolvedValue(mockRemedy as any);
+      vi.mocked(getNaturalRemedyById).mockResolvedValue(
+        mockRemedy as unknown as RemedyLookupResult,
+      );
 
       const request = new NextRequest(
         "http://localhost:3000/api/remedy/test-remedy-id",
@@ -130,7 +134,9 @@ describe("GET /api/remedy/[id]", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(getNaturalRemedyById).mockResolvedValue(mockRemedy as any);
+      vi.mocked(getNaturalRemedyById).mockResolvedValue(
+        mockRemedy as unknown as RemedyLookupResult,
+      );
 
       const request = new NextRequest(
         "http://localhost:3000/api/remedy/full-remedy",
@@ -283,7 +289,9 @@ describe("GET /api/remedy/[id]", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(getNaturalRemedyById).mockResolvedValue(mockRemedy as any);
+      vi.mocked(getNaturalRemedyById).mockResolvedValue(
+        mockRemedy as unknown as RemedyLookupResult,
+      );
 
       const request = new NextRequest(
         "http://localhost:3000/api/remedy/test-id",
@@ -311,7 +319,7 @@ describe("GET /api/remedy/[id]", () => {
         benefits: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as any);
+      } as unknown as RemedyLookupResult);
 
       const request = new NextRequest("http://localhost:3000/api/remedy/test");
       const params = Promise.resolve({ id: "test" });
@@ -349,7 +357,9 @@ describe("GET /api/remedy/[id]", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(getNaturalRemedyById).mockResolvedValue(mockRemedy as any);
+      vi.mocked(getNaturalRemedyById).mockResolvedValue(
+        mockRemedy as unknown as RemedyLookupResult,
+      );
 
       const request = new NextRequest(
         "http://localhost:3000/api/remedy/main-remedy",
@@ -391,7 +401,9 @@ describe("GET /api/remedy/[id]", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(getNaturalRemedyById).mockResolvedValue(mockRemedy as any);
+      vi.mocked(getNaturalRemedyById).mockResolvedValue(
+        mockRemedy as unknown as RemedyLookupResult,
+      );
 
       const request = new NextRequest(
         "http://localhost:3000/api/remedy/scientific-remedy",

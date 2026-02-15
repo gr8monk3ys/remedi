@@ -54,7 +54,7 @@ const DETAILED_REMEDIES: Record<string, DetailedRemedy> = {
     name: "Fatty Fish",
     description: "Salmon, mackerel, and other fatty fish rich in vitamin D.",
     imageUrl:
-      "https://images.unsplash.com/photo-1599160689894-193dafc2e8b2?w=400&h=400&fit=crop",
+      "https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=400&h=400&fit=crop",
     category: "Food Source",
     matchingNutrients: ["Vitamin D3", "Omega-3"],
     similarityScore: 0.8,
@@ -123,7 +123,7 @@ const DETAILED_REMEDIES: Record<string, DetailedRemedy> = {
     name: "Ginger",
     description: "Root with anti-inflammatory and digestive properties.",
     imageUrl:
-      "https://images.unsplash.com/photo-1603431213662-4862e7a29051?w=400&h=400&fit=crop",
+      "https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=400&h=400&fit=crop",
     category: "Herbal Remedy",
     matchingNutrients: ["Gingerols", "Shogaols"],
     similarityScore: 0.8,
@@ -180,7 +180,7 @@ export async function GET(
     }
 
     // First try to fetch from database
-    const dbRemedy = await getNaturalRemedyById(id);
+    const dbRemedy = /^\d+$/.test(id) ? null : await getNaturalRemedyById(id);
 
     if (dbRemedy) {
       const detailedRemedy = toDetailedRemedy(dbRemedy);

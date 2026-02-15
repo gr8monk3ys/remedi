@@ -19,9 +19,14 @@ const mockUpdateMedication = vi.fn();
 const mockRemoveMedication = vi.fn();
 const mockCountMedications = vi.fn();
 const mockPrismaSubscriptionFindUnique = vi.fn();
+const mockGetTrialStatus = vi.fn();
 
 vi.mock("@/lib/auth", () => ({
   getCurrentUser: () => mockGetCurrentUser(),
+}));
+
+vi.mock("@/lib/trial", () => ({
+  getTrialStatus: (...args: unknown[]) => mockGetTrialStatus(...args),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -73,6 +78,15 @@ describe("/api/medication-cabinet", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetCurrentUser.mockResolvedValue(authenticatedUser);
+    mockGetTrialStatus.mockResolvedValue({
+      isActive: false,
+      isEligible: true,
+      hasUsedTrial: false,
+      startDate: null,
+      endDate: null,
+      daysRemaining: 0,
+      plan: "basic",
+    });
     // Default: user has basic plan
     mockPrismaSubscriptionFindUnique.mockResolvedValue({
       plan: "basic",
