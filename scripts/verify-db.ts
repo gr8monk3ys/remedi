@@ -31,9 +31,24 @@ async function main() {
     prisma.naturalRemedy.count(),
     prisma.pharmaceutical.count(),
     prisma.searchHistory.count(),
+    prisma.healthProfile.count(),
+    prisma.medicationCabinet.count(),
+    prisma.remedyJournal.count(),
+    prisma.remedyReport.count(),
+    prisma.drugInteraction.count(),
   ]);
 
-  const [users, remedies, pharmaceuticals, searches] = counts;
+  const [
+    users,
+    remedies,
+    pharmaceuticals,
+    searches,
+    healthProfiles,
+    medications,
+    journalEntries,
+    reports,
+    interactions,
+  ] = counts;
 
   console.log("DB verification OK.");
   console.log(
@@ -43,6 +58,11 @@ async function main() {
         remedies,
         pharmaceuticals,
         searches,
+        healthProfiles,
+        medications,
+        journalEntries,
+        reports,
+        interactions,
       },
       null,
       2,

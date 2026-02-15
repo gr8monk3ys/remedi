@@ -26,6 +26,14 @@ async function main() {
 
   const issues: string[] = [];
 
+  // Ensure the key subscription feature tables are queryable.
+  await Promise.all([
+    prisma.healthProfile.count(),
+    prisma.medicationCabinet.count(),
+    prisma.remedyJournal.count(),
+    prisma.remedyReport.count(),
+  ]);
+
   const missingRemedyNames = await prisma.naturalRemedy.count({
     where: {
       name: { equals: "" },
@@ -69,6 +77,28 @@ async function main() {
   });
   if (badMappings > 0) {
     issues.push(`Mappings with negative similarity score: ${badMappings}`);
+  }
+
+  const outOfRangeJournalRatings = await prisma.remedyJournal.count({
+    where: {
+      OR: [{ rating: { lt: 1 } }, { rating: { gt: 5 } }],
+    },
+  });
+  if (outOfRangeJournalRatings > 0) {
+    issues.push(
+      `Journal entries with out-of-range ratings: ${outOfRangeJournalRatings}`,
+    );
+  }
+
+  const invalidReportStatuses = await prisma.remedyReport.count({
+    where: {
+      status: {
+        notIn: ["generating", "complete", "failed"],
+      },
+    },
+  });
+  if (invalidReportStatuses > 0) {
+    issues.push(`Reports with invalid status values: ${invalidReportStatuses}`);
   }
 
   if (issues.length > 0) {

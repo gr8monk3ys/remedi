@@ -1,16 +1,16 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { defineConfig, env } from 'prisma/config';
+import fs from "node:fs";
+import path from "node:path";
+import { defineConfig, env } from "prisma/config";
 
-const envFiles = ['.env.local', '.env'];
+const envFiles = [".env.local", ".env"];
 for (const file of envFiles) {
   const filePath = path.resolve(process.cwd(), file);
   if (!fs.existsSync(filePath)) continue;
 
-  const contents = fs.readFileSync(filePath, 'utf8');
-  for (const line of contents.split('\n')) {
+  const contents = fs.readFileSync(filePath, "utf8");
+  for (const line of contents.split("\n")) {
     const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
+    if (!trimmed || trimmed.startsWith("#")) continue;
     const match = trimmed.match(/^([A-Za-z0-9_.-]+)=(.*)$/);
     if (!match) continue;
     const key = match[1];
@@ -28,11 +28,11 @@ for (const file of envFiles) {
 }
 
 export default defineConfig({
-  schema: 'prisma/schema.prisma',
+  schema: "prisma/schema.prisma",
   datasource: {
-    url: process.env.DATABASE_URL ?? env('DATABASE_URL'),
+    url: process.env.DATABASE_URL ?? env("DATABASE_URL"),
   },
   migrations: {
-    seed: 'node prisma/seed-extended.js',
+    seed: "npx ts-node-esm prisma/seed.ts",
   },
 });

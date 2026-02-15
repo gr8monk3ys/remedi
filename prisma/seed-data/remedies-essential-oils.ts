@@ -1,465 +1,1213 @@
 // Essential Oils and Aromatherapy Remedies
 export const essentialOilRemedies = [
   {
-    name: 'Lavender Essential Oil',
-    description: 'One of the most versatile essential oils, known for calming effects, skin healing, and sleep support.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Lavandula angustifolia', 'Linalool', 'Linalyl acetate', 'Terpinen-4-ol', 'Camphor']),
-    benefits: JSON.stringify(['Sleep improvement', 'Anxiety relief', 'Skin healing', 'Pain relief', 'Relaxation']),
-    usage: 'Diffuse, apply diluted topically (2-5% dilution), or add to bath.',
-    dosage: 'Aromatic: 3-5 drops in diffuser. Topical: 2-5% dilution in carrier oil',
-    precautions: 'Generally safe. May cause sensitization with prolonged skin contact. Keep away from eyes.',
-    scientificInfo: 'Clinical trials demonstrate anxiolytic and sleep-promoting effects of lavender aromatherapy.',
-    references: JSON.stringify(['Journal of Alternative and Complementary Medicine 2017', 'Phytomedicine 2019']),
-    relatedRemedies: JSON.stringify(['Chamomile Oil', 'Bergamot Oil', 'Valerian']),
-    evidenceLevel: 'Strong'
+    name: "Lavender Essential Oil",
+    description:
+      "One of the most versatile essential oils, known for calming effects, skin healing, and sleep support.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Lavandula angustifolia",
+      "Linalool",
+      "Linalyl acetate",
+      "Terpinen-4-ol",
+      "Camphor",
+    ]),
+    benefits: JSON.stringify([
+      "Sleep improvement",
+      "Anxiety relief",
+      "Skin healing",
+      "Pain relief",
+      "Relaxation",
+    ]),
+    usage: "Diffuse, apply diluted topically (2-5% dilution), or add to bath.",
+    dosage:
+      "Aromatic: 3-5 drops in diffuser. Topical: 2-5% dilution in carrier oil",
+    precautions:
+      "Generally safe. May cause sensitization with prolonged skin contact. Keep away from eyes.",
+    scientificInfo:
+      "Clinical trials demonstrate anxiolytic and sleep-promoting effects of lavender aromatherapy.",
+    references: JSON.stringify([
+      "Journal of Alternative and Complementary Medicine 2017",
+      "Phytomedicine 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Chamomile Oil",
+      "Bergamot Oil",
+      "Valerian",
+    ]),
+    evidenceLevel: "Strong",
   },
   {
-    name: 'Peppermint Essential Oil',
-    description: 'A stimulating oil with cooling properties, used for headaches, digestion, and mental clarity.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Mentha piperita', 'Menthol', 'Menthone', 'Menthyl acetate', '1,8-Cineole']),
-    benefits: JSON.stringify(['Headache relief', 'Digestive support', 'Mental alertness', 'Respiratory clearing', 'Muscle pain relief']),
-    usage: 'Diffuse, apply diluted to temples for headaches, or use in steam inhalation.',
-    dosage: 'Aromatic: 3-4 drops in diffuser. Topical: 1-3% dilution',
-    precautions: 'Avoid near face of infants and children. May cause skin irritation. Not for internal use without guidance.',
-    scientificInfo: 'Research shows effectiveness for tension headaches and IBS symptoms.',
-    references: JSON.stringify(['Phytotherapy Research 2016', 'Digestive Diseases and Sciences 2019']),
-    relatedRemedies: JSON.stringify(['Eucalyptus Oil', 'Rosemary Oil', 'Spearmint Oil']),
-    evidenceLevel: 'Strong'
+    name: "Peppermint Essential Oil",
+    description:
+      "A stimulating oil with cooling properties, used for headaches, digestion, and mental clarity.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Mentha piperita",
+      "Menthol",
+      "Menthone",
+      "Menthyl acetate",
+      "1,8-Cineole",
+    ]),
+    benefits: JSON.stringify([
+      "Headache relief",
+      "Digestive support",
+      "Mental alertness",
+      "Respiratory clearing",
+      "Muscle pain relief",
+    ]),
+    usage:
+      "Diffuse, apply diluted to temples for headaches, or use in steam inhalation.",
+    dosage: "Aromatic: 3-4 drops in diffuser. Topical: 1-3% dilution",
+    precautions:
+      "Avoid near face of infants and children. May cause skin irritation. Not for internal use without guidance.",
+    scientificInfo:
+      "Research shows effectiveness for tension headaches and IBS symptoms.",
+    references: JSON.stringify([
+      "Phytotherapy Research 2016",
+      "Digestive Diseases and Sciences 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Eucalyptus Oil",
+      "Rosemary Oil",
+      "Spearmint Oil",
+    ]),
+    evidenceLevel: "Strong",
   },
   {
-    name: 'Eucalyptus Essential Oil',
-    description: 'A powerful respiratory oil with antimicrobial properties, ideal for congestion and purification.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Eucalyptus globulus', '1,8-Cineole (Eucalyptol)', 'Alpha-pinene', 'Limonene', 'P-cymene']),
-    benefits: JSON.stringify(['Respiratory clearing', 'Antimicrobial effects', 'Pain relief', 'Mental clarity', 'Immune support']),
-    usage: 'Diffuse, use in steam inhalation, or apply diluted to chest.',
-    dosage: 'Aromatic: 3-5 drops in diffuser. Topical: 1-3% dilution',
-    precautions: 'Do not use near face of infants/children. May interact with certain medications. Not for internal use.',
-    scientificInfo: 'Eucalyptol has demonstrated antimicrobial and anti-inflammatory effects.',
-    references: JSON.stringify(['Clinical Microbiology Reviews 2016', 'Respiratory Medicine 2018']),
-    relatedRemedies: JSON.stringify(['Tea Tree Oil', 'Peppermint Oil', 'Ravintsara Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Eucalyptus Essential Oil",
+    description:
+      "A powerful respiratory oil with antimicrobial properties, ideal for congestion and purification.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Eucalyptus globulus",
+      "1,8-Cineole (Eucalyptol)",
+      "Alpha-pinene",
+      "Limonene",
+      "P-cymene",
+    ]),
+    benefits: JSON.stringify([
+      "Respiratory clearing",
+      "Antimicrobial effects",
+      "Pain relief",
+      "Mental clarity",
+      "Immune support",
+    ]),
+    usage: "Diffuse, use in steam inhalation, or apply diluted to chest.",
+    dosage: "Aromatic: 3-5 drops in diffuser. Topical: 1-3% dilution",
+    precautions:
+      "Do not use near face of infants/children. May interact with certain medications. Not for internal use.",
+    scientificInfo:
+      "Eucalyptol has demonstrated antimicrobial and anti-inflammatory effects.",
+    references: JSON.stringify([
+      "Clinical Microbiology Reviews 2016",
+      "Respiratory Medicine 2018",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Tea Tree Oil",
+      "Peppermint Oil",
+      "Ravintsara Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Tea Tree Essential Oil',
-    description: 'A powerful antimicrobial oil widely used for skin conditions, acne, and infections.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Melaleuca alternifolia', 'Terpinen-4-ol', 'Gamma-terpinene', 'Alpha-terpinene', '1,8-Cineole']),
-    benefits: JSON.stringify(['Antimicrobial action', 'Acne treatment', 'Wound healing', 'Fungal infections', 'Dandruff control']),
-    usage: 'Apply diluted topically to affected areas. Add to shampoo for scalp conditions.',
-    dosage: 'Topical: 2-5% dilution for skin, up to 10% for specific conditions',
-    precautions: 'Topical use only. May cause skin irritation or allergic reactions. Toxic if ingested.',
-    scientificInfo: 'Extensive research confirms antimicrobial and anti-inflammatory properties.',
-    references: JSON.stringify(['Clinical Microbiology Reviews 2017', 'International Journal of Dermatology 2019']),
-    relatedRemedies: JSON.stringify(['Oregano Oil', 'Manuka Oil', 'Eucalyptus Oil']),
-    evidenceLevel: 'Strong'
+    name: "Tea Tree Essential Oil",
+    description:
+      "A powerful antimicrobial oil widely used for skin conditions, acne, and infections.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Melaleuca alternifolia",
+      "Terpinen-4-ol",
+      "Gamma-terpinene",
+      "Alpha-terpinene",
+      "1,8-Cineole",
+    ]),
+    benefits: JSON.stringify([
+      "Antimicrobial action",
+      "Acne treatment",
+      "Wound healing",
+      "Fungal infections",
+      "Dandruff control",
+    ]),
+    usage:
+      "Apply diluted topically to affected areas. Add to shampoo for scalp conditions.",
+    dosage:
+      "Topical: 2-5% dilution for skin, up to 10% for specific conditions",
+    precautions:
+      "Topical use only. May cause skin irritation or allergic reactions. Toxic if ingested.",
+    scientificInfo:
+      "Extensive research confirms antimicrobial and anti-inflammatory properties.",
+    references: JSON.stringify([
+      "Clinical Microbiology Reviews 2017",
+      "International Journal of Dermatology 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Oregano Oil",
+      "Manuka Oil",
+      "Eucalyptus Oil",
+    ]),
+    evidenceLevel: "Strong",
   },
   {
-    name: 'Frankincense Essential Oil',
-    description: 'An ancient resin oil with profound effects on inflammation, immunity, and cellular health.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Boswellia carterii', 'Alpha-pinene', 'Limonene', 'Incensole', 'Boswellic acids']),
-    benefits: JSON.stringify(['Inflammation reduction', 'Cellular health', 'Meditation support', 'Skin rejuvenation', 'Immune modulation']),
-    usage: 'Diffuse for meditation, apply diluted to skin, or use in skincare formulations.',
-    dosage: 'Aromatic: 3-5 drops in diffuser. Topical: 2-5% dilution',
-    precautions: 'Generally safe. May increase sun sensitivity. Quality varies significantly.',
-    scientificInfo: 'Research shows anti-inflammatory and potential anticancer properties of boswellic acids.',
-    references: JSON.stringify(['Planta Medica 2017', 'Journal of Traditional and Complementary Medicine 2019']),
-    relatedRemedies: JSON.stringify(['Myrrh Oil', 'Helichrysum Oil', 'Sandalwood Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Frankincense Essential Oil",
+    description:
+      "An ancient resin oil with profound effects on inflammation, immunity, and cellular health.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Boswellia carterii",
+      "Alpha-pinene",
+      "Limonene",
+      "Incensole",
+      "Boswellic acids",
+    ]),
+    benefits: JSON.stringify([
+      "Inflammation reduction",
+      "Cellular health",
+      "Meditation support",
+      "Skin rejuvenation",
+      "Immune modulation",
+    ]),
+    usage:
+      "Diffuse for meditation, apply diluted to skin, or use in skincare formulations.",
+    dosage: "Aromatic: 3-5 drops in diffuser. Topical: 2-5% dilution",
+    precautions:
+      "Generally safe. May increase sun sensitivity. Quality varies significantly.",
+    scientificInfo:
+      "Research shows anti-inflammatory and potential anticancer properties of boswellic acids.",
+    references: JSON.stringify([
+      "Planta Medica 2017",
+      "Journal of Traditional and Complementary Medicine 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Myrrh Oil",
+      "Helichrysum Oil",
+      "Sandalwood Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Lemon Essential Oil',
-    description: 'A bright, uplifting citrus oil with purifying and mood-enhancing properties.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Citrus limon', 'Limonene', 'Beta-pinene', 'Gamma-terpinene', 'Citral']),
-    benefits: JSON.stringify(['Mood enhancement', 'Air purification', 'Digestive support', 'Mental clarity', 'Energy boost']),
-    usage: 'Diffuse for uplifting atmosphere, add to cleaning products, or use diluted topically.',
-    dosage: 'Aromatic: 3-5 drops in diffuser. Topical: 1-2% dilution (phototoxic)',
-    precautions: 'Phototoxic - avoid sun exposure for 12-18 hours after topical application. May irritate sensitive skin.',
-    scientificInfo: 'Limonene has demonstrated mood-enhancing and antimicrobial effects.',
-    references: JSON.stringify(['Behavioural Brain Research 2016', 'Food and Chemical Toxicology 2018']),
-    relatedRemedies: JSON.stringify(['Orange Oil', 'Grapefruit Oil', 'Bergamot Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Lemon Essential Oil",
+    description:
+      "A bright, uplifting citrus oil with purifying and mood-enhancing properties.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Citrus limon",
+      "Limonene",
+      "Beta-pinene",
+      "Gamma-terpinene",
+      "Citral",
+    ]),
+    benefits: JSON.stringify([
+      "Mood enhancement",
+      "Air purification",
+      "Digestive support",
+      "Mental clarity",
+      "Energy boost",
+    ]),
+    usage:
+      "Diffuse for uplifting atmosphere, add to cleaning products, or use diluted topically.",
+    dosage:
+      "Aromatic: 3-5 drops in diffuser. Topical: 1-2% dilution (phototoxic)",
+    precautions:
+      "Phototoxic - avoid sun exposure for 12-18 hours after topical application. May irritate sensitive skin.",
+    scientificInfo:
+      "Limonene has demonstrated mood-enhancing and antimicrobial effects.",
+    references: JSON.stringify([
+      "Behavioural Brain Research 2016",
+      "Food and Chemical Toxicology 2018",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Orange Oil",
+      "Grapefruit Oil",
+      "Bergamot Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Rosemary Essential Oil',
-    description: 'A stimulating herbal oil that enhances memory, circulation, and hair growth.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Rosmarinus officinalis', '1,8-Cineole', 'Camphor', 'Alpha-pinene', 'Borneol']),
-    benefits: JSON.stringify(['Memory enhancement', 'Hair growth', 'Circulation improvement', 'Mental clarity', 'Pain relief']),
-    usage: 'Diffuse for concentration, add to hair products, or apply diluted for muscle pain.',
-    dosage: 'Aromatic: 3-4 drops in diffuser. Topical: 2-3% dilution',
-    precautions: 'Avoid with epilepsy or high blood pressure. Not during pregnancy. May cause seizures in susceptible individuals.',
-    scientificInfo: 'Research shows cognitive enhancement and hair growth promotion effects.',
-    references: JSON.stringify(['Therapeutic Advances in Psychopharmacology 2017', 'SKINmed 2019']),
-    relatedRemedies: JSON.stringify(['Peppermint Oil', 'Basil Oil', 'Sage Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Rosemary Essential Oil",
+    description:
+      "A stimulating herbal oil that enhances memory, circulation, and hair growth.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Rosmarinus officinalis",
+      "1,8-Cineole",
+      "Camphor",
+      "Alpha-pinene",
+      "Borneol",
+    ]),
+    benefits: JSON.stringify([
+      "Memory enhancement",
+      "Hair growth",
+      "Circulation improvement",
+      "Mental clarity",
+      "Pain relief",
+    ]),
+    usage:
+      "Diffuse for concentration, add to hair products, or apply diluted for muscle pain.",
+    dosage: "Aromatic: 3-4 drops in diffuser. Topical: 2-3% dilution",
+    precautions:
+      "Avoid with epilepsy or high blood pressure. Not during pregnancy. May cause seizures in susceptible individuals.",
+    scientificInfo:
+      "Research shows cognitive enhancement and hair growth promotion effects.",
+    references: JSON.stringify([
+      "Therapeutic Advances in Psychopharmacology 2017",
+      "SKINmed 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Peppermint Oil",
+      "Basil Oil",
+      "Sage Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Chamomile Essential Oil (Roman)',
-    description: 'A gentle, calming oil ideal for stress, sleep, and sensitive skin conditions.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Chamaemelum nobile', 'Isobutyl angelate', 'Pinocarvone', 'Chamazulene', 'Alpha-pinene']),
-    benefits: JSON.stringify(['Anxiety relief', 'Sleep support', 'Skin soothing', 'Digestive comfort', 'Stress reduction']),
-    usage: 'Diffuse before bed, apply diluted for skin conditions, or add to bath.',
-    dosage: 'Aromatic: 3-4 drops in diffuser. Topical: 2-5% dilution',
-    precautions: 'May cause allergic reactions in those sensitive to ragweed family. Generally very safe.',
-    scientificInfo: 'Chamomile aromatherapy has demonstrated anxiolytic effects in clinical settings.',
-    references: JSON.stringify(['Journal of Clinical Psychopharmacology 2017', 'Complementary Therapies in Medicine 2019']),
-    relatedRemedies: JSON.stringify(['Lavender Oil', 'Neroli Oil', 'Bergamot Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Chamomile Essential Oil (Roman)",
+    description:
+      "A gentle, calming oil ideal for stress, sleep, and sensitive skin conditions.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Chamaemelum nobile",
+      "Isobutyl angelate",
+      "Pinocarvone",
+      "Chamazulene",
+      "Alpha-pinene",
+    ]),
+    benefits: JSON.stringify([
+      "Anxiety relief",
+      "Sleep support",
+      "Skin soothing",
+      "Digestive comfort",
+      "Stress reduction",
+    ]),
+    usage:
+      "Diffuse before bed, apply diluted for skin conditions, or add to bath.",
+    dosage: "Aromatic: 3-4 drops in diffuser. Topical: 2-5% dilution",
+    precautions:
+      "May cause allergic reactions in those sensitive to ragweed family. Generally very safe.",
+    scientificInfo:
+      "Chamomile aromatherapy has demonstrated anxiolytic effects in clinical settings.",
+    references: JSON.stringify([
+      "Journal of Clinical Psychopharmacology 2017",
+      "Complementary Therapies in Medicine 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Lavender Oil",
+      "Neroli Oil",
+      "Bergamot Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Oregano Essential Oil',
-    description: 'One of the most potent antimicrobial essential oils, used for immune support and infections.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Origanum vulgare', 'Carvacrol', 'Thymol', 'P-cymene', 'Gamma-terpinene']),
-    benefits: JSON.stringify(['Antimicrobial effects', 'Immune support', 'Respiratory health', 'Digestive support', 'Antifungal action']),
-    usage: 'Use highly diluted topically or in capsules for internal use (with guidance).',
-    dosage: 'Topical: 0.5-1% dilution only. Internal: only with professional guidance',
-    precautions: 'Very potent and caustic. Never use undiluted. May burn skin. Blood thinner interaction. Not during pregnancy.',
-    scientificInfo: 'Carvacrol has extensive research confirming antimicrobial and antifungal properties.',
-    references: JSON.stringify(['Critical Reviews in Food Science and Nutrition 2017', 'Frontiers in Microbiology 2019']),
-    relatedRemedies: JSON.stringify(['Thyme Oil', 'Tea Tree Oil', 'Clove Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Oregano Essential Oil",
+    description:
+      "One of the most potent antimicrobial essential oils, used for immune support and infections.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Origanum vulgare",
+      "Carvacrol",
+      "Thymol",
+      "P-cymene",
+      "Gamma-terpinene",
+    ]),
+    benefits: JSON.stringify([
+      "Antimicrobial effects",
+      "Immune support",
+      "Respiratory health",
+      "Digestive support",
+      "Antifungal action",
+    ]),
+    usage:
+      "Use highly diluted topically or in capsules for internal use (with guidance).",
+    dosage:
+      "Topical: 0.5-1% dilution only. Internal: only with professional guidance",
+    precautions:
+      "Very potent and caustic. Never use undiluted. May burn skin. Blood thinner interaction. Not during pregnancy.",
+    scientificInfo:
+      "Carvacrol has extensive research confirming antimicrobial and antifungal properties.",
+    references: JSON.stringify([
+      "Critical Reviews in Food Science and Nutrition 2017",
+      "Frontiers in Microbiology 2019",
+    ]),
+    relatedRemedies: JSON.stringify(["Thyme Oil", "Tea Tree Oil", "Clove Oil"]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Clove Essential Oil',
-    description: 'A warming, analgesic oil traditionally used for dental pain and immune support.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Syzygium aromaticum', 'Eugenol', 'Eugenyl acetate', 'Beta-caryophyllene']),
-    benefits: JSON.stringify(['Dental pain relief', 'Antimicrobial effects', 'Pain relief', 'Digestive support', 'Immune enhancement']),
-    usage: 'Apply very diluted to toothache area, or diffuse sparingly.',
-    dosage: 'Topical: 0.5-1% dilution. Dental: apply tiny amount with carrier',
-    precautions: 'Highly irritating to skin. Use only very diluted. Blood thinner interaction. Not during pregnancy.',
-    scientificInfo: 'Eugenol has well-documented analgesic and antimicrobial properties used in dentistry.',
-    references: JSON.stringify(['Journal of Dentistry 2016', 'Journal of Medicinal Food 2018']),
-    relatedRemedies: JSON.stringify(['Oregano Oil', 'Cinnamon Oil', 'Tea Tree Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Clove Essential Oil",
+    description:
+      "A warming, analgesic oil traditionally used for dental pain and immune support.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Syzygium aromaticum",
+      "Eugenol",
+      "Eugenyl acetate",
+      "Beta-caryophyllene",
+    ]),
+    benefits: JSON.stringify([
+      "Dental pain relief",
+      "Antimicrobial effects",
+      "Pain relief",
+      "Digestive support",
+      "Immune enhancement",
+    ]),
+    usage: "Apply very diluted to toothache area, or diffuse sparingly.",
+    dosage: "Topical: 0.5-1% dilution. Dental: apply tiny amount with carrier",
+    precautions:
+      "Highly irritating to skin. Use only very diluted. Blood thinner interaction. Not during pregnancy.",
+    scientificInfo:
+      "Eugenol has well-documented analgesic and antimicrobial properties used in dentistry.",
+    references: JSON.stringify([
+      "Journal of Dentistry 2016",
+      "Journal of Medicinal Food 2018",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Oregano Oil",
+      "Cinnamon Oil",
+      "Tea Tree Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Bergamot Essential Oil',
-    description: 'A unique citrus oil with calming properties, used for anxiety, depression, and skin conditions.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Citrus bergamia', 'Limonene', 'Linalyl acetate', 'Linalool', 'Bergapten (in expressed)']),
-    benefits: JSON.stringify(['Anxiety relief', 'Mood enhancement', 'Stress reduction', 'Skin conditions', 'Digestive support']),
-    usage: 'Diffuse for mood support or use bergapten-free version for topical application.',
-    dosage: 'Aromatic: 3-5 drops in diffuser. Topical: 1-2% dilution (bergapten-free only)',
-    precautions: 'Expressed oil is highly phototoxic. Use bergapten-free (FCF) version for topical use.',
-    scientificInfo: 'Clinical trials show significant anxiolytic effects of bergamot aromatherapy.',
-    references: JSON.stringify(['Phytotherapy Research 2017', 'Complementary Therapies in Clinical Practice 2019']),
-    relatedRemedies: JSON.stringify(['Lavender Oil', 'Lemon Oil', 'Neroli Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Bergamot Essential Oil",
+    description:
+      "A unique citrus oil with calming properties, used for anxiety, depression, and skin conditions.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Citrus bergamia",
+      "Limonene",
+      "Linalyl acetate",
+      "Linalool",
+      "Bergapten (in expressed)",
+    ]),
+    benefits: JSON.stringify([
+      "Anxiety relief",
+      "Mood enhancement",
+      "Stress reduction",
+      "Skin conditions",
+      "Digestive support",
+    ]),
+    usage:
+      "Diffuse for mood support or use bergapten-free version for topical application.",
+    dosage:
+      "Aromatic: 3-5 drops in diffuser. Topical: 1-2% dilution (bergapten-free only)",
+    precautions:
+      "Expressed oil is highly phototoxic. Use bergapten-free (FCF) version for topical use.",
+    scientificInfo:
+      "Clinical trials show significant anxiolytic effects of bergamot aromatherapy.",
+    references: JSON.stringify([
+      "Phytotherapy Research 2017",
+      "Complementary Therapies in Clinical Practice 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Lavender Oil",
+      "Lemon Oil",
+      "Neroli Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Ylang Ylang Essential Oil',
-    description: 'A sweet, floral oil that promotes relaxation, lowers blood pressure, and uplifts mood.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Cananga odorata', 'Linalool', 'Germacrene-D', 'Beta-caryophyllene', 'Benzyl acetate']),
-    benefits: JSON.stringify(['Blood pressure reduction', 'Anxiety relief', 'Mood enhancement', 'Skin health', 'Libido support']),
-    usage: 'Diffuse, add to bath, or apply diluted for emotional support.',
-    dosage: 'Aromatic: 2-4 drops in diffuser. Topical: 1-3% dilution',
-    precautions: 'May cause headaches in high concentrations. Can be sensitizing with repeated use.',
-    scientificInfo: 'Research shows hypotensive and anxiolytic effects of ylang ylang aromatherapy.',
-    references: JSON.stringify(['Phytotherapy Research 2016', 'Journal of Alternative and Complementary Medicine 2018']),
-    relatedRemedies: JSON.stringify(['Jasmine Oil', 'Rose Oil', 'Neroli Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Ylang Ylang Essential Oil",
+    description:
+      "A sweet, floral oil that promotes relaxation, lowers blood pressure, and uplifts mood.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Cananga odorata",
+      "Linalool",
+      "Germacrene-D",
+      "Beta-caryophyllene",
+      "Benzyl acetate",
+    ]),
+    benefits: JSON.stringify([
+      "Blood pressure reduction",
+      "Anxiety relief",
+      "Mood enhancement",
+      "Skin health",
+      "Libido support",
+    ]),
+    usage: "Diffuse, add to bath, or apply diluted for emotional support.",
+    dosage: "Aromatic: 2-4 drops in diffuser. Topical: 1-3% dilution",
+    precautions:
+      "May cause headaches in high concentrations. Can be sensitizing with repeated use.",
+    scientificInfo:
+      "Research shows hypotensive and anxiolytic effects of ylang ylang aromatherapy.",
+    references: JSON.stringify([
+      "Phytotherapy Research 2016",
+      "Journal of Alternative and Complementary Medicine 2018",
+    ]),
+    relatedRemedies: JSON.stringify(["Jasmine Oil", "Rose Oil", "Neroli Oil"]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Geranium Essential Oil',
-    description: 'A balancing floral oil that supports hormonal health, skin conditions, and emotional wellbeing.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Pelargonium graveolens', 'Citronellol', 'Geraniol', 'Linalool', 'Citronellyl formate']),
-    benefits: JSON.stringify(['Hormonal balance', 'Skin health', 'Anxiety relief', 'Menstrual support', 'Wound healing']),
-    usage: 'Diffuse, add to skincare products, or apply diluted for emotional support.',
-    dosage: 'Aromatic: 3-4 drops in diffuser. Topical: 2-5% dilution',
-    precautions: 'Generally safe. May affect hormone-sensitive conditions. Possible skin sensitization.',
-    scientificInfo: 'Research shows anxiolytic and antimicrobial properties.',
-    references: JSON.stringify(['Evidence-Based Complementary and Alternative Medicine 2017', 'Phytotherapy Research 2019']),
-    relatedRemedies: JSON.stringify(['Rose Oil', 'Clary Sage Oil', 'Lavender Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Geranium Essential Oil",
+    description:
+      "A balancing floral oil that supports hormonal health, skin conditions, and emotional wellbeing.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Pelargonium graveolens",
+      "Citronellol",
+      "Geraniol",
+      "Linalool",
+      "Citronellyl formate",
+    ]),
+    benefits: JSON.stringify([
+      "Hormonal balance",
+      "Skin health",
+      "Anxiety relief",
+      "Menstrual support",
+      "Wound healing",
+    ]),
+    usage:
+      "Diffuse, add to skincare products, or apply diluted for emotional support.",
+    dosage: "Aromatic: 3-4 drops in diffuser. Topical: 2-5% dilution",
+    precautions:
+      "Generally safe. May affect hormone-sensitive conditions. Possible skin sensitization.",
+    scientificInfo: "Research shows anxiolytic and antimicrobial properties.",
+    references: JSON.stringify([
+      "Evidence-Based Complementary and Alternative Medicine 2017",
+      "Phytotherapy Research 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Rose Oil",
+      "Clary Sage Oil",
+      "Lavender Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Clary Sage Essential Oil',
-    description: 'A herbaceous oil that supports female hormonal health, relaxation, and menstrual comfort.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Salvia sclarea', 'Linalyl acetate', 'Linalool', 'Sclareol', 'Germacrene-D']),
-    benefits: JSON.stringify(['Menstrual support', 'Hormonal balance', 'Anxiety relief', 'Labor support', 'Mood enhancement']),
-    usage: 'Diffuse, apply diluted to abdomen for menstrual support, or use in massage.',
-    dosage: 'Aromatic: 3-4 drops in diffuser. Topical: 2-3% dilution',
-    precautions: 'Avoid during pregnancy until labor. May enhance effects of alcohol. Not with estrogen-sensitive conditions.',
-    scientificInfo: 'Research shows antidepressant-like and hormone-modulating effects.',
-    references: JSON.stringify(['Phytotherapy Research 2017', 'Journal of Alternative and Complementary Medicine 2019']),
-    relatedRemedies: JSON.stringify(['Geranium Oil', 'Lavender Oil', 'Rose Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Clary Sage Essential Oil",
+    description:
+      "A herbaceous oil that supports female hormonal health, relaxation, and menstrual comfort.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Salvia sclarea",
+      "Linalyl acetate",
+      "Linalool",
+      "Sclareol",
+      "Germacrene-D",
+    ]),
+    benefits: JSON.stringify([
+      "Menstrual support",
+      "Hormonal balance",
+      "Anxiety relief",
+      "Labor support",
+      "Mood enhancement",
+    ]),
+    usage:
+      "Diffuse, apply diluted to abdomen for menstrual support, or use in massage.",
+    dosage: "Aromatic: 3-4 drops in diffuser. Topical: 2-3% dilution",
+    precautions:
+      "Avoid during pregnancy until labor. May enhance effects of alcohol. Not with estrogen-sensitive conditions.",
+    scientificInfo:
+      "Research shows antidepressant-like and hormone-modulating effects.",
+    references: JSON.stringify([
+      "Phytotherapy Research 2017",
+      "Journal of Alternative and Complementary Medicine 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Geranium Oil",
+      "Lavender Oil",
+      "Rose Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Sandalwood Essential Oil',
-    description: 'A precious, grounding oil with calming, meditative properties and skin benefits.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Santalum album', 'Alpha-santalol', 'Beta-santalol', 'Santalenes', 'Farnesol']),
-    benefits: JSON.stringify(['Meditation support', 'Anxiety relief', 'Skin rejuvenation', 'Mental clarity', 'Sleep improvement']),
-    usage: 'Diffuse for meditation, add to skincare, or apply diluted for emotional support.',
-    dosage: 'Aromatic: 2-4 drops in diffuser. Topical: 2-5% dilution',
-    precautions: 'Generally very safe. Ensure sustainable sourcing (Australian or plantation sandalwood preferred).',
-    scientificInfo: 'Santalol has demonstrated anxiolytic and sedative effects in research.',
-    references: JSON.stringify(['Planta Medica 2017', 'Complementary Therapies in Medicine 2019']),
-    relatedRemedies: JSON.stringify(['Cedarwood Oil', 'Frankincense Oil', 'Vetiver Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Sandalwood Essential Oil",
+    description:
+      "A precious, grounding oil with calming, meditative properties and skin benefits.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Santalum album",
+      "Alpha-santalol",
+      "Beta-santalol",
+      "Santalenes",
+      "Farnesol",
+    ]),
+    benefits: JSON.stringify([
+      "Meditation support",
+      "Anxiety relief",
+      "Skin rejuvenation",
+      "Mental clarity",
+      "Sleep improvement",
+    ]),
+    usage:
+      "Diffuse for meditation, add to skincare, or apply diluted for emotional support.",
+    dosage: "Aromatic: 2-4 drops in diffuser. Topical: 2-5% dilution",
+    precautions:
+      "Generally very safe. Ensure sustainable sourcing (Australian or plantation sandalwood preferred).",
+    scientificInfo:
+      "Santalol has demonstrated anxiolytic and sedative effects in research.",
+    references: JSON.stringify([
+      "Planta Medica 2017",
+      "Complementary Therapies in Medicine 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Cedarwood Oil",
+      "Frankincense Oil",
+      "Vetiver Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Cedarwood Essential Oil',
-    description: 'A grounding, woody oil that calms the mind and supports hair health.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Cedrus atlantica', 'Beta-himachalene', 'Alpha-himachalene', 'Gamma-himachalene', 'Cedrol']),
-    benefits: JSON.stringify(['Calming effects', 'Hair growth', 'Sleep support', 'Focus improvement', 'Insect repellent']),
-    usage: 'Diffuse for relaxation, add to hair products, or apply diluted.',
-    dosage: 'Aromatic: 3-5 drops in diffuser. Topical: 2-5% dilution',
-    precautions: 'Avoid during pregnancy. Generally safe for most people.',
-    scientificInfo: 'Cedrol has demonstrated sedative effects in research studies.',
-    references: JSON.stringify(['Japanese Journal of Pharmacology 2003', 'Autonomic Neuroscience 2019']),
-    relatedRemedies: JSON.stringify(['Sandalwood Oil', 'Vetiver Oil', 'Frankincense Oil']),
-    evidenceLevel: 'Traditional'
+    name: "Cedarwood Essential Oil",
+    description:
+      "A grounding, woody oil that calms the mind and supports hair health.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Cedrus atlantica",
+      "Beta-himachalene",
+      "Alpha-himachalene",
+      "Gamma-himachalene",
+      "Cedrol",
+    ]),
+    benefits: JSON.stringify([
+      "Calming effects",
+      "Hair growth",
+      "Sleep support",
+      "Focus improvement",
+      "Insect repellent",
+    ]),
+    usage: "Diffuse for relaxation, add to hair products, or apply diluted.",
+    dosage: "Aromatic: 3-5 drops in diffuser. Topical: 2-5% dilution",
+    precautions: "Avoid during pregnancy. Generally safe for most people.",
+    scientificInfo:
+      "Cedrol has demonstrated sedative effects in research studies.",
+    references: JSON.stringify([
+      "Japanese Journal of Pharmacology 2003",
+      "Autonomic Neuroscience 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Sandalwood Oil",
+      "Vetiver Oil",
+      "Frankincense Oil",
+    ]),
+    evidenceLevel: "Traditional",
   },
   {
-    name: 'Vetiver Essential Oil',
-    description: 'A deeply grounding root oil that calms anxiety, supports focus, and promotes restful sleep.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Vetiveria zizanioides', 'Vetiverol', 'Khusimol', 'Isovalencenol', 'Beta-vetivone']),
-    benefits: JSON.stringify(['Anxiety relief', 'Sleep improvement', 'Focus support', 'Grounding', 'ADHD support']),
-    usage: 'Diffuse sparingly, apply to feet before bed, or use in grounding blends.',
-    dosage: 'Aromatic: 1-3 drops in diffuser (strong scent). Topical: 2-5% dilution',
-    precautions: 'Very thick consistency. Generally safe. Strong scent - use sparingly.',
-    scientificInfo: 'Research suggests anxiolytic effects and potential benefits for ADHD.',
-    references: JSON.stringify(['Journal of Intercultural Ethnopharmacology 2016', 'Complementary Therapies in Medicine 2019']),
-    relatedRemedies: JSON.stringify(['Cedarwood Oil', 'Sandalwood Oil', 'Patchouli Oil']),
-    evidenceLevel: 'Traditional'
+    name: "Vetiver Essential Oil",
+    description:
+      "A deeply grounding root oil that calms anxiety, supports focus, and promotes restful sleep.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Vetiveria zizanioides",
+      "Vetiverol",
+      "Khusimol",
+      "Isovalencenol",
+      "Beta-vetivone",
+    ]),
+    benefits: JSON.stringify([
+      "Anxiety relief",
+      "Sleep improvement",
+      "Focus support",
+      "Grounding",
+      "ADHD support",
+    ]),
+    usage:
+      "Diffuse sparingly, apply to feet before bed, or use in grounding blends.",
+    dosage:
+      "Aromatic: 1-3 drops in diffuser (strong scent). Topical: 2-5% dilution",
+    precautions:
+      "Very thick consistency. Generally safe. Strong scent - use sparingly.",
+    scientificInfo:
+      "Research suggests anxiolytic effects and potential benefits for ADHD.",
+    references: JSON.stringify([
+      "Journal of Intercultural Ethnopharmacology 2016",
+      "Complementary Therapies in Medicine 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Cedarwood Oil",
+      "Sandalwood Oil",
+      "Patchouli Oil",
+    ]),
+    evidenceLevel: "Traditional",
   },
   {
-    name: 'Ginger Essential Oil',
-    description: 'A warming oil that supports digestion, reduces nausea, and relieves muscle pain.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Zingiber officinale', 'Zingiberene', 'Beta-sesquiphellandrene', 'Bisabolene', 'Gingerols']),
-    benefits: JSON.stringify(['Nausea relief', 'Digestive support', 'Pain relief', 'Circulation improvement', 'Warming effects']),
-    usage: 'Diffuse, apply diluted to abdomen for digestion, or use in warming massage blends.',
-    dosage: 'Aromatic: 2-4 drops in diffuser. Topical: 1-3% dilution',
-    precautions: 'May cause skin sensitization. Use cautiously with blood thinners. Warming - use in moderation.',
-    scientificInfo: 'Research confirms antiemetic and anti-inflammatory properties.',
-    references: JSON.stringify(['Journal of Alternative and Complementary Medicine 2017', 'Phytotherapy Research 2019']),
-    relatedRemedies: JSON.stringify(['Black Pepper Oil', 'Cardamom Oil', 'Turmeric Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Ginger Essential Oil",
+    description:
+      "A warming oil that supports digestion, reduces nausea, and relieves muscle pain.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Zingiber officinale",
+      "Zingiberene",
+      "Beta-sesquiphellandrene",
+      "Bisabolene",
+      "Gingerols",
+    ]),
+    benefits: JSON.stringify([
+      "Nausea relief",
+      "Digestive support",
+      "Pain relief",
+      "Circulation improvement",
+      "Warming effects",
+    ]),
+    usage:
+      "Diffuse, apply diluted to abdomen for digestion, or use in warming massage blends.",
+    dosage: "Aromatic: 2-4 drops in diffuser. Topical: 1-3% dilution",
+    precautions:
+      "May cause skin sensitization. Use cautiously with blood thinners. Warming - use in moderation.",
+    scientificInfo:
+      "Research confirms antiemetic and anti-inflammatory properties.",
+    references: JSON.stringify([
+      "Journal of Alternative and Complementary Medicine 2017",
+      "Phytotherapy Research 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Black Pepper Oil",
+      "Cardamom Oil",
+      "Turmeric Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Helichrysum Essential Oil',
-    description: 'A precious regenerative oil known for skin healing, bruise recovery, and emotional trauma.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Helichrysum italicum', 'Neryl acetate', 'Italidiones', 'Alpha-pinene', 'Curcumene']),
-    benefits: JSON.stringify(['Wound healing', 'Bruise recovery', 'Scar reduction', 'Emotional healing', 'Anti-inflammatory effects']),
-    usage: 'Apply diluted to wounds, bruises, or scars. Diffuse for emotional support.',
-    dosage: 'Topical: 2-5% dilution. Can be used neat in tiny amounts for acute injuries',
-    precautions: 'Expensive oil - ensure quality. Generally very safe. Slight blood-thinning effect.',
-    scientificInfo: 'Research shows anti-inflammatory, wound healing, and antimicrobial properties.',
-    references: JSON.stringify(['Journal of Ethnopharmacology 2017', 'Molecules 2019']),
-    relatedRemedies: JSON.stringify(['Frankincense Oil', 'Lavender Oil', 'Rose Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Helichrysum Essential Oil",
+    description:
+      "A precious regenerative oil known for skin healing, bruise recovery, and emotional trauma.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Helichrysum italicum",
+      "Neryl acetate",
+      "Italidiones",
+      "Alpha-pinene",
+      "Curcumene",
+    ]),
+    benefits: JSON.stringify([
+      "Wound healing",
+      "Bruise recovery",
+      "Scar reduction",
+      "Emotional healing",
+      "Anti-inflammatory effects",
+    ]),
+    usage:
+      "Apply diluted to wounds, bruises, or scars. Diffuse for emotional support.",
+    dosage:
+      "Topical: 2-5% dilution. Can be used neat in tiny amounts for acute injuries",
+    precautions:
+      "Expensive oil - ensure quality. Generally very safe. Slight blood-thinning effect.",
+    scientificInfo:
+      "Research shows anti-inflammatory, wound healing, and antimicrobial properties.",
+    references: JSON.stringify([
+      "Journal of Ethnopharmacology 2017",
+      "Molecules 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Frankincense Oil",
+      "Lavender Oil",
+      "Rose Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Copaiba Essential Oil',
-    description: 'A South American oil high in beta-caryophyllene, supporting inflammation and pain relief.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Copaifera species resin', 'Beta-caryophyllene', 'Alpha-humulene', 'Alpha-copaene', 'Delta-cadinene']),
-    benefits: JSON.stringify(['Inflammation reduction', 'Pain relief', 'Skin health', 'Mood support', 'Oral health']),
-    usage: 'Apply diluted topically, diffuse, or use internally (food-grade only with guidance).',
-    dosage: 'Aromatic: 3-5 drops in diffuser. Topical: 2-5% dilution',
-    precautions: 'Generally safe. Beta-caryophyllene interacts with CB2 receptors. Internal use requires food-grade quality.',
-    scientificInfo: 'Beta-caryophyllene has demonstrated anti-inflammatory effects through CB2 receptor interaction.',
-    references: JSON.stringify(['Frontiers in Pharmacology 2018', 'Journal of Ethnopharmacology 2019']),
-    relatedRemedies: JSON.stringify(['Frankincense Oil', 'Black Pepper Oil', 'Turmeric']),
-    evidenceLevel: 'Moderate'
+    name: "Copaiba Essential Oil",
+    description:
+      "A South American oil high in beta-caryophyllene, supporting inflammation and pain relief.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Copaifera species resin",
+      "Beta-caryophyllene",
+      "Alpha-humulene",
+      "Alpha-copaene",
+      "Delta-cadinene",
+    ]),
+    benefits: JSON.stringify([
+      "Inflammation reduction",
+      "Pain relief",
+      "Skin health",
+      "Mood support",
+      "Oral health",
+    ]),
+    usage:
+      "Apply diluted topically, diffuse, or use internally (food-grade only with guidance).",
+    dosage: "Aromatic: 3-5 drops in diffuser. Topical: 2-5% dilution",
+    precautions:
+      "Generally safe. Beta-caryophyllene interacts with CB2 receptors. Internal use requires food-grade quality.",
+    scientificInfo:
+      "Beta-caryophyllene has demonstrated anti-inflammatory effects through CB2 receptor interaction.",
+    references: JSON.stringify([
+      "Frontiers in Pharmacology 2018",
+      "Journal of Ethnopharmacology 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Frankincense Oil",
+      "Black Pepper Oil",
+      "Turmeric",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Thyme Essential Oil',
-    description: 'A powerful antimicrobial oil used for respiratory infections and immune support.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Thymus vulgaris', 'Thymol (ct thymol)', 'Linalool (ct linalool)', 'Carvacrol', 'P-cymene']),
-    benefits: JSON.stringify(['Antimicrobial effects', 'Respiratory support', 'Immune enhancement', 'Cough relief', 'Antioxidant protection']),
-    usage: 'Diffuse for respiratory support or apply highly diluted. CT linalool is gentler.',
-    dosage: 'Aromatic: 2-4 drops in diffuser. Topical: 1-2% dilution (thymol ct); 3-5% (linalool ct)',
-    precautions: 'Thymol chemotype is very potent. Use linalool chemotype for sensitive individuals. Not during pregnancy.',
-    scientificInfo: 'Thymol has extensive research confirming antimicrobial and expectorant properties.',
-    references: JSON.stringify(['Journal of Applied Microbiology 2017', 'Phytomedicine 2019']),
-    relatedRemedies: JSON.stringify(['Oregano Oil', 'Tea Tree Oil', 'Eucalyptus Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Thyme Essential Oil",
+    description:
+      "A powerful antimicrobial oil used for respiratory infections and immune support.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Thymus vulgaris",
+      "Thymol (ct thymol)",
+      "Linalool (ct linalool)",
+      "Carvacrol",
+      "P-cymene",
+    ]),
+    benefits: JSON.stringify([
+      "Antimicrobial effects",
+      "Respiratory support",
+      "Immune enhancement",
+      "Cough relief",
+      "Antioxidant protection",
+    ]),
+    usage:
+      "Diffuse for respiratory support or apply highly diluted. CT linalool is gentler.",
+    dosage:
+      "Aromatic: 2-4 drops in diffuser. Topical: 1-2% dilution (thymol ct); 3-5% (linalool ct)",
+    precautions:
+      "Thymol chemotype is very potent. Use linalool chemotype for sensitive individuals. Not during pregnancy.",
+    scientificInfo:
+      "Thymol has extensive research confirming antimicrobial and expectorant properties.",
+    references: JSON.stringify([
+      "Journal of Applied Microbiology 2017",
+      "Phytomedicine 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Oregano Oil",
+      "Tea Tree Oil",
+      "Eucalyptus Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Basil Essential Oil',
-    description: 'A stimulating oil that enhances mental clarity, relieves muscle spasms, and supports digestion.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Ocimum basilicum', 'Linalool', 'Eugenol', 'Methyl chavicol', '1,8-Cineole']),
-    benefits: JSON.stringify(['Mental clarity', 'Muscle relaxation', 'Digestive support', 'Headache relief', 'Focus enhancement']),
-    usage: 'Diffuse for concentration, apply diluted for muscle tension, or use in abdominal massage.',
-    dosage: 'Aromatic: 3-4 drops in diffuser. Topical: 1-2% dilution',
-    precautions: 'Some chemotypes contain estragole. Avoid during pregnancy. Use in moderation.',
-    scientificInfo: 'Research shows antispasmodic and cognitive-enhancing properties.',
-    references: JSON.stringify(['Evidence-Based Complementary and Alternative Medicine 2017', 'Journal of Ethnopharmacology 2019']),
-    relatedRemedies: JSON.stringify(['Rosemary Oil', 'Peppermint Oil', 'Tulsi']),
-    evidenceLevel: 'Traditional'
+    name: "Basil Essential Oil",
+    description:
+      "A stimulating oil that enhances mental clarity, relieves muscle spasms, and supports digestion.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Ocimum basilicum",
+      "Linalool",
+      "Eugenol",
+      "Methyl chavicol",
+      "1,8-Cineole",
+    ]),
+    benefits: JSON.stringify([
+      "Mental clarity",
+      "Muscle relaxation",
+      "Digestive support",
+      "Headache relief",
+      "Focus enhancement",
+    ]),
+    usage:
+      "Diffuse for concentration, apply diluted for muscle tension, or use in abdominal massage.",
+    dosage: "Aromatic: 3-4 drops in diffuser. Topical: 1-2% dilution",
+    precautions:
+      "Some chemotypes contain estragole. Avoid during pregnancy. Use in moderation.",
+    scientificInfo:
+      "Research shows antispasmodic and cognitive-enhancing properties.",
+    references: JSON.stringify([
+      "Evidence-Based Complementary and Alternative Medicine 2017",
+      "Journal of Ethnopharmacology 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Rosemary Oil",
+      "Peppermint Oil",
+      "Tulsi",
+    ]),
+    evidenceLevel: "Traditional",
   },
   {
-    name: 'Marjoram Essential Oil',
-    description: 'A warming, relaxing oil that soothes muscles, calms nerves, and supports cardiovascular health.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Origanum majorana', 'Terpinen-4-ol', 'Sabinene', 'Gamma-terpinene', 'Alpha-terpineol']),
-    benefits: JSON.stringify(['Muscle relaxation', 'Anxiety relief', 'Blood pressure support', 'Sleep improvement', 'Digestive comfort']),
-    usage: 'Apply diluted for muscle tension, diffuse before bed, or use in massage.',
-    dosage: 'Aromatic: 3-4 drops in diffuser. Topical: 2-5% dilution',
-    precautions: 'Avoid during pregnancy. May enhance effects of sedatives. Generally safe.',
-    scientificInfo: 'Research shows anxiolytic and hypotensive effects.',
-    references: JSON.stringify(['Complementary Therapies in Medicine 2017', 'Phytotherapy Research 2019']),
-    relatedRemedies: JSON.stringify(['Lavender Oil', 'Chamomile Oil', 'Clary Sage Oil']),
-    evidenceLevel: 'Traditional'
+    name: "Marjoram Essential Oil",
+    description:
+      "A warming, relaxing oil that soothes muscles, calms nerves, and supports cardiovascular health.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Origanum majorana",
+      "Terpinen-4-ol",
+      "Sabinene",
+      "Gamma-terpinene",
+      "Alpha-terpineol",
+    ]),
+    benefits: JSON.stringify([
+      "Muscle relaxation",
+      "Anxiety relief",
+      "Blood pressure support",
+      "Sleep improvement",
+      "Digestive comfort",
+    ]),
+    usage:
+      "Apply diluted for muscle tension, diffuse before bed, or use in massage.",
+    dosage: "Aromatic: 3-4 drops in diffuser. Topical: 2-5% dilution",
+    precautions:
+      "Avoid during pregnancy. May enhance effects of sedatives. Generally safe.",
+    scientificInfo: "Research shows anxiolytic and hypotensive effects.",
+    references: JSON.stringify([
+      "Complementary Therapies in Medicine 2017",
+      "Phytotherapy Research 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Lavender Oil",
+      "Chamomile Oil",
+      "Clary Sage Oil",
+    ]),
+    evidenceLevel: "Traditional",
   },
   {
-    name: 'Cypress Essential Oil',
-    description: 'An astringent oil that supports circulation, respiratory health, and emotional grounding.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Cupressus sempervirens', 'Alpha-pinene', 'Delta-3-carene', 'Limonene', 'Cedrol']),
-    benefits: JSON.stringify(['Circulation support', 'Respiratory clearing', 'Varicose vein support', 'Emotional grounding', 'Deodorant properties']),
-    usage: 'Apply diluted to legs for circulation, diffuse for respiratory support.',
-    dosage: 'Aromatic: 3-4 drops in diffuser. Topical: 2-5% dilution',
-    precautions: 'Avoid during pregnancy. Generally safe for most people.',
-    scientificInfo: 'Contains compounds with astringent and circulatory-supporting properties.',
-    references: JSON.stringify(['Journal of Ethnopharmacology 2016', 'Phytotherapy Research 2018']),
-    relatedRemedies: JSON.stringify(['Juniper Berry Oil', 'Cedarwood Oil', 'Pine Oil']),
-    evidenceLevel: 'Traditional'
+    name: "Cypress Essential Oil",
+    description:
+      "An astringent oil that supports circulation, respiratory health, and emotional grounding.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Cupressus sempervirens",
+      "Alpha-pinene",
+      "Delta-3-carene",
+      "Limonene",
+      "Cedrol",
+    ]),
+    benefits: JSON.stringify([
+      "Circulation support",
+      "Respiratory clearing",
+      "Varicose vein support",
+      "Emotional grounding",
+      "Deodorant properties",
+    ]),
+    usage:
+      "Apply diluted to legs for circulation, diffuse for respiratory support.",
+    dosage: "Aromatic: 3-4 drops in diffuser. Topical: 2-5% dilution",
+    precautions: "Avoid during pregnancy. Generally safe for most people.",
+    scientificInfo:
+      "Contains compounds with astringent and circulatory-supporting properties.",
+    references: JSON.stringify([
+      "Journal of Ethnopharmacology 2016",
+      "Phytotherapy Research 2018",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Juniper Berry Oil",
+      "Cedarwood Oil",
+      "Pine Oil",
+    ]),
+    evidenceLevel: "Traditional",
   },
   {
-    name: 'Juniper Berry Essential Oil',
-    description: 'A cleansing oil that supports kidney function, joint health, and detoxification.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Juniperus communis', 'Alpha-pinene', 'Sabinene', 'Myrcene', 'Limonene']),
-    benefits: JSON.stringify(['Detoxification', 'Joint support', 'Kidney health', 'Skin purification', 'Mental clarity']),
-    usage: 'Apply diluted for joint massage, diffuse for cleansing, or add to bath.',
-    dosage: 'Aromatic: 3-4 drops in diffuser. Topical: 2-5% dilution',
-    precautions: 'Avoid with kidney disease. Not during pregnancy. May be stimulating to kidneys.',
-    scientificInfo: 'Research shows diuretic and anti-inflammatory properties.',
-    references: JSON.stringify(['Journal of Ethnopharmacology 2017', 'Phytotherapy Research 2019']),
-    relatedRemedies: JSON.stringify(['Cypress Oil', 'Pine Oil', 'Grapefruit Oil']),
-    evidenceLevel: 'Traditional'
+    name: "Juniper Berry Essential Oil",
+    description:
+      "A cleansing oil that supports kidney function, joint health, and detoxification.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Juniperus communis",
+      "Alpha-pinene",
+      "Sabinene",
+      "Myrcene",
+      "Limonene",
+    ]),
+    benefits: JSON.stringify([
+      "Detoxification",
+      "Joint support",
+      "Kidney health",
+      "Skin purification",
+      "Mental clarity",
+    ]),
+    usage:
+      "Apply diluted for joint massage, diffuse for cleansing, or add to bath.",
+    dosage: "Aromatic: 3-4 drops in diffuser. Topical: 2-5% dilution",
+    precautions:
+      "Avoid with kidney disease. Not during pregnancy. May be stimulating to kidneys.",
+    scientificInfo: "Research shows diuretic and anti-inflammatory properties.",
+    references: JSON.stringify([
+      "Journal of Ethnopharmacology 2017",
+      "Phytotherapy Research 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Cypress Oil",
+      "Pine Oil",
+      "Grapefruit Oil",
+    ]),
+    evidenceLevel: "Traditional",
   },
   {
-    name: 'Black Pepper Essential Oil',
-    description: 'A warming oil that enhances circulation, relieves muscle pain, and aids digestion.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Piper nigrum', 'Beta-caryophyllene', 'Limonene', 'Sabinene', 'Alpha-pinene']),
-    benefits: JSON.stringify(['Circulation enhancement', 'Pain relief', 'Digestive support', 'Warming effects', 'Smoking cessation support']),
-    usage: 'Apply diluted for muscle pain, diffuse sparingly, or use in warming massage blends.',
-    dosage: 'Aromatic: 2-3 drops in diffuser. Topical: 1-3% dilution',
-    precautions: 'May cause skin irritation. Use in low dilutions. Warming - use in moderation.',
-    scientificInfo: 'Beta-caryophyllene has anti-inflammatory effects; research suggests smoking cessation support.',
-    references: JSON.stringify(['Drug and Alcohol Dependence 2013', 'Frontiers in Pharmacology 2018']),
-    relatedRemedies: JSON.stringify(['Ginger Oil', 'Copaiba Oil', 'Cardamom Oil']),
-    evidenceLevel: 'Traditional'
+    name: "Black Pepper Essential Oil",
+    description:
+      "A warming oil that enhances circulation, relieves muscle pain, and aids digestion.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Piper nigrum",
+      "Beta-caryophyllene",
+      "Limonene",
+      "Sabinene",
+      "Alpha-pinene",
+    ]),
+    benefits: JSON.stringify([
+      "Circulation enhancement",
+      "Pain relief",
+      "Digestive support",
+      "Warming effects",
+      "Smoking cessation support",
+    ]),
+    usage:
+      "Apply diluted for muscle pain, diffuse sparingly, or use in warming massage blends.",
+    dosage: "Aromatic: 2-3 drops in diffuser. Topical: 1-3% dilution",
+    precautions:
+      "May cause skin irritation. Use in low dilutions. Warming - use in moderation.",
+    scientificInfo:
+      "Beta-caryophyllene has anti-inflammatory effects; research suggests smoking cessation support.",
+    references: JSON.stringify([
+      "Drug and Alcohol Dependence 2013",
+      "Frontiers in Pharmacology 2018",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Ginger Oil",
+      "Copaiba Oil",
+      "Cardamom Oil",
+    ]),
+    evidenceLevel: "Traditional",
   },
   {
-    name: 'Cardamom Essential Oil',
-    description: 'A warming spice oil that supports digestion, respiratory health, and mental clarity.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Elettaria cardamomum', '1,8-Cineole', 'Alpha-terpinyl acetate', 'Linalool', 'Limonene']),
-    benefits: JSON.stringify(['Digestive support', 'Respiratory clearing', 'Mental clarity', 'Nausea relief', 'Warming effects']),
-    usage: 'Diffuse for respiratory support, apply diluted to abdomen, or use in massage blends.',
-    dosage: 'Aromatic: 2-4 drops in diffuser. Topical: 2-3% dilution',
-    precautions: 'Generally safe. Use in moderation. May cause skin sensitization in some.',
-    scientificInfo: 'Research shows carminative and antimicrobial properties.',
-    references: JSON.stringify(['Journal of Ethnopharmacology 2017', 'Food Chemistry 2019']),
-    relatedRemedies: JSON.stringify(['Ginger Oil', 'Fennel Oil', 'Black Pepper Oil']),
-    evidenceLevel: 'Traditional'
+    name: "Cardamom Essential Oil",
+    description:
+      "A warming spice oil that supports digestion, respiratory health, and mental clarity.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Elettaria cardamomum",
+      "1,8-Cineole",
+      "Alpha-terpinyl acetate",
+      "Linalool",
+      "Limonene",
+    ]),
+    benefits: JSON.stringify([
+      "Digestive support",
+      "Respiratory clearing",
+      "Mental clarity",
+      "Nausea relief",
+      "Warming effects",
+    ]),
+    usage:
+      "Diffuse for respiratory support, apply diluted to abdomen, or use in massage blends.",
+    dosage: "Aromatic: 2-4 drops in diffuser. Topical: 2-3% dilution",
+    precautions:
+      "Generally safe. Use in moderation. May cause skin sensitization in some.",
+    scientificInfo: "Research shows carminative and antimicrobial properties.",
+    references: JSON.stringify([
+      "Journal of Ethnopharmacology 2017",
+      "Food Chemistry 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Ginger Oil",
+      "Fennel Oil",
+      "Black Pepper Oil",
+    ]),
+    evidenceLevel: "Traditional",
   },
   {
-    name: 'Fennel Essential Oil',
-    description: 'A digestive oil that supports healthy metabolism, hormonal balance, and lactation.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Foeniculum vulgare', 'Trans-anethole', 'Fenchone', 'Limonene', 'Methyl chavicol']),
-    benefits: JSON.stringify(['Digestive support', 'Bloating relief', 'Lactation support', 'Respiratory clearing', 'Menstrual comfort']),
-    usage: 'Apply diluted to abdomen for digestion, or diffuse for respiratory support.',
-    dosage: 'Aromatic: 2-4 drops in diffuser. Topical: 1-2% dilution',
-    precautions: 'Estragole content. Avoid with estrogen-sensitive conditions. Not during pregnancy. Not for children.',
-    scientificInfo: 'Research shows carminative and potential estrogenic effects.',
-    references: JSON.stringify(['Journal of Ethnopharmacology 2016', 'Phytotherapy Research 2018']),
-    relatedRemedies: JSON.stringify(['Cardamom Oil', 'Ginger Oil', 'Peppermint Oil']),
-    evidenceLevel: 'Traditional'
+    name: "Fennel Essential Oil",
+    description:
+      "A digestive oil that supports healthy metabolism, hormonal balance, and lactation.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Foeniculum vulgare",
+      "Trans-anethole",
+      "Fenchone",
+      "Limonene",
+      "Methyl chavicol",
+    ]),
+    benefits: JSON.stringify([
+      "Digestive support",
+      "Bloating relief",
+      "Lactation support",
+      "Respiratory clearing",
+      "Menstrual comfort",
+    ]),
+    usage:
+      "Apply diluted to abdomen for digestion, or diffuse for respiratory support.",
+    dosage: "Aromatic: 2-4 drops in diffuser. Topical: 1-2% dilution",
+    precautions:
+      "Estragole content. Avoid with estrogen-sensitive conditions. Not during pregnancy. Not for children.",
+    scientificInfo:
+      "Research shows carminative and potential estrogenic effects.",
+    references: JSON.stringify([
+      "Journal of Ethnopharmacology 2016",
+      "Phytotherapy Research 2018",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Cardamom Oil",
+      "Ginger Oil",
+      "Peppermint Oil",
+    ]),
+    evidenceLevel: "Traditional",
   },
   {
-    name: 'Neroli Essential Oil',
-    description: 'A precious floral oil from orange blossoms that deeply calms anxiety and uplifts mood.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Citrus aurantium flowers', 'Linalool', 'Linalyl acetate', 'Limonene', 'Nerolidol']),
-    benefits: JSON.stringify(['Anxiety relief', 'Depression support', 'Skin rejuvenation', 'Blood pressure reduction', 'Sleep improvement']),
-    usage: 'Diffuse for emotional support, apply diluted for skincare, or add to bath.',
-    dosage: 'Aromatic: 2-4 drops in diffuser. Topical: 1-3% dilution (expensive - use sparingly)',
-    precautions: 'Generally very safe. Expensive - often adulterated. Ensure quality sourcing.',
-    scientificInfo: 'Clinical trials show significant anxiolytic and blood pressure-lowering effects.',
-    references: JSON.stringify(['Evidence-Based Complementary and Alternative Medicine 2017', 'Journal of Alternative and Complementary Medicine 2019']),
-    relatedRemedies: JSON.stringify(['Bergamot Oil', 'Lavender Oil', 'Rose Oil']),
-    evidenceLevel: 'Strong'
+    name: "Neroli Essential Oil",
+    description:
+      "A precious floral oil from orange blossoms that deeply calms anxiety and uplifts mood.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Citrus aurantium flowers",
+      "Linalool",
+      "Linalyl acetate",
+      "Limonene",
+      "Nerolidol",
+    ]),
+    benefits: JSON.stringify([
+      "Anxiety relief",
+      "Depression support",
+      "Skin rejuvenation",
+      "Blood pressure reduction",
+      "Sleep improvement",
+    ]),
+    usage:
+      "Diffuse for emotional support, apply diluted for skincare, or add to bath.",
+    dosage:
+      "Aromatic: 2-4 drops in diffuser. Topical: 1-3% dilution (expensive - use sparingly)",
+    precautions:
+      "Generally very safe. Expensive - often adulterated. Ensure quality sourcing.",
+    scientificInfo:
+      "Clinical trials show significant anxiolytic and blood pressure-lowering effects.",
+    references: JSON.stringify([
+      "Evidence-Based Complementary and Alternative Medicine 2017",
+      "Journal of Alternative and Complementary Medicine 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Bergamot Oil",
+      "Lavender Oil",
+      "Rose Oil",
+    ]),
+    evidenceLevel: "Strong",
   },
   {
-    name: 'Lemongrass Essential Oil',
-    description: 'A refreshing oil with antimicrobial properties, used for purification and muscle relief.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Cymbopogon citratus', 'Citral (geranial + neral)', 'Myrcene', 'Limonene', 'Geraniol']),
-    benefits: JSON.stringify(['Antimicrobial effects', 'Muscle pain relief', 'Insect repellent', 'Digestive support', 'Air purification']),
-    usage: 'Diffuse for purification, apply diluted for muscle pain, or use in natural cleaning.',
-    dosage: 'Aromatic: 3-4 drops in diffuser. Topical: 1-2% dilution',
-    precautions: 'May cause skin irritation. Use well-diluted. Avoid during pregnancy.',
-    scientificInfo: 'Citral has demonstrated antimicrobial and anti-inflammatory properties.',
-    references: JSON.stringify(['Journal of Applied Microbiology 2017', 'Phytotherapy Research 2019']),
-    relatedRemedies: JSON.stringify(['Citronella Oil', 'Lemon Oil', 'Ginger Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Lemongrass Essential Oil",
+    description:
+      "A refreshing oil with antimicrobial properties, used for purification and muscle relief.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Cymbopogon citratus",
+      "Citral (geranial + neral)",
+      "Myrcene",
+      "Limonene",
+      "Geraniol",
+    ]),
+    benefits: JSON.stringify([
+      "Antimicrobial effects",
+      "Muscle pain relief",
+      "Insect repellent",
+      "Digestive support",
+      "Air purification",
+    ]),
+    usage:
+      "Diffuse for purification, apply diluted for muscle pain, or use in natural cleaning.",
+    dosage: "Aromatic: 3-4 drops in diffuser. Topical: 1-2% dilution",
+    precautions:
+      "May cause skin irritation. Use well-diluted. Avoid during pregnancy.",
+    scientificInfo:
+      "Citral has demonstrated antimicrobial and anti-inflammatory properties.",
+    references: JSON.stringify([
+      "Journal of Applied Microbiology 2017",
+      "Phytotherapy Research 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Citronella Oil",
+      "Lemon Oil",
+      "Ginger Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Myrrh Essential Oil',
-    description: 'An ancient resin oil with wound-healing, antimicrobial, and meditative properties.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Commiphora myrrha', 'Furanoeudesma-1,3-diene', 'Curzerene', 'Lindestrene', 'Elemene']),
-    benefits: JSON.stringify(['Wound healing', 'Oral health', 'Skin rejuvenation', 'Meditation support', 'Antimicrobial effects']),
-    usage: 'Apply diluted to skin, add to oral care, or diffuse for meditation.',
-    dosage: 'Aromatic: 2-3 drops in diffuser. Topical: 2-5% dilution',
-    precautions: 'Avoid during pregnancy. May slow blood clotting. Generally safe topically.',
-    scientificInfo: 'Research confirms antimicrobial and wound-healing properties.',
-    references: JSON.stringify(['Journal of Ethnopharmacology 2017', 'Phytomedicine 2019']),
-    relatedRemedies: JSON.stringify(['Frankincense Oil', 'Helichrysum Oil', 'Tea Tree Oil']),
-    evidenceLevel: 'Traditional'
+    name: "Myrrh Essential Oil",
+    description:
+      "An ancient resin oil with wound-healing, antimicrobial, and meditative properties.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Commiphora myrrha",
+      "Furanoeudesma-1,3-diene",
+      "Curzerene",
+      "Lindestrene",
+      "Elemene",
+    ]),
+    benefits: JSON.stringify([
+      "Wound healing",
+      "Oral health",
+      "Skin rejuvenation",
+      "Meditation support",
+      "Antimicrobial effects",
+    ]),
+    usage:
+      "Apply diluted to skin, add to oral care, or diffuse for meditation.",
+    dosage: "Aromatic: 2-3 drops in diffuser. Topical: 2-5% dilution",
+    precautions:
+      "Avoid during pregnancy. May slow blood clotting. Generally safe topically.",
+    scientificInfo:
+      "Research confirms antimicrobial and wound-healing properties.",
+    references: JSON.stringify([
+      "Journal of Ethnopharmacology 2017",
+      "Phytomedicine 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Frankincense Oil",
+      "Helichrysum Oil",
+      "Tea Tree Oil",
+    ]),
+    evidenceLevel: "Traditional",
   },
   {
-    name: 'Rose Essential Oil',
-    description: 'The queen of essential oils, deeply nourishing for skin, emotions, and female health.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Rosa damascena', 'Citronellol', 'Geraniol', 'Nerol', 'Phenyl ethyl alcohol']),
-    benefits: JSON.stringify(['Skin rejuvenation', 'Emotional healing', 'Hormonal balance', 'Anxiety relief', 'Self-love support']),
-    usage: 'Diffuse for emotional support, apply diluted for skincare, or add to bath.',
-    dosage: 'Aromatic: 1-2 drops in diffuser. Topical: 0.5-2% dilution (very precious)',
-    precautions: 'Generally very safe. Extremely expensive - often adulterated. Ensure quality.',
-    scientificInfo: 'Research shows anxiolytic, antidepressant, and skin-regenerating effects.',
-    references: JSON.stringify(['Journal of Natural Medicines 2017', 'Complementary Therapies in Clinical Practice 2019']),
-    relatedRemedies: JSON.stringify(['Geranium Oil', 'Neroli Oil', 'Jasmine Oil']),
-    evidenceLevel: 'Moderate'
+    name: "Rose Essential Oil",
+    description:
+      "The queen of essential oils, deeply nourishing for skin, emotions, and female health.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Rosa damascena",
+      "Citronellol",
+      "Geraniol",
+      "Nerol",
+      "Phenyl ethyl alcohol",
+    ]),
+    benefits: JSON.stringify([
+      "Skin rejuvenation",
+      "Emotional healing",
+      "Hormonal balance",
+      "Anxiety relief",
+      "Self-love support",
+    ]),
+    usage:
+      "Diffuse for emotional support, apply diluted for skincare, or add to bath.",
+    dosage:
+      "Aromatic: 1-2 drops in diffuser. Topical: 0.5-2% dilution (very precious)",
+    precautions:
+      "Generally very safe. Extremely expensive - often adulterated. Ensure quality.",
+    scientificInfo:
+      "Research shows anxiolytic, antidepressant, and skin-regenerating effects.",
+    references: JSON.stringify([
+      "Journal of Natural Medicines 2017",
+      "Complementary Therapies in Clinical Practice 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Geranium Oil",
+      "Neroli Oil",
+      "Jasmine Oil",
+    ]),
+    evidenceLevel: "Moderate",
   },
   {
-    name: 'Jasmine Absolute',
-    description: 'A precious floral extraction that uplifts mood, supports confidence, and enhances romance.',
-    category: 'Essential Oil',
-    ingredients: JSON.stringify(['Jasminum grandiflorum', 'Benzyl acetate', 'Linalool', 'Benzyl benzoate', 'Indole']),
-    benefits: JSON.stringify(['Mood enhancement', 'Confidence boost', 'Skin nourishment', 'Labor support', 'Libido enhancement']),
-    usage: 'Diffuse sparingly, apply diluted as perfume, or add to skincare.',
-    dosage: 'Aromatic: 1-2 drops in diffuser. Topical: 1-3% dilution',
-    precautions: 'Technically an absolute, not essential oil. Generally safe. Very potent - use sparingly.',
-    scientificInfo: 'Research suggests antidepressant and potentially aphrodisiac effects.',
-    references: JSON.stringify(['Natural Product Communications 2017', 'Journal of Health Research 2019']),
-    relatedRemedies: JSON.stringify(['Rose Oil', 'Ylang Ylang Oil', 'Neroli Oil']),
-    evidenceLevel: 'Traditional'
-  }
-]
+    name: "Jasmine Absolute",
+    description:
+      "A precious floral extraction that uplifts mood, supports confidence, and enhances romance.",
+    category: "Essential Oil",
+    ingredients: JSON.stringify([
+      "Jasminum grandiflorum",
+      "Benzyl acetate",
+      "Linalool",
+      "Benzyl benzoate",
+      "Indole",
+    ]),
+    benefits: JSON.stringify([
+      "Mood enhancement",
+      "Confidence boost",
+      "Skin nourishment",
+      "Labor support",
+      "Libido enhancement",
+    ]),
+    usage: "Diffuse sparingly, apply diluted as perfume, or add to skincare.",
+    dosage: "Aromatic: 1-2 drops in diffuser. Topical: 1-3% dilution",
+    precautions:
+      "Technically an absolute, not essential oil. Generally safe. Very potent - use sparingly.",
+    scientificInfo:
+      "Research suggests antidepressant and potentially aphrodisiac effects.",
+    references: JSON.stringify([
+      "Natural Product Communications 2017",
+      "Journal of Health Research 2019",
+    ]),
+    relatedRemedies: JSON.stringify([
+      "Rose Oil",
+      "Ylang Ylang Oil",
+      "Neroli Oil",
+    ]),
+    evidenceLevel: "Traditional",
+  },
+];
