@@ -57,7 +57,7 @@ Required for production:
 Recommended:
 
 - `AUTH_SECRET`
-- Email provider (`EMAIL_SERVER`, `EMAIL_FROM`)
+- Email provider (`RESEND_API_KEY`, `EMAIL_FROM`)
 - Sentry (`NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`)
 - Upstash Redis (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`)
 

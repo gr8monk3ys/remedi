@@ -43,8 +43,7 @@ Use this checklist to ensure Remedi is ready for production launch.
 
 #### Monitoring
 
-- [ ] `NEXT_PUBLIC_SENTRY_DSN` - Sentry DSN for client-side
-- [ ] `SENTRY_DSN` - Sentry DSN for server-side
+- [ ] `NEXT_PUBLIC_SENTRY_DSN` - Sentry DSN (client + server)
 - [ ] `SENTRY_AUTH_TOKEN` - Auth token for source map uploads
 - [ ] `SENTRY_ORG` - Sentry organization slug
 - [ ] `SENTRY_PROJECT` - Sentry project slug
@@ -222,6 +221,7 @@ Set up alerts for:
 
 Configure alerts for:
 
+- See `docs/SENTRY_ALERTS.md` for recommended rules and tags.
 - [ ] **New errors** - Alert immediately
 - [ ] **Error spike** - >10 errors/minute
 - [ ] **P99 latency** - >3 seconds
@@ -260,8 +260,8 @@ Watch for:
 
 ---
 
-**Launch Date**: ******\_\_\_******
+**Launch Date**: **\*\***\_\_\_**\*\***
 
-**Launch Time**: ******\_\_\_******
+**Launch Time**: **\*\***\_\_\_**\*\***
 
-**Version**: ******\_\_\_******
+**Version**: **\*\***\_\_\_**\*\***

@@ -31,6 +31,10 @@ async function main() {
       prisma.drugInteraction.count(),
     ]);
 
+  const pharmaWithoutMappings = await prisma.pharmaceutical.count({
+    where: { remedies: { none: {} } },
+  });
+
   const [
     missingRemedyDescription,
     missingRemedyUsage,
@@ -254,6 +258,12 @@ async function main() {
           missing: pharmaMissing[3],
           missingPct: pct(pharmaMissing[3], pharmaCount),
         },
+      },
+      mappings: {
+        totalMappings: mappingCount,
+        avgMappingsPerPharma: pharmaCount ? mappingCount / pharmaCount : 0,
+        withoutMappings: pharmaWithoutMappings,
+        withoutMappingsPct: pct(pharmaWithoutMappings, pharmaCount),
       },
       distributions: {
         categories: pharmaGroups.map((row) => ({

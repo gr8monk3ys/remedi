@@ -79,7 +79,8 @@ These must be set for the application to function:
 | `OPENFDA_API_KEY`          | FDA API for higher rate limits | 40 req/min |
 | `UPSTASH_REDIS_REST_URL`   | Redis for rate limiting        | Disabled   |
 | `UPSTASH_REDIS_REST_TOKEN` | Redis auth token               | -          |
-| `ENABLE_AI_SEARCH`         | Enable AI features             | `true`     |
+| `RESEND_API_KEY`           | Transactional emails (Resend)  | Disabled   |
+| `EMAIL_FROM`               | Sender email address           | -          |
 | `MAINTENANCE_MODE`         | Enable maintenance page        | `false`    |
 
 ---
