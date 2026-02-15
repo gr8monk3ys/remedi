@@ -41,52 +41,82 @@ test.describe("Search Functionality", () => {
   });
 
   test("should perform a basic search by pressing Enter", async ({ page }) => {
+    await page.route("**/api/search**", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          data: [
+            {
+              id: "mock-remedy-1",
+              name: "Mock Remedy",
+              description: "Mock remedy used for deterministic E2E testing.",
+              imageUrl: "",
+              category: "Herbal",
+              matchingNutrients: ["Vitamin C"],
+              similarityScore: 0.92,
+            },
+          ],
+        }),
+      });
+    });
+
     const searchInput = page.getByRole("searchbox");
 
     await searchInput.fill("aspirin");
+    await expect(searchInput).toHaveValue("aspirin");
+    const searchResponsePromise = page.waitForResponse((response) =>
+      response.url().includes("/api/search"),
+    );
     await searchInput.press("Enter");
+    await searchResponsePromise;
 
-    // Wait for search API response
-    await page
-      .waitForResponse(
-        (response) =>
-          response.url().includes("/api/search") && response.status() === 200,
-        { timeout: 10000 },
-      )
-      .catch(() => {
-        // API may not be running; we still verify the UI behavior
-      });
-
-    // Wait for some search outcome to appear in the results area
-    const resultsArea = page.locator("#search-results");
-    const resultCard = resultsArea.locator("[data-favorite-button]").first();
-    const noResults = resultsArea.getByText(/no results found/i);
-    const errorMessage = resultsArea.getByText(/failed|error|try again/i);
-
-    // One of these outcomes should appear within 15s
-    await expect(resultCard.or(noResults).or(errorMessage)).toBeVisible({
-      timeout: 15000,
-    });
+    const resultCard = page
+      .locator("#search-results [data-favorite-button]")
+      .first();
+    await expect(resultCard).toBeVisible({ timeout: 10000 });
   });
 
   test("should perform a search by clicking the search button", async ({
     page,
   }) => {
+    await page.route("**/api/search**", async (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          data: [
+            {
+              id: "mock-remedy-2",
+              name: "Mock Remedy 2",
+              description: "Mock result for click-based search flow.",
+              imageUrl: "",
+              category: "Supplement",
+              matchingNutrients: ["Magnesium"],
+              similarityScore: 0.87,
+            },
+          ],
+        }),
+      });
+    });
+
     const searchInput = page.getByRole("searchbox");
     const searchButton = page.locator("[data-search-button]");
 
     await searchInput.fill("ibuprofen");
+    await expect(searchInput).toHaveValue("ibuprofen");
+    const searchResponsePromise = page.waitForResponse((response) =>
+      response.url().includes("/api/search"),
+    );
     await searchButton.click();
 
-    // Wait for API response
-    await page
-      .waitForResponse((response) => response.url().includes("/api/search"), {
-        timeout: 10000,
-      })
-      .catch(() => {});
-
-    // Search input should retain the query
-    await expect(searchInput).toHaveValue("ibuprofen");
+    await searchResponsePromise;
+    await expect(
+      page.locator("#search-results [data-favorite-button]").first(),
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test("should trigger search by clicking a suggestion badge", async ({
@@ -241,14 +271,18 @@ test.describe("Search Functionality", () => {
       )
       .catch(() => {});
 
-    // SearchTabs uses shadcn Tabs with tab triggers "Results" and "History"
+    // SearchTabs uses shadcn Tabs. The History tab is gated to paid plans.
     const resultsTab = page.getByRole("tab", { name: /Results/i });
     const historyTab = page.getByRole("tab", { name: /History/i });
 
     // Tabs should appear when there are results or history
     if (await resultsTab.isVisible().catch(() => false)) {
       await expect(resultsTab).toBeVisible();
-      await expect(historyTab).toBeVisible();
+
+      // History may be hidden for anonymous/free users.
+      if ((await historyTab.count()) > 0) {
+        await expect(historyTab).toBeVisible();
+      }
     }
   });
 
@@ -314,6 +348,106 @@ test.describe("Search Functionality", () => {
     await expect(errorMessage).toBeVisible({ timeout: 5000 });
   });
 
+  test("should show retry-after guidance when standard search is rate limited", async ({
+    page,
+  }) => {
+    await page.route("**/api/search**", (route) => {
+      route.fulfill({
+        status: 429,
+        headers: {
+          "Retry-After": "12",
+        },
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: "RATE_LIMIT_EXCEEDED",
+            message: "Too many requests. Please try again later.",
+            statusCode: 429,
+          },
+        }),
+      });
+    });
+
+    const searchInput = page.getByRole("searchbox");
+    await searchInput.fill("ibuprofen");
+    await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/search") && response.status() === 429,
+        { timeout: 15000 },
+      ),
+      searchInput.press("Enter"),
+    ]);
+
+    await expect(
+      page
+        .locator("#search-results")
+        .getByText(/Search is temporarily rate-limited/i),
+    ).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("#search-results")).toContainText("12s");
+  });
+
+  test("should show retry-after guidance when AI search is rate limited", async ({
+    page,
+  }) => {
+    await page.route("**/api/ai-search", (route) => {
+      if (route.request().method() === "GET") {
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            success: true,
+            data: {
+              status: "available",
+            },
+          }),
+        });
+        return;
+      }
+
+      route.fulfill({
+        status: 429,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: "RATE_LIMIT_EXCEEDED",
+            message: "Too many requests. Please try again later.",
+            statusCode: 429,
+            retryAfter: 9,
+          },
+        }),
+      });
+    });
+
+    await page.reload();
+    await page.getByRole("searchbox").waitFor({ timeout: 10000 });
+
+    const aiToggle = page.locator("[data-ai-toggle]");
+    await expect(aiToggle).toBeVisible();
+    await aiToggle.click();
+
+    const searchInput = page.getByRole("searchbox");
+    await searchInput.fill("help with joint pain");
+    await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/ai-search") &&
+          response.request().method() === "POST",
+        { timeout: 15000 },
+      ),
+      searchInput.press("Enter"),
+    ]);
+
+    await expect(
+      page
+        .locator("#search-results")
+        .getByText(/AI search is temporarily rate-limited/i),
+    ).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("#search-results")).toContainText("9s");
+  });
+
   test("should be keyboard accessible", async ({ page }) => {
     const searchInput = page.getByRole("searchbox");
 
@@ -363,14 +497,19 @@ test.describe("Search Functionality", () => {
 
   test("should debounce search when typing", async ({ page }) => {
     const searchInput = page.getByRole("searchbox");
-    const apiCalls: string[] = [];
+    const searchApiCalls: string[] = [];
 
-    // Track API calls
+    // Track only the search endpoint (exclude /api/search-history, etc.)
     page.on("request", (request) => {
-      if (request.url().includes("/api/search")) {
-        apiCalls.push(request.url());
+      const { pathname } = new URL(request.url());
+      if (pathname === "/api/search") {
+        searchApiCalls.push(request.url());
       }
     });
+
+    // Ignore requests emitted during initial page hydration.
+    await page.waitForTimeout(250);
+    searchApiCalls.length = 0;
 
     // Type characters quickly
     await searchInput.type("ib", { delay: 50 });
@@ -379,6 +518,6 @@ test.describe("Search Functionality", () => {
     await page.waitForTimeout(600);
 
     // Should have triggered at most one search (after debounce)
-    expect(apiCalls.length).toBeLessThanOrEqual(1);
+    expect(searchApiCalls.length).toBeLessThanOrEqual(1);
   });
 });

@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { createLogger } from "@/lib/logger";
+import { useAuth } from "@clerk/nextjs";
 
 const logger = createLogger("compare-context");
 
@@ -50,7 +51,8 @@ const CompareContext = createContext<CompareContextValue | undefined>(
 );
 
 const STORAGE_KEY = "remedi-comparison-list";
-const MAX_COMPARE_ITEMS = 4;
+const DEFAULT_MAX_COMPARE_ITEMS = 4;
+const ABSOLUTE_MAX_COMPARE_ITEMS = 10;
 
 interface CompareProviderProps {
   children: ReactNode;
@@ -63,7 +65,9 @@ interface CompareProviderProps {
 export function CompareProvider({
   children,
 }: CompareProviderProps): React.JSX.Element {
+  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const [items, setItems] = useState<CompareItem[]>([]);
+  const [maxItems, setMaxItems] = useState(DEFAULT_MAX_COMPARE_ITEMS);
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Load from localStorage on mount
@@ -80,7 +84,8 @@ export function CompareProvider({
               typeof item.id === "string" && typeof item.name === "string",
           )
         ) {
-          setItems(parsed.slice(0, MAX_COMPARE_ITEMS));
+          // Cap to an absolute maximum so a poisoned localStorage value can't bloat UI.
+          setItems(parsed.slice(0, ABSOLUTE_MAX_COMPARE_ITEMS));
         }
       }
     } catch (error) {
@@ -88,6 +93,55 @@ export function CompareProvider({
     }
     setIsHydrated(true);
   }, []);
+
+  // Fetch effective plan limits for signed-in users to set compare cap.
+  // Anonymous users keep the default cap (they'll be prompted to upgrade on /compare).
+  useEffect(() => {
+    if (!isAuthLoaded) return;
+
+    if (!isSignedIn) {
+      setMaxItems(DEFAULT_MAX_COMPARE_ITEMS);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function loadPlan() {
+      try {
+        const res = await fetch("/api/plan", { signal: controller.signal });
+        const json = (await res.json()) as
+          | {
+              success: true;
+              data: {
+                limits?: { canCompare?: boolean; maxCompareItems?: unknown };
+              };
+            }
+          | { success: false };
+
+        if (!res.ok || !json.success) return;
+
+        const canCompare = Boolean(json.data.limits?.canCompare);
+        const maxCompareItems = json.data.limits?.maxCompareItems;
+
+        if (
+          canCompare &&
+          typeof maxCompareItems === "number" &&
+          Number.isFinite(maxCompareItems) &&
+          maxCompareItems > 0
+        ) {
+          setMaxItems(Math.min(maxCompareItems, ABSOLUTE_MAX_COMPARE_ITEMS));
+        } else {
+          setMaxItems(DEFAULT_MAX_COMPARE_ITEMS);
+        }
+      } catch (error) {
+        if ((error as { name?: string }).name === "AbortError") return;
+        logger.debug("Failed to load plan limits for compare cap", { error });
+      }
+    }
+
+    void loadPlan();
+    return () => controller.abort();
+  }, [isAuthLoaded, isSignedIn]);
 
   // Persist to localStorage when items change
   useEffect(() => {
@@ -100,7 +154,14 @@ export function CompareProvider({
     }
   }, [items, isHydrated]);
 
-  const isFull = items.length >= MAX_COMPARE_ITEMS;
+  // Enforce maxItems even if it changes after hydration.
+  useEffect(() => {
+    setItems((prev) =>
+      prev.length > maxItems ? prev.slice(0, maxItems) : prev,
+    );
+  }, [maxItems]);
+
+  const isFull = items.length >= maxItems;
 
   const isInComparison = useCallback(
     (id: string): boolean => {
@@ -111,7 +172,7 @@ export function CompareProvider({
 
   const addToCompare = useCallback(
     (item: CompareItem): boolean => {
-      if (items.length >= MAX_COMPARE_ITEMS) {
+      if (items.length >= maxItems) {
         return false;
       }
       if (items.some((existing) => existing.id === item.id)) {
@@ -120,7 +181,7 @@ export function CompareProvider({
       setItems((prev) => [...prev, item]);
       return true;
     },
-    [items],
+    [items, maxItems],
   );
 
   const removeFromCompare = useCallback((id: string): void => {
@@ -140,7 +201,7 @@ export function CompareProvider({
   const value = useMemo(
     (): CompareContextValue => ({
       items,
-      maxItems: MAX_COMPARE_ITEMS,
+      maxItems,
       isFull,
       isInComparison,
       addToCompare,
@@ -150,6 +211,7 @@ export function CompareProvider({
     }),
     [
       items,
+      maxItems,
       isFull,
       isInComparison,
       addToCompare,

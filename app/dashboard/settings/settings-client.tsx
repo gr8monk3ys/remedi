@@ -8,6 +8,7 @@ import {
   Shield,
   AlertTriangle,
   ExternalLink,
+  Download,
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -78,6 +79,7 @@ export function SettingsClient({
 }: SettingsClientProps): React.JSX.Element {
   const [preferences, setPreferences] = useState(emailPreferences);
   const [isSaving, setIsSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">(
     "idle",
   );
@@ -117,6 +119,37 @@ export function SettingsClient({
     },
     [preferences],
   );
+
+  const handleExportData = useCallback(async (): Promise<void> => {
+    setIsExporting(true);
+
+    try {
+      const response = await fetch("/api/account/export");
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        const message =
+          payload?.error?.message || "Failed to export data. Please try again.";
+        throw new Error(message);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "remedi-data-export.json";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success("Export started");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Export failed");
+    } finally {
+      setIsExporting(false);
+    }
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -254,10 +287,16 @@ export function SettingsClient({
             </div>
             <button
               type="button"
-              disabled
-              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm cursor-not-allowed opacity-60"
+              onClick={handleExportData}
+              disabled={isExporting}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-muted transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Coming Soon
+              {isExporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Download className="h-4 w-4" aria-hidden="true" />
+              )}
+              {isExporting ? "Exporting..." : "Export JSON"}
             </button>
           </div>
         </CardContent>

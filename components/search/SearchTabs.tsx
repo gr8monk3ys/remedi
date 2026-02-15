@@ -12,6 +12,7 @@ interface SearchTabsProps {
   setActiveTab: (tab: "results" | "history") => void;
   resultsCount: number;
   historyCount: number;
+  showHistoryTab?: boolean;
   showFilters: boolean;
   toggleFilters: () => void;
   activeFiltersCount: number;
@@ -22,6 +23,7 @@ export const SearchTabs = memo(function SearchTabs({
   setActiveTab,
   resultsCount,
   historyCount,
+  showHistoryTab = true,
   showFilters,
   toggleFilters,
   activeFiltersCount,
@@ -41,14 +43,19 @@ export const SearchTabs = memo(function SearchTabs({
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="history">
-            History{" "}
-            {historyCount > 0 && (
-              <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
-                {historyCount}
-              </Badge>
-            )}
-          </TabsTrigger>
+          {showHistoryTab && (
+            <TabsTrigger value="history">
+              History{" "}
+              {historyCount > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="ml-1.5 h-5 px-1.5 text-xs"
+                >
+                  {historyCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+          )}
         </TabsList>
       </Tabs>
 

@@ -12,6 +12,7 @@ import type {
   ParsedNaturalRemedy,
   ParsedRemedyMapping,
 } from "../types";
+import { normalizeReferences } from "@/lib/references";
 
 /**
  * Get natural remedy by ID
@@ -92,13 +93,7 @@ export function toDetailedRemedy(
   remedy: ParsedNaturalRemedy,
   similarityScore = 1.0,
 ): DetailedRemedy {
-  const references =
-    typeof remedy.references?.[0] === "string"
-      ? (remedy.references as string[]).map((ref) => ({
-          title: ref,
-          url: ref,
-        }))
-      : (remedy.references as DetailedRemedy["references"]);
+  const references = normalizeReferences(remedy.references);
 
   const relatedRemedies =
     typeof remedy.relatedRemedies?.[0] === "string"

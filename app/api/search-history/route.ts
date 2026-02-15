@@ -13,7 +13,11 @@ import {
   clearSearchHistory,
   getPopularSearches,
 } from "@/lib/db";
-import { successResponse, errorResponse } from "@/lib/api/response";
+import {
+  successResponse,
+  errorResponse,
+  getStatusCode,
+} from "@/lib/api/response";
 import {
   saveSearchHistorySchema,
   getSearchHistorySchema,
@@ -22,6 +26,7 @@ import {
 import { verifyOwnership } from "@/lib/authorization";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
+import { getEffectivePlanLimits } from "@/lib/trial";
 
 const logger = createLogger("api-search-history");
 
@@ -74,6 +79,30 @@ export async function GET(request: NextRequest) {
 
     const { limit } = validation.data;
 
+    // Search history is a paid feature (Basic+). We allow storing history for
+    // future upgrades, but do not allow reading it on Free/anonymous access.
+    if (!userId) {
+      return NextResponse.json(
+        errorResponse(
+          "FORBIDDEN",
+          "Search history requires a Basic plan or higher.",
+        ),
+        { status: getStatusCode("FORBIDDEN") },
+      );
+    }
+
+    const { limits, plan, isTrial } = await getEffectivePlanLimits(userId);
+    if (!limits.canAccessHistory) {
+      return NextResponse.json(
+        errorResponse(
+          "FORBIDDEN",
+          "Search history is not available on your current plan.",
+          { plan, isTrial },
+        ),
+        { status: getStatusCode("FORBIDDEN") },
+      );
+    }
+
     // Get search history
     const history = await getSearchHistory(sessionId, userId, limit);
 
@@ -123,6 +152,16 @@ export async function POST(request: NextRequest) {
     }
 
     const { query, resultsCount, sessionId, userId } = validation.data;
+
+    if (!sessionId && !userId) {
+      return NextResponse.json(
+        errorResponse(
+          "INVALID_INPUT",
+          "Either sessionId or userId must be provided",
+        ),
+        { status: 400 },
+      );
+    }
 
     // Verify user can create history for this userId
     const { authorized, error } = await verifyOwnership(userId, sessionId);

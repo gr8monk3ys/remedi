@@ -78,20 +78,16 @@ test.describe("Loading States", () => {
       page.getByRole("heading", { level: 1, name: "Turmeric" }),
     ).toBeVisible({ timeout: 10000 });
 
-    // Loading skeletons should not be visible after content loads
-    const skeletons = page.locator(".animate-pulse");
-    // Some skeletons may exist (e.g., avatar placeholders), but main content
-    // should have replaced the loading state
-    await expect(skeletons).not.toHaveCount(0);
-    const heading = page.getByRole("heading", { level: 1 });
-    await expect(heading).toBeVisible();
+    // Confirm core remedy content has fully rendered after transition.
+    await expect(page.getByRole("heading", { name: "Usage" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Dosage" })).toBeVisible();
   });
 
   test("should show interaction checker loading state", async ({ page }) => {
     // Delay the interactions API
-    await page.route("**/api/interactions/check", async (route) => {
+    await page.route("**/api/interactions/check**", async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      route.fulfill({
+      await route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
@@ -109,25 +105,46 @@ test.describe("Loading States", () => {
     await page.goto("/interactions");
 
     const input = page.getByLabel(/Substance name/i);
-    await input.fill("Aspirin");
-    await input.press("Enter");
-    await input.fill("Warfarin");
-    await input.press("Enter");
+    const addButton = page.getByRole("button", { name: /Add substance/i });
+    const checkButton = page.getByRole("button", {
+      name: /Check Interactions/i,
+    });
 
-    await page.getByRole("button", { name: /Check Interactions/i }).click();
+    await input.fill("Aspirin");
+    await addButton.click();
+    await input.fill("Warfarin");
+    await addButton.click();
+
+    await expect(page.getByText("Aspirin")).toBeVisible();
+    await expect(page.getByText("Warfarin")).toBeVisible();
+    await expect(checkButton).toBeEnabled();
+
+    const checkResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/interactions/check") &&
+        response.request().method() === "POST",
+      { timeout: 15000 },
+    );
+
+    await checkButton.click();
 
     // Button text changes to "Checking..." during loading
     await expect(page.getByText("Checking...")).toBeVisible({ timeout: 3000 });
+
+    // Ensure the mocked API call completed before asserting final UI.
+    await checkResponsePromise;
 
     // After API resolves, loading text should disappear
     await expect(page.getByText("Checking...")).not.toBeVisible({
       timeout: 5000,
     });
 
-    // Results should now be visible (use heading role to avoid matching multiple elements)
+    // Results should now be visible.
     await expect(
       page.getByRole("heading", { name: /No Known Interactions Found/i }),
-    ).toBeVisible();
+    ).toBeVisible({
+      timeout: 10000,
+    });
   });
 
   test("should not show persistent loading state on homepage", async ({
@@ -135,11 +152,13 @@ test.describe("Loading States", () => {
   }) => {
     await page.goto("/");
 
-    // Wait for page to fully load
-    await page.waitForLoadState("networkidle");
-
-    // The main heading should be visible (not hidden behind loading)
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    // The main heading should become visible after hydration
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: /find natural alternatives to pharmaceuticals/i,
+      }),
+    ).toBeVisible({ timeout: 10000 });
 
     // Features grid should be rendered
     await expect(

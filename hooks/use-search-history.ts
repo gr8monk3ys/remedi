@@ -26,16 +26,30 @@ interface UseSearchHistoryReturn {
  * Hook for managing search history with database persistence
  * Automatically fetches history for authenticated users or session-based users
  */
-export function useSearchHistory(limit: number = 10): UseSearchHistoryReturn {
+export function useSearchHistory(
+  limit: number = 10,
+  options?: { enabled?: boolean },
+): UseSearchHistoryReturn {
+  const enabled = options?.enabled ?? true;
   const { dbUserId } = useDbUser();
   const sessionId = useSessionId();
   const [history, setHistory] = useState<SearchHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // If disabled, clear any existing state and do not fetch.
+  useEffect(() => {
+    if (!enabled) {
+      setHistory([]);
+      setIsLoading(false);
+      setError(null);
+    }
+  }, [enabled]);
+
   // Fetch search history on mount
   useEffect(() => {
     const fetchHistory = async () => {
+      if (!enabled) return;
       if (!dbUserId && !sessionId) return;
 
       setIsLoading(true);
@@ -65,10 +79,11 @@ export function useSearchHistory(limit: number = 10): UseSearchHistoryReturn {
     };
 
     fetchHistory();
-  }, [dbUserId, sessionId, limit]);
+  }, [dbUserId, sessionId, limit, enabled]);
 
   // Clear all search history
   const clearHistory = useCallback(async () => {
+    if (!enabled) return;
     if (!dbUserId && !sessionId) return;
 
     setIsLoading(true);
@@ -91,7 +106,7 @@ export function useSearchHistory(limit: number = 10): UseSearchHistoryReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [dbUserId, sessionId]);
+  }, [dbUserId, sessionId, enabled]);
 
   return {
     history,
