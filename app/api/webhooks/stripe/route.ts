@@ -73,12 +73,25 @@ async function handleCheckoutSessionCompleted(
   const priceId = subscriptionItem?.price.id;
   const plan = priceId ? getPlanByPriceId(priceId) : "basic";
 
-  // Access billing period from subscription item (Stripe v20+ types)
-  const currentPeriodStart = subscriptionItem?.current_period_start
-    ? new Date(subscriptionItem.current_period_start * 1000)
+  // Billing period is stored on the subscription, but some test fixtures (or
+  // older mocks) may place it on the subscription item. Support both.
+  const subscriptionLevelBilling = stripeSubscription as unknown as {
+    current_period_start?: number | null;
+    current_period_end?: number | null;
+  };
+  const currentPeriodStartUnix =
+    subscriptionLevelBilling.current_period_start ??
+    subscriptionItem?.current_period_start ??
+    null;
+  const currentPeriodEndUnix =
+    subscriptionLevelBilling.current_period_end ??
+    subscriptionItem?.current_period_end ??
+    null;
+  const currentPeriodStart = currentPeriodStartUnix
+    ? new Date(currentPeriodStartUnix * 1000)
     : new Date();
-  const currentPeriodEnd = subscriptionItem?.current_period_end
-    ? new Date(subscriptionItem.current_period_end * 1000)
+  const currentPeriodEnd = currentPeriodEndUnix
+    ? new Date(currentPeriodEndUnix * 1000)
     : new Date();
 
   // Update subscription in database
@@ -182,12 +195,23 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const priceId = subscriptionItem?.price.id;
   const plan = priceId ? getPlanByPriceId(priceId) : dbSubscription.plan;
 
-  // Access billing period from subscription item (Stripe v20+ types)
-  const currentPeriodStart = subscriptionItem?.current_period_start
-    ? new Date(subscriptionItem.current_period_start * 1000)
+  const subscriptionLevelBilling = subscription as unknown as {
+    current_period_start?: number | null;
+    current_period_end?: number | null;
+  };
+  const currentPeriodStartUnix =
+    subscriptionLevelBilling.current_period_start ??
+    subscriptionItem?.current_period_start ??
+    null;
+  const currentPeriodEndUnix =
+    subscriptionLevelBilling.current_period_end ??
+    subscriptionItem?.current_period_end ??
+    null;
+  const currentPeriodStart = currentPeriodStartUnix
+    ? new Date(currentPeriodStartUnix * 1000)
     : dbSubscription.currentPeriodStart;
-  const currentPeriodEnd = subscriptionItem?.current_period_end
-    ? new Date(subscriptionItem.current_period_end * 1000)
+  const currentPeriodEnd = currentPeriodEndUnix
+    ? new Date(currentPeriodEndUnix * 1000)
     : dbSubscription.currentPeriodEnd;
 
   // Map Stripe status to our status
@@ -314,14 +338,39 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
  * Extract subscription ID from invoice (handles both string ID and expanded object)
  */
 function getSubscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null {
-  // In Stripe v20, subscription is accessed via invoice.parent.subscription_details
-  const subscriptionDetails = invoice.parent?.subscription_details;
-  if (!subscriptionDetails) return null;
+  // Prefer the canonical invoice.subscription field when present.
+  const directSubscription = (
+    invoice as unknown as {
+      subscription?: string | { id?: string } | null;
+    }
+  ).subscription;
 
-  const subscription = subscriptionDetails.subscription;
+  if (typeof directSubscription === "string") {
+    return directSubscription;
+  }
+  if (directSubscription && typeof directSubscription === "object") {
+    return directSubscription.id || null;
+  }
+
+  // Fallback for mocks/fixtures that store subscription under parent details.
+  const subscriptionDetails = (
+    invoice as unknown as {
+      parent?: {
+        subscription_details?: { subscription?: unknown } | null;
+      } | null;
+    }
+  ).parent?.subscription_details;
+
+  const subscription = subscriptionDetails?.subscription as
+    | string
+    | { id?: string }
+    | null
+    | undefined;
+
   if (typeof subscription === "string") {
     return subscription;
   }
+
   return subscription?.id || null;
 }
 
