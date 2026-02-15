@@ -9,12 +9,27 @@ import { fetchWithCSRF } from "@/lib/fetch";
 import type { PlanType } from "@/lib/stripe-config";
 import type { UsageData } from "@/types/dashboard";
 
+type InvoiceSummary = {
+  id: string;
+  number: string | null;
+  status: string | null;
+  currency: string;
+  amountDue: number;
+  amountPaid: number;
+  createdAt: string;
+  hostedInvoiceUrl: string | null;
+  invoicePdf: string | null;
+  periodStart: string | null;
+  periodEnd: string | null;
+};
+
 interface SubscriptionClientProps {
   currentPlan: PlanType;
   subscriptionStatus: string | null;
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   hasActiveSubscription: boolean;
+  invoices: InvoiceSummary[];
   usage: {
     favorites: { current: number; limit: number };
     searches: { current: number; limit: number };
@@ -61,10 +76,14 @@ export function SubscriptionClient({
   currentPeriodEnd,
   cancelAtPeriodEnd,
   hasActiveSubscription,
+  invoices,
   usage,
 }: SubscriptionClientProps): React.JSX.Element {
-  const [isBillingLoading, setIsBillingLoading] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<
+    PlanType | "manage" | null
+  >(null);
   const [billingError, setBillingError] = useState<string | null>(null);
+  const [isYearly, setIsYearly] = useState(false);
 
   const planConfig = PLANS[currentPlan];
   const PlanIcon = planIcons[currentPlan];
@@ -98,31 +117,114 @@ export function SubscriptionClient({
     },
   ];
 
+  const planRank: Record<PlanType, number> = {
+    free: 0,
+    basic: 1,
+    premium: 2,
+  };
+
+  const actionLabelForPlan = (targetPlan: PlanType): string | undefined => {
+    if (targetPlan === currentPlan) return undefined;
+
+    const targetRank = planRank[targetPlan];
+    const currentRank = planRank[currentPlan];
+
+    if (targetRank > currentRank) return "Upgrade";
+    if (targetRank < currentRank) return "Downgrade";
+    return "Change Plan";
+  };
+
+  const formatMoney = (cents: number, currency: string): string => {
+    const normalizedCurrency = currency.toUpperCase();
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: normalizedCurrency,
+      }).format(cents / 100);
+    } catch {
+      return `$${(cents / 100).toFixed(2)}`;
+    }
+  };
+
   const handleManageBilling = async (): Promise<void> => {
-    setIsBillingLoading(true);
+    if (loadingAction) return;
+
+    setLoadingAction("manage");
     setBillingError(null);
 
     try {
       const response = await fetchWithCSRF("/api/billing-portal", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to open billing portal");
+      const data = (await response.json()) as
+        | {
+            success: true;
+            data: { url: string };
+          }
+        | {
+            success: false;
+            error?: { message?: string };
+          };
+
+      if (response.ok && data.success && data.data.url) {
+        window.location.href = data.data.url;
+        return;
       }
 
-      const data = (await response.json()) as { url: string };
-
-      if (data.url) {
-        window.location.href = data.url;
-      }
+      setBillingError(
+        (!data.success && data.error?.message) ||
+          "Unable to open the billing portal. Please try again later.",
+      );
     } catch {
       setBillingError(
         "Unable to open the billing portal. Please try again later.",
       );
     } finally {
-      setIsBillingLoading(false);
+      setLoadingAction(null);
+    }
+  };
+
+  const handleCheckout = async (plan: "basic" | "premium"): Promise<void> => {
+    if (loadingAction) return;
+
+    setLoadingAction(plan);
+    setBillingError(null);
+
+    try {
+      const response = await fetchWithCSRF("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan,
+          interval: isYearly ? "year" : "month",
+          source: "dashboard_subscription",
+        }),
+      });
+
+      const data = (await response.json()) as
+        | {
+            success: true;
+            data: { url: string };
+          }
+        | {
+            success: false;
+            error?: { message?: string };
+          };
+
+      if (response.ok && data.success && data.data.url) {
+        window.location.href = data.data.url;
+        return;
+      }
+
+      setBillingError(
+        (!data.success && data.error?.message) ||
+          "Failed to start checkout. Please try again later.",
+      );
+    } catch {
+      setBillingError("Failed to start checkout. Please try again later.");
+    } finally {
+      setLoadingAction(null);
     }
   };
 
@@ -193,9 +295,47 @@ export function SubscriptionClient({
         <h3 className="text-lg font-semibold text-foreground mb-4">
           Available Plans
         </h3>
+        <div className="flex justify-center mb-6">
+          <div className="bg-muted p-1 rounded-lg inline-flex">
+            <button
+              type="button"
+              onClick={() => setIsYearly(false)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                !isYearly
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsYearly(true)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                isYearly
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Yearly{" "}
+              <span className="ml-1 text-green-600 dark:text-green-400 text-xs font-semibold">
+                Save 17%
+              </span>
+            </button>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {(Object.keys(PLANS) as PlanType[]).map((planKey) => {
             const plan = PLANS[planKey];
+            const onSelect =
+              planKey === currentPlan
+                ? undefined
+                : hasActiveSubscription
+                  ? handleManageBilling
+                  : planKey === "basic" || planKey === "premium"
+                    ? () => void handleCheckout(planKey)
+                    : undefined;
+
             return (
               <PlanCard
                 key={planKey}
@@ -206,9 +346,12 @@ export function SubscriptionClient({
                 yearlyPrice={
                   "yearlyPrice" in plan ? plan.yearlyPrice : undefined
                 }
+                interval={isYearly ? "yearly" : "monthly"}
                 features={[...plan.features]}
                 isCurrentPlan={planKey === currentPlan}
                 isPopular={planKey === "basic"}
+                actionLabel={actionLabelForPlan(planKey)}
+                onSelect={onSelect}
                 onManage={
                   planKey === currentPlan && hasActiveSubscription
                     ? handleManageBilling
@@ -227,21 +370,21 @@ export function SubscriptionClient({
             <div>
               <h3 className="text-lg font-semibold text-foreground">Billing</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Manage your payment method, view invoices, or cancel your
-                subscription.
+                Change plans, download invoices, or cancel in the Stripe billing
+                portal.
               </p>
             </div>
             <button
               onClick={handleManageBilling}
-              disabled={isBillingLoading}
+              disabled={loadingAction !== null}
               className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isBillingLoading ? (
+              {loadingAction === "manage" ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : (
                 <CreditCard className="h-4 w-4" aria-hidden="true" />
               )}
-              {isBillingLoading ? "Opening..." : "Manage Billing"}
+              {loadingAction === "manage" ? "Opening..." : "Manage Billing"}
             </button>
           </div>
 
@@ -252,6 +395,80 @@ export function SubscriptionClient({
               </p>
             </div>
           )}
+
+          <div className="mt-6">
+            <h4 className="text-sm font-semibold text-foreground">
+              Recent Invoices
+            </h4>
+            {invoices.length === 0 ? (
+              <p className="text-sm text-muted-foreground mt-2">
+                No invoices found yet.
+              </p>
+            ) : (
+              <ul className="mt-3 divide-y divide-border">
+                {invoices.map((invoice) => (
+                  <li
+                    key={invoice.id}
+                    className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {invoice.number
+                          ? `Invoice ${invoice.number}`
+                          : "Invoice"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(invoice.createdAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          },
+                        )}
+                        {invoice.periodStart && invoice.periodEnd
+                          ? ` • ${new Date(invoice.periodStart).toLocaleDateString("en-US", { month: "short", day: "numeric" })}–${new Date(invoice.periodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                          : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-semibold text-foreground">
+                        {formatMoney(
+                          invoice.amountPaid || invoice.amountDue,
+                          invoice.currency,
+                        )}
+                      </span>
+                      {invoice.status && (
+                        <span className="text-xs font-semibold px-2 py-1 rounded-full bg-muted text-muted-foreground">
+                          {invoice.status}
+                        </span>
+                      )}
+                      {invoice.hostedInvoiceUrl && (
+                        <a
+                          href={invoice.hostedInvoiceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          View
+                        </a>
+                      )}
+                      {invoice.invoicePdf && (
+                        <a
+                          href={invoice.invoicePdf}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          PDF
+                        </a>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       )}
 

@@ -27,8 +27,8 @@ export function BillingClient({
   const [isYearly, setIsYearly] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
 
-  const handleCheckout = async (plan: PlanType) => {
-    if (plan === "free" || plan === currentPlan) return;
+  const handleCheckout = async (plan: "basic" | "premium") => {
+    if (plan === currentPlan) return;
 
     setLoading(plan);
     try {
@@ -55,6 +55,19 @@ export function BillingClient({
     } finally {
       setLoading(null);
     }
+  };
+
+  const handleSelectPlan = async (plan: PlanType) => {
+    if (plan === "free" || plan === currentPlan) return;
+
+    // If the user already has an active subscription, plan changes should be
+    // done via the Stripe billing portal to avoid creating duplicate subs.
+    if (hasActiveSubscription) {
+      await handleManageBilling();
+      return;
+    }
+
+    await handleCheckout(plan);
   };
 
   const handleManageBilling = async () => {
@@ -134,9 +147,9 @@ export function BillingClient({
           yearlyPrice={isYearly ? PLANS.basic.yearlyPrice : undefined}
           features={PLANS.basic.features}
           isCurrentPlan={currentPlan === "basic"}
-          onSelect={() => handleCheckout("basic")}
+          onSelect={() => void handleSelectPlan("basic")}
           loading={loading === "basic"}
-          disabled={currentPlan === "basic" || currentPlan === "premium"}
+          disabled={currentPlan === "basic"}
         />
 
         {/* Premium Plan */}
@@ -150,12 +163,19 @@ export function BillingClient({
           yearlyPrice={isYearly ? PLANS.premium.yearlyPrice : undefined}
           features={PLANS.premium.features}
           isCurrentPlan={currentPlan === "premium"}
-          onSelect={() => handleCheckout("premium")}
+          onSelect={() => void handleSelectPlan("premium")}
           loading={loading === "premium"}
           disabled={currentPlan === "premium"}
           highlighted
         />
       </div>
+
+      {hasActiveSubscription && (
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Plan changes and cancellations are managed in the Stripe billing
+          portal.
+        </p>
+      )}
 
       {/* Manage Subscription Button */}
       {hasActiveSubscription && (
