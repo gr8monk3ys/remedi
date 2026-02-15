@@ -31,6 +31,8 @@ export interface RateLimitConfig {
   identifier: string;
 }
 
+type RateLimitSource = "upstash" | "in-memory";
+
 // Default rate limits for different endpoints
 export const RATE_LIMITS = {
   // Standard search: 30 requests per minute
@@ -206,6 +208,7 @@ function checkInMemoryRateLimit(
       limit: config.limit,
       remaining: config.limit - 1,
       reset: resetTime,
+      source: "in-memory",
     };
   }
 
@@ -219,6 +222,7 @@ function checkInMemoryRateLimit(
       remaining: 0,
       reset: entry.resetTime,
       retryAfter: Math.ceil((entry.resetTime - now) / 1000),
+      source: "in-memory",
     };
   }
 
@@ -227,6 +231,7 @@ function checkInMemoryRateLimit(
     limit: config.limit,
     remaining: config.limit - entry.count,
     reset: entry.resetTime,
+    source: "in-memory",
   };
 }
 
@@ -255,6 +260,7 @@ export interface RateLimitResult {
   remaining: number;
   reset: number;
   retryAfter?: number;
+  source?: RateLimitSource;
 }
 
 /**
@@ -284,7 +290,65 @@ export async function checkRateLimit(
     retryAfter: result.success
       ? undefined
       : Math.ceil((result.reset - Date.now()) / 1000),
+    source: "upstash",
   };
+}
+
+function inferAIContext(identifier: string): {
+  provider: string;
+  model: string;
+} | null {
+  if (identifier === RATE_LIMITS.aiSearch.identifier) {
+    return {
+      provider: "openai",
+      model: "gpt-4-turbo-preview",
+    };
+  }
+
+  return null;
+}
+
+function captureRateLimitExceeded(
+  request: NextRequest,
+  config: RateLimitConfig,
+  result: RateLimitResult,
+): void {
+  if (process.env.NODE_ENV !== "production") return;
+
+  const endpoint = request.nextUrl.pathname;
+  const retryAfter =
+    result.retryAfter ??
+    Math.max(Math.ceil((result.reset - Date.now()) / 1000), 0);
+  const aiContext = inferAIContext(config.identifier);
+
+  void import("@sentry/nextjs")
+    .then((Sentry) => {
+      Sentry.withScope((scope) => {
+        scope.setLevel("warning");
+        scope.setTag("http.method", request.method);
+        scope.setTag("http.route", endpoint);
+        scope.setTag("rate_limit.identifier", config.identifier);
+        scope.setTag("rate_limit.source", result.source ?? "unknown");
+
+        if (aiContext) {
+          scope.setTag("ai.provider", aiContext.provider);
+          scope.setTag("ai.model", aiContext.model);
+        }
+
+        scope.setContext("rate_limit", {
+          limit: result.limit,
+          remaining: result.remaining,
+          reset: result.reset,
+          retryAfter,
+          endpoint,
+        });
+
+        Sentry.captureMessage("API rate limit exceeded");
+      });
+    })
+    .catch(() => {
+      // Ignore Sentry transport/load failures.
+    });
 }
 
 /**
@@ -299,6 +363,7 @@ export function rateLimitExceededResponse(
       error: {
         code: "RATE_LIMIT_EXCEEDED",
         message: "Too many requests. Please try again later.",
+        statusCode: 429,
         retryAfter: result.retryAfter,
       },
     },
@@ -351,6 +416,8 @@ export async function withRateLimit(
   const result = await checkRateLimit(request, config);
 
   if (!result.success) {
+    captureRateLimitExceeded(request, config, result);
+
     return {
       allowed: false,
       response: rateLimitExceededResponse(result),

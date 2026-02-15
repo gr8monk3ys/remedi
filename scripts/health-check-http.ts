@@ -1,7 +1,10 @@
 type HealthResponse = {
   status: string;
   timestamp?: string;
-  services?: Record<string, { status: string; message?: string; latency?: number }>;
+  services?: Record<
+    string,
+    { status: string; message?: string; latency?: number }
+  >;
 };
 
 const defaultUrl = "http://localhost:3000/api/health?verbose=true";

@@ -8,7 +8,7 @@
  * @see https://docs.sentry.io/platforms/javascript/guides/nextjs/
  */
 
-import * as Sentry from '@sentry/nextjs'
+import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -21,11 +21,11 @@ Sentry.init({
 
   // Performance Monitoring
   // Capture 10% of transactions in production for performance monitoring
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
 
   // Session Replay
   // Capture 10% of sessions for replay in production
-  replaysSessionSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
+  replaysSessionSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 0,
   // Capture 100% of sessions with errors for replay
   replaysOnErrorSampleRate: 1.0,
 
@@ -53,11 +53,11 @@ Sentry.init({
     }),
     // Feedback widget for user error reports
     Sentry.feedbackIntegration({
-      colorScheme: 'system',
+      colorScheme: "system",
       showBranding: false,
-      formTitle: 'Report an Issue',
-      submitButtonLabel: 'Send Report',
-      successMessageText: 'Thank you for your feedback!',
+      formTitle: "Report an Issue",
+      submitButtonLabel: "Send Report",
+      successMessageText: "Thank you for your feedback!",
     }),
   ],
 
@@ -68,22 +68,22 @@ Sentry.init({
     /^moz-extension:/,
     /^safari-extension:/,
     // Network errors that users cannot control
-    'Failed to fetch',
-    'NetworkError',
-    'AbortError',
-    'Load failed',
-    'Network request failed',
+    "Failed to fetch",
+    "NetworkError",
+    "AbortError",
+    "Load failed",
+    "Network request failed",
     // ResizeObserver loop errors (benign)
-    'ResizeObserver loop limit exceeded',
-    'ResizeObserver loop completed with undelivered notifications',
+    "ResizeObserver loop limit exceeded",
+    "ResizeObserver loop completed with undelivered notifications",
     // Script loading errors
-    'ChunkLoadError',
-    'Loading chunk',
+    "ChunkLoadError",
+    "Loading chunk",
     // Third-party script errors
     /^Script error\.?$/,
     // Cancelled requests
-    'The operation was aborted',
-    'cancelled',
+    "The operation was aborted",
+    "cancelled",
   ],
 
   // URLs to ignore (third-party scripts)
@@ -112,32 +112,32 @@ Sentry.init({
   // Before sending event, add extra context and filter
   beforeSend(event, hint) {
     // Don't send events in development
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[Sentry] Event captured (not sent in development):', {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[Sentry] Event captured (not sent in development):", {
         message: event.message,
         exception: hint?.originalException,
-      })
-      return null
+      });
+      return null;
     }
 
     // Add user context if available
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       event.tags = {
         ...event.tags,
         url_path: window.location.pathname,
         user_agent: navigator.userAgent,
-      }
+      };
     }
 
-    return event
+    return event;
   },
 
   // Before sending a transaction, filter out unnecessary ones
   beforeSendTransaction(event) {
     // Skip health check transactions
-    if (event.transaction?.includes('/api/health')) {
-      return null
+    if (event.transaction?.includes("/api/health")) {
+      return null;
     }
-    return event
+    return event;
   },
-})
+});

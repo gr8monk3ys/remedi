@@ -5,13 +5,13 @@
  * Skeletons match the structure of actual content components.
  */
 
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes } from "react";
 
 /**
  * Base skeleton component with animation
  */
 export function Skeleton({
-  className = '',
+  className = "",
   ...props
 }: HTMLAttributes<HTMLDivElement>) {
   return (
@@ -223,7 +223,13 @@ export function TableRowSkeleton({ columns = 4 }: { columns?: number }) {
 /**
  * Table skeleton
  */
-export function TableSkeleton({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
+export function TableSkeleton({
+  rows = 5,
+  columns = 4,
+}: {
+  rows?: number;
+  columns?: number;
+}) {
   return (
     <div className="w-full overflow-x-auto">
       <table className="w-full">

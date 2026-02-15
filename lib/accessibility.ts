@@ -26,14 +26,14 @@ export function trapFocus(container: HTMLElement | null): () => void {
   if (!container) return () => {};
 
   const focusableElements = container.querySelectorAll<HTMLElement>(
-    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
   );
 
   const firstElement = focusableElements[0];
   const lastElement = focusableElements[focusableElements.length - 1];
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key !== 'Tab') return;
+    if (e.key !== "Tab") return;
 
     if (e.shiftKey) {
       // Shift + Tab
@@ -50,13 +50,13 @@ export function trapFocus(container: HTMLElement | null): () => void {
     }
   };
 
-  container.addEventListener('keydown', handleKeyDown);
+  container.addEventListener("keydown", handleKeyDown);
 
   // Focus first element
   firstElement?.focus();
 
   return () => {
-    container.removeEventListener('keydown', handleKeyDown);
+    container.removeEventListener("keydown", handleKeyDown);
   };
 }
 
@@ -65,7 +65,7 @@ export function trapFocus(container: HTMLElement | null): () => void {
  * Ensures consistency across renders
  */
 let idCounter = 0;
-export function generateId(prefix: string = 'remedi'): string {
+export function generateId(prefix: string = "remedi"): string {
   idCounter += 1;
   return `${prefix}-${idCounter}`;
 }
@@ -84,13 +84,13 @@ export function generateId(prefix: string = 'remedi'): string {
  */
 export function announceToScreenReader(
   message: string,
-  priority: 'polite' | 'assertive' = 'polite'
+  priority: "polite" | "assertive" = "polite",
 ): void {
-  const announcement = document.createElement('div');
-  announcement.setAttribute('role', 'status');
-  announcement.setAttribute('aria-live', priority);
-  announcement.setAttribute('aria-atomic', 'true');
-  announcement.className = 'sr-only';
+  const announcement = document.createElement("div");
+  announcement.setAttribute("role", "status");
+  announcement.setAttribute("aria-live", priority);
+  announcement.setAttribute("aria-atomic", "true");
+  announcement.className = "sr-only";
   announcement.textContent = message;
 
   document.body.appendChild(announcement);
@@ -108,7 +108,7 @@ export function announceToScreenReader(
  * @returns true if user prefers reduced motion
  */
 export function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 /**
@@ -119,7 +119,10 @@ export function prefersReducedMotion(): boolean {
  * @param background - Background color in hex format
  * @returns Contrast ratio
  */
-export function getContrastRatio(foreground: string, background: string): number {
+export function getContrastRatio(
+  foreground: string,
+  background: string,
+): number {
   const getLuminance = (hex: string): number => {
     const rgb = parseInt(hex.slice(1), 16);
     const r = (rgb >> 16) & 0xff;
@@ -128,7 +131,9 @@ export function getContrastRatio(foreground: string, background: string): number
 
     const [rs, gs, bs] = [r, g, b].map((val) => {
       const srgb = val / 255;
-      return srgb <= 0.03928 ? srgb / 12.92 : Math.pow((srgb + 0.055) / 1.055, 2.4);
+      return srgb <= 0.03928
+        ? srgb / 12.92
+        : Math.pow((srgb + 0.055) / 1.055, 2.4);
     });
 
     return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
@@ -160,14 +165,14 @@ export function handleArrowKeyNavigation(
     horizontal?: boolean;
     vertical?: boolean;
     loop?: boolean;
-  } = {}
+  } = {},
 ): number | null {
   const { horizontal = true, vertical = true, loop = true } = options;
 
   let newIndex: number | null = null;
 
   switch (event.key) {
-    case 'ArrowRight':
+    case "ArrowRight":
       if (horizontal) {
         newIndex = currentIndex + 1;
         if (newIndex >= items.length) {
@@ -175,7 +180,7 @@ export function handleArrowKeyNavigation(
         }
       }
       break;
-    case 'ArrowLeft':
+    case "ArrowLeft":
       if (horizontal) {
         newIndex = currentIndex - 1;
         if (newIndex < 0) {
@@ -183,7 +188,7 @@ export function handleArrowKeyNavigation(
         }
       }
       break;
-    case 'ArrowDown':
+    case "ArrowDown":
       if (vertical) {
         newIndex = currentIndex + 1;
         if (newIndex >= items.length) {
@@ -191,7 +196,7 @@ export function handleArrowKeyNavigation(
         }
       }
       break;
-    case 'ArrowUp':
+    case "ArrowUp":
       if (vertical) {
         newIndex = currentIndex - 1;
         if (newIndex < 0) {
@@ -199,10 +204,10 @@ export function handleArrowKeyNavigation(
         }
       }
       break;
-    case 'Home':
+    case "Home":
       newIndex = 0;
       break;
-    case 'End':
+    case "End":
       newIndex = items.length - 1;
       break;
   }
@@ -221,11 +226,11 @@ export function handleArrowKeyNavigation(
  * For "Skip to main content" accessibility link
  */
 export function skipToMainContent(): void {
-  const main = document.querySelector('main');
+  const main = document.querySelector("main");
   if (main) {
     main.tabIndex = -1;
     main.focus();
-    main.removeAttribute('tabindex');
+    main.removeAttribute("tabindex");
   }
 }
 
@@ -233,10 +238,11 @@ export function skipToMainContent(): void {
  * Visually hidden CSS class name
  * For screen-reader-only content
  */
-export const SR_ONLY_CLASS = 'sr-only';
+export const SR_ONLY_CLASS = "sr-only";
 
 /**
  * Focus visible CSS class name
  * For keyboard focus indicators
  */
-export const FOCUS_VISIBLE_CLASS = 'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2';
+export const FOCUS_VISIBLE_CLASS =
+  "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2";

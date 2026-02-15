@@ -1,5 +1,7 @@
 import Stripe from "stripe";
 
+import { PLANS } from "../lib/stripe-config";
+
 type PlanConfig = {
   name: string;
   monthly: number;
@@ -8,14 +10,14 @@ type PlanConfig = {
 
 const PRICING: Record<"basic" | "premium", PlanConfig> = {
   basic: {
-    name: "Basic",
-    monthly: 8.99,
-    yearly: 86.99,
+    name: PLANS.basic.name,
+    monthly: PLANS.basic.price,
+    yearly: PLANS.basic.yearlyPrice,
   },
   premium: {
-    name: "Premium",
-    monthly: 17.99,
-    yearly: 173.99,
+    name: PLANS.premium.name,
+    monthly: PLANS.premium.price,
+    yearly: PLANS.premium.yearlyPrice,
   },
 };
 

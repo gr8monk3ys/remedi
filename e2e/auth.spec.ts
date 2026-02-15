@@ -41,21 +41,20 @@ test.describe("Authentication", () => {
     page,
   }) => {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: /find natural alternatives to pharmaceuticals/i,
+      }),
+    ).toBeVisible({ timeout: 10000 });
 
-    // Look for either a button or link with "Sign In" text in the header
-    const signInButton = page
+    // Sign-in may render as either a button (Clerk) or a fallback link.
+    const signInControl = page
       .locator("header")
-      .getByRole("button", { name: /Sign In/i });
-    const signInLink = page
-      .locator("header")
-      .getByRole("link", { name: /Sign In/i });
+      .getByRole("button", { name: /Sign In/i })
+      .or(page.locator("header").getByRole("link", { name: /Sign In/i }));
 
-    const hasSignIn =
-      (await signInButton.isVisible().catch(() => false)) ||
-      (await signInLink.isVisible().catch(() => false));
-
-    expect(hasSignIn).toBeTruthy();
+    await expect(signInControl.first()).toBeVisible({ timeout: 10000 });
   });
 
   test("should show OAuth provider buttons when configured", async ({
@@ -114,7 +113,12 @@ test.describe("Authentication", () => {
     ]);
 
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: /find natural alternatives to pharmaceuticals/i,
+      }),
+    ).toBeVisible({ timeout: 10000 });
 
     // With a mock token, Clerk won't fully authenticate in keyless mode.
     // Just verify the page loads correctly without crashing.

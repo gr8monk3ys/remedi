@@ -5,16 +5,18 @@
  * for state-changing requests (POST, PUT, DELETE, PATCH).
  */
 
-const CSRF_COOKIE_NAME = 'csrf_token';
-const CSRF_HEADER_NAME = 'X-CSRF-Token';
+const CSRF_COOKIE_NAME = "csrf_token";
+const CSRF_HEADER_NAME = "X-CSRF-Token";
 
 /**
  * Get CSRF token from cookies
  */
 export function getCSRFToken(): string | null {
-  if (typeof document === 'undefined') return null;
+  if (typeof document === "undefined") return null;
 
-  const match = document.cookie.match(new RegExp(`${CSRF_COOKIE_NAME}=([^;]+)`));
+  const match = document.cookie.match(
+    new RegExp(`${CSRF_COOKIE_NAME}=([^;]+)`),
+  );
   return match ? match[1] : null;
 }
 
@@ -22,7 +24,7 @@ export function getCSRFToken(): string | null {
  * Check if method requires CSRF token
  */
 function requiresCSRF(method: string): boolean {
-  return ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method.toUpperCase());
+  return ["POST", "PUT", "DELETE", "PATCH"].includes(method.toUpperCase());
 }
 
 /**
@@ -31,9 +33,9 @@ function requiresCSRF(method: string): boolean {
  */
 export async function fetchWithCSRF(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<Response> {
-  const method = options.method?.toUpperCase() || 'GET';
+  const method = options.method?.toUpperCase() || "GET";
 
   const headers = new Headers(options.headers);
 
@@ -56,13 +58,13 @@ export async function fetchWithCSRF(
  */
 export async function fetchJSON<T>(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<{ response: Response; data: T }> {
   const headers = new Headers(options.headers);
 
   // Set Content-Type for requests with body
-  if (options.body && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
+  if (options.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
   }
 
   const response = await fetchWithCSRF(url, {
@@ -70,7 +72,7 @@ export async function fetchJSON<T>(
     headers,
   });
 
-  const data = await response.json() as T;
+  const data = (await response.json()) as T;
 
   return { response, data };
 }
@@ -98,7 +100,7 @@ export interface ApiResponse<T> {
  */
 export async function apiRequest<T>(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<ApiResponse<T>> {
   const { data } = await fetchJSON<ApiResponse<T>>(url, options);
   return data;

@@ -4,14 +4,14 @@
  * Sent when a user cancels their subscription.
  */
 
-import { Button, Heading, Section, Text } from '@react-email/components'
-import * as React from 'react'
-import { BaseLayout } from './base-layout'
-import { SubscriptionCancelledData } from '../types'
-import { EMAIL_BRAND, getUnsubscribeUrl } from '../config'
+import { Button, Heading, Section, Text } from "@react-email/components";
+import * as React from "react";
+import { BaseLayout } from "./base-layout";
+import { SubscriptionCancelledData } from "../types";
+import { EMAIL_BRAND, getUnsubscribeUrl } from "../config";
 
 interface SubscriptionCancelledEmailProps extends SubscriptionCancelledData {
-  userId?: string
+  userId?: string;
 }
 
 export function SubscriptionCancelledEmail({
@@ -25,9 +25,7 @@ export function SubscriptionCancelledEmail({
     <BaseLayout
       preview={`Your ${EMAIL_BRAND.name} subscription has been cancelled`}
       unsubscribeUrl={
-        userId
-          ? getUnsubscribeUrl(userId, 'subscription_cancelled')
-          : undefined
+        userId ? getUnsubscribeUrl(userId, "subscription_cancelled") : undefined
       }
     >
       <Heading style={styles.heading}>Subscription Cancelled</Heading>
@@ -42,7 +40,7 @@ export function SubscriptionCancelledEmail({
       <Section style={styles.infoSection}>
         <Text style={styles.infoTitle}>What happens next?</Text>
         <Text style={styles.infoText}>
-          You will continue to have access to your {plan} features until{' '}
+          You will continue to have access to your {plan} features until{" "}
           <strong>{accessUntil}</strong>. After that date, your account will
           revert to the free plan.
         </Text>
@@ -87,89 +85,89 @@ export function SubscriptionCancelledEmail({
         The {EMAIL_BRAND.name} Team
       </Text>
     </BaseLayout>
-  )
+  );
 }
 
 const styles = {
   heading: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '24px',
-    fontWeight: 'bold' as const,
-    margin: '0 0 24px 0',
-    textAlign: 'center' as const,
+    fontSize: "24px",
+    fontWeight: "bold" as const,
+    margin: "0 0 24px 0",
+    textAlign: "center" as const,
   },
   greeting: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '16px',
-    lineHeight: '24px',
-    margin: '0 0 16px 0',
+    fontSize: "16px",
+    lineHeight: "24px",
+    margin: "0 0 16px 0",
   },
   paragraph: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '14px',
-    lineHeight: '24px',
-    margin: '0 0 16px 0',
+    fontSize: "14px",
+    lineHeight: "24px",
+    margin: "0 0 16px 0",
   },
   infoSection: {
-    backgroundColor: '#fef3c7',
-    border: '1px solid #f59e0b',
-    borderRadius: '8px',
-    margin: '24px 0',
-    padding: '20px',
+    backgroundColor: "#fef3c7",
+    border: "1px solid #f59e0b",
+    borderRadius: "8px",
+    margin: "24px 0",
+    padding: "20px",
   },
   infoTitle: {
-    color: '#92400e',
-    fontSize: '14px',
-    fontWeight: 'bold' as const,
-    margin: '0 0 8px 0',
+    color: "#92400e",
+    fontSize: "14px",
+    fontWeight: "bold" as const,
+    margin: "0 0 8px 0",
   },
   infoText: {
-    color: '#92400e',
-    fontSize: '14px',
-    lineHeight: '22px',
-    margin: '0',
+    color: "#92400e",
+    fontSize: "14px",
+    lineHeight: "22px",
+    margin: "0",
   },
   reasonsSection: {
-    backgroundColor: '#f9fafb',
-    borderRadius: '8px',
-    margin: '24px 0',
-    padding: '20px',
+    backgroundColor: "#f9fafb",
+    borderRadius: "8px",
+    margin: "24px 0",
+    padding: "20px",
   },
   reasonsTitle: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '14px',
-    fontWeight: 'bold' as const,
-    margin: '0 0 12px 0',
+    fontSize: "14px",
+    fontWeight: "bold" as const,
+    margin: "0 0 12px 0",
   },
   reasonsList: {
-    margin: '0',
-    paddingLeft: '20px',
+    margin: "0",
+    paddingLeft: "20px",
   },
   reasonItem: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '14px',
-    lineHeight: '28px',
+    fontSize: "14px",
+    lineHeight: "28px",
   },
   ctaSection: {
-    margin: '32px 0',
-    textAlign: 'center' as const,
+    margin: "32px 0",
+    textAlign: "center" as const,
   },
   ctaButton: {
     backgroundColor: EMAIL_BRAND.primaryColor,
-    borderRadius: '6px',
-    color: '#ffffff',
-    display: 'inline-block',
-    fontSize: '16px',
-    fontWeight: 'bold' as const,
-    padding: '12px 32px',
-    textDecoration: 'none',
+    borderRadius: "6px",
+    color: "#ffffff",
+    display: "inline-block",
+    fontSize: "16px",
+    fontWeight: "bold" as const,
+    padding: "12px 32px",
+    textDecoration: "none",
   },
   signature: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '14px',
-    lineHeight: '24px',
-    margin: '24px 0 0 0',
+    fontSize: "14px",
+    lineHeight: "24px",
+    margin: "24px 0 0 0",
   },
-}
+};
 
-export default SubscriptionCancelledEmail
+export default SubscriptionCancelledEmail;

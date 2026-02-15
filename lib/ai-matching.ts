@@ -10,9 +10,6 @@ export {
   enhanceRemedyMatching,
   checkDrugInteractions,
   processNaturalLanguageQuery,
-} from './ai';
+} from "./ai";
 
-export type {
-  AIMatchingOptions,
-  AIRemedyRecommendation,
-} from './ai';
+export type { AIMatchingOptions, AIRemedyRecommendation } from "./ai";

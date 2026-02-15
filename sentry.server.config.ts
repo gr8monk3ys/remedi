@@ -8,7 +8,7 @@
  * @see https://docs.sentry.io/platforms/javascript/guides/nextjs/
  */
 
-import * as Sentry from '@sentry/nextjs'
+import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -21,11 +21,11 @@ Sentry.init({
 
   // Performance Monitoring
   // Capture 10% of transactions in production for performance monitoring
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
 
   // Profiling for performance analysis
   // Profile 10% of sampled transactions in production
-  profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
+  profilesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 0,
 
   // Integrations for server monitoring
   integrations: [
@@ -40,22 +40,20 @@ Sentry.init({
   // Filter out known non-critical errors to reduce noise
   ignoreErrors: [
     // Network errors (often transient)
-    'ECONNRESET',
-    'ENOTFOUND',
-    'ETIMEDOUT',
-    'ECONNREFUSED',
-    'EPIPE',
-    'EAI_AGAIN',
+    "ECONNRESET",
+    "ENOTFOUND",
+    "ETIMEDOUT",
+    "ECONNREFUSED",
+    "EPIPE",
+    "EAI_AGAIN",
     // Prisma connection errors (retryable)
-    'PrismaClientInitializationError',
-    'PrismaClientRustPanicError',
+    "PrismaClientInitializationError",
+    "PrismaClientRustPanicError",
     // Request cancellation
-    'AbortError',
-    'The operation was aborted',
-    // Rate limiting (expected behavior)
-    'Too Many Requests',
+    "AbortError",
+    "The operation was aborted",
     // Health check failures (handled by monitoring)
-    'Health check failed',
+    "Health check failed",
   ],
 
   // Debug mode (disable in production)
@@ -71,67 +69,70 @@ Sentry.init({
   tracesSampler: (samplingContext) => {
     // Always sample errors
     if (samplingContext.parentSampled !== undefined) {
-      return samplingContext.parentSampled
+      return samplingContext.parentSampled;
     }
 
     // Skip health check endpoints
-    const url = samplingContext.transactionContext?.name || ''
-    if (url.includes('/api/health') || url.includes('/health')) {
-      return 0
+    const url = samplingContext.transactionContext?.name || "";
+    if (url.includes("/api/health") || url.includes("/health")) {
+      return 0;
     }
 
     // Skip static asset requests
-    if (url.includes('/_next/') || url.includes('/static/')) {
-      return 0
+    if (url.includes("/_next/") || url.includes("/static/")) {
+      return 0;
     }
 
     // Sample 10% of other transactions in production
-    return process.env.NODE_ENV === 'production' ? 0.1 : 1.0
+    return process.env.NODE_ENV === "production" ? 0.1 : 1.0;
   },
 
   // Before sending event, add extra context and filter
   beforeSend(event, hint) {
     // Don't send events in development
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[Sentry] Server event captured (not sent in development):', {
-        message: event.message,
-        exception: hint?.originalException,
-      })
-      return null
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        "[Sentry] Server event captured (not sent in development):",
+        {
+          message: event.message,
+          exception: hint?.originalException,
+        },
+      );
+      return null;
     }
 
     // Add server context
     event.tags = {
       ...event.tags,
-      runtime: 'nodejs',
+      runtime: "nodejs",
       node_version: process.version,
-    }
+    };
 
     // Scrub sensitive data
     if (event.request?.headers) {
-      const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key']
+      const sensitiveHeaders = ["authorization", "cookie", "x-api-key"];
       for (const header of sensitiveHeaders) {
         if (event.request.headers[header]) {
-          event.request.headers[header] = '[REDACTED]'
+          event.request.headers[header] = "[REDACTED]";
         }
       }
     }
 
-    return event
+    return event;
   },
 
   // Before sending a transaction, filter out unnecessary ones
   beforeSendTransaction(event) {
     // Skip health check transactions
-    if (event.transaction?.includes('/api/health')) {
-      return null
+    if (event.transaction?.includes("/api/health")) {
+      return null;
     }
 
     // Skip static file transactions
-    if (event.transaction?.includes('/_next/')) {
-      return null
+    if (event.transaction?.includes("/_next/")) {
+      return null;
     }
 
-    return event
+    return event;
   },
-})
+});

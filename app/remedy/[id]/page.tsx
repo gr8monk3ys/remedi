@@ -12,7 +12,14 @@ interface RemedyPageProps {
   params: Promise<{ id: string }>;
 }
 
+const NUMERIC_MOCK_ID_PATTERN = /^\d+$/;
+
 async function getRemedy(id: string) {
+  // Mock remedy IDs are numeric; DB IDs are UUIDs.
+  if (NUMERIC_MOCK_ID_PATTERN.test(id)) {
+    return DETAILED_REMEDIES[id] || null;
+  }
+
   // Try database first, fall back to mock data on error
   try {
     const dbRemedy = await getNaturalRemedyById(id);
