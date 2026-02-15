@@ -5,6 +5,7 @@ This directory contains end-to-end (E2E) tests for the Remedi application using 
 ## Test Coverage
 
 ### Homepage Tests (`homepage.spec.ts`)
+
 - Page loading and title verification
 - Main heading display
 - Search input functionality
@@ -16,6 +17,7 @@ This directory contains end-to-end (E2E) tests for the Remedi application using 
 - Dark mode toggle
 
 ### Search Tests (`search.spec.ts`)
+
 - Search page display
 - Basic search functionality
 - Loading states
@@ -28,6 +30,7 @@ This directory contains end-to-end (E2E) tests for the Remedi application using 
 - URL query persistence
 
 ### Authentication Tests (`auth.spec.ts`)
+
 - Sign in page display
 - OAuth provider buttons (Google, GitHub)
 - OAuth redirect flow
@@ -62,16 +65,16 @@ npm run test:e2e:report
 ### Basic Structure
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Feature Name', () => {
+test.describe("Feature Name", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/your-route');
+    await page.goto("/your-route");
   });
 
-  test('should do something', async ({ page }) => {
+  test("should do something", async ({ page }) => {
     // Your test code
-    await expect(page.getByRole('button')).toBeVisible();
+    await expect(page.getByRole("button")).toBeVisible();
   });
 });
 ```
@@ -88,23 +91,23 @@ test.describe('Feature Name', () => {
 
 ```typescript
 // Navigation
-await page.goto('/');
+await page.goto("/");
 await expect(page).toHaveURL(/\/expected-route/);
 
 // Interactions
-await page.getByRole('button', { name: /submit/i }).click();
-await page.getByRole('textbox').fill('text');
-await page.keyboard.press('Enter');
+await page.getByRole("button", { name: /submit/i }).click();
+await page.getByRole("textbox").fill("text");
+await page.keyboard.press("Enter");
 
 // Assertions
-await expect(page.getByText('Success')).toBeVisible();
+await expect(page.getByText("Success")).toBeVisible();
 await expect(page).toHaveTitle(/Expected Title/);
 
 // API Mocking
-await page.route('**/api/endpoint', (route) => {
+await page.route("**/api/endpoint", (route) => {
   route.fulfill({
     status: 200,
-    body: JSON.stringify({ data: 'mock' }),
+    body: JSON.stringify({ data: "mock" }),
   });
 });
 ```
@@ -112,8 +115,9 @@ await page.route('**/api/endpoint', (route) => {
 ## CI/CD Integration
 
 Tests are configured to run in CI environments. The configuration automatically:
+
 - Disables `test.only` in CI
-- Runs tests sequentially (not parallel)
+- Runs tests sequentially in CI (`workers=1`)
 - Uses 2 retries for flaky tests
 - Generates HTML reports
 - Captures screenshots on failure
@@ -124,16 +128,19 @@ Tests are configured to run in CI environments. The configuration automatically:
 The Playwright configuration is in [`playwright.config.ts`](../playwright.config.ts).
 
 Key settings:
+
 - **Base URL**: `http://localhost:3000` (configurable via `PLAYWRIGHT_TEST_BASE_URL`)
 - **Test Directory**: `./e2e`
 - **Browsers**: Chromium (Firefox and WebKit available)
-- **Dev Server**: Automatically starts Next.js dev server
+- **Dev Server**: Automatically starts Next.js dev server with local E2E auth mode (`E2E_LOCAL_AUTH=true`) and uses `--webpack` for deterministic local/CI runs
 - **Retries**: 2 retries in CI, 0 in development
 - **Timeouts**: 120s for server startup
+- **Workers**: local default `4` (configurable via `PLAYWRIGHT_WORKERS`)
 
 ## Debugging
 
 ### Debug Mode
+
 ```bash
 npm run test:e2e:debug
 ```
@@ -141,18 +148,23 @@ npm run test:e2e:debug
 This opens Playwright Inspector for step-by-step debugging.
 
 ### VS Code Extension
+
 Install the [Playwright Test for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-playwright.playwright) extension for:
+
 - Running tests from editor
 - Setting breakpoints
 - Viewing test results inline
 
 ### Screenshots and Videos
+
 Failed tests automatically capture:
+
 - Screenshots in `test-results/`
 - Videos in `test-results/`
 - Traces for debugging
 
 View traces:
+
 ```bash
 npx playwright show-trace test-results/path-to-trace.zip
 ```
@@ -162,20 +174,20 @@ npx playwright show-trace test-results/path-to-trace.zip
 For tests requiring authentication:
 
 ```typescript
-test('authenticated test', async ({ page, context }) => {
-  // Mock session cookie
+test("authenticated test", async ({ page, context }) => {
+  // Local E2E auth mode treats __session as authenticated
   await context.addCookies([
     {
-      name: 'next-auth.session-token',
-      value: 'mock-session-token',
-      domain: 'localhost',
-      path: '/',
+      name: "__session",
+      value: "mock-session-token",
+      domain: "localhost",
+      path: "/",
       httpOnly: true,
-      sameSite: 'Lax',
+      sameSite: "Lax",
     },
   ]);
 
-  await page.goto('/protected-route');
+  await page.goto("/protected-route");
   // Continue test...
 });
 ```
@@ -185,7 +197,7 @@ test('authenticated test', async ({ page, context }) => {
 Tests can run on mobile viewports:
 
 ```typescript
-test('mobile test', async ({ page }) => {
+test("mobile test", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 });
   // Test mobile-specific behavior
 });

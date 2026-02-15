@@ -42,28 +42,33 @@ A modern web application designed to help users find natural alternatives to pha
 ### Installation
 
 1. Clone the repository
+
 ```bash
 git clone https://github.com/yourusername/remedi.git
 cd remedi
 ```
 
 2. Install dependencies
+
 ```bash
 bun install
 ```
 
 3. Set up environment variables
+
 ```bash
 cp .env.example .env
 # Edit .env with your configuration (optional for basic usage)
 ```
 
 4. Start the database
+
 ```bash
 docker-compose up -d postgres
 ```
 
 5. Set up the database
+
 ```bash
 # Generate Prisma client
 bunx prisma generate
@@ -76,6 +81,7 @@ bunx prisma db seed
 ```
 
 6. Run the development server
+
 ```bash
 bun run dev
 ```
@@ -134,19 +140,23 @@ Optional: visit [http://localhost:3000/landing](http://localhost:3000/landing) f
 ### GET /api/search
 
 Search for natural alternatives to a pharmaceutical using a three-tier strategy:
+
 1. Database search (fastest)
 2. OpenFDA API (cached to database)
 3. Mock data fallback
 
 **Parameters:**
+
 - `query` (string): The name of the pharmaceutical to search for
 
 **Example Request:**
+
 ```bash
 curl "http://localhost:3000/api/search?query=ibuprofen"
 ```
 
 **Example Response:**
+
 ```json
 [
   {
@@ -166,14 +176,17 @@ curl "http://localhost:3000/api/search?query=ibuprofen"
 Get detailed information about a specific natural remedy.
 
 **Parameters:**
+
 - `id` (string): The remedy ID
 
 **Example Request:**
+
 ```bash
 curl "http://localhost:3000/api/remedy/turmeric"
 ```
 
 **Example Response:**
+
 ```json
 {
   "id": "turmeric",
@@ -193,9 +206,7 @@ curl "http://localhost:3000/api/remedy/turmeric"
       "url": "https://www.mdpi.com/2072-6643/9/10/1047"
     }
   ],
-  "relatedRemedies": [
-    { "id": "ginger", "name": "Ginger" }
-  ]
+  "relatedRemedies": [{ "id": "ginger", "name": "Ginger" }]
 }
 ```
 
@@ -232,18 +243,21 @@ The app implements an intelligent three-tier search:
 ### Key Features
 
 #### Database Integration
+
 - ✅ Prisma ORM with type-safe queries
 - ✅ Automatic caching of FDA API results
 - ✅ Efficient JSON field parsing for SQLite
 - ✅ Database-first search strategy
 
 #### Search & Discovery
+
 - ✅ Fuzzy matching with Levenshtein distance
 - ✅ Spelling correction and query normalization
 - ✅ Relevance scoring for results
 - ✅ Search history (localStorage)
 
 #### User Experience
+
 - ✅ Dark/Light mode with system preference detection
 - ✅ Favorites system (localStorage)
 - ✅ Detailed remedy pages with scientific references
@@ -251,6 +265,7 @@ The app implements an intelligent three-tier search:
 - ✅ Loading states and error handling
 
 #### Developer Experience
+
 - ✅ Full TypeScript support with shared types
 - ✅ ESLint configuration
 - ✅ Environment variable templates

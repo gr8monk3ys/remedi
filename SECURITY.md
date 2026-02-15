@@ -14,6 +14,7 @@ We release patches for security vulnerabilities. The following versions are curr
 If you discover a security vulnerability within this project, please send an email to security@lscaturchio.xyz. All security vulnerabilities will be promptly addressed.
 
 Please include the following information in your report:
+
 - Type of issue (e.g., buffer overflow, SQL injection, cross-site scripting, etc.)
 - Full paths of source file(s) related to the manifestation of the issue
 - The location of the affected source code (tag/branch/commit or direct URL)
@@ -25,6 +26,7 @@ Please include the following information in your report:
 ## Security Measures
 
 This project implements the following security measures:
+
 - Regular dependency updates via Dependabot
 - Code scanning for vulnerabilities
 - Secret scanning enabled
@@ -33,6 +35,7 @@ This project implements the following security measures:
 ## Disclosure Policy
 
 When we receive a security bug report, we will:
+
 1. Confirm the problem and determine the affected versions
 2. Audit code to find any potential similar problems
 3. Prepare fixes for all releases still under maintenance

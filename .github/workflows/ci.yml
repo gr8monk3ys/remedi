@@ -24,7 +24,6 @@ jobs:
           --health-retries=5
     env:
       DATABASE_URL: postgresql://remedi:remedi_dev@localhost:5432/remedi?schema=public
-      NEXTAUTH_URL: http://localhost:3000
       AUTH_SECRET: ci-auth-secret
       NEXT_PUBLIC_APP_URL: http://localhost:3000
     steps:
@@ -42,6 +41,8 @@ jobs:
         run: bun run db:verify
       - name: Data integrity checks
         run: bun run db:integrity
+      - name: Format check
+        run: bun run format:check
       - name: Lint
         run: bun run lint
       - name: Type check
@@ -68,7 +69,6 @@ jobs:
           --health-retries=5
     env:
       DATABASE_URL: postgresql://remedi:remedi_dev@localhost:5432/remedi?schema=public
-      NEXTAUTH_URL: http://localhost:3000
       AUTH_SECRET: ci-auth-secret
       NEXT_PUBLIC_APP_URL: http://localhost:3000
     steps:
@@ -112,10 +112,12 @@ jobs:
           --health-retries=5
     env:
       DATABASE_URL: postgresql://remedi:remedi_dev@localhost:5432/remedi?schema=public
-      NEXTAUTH_URL: http://localhost:3000
       AUTH_SECRET: ci-auth-secret
       NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci
+      CLERK_SECRET_KEY: sk_test_ci
       STRIPE_SECRET_KEY: sk_test_ci
+      STRIPE_PUBLISHABLE_KEY: pk_test_ci
       STRIPE_WEBHOOK_SECRET: whsec_ci
       STRIPE_BASIC_MONTHLY_PRICE_ID: price_basic_monthly
       STRIPE_BASIC_YEARLY_PRICE_ID: price_basic_yearly

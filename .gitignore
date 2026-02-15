@@ -50,3 +50,9 @@ test-results/
 
 # tooling
 .playwright-mcp/
+
+# local audit screenshots (not part of the product)
+audit-*.png
+fixed-*.png
+homepage.png
+about-page.png

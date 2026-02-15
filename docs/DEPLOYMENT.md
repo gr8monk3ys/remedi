@@ -21,10 +21,10 @@ Before deploying, ensure you have:
 
 - [ ] [Vercel account](https://vercel.com) with project created
 - [ ] PostgreSQL database (Vercel Postgres, Neon, Supabase, or similar)
+- [ ] [Clerk account](https://clerk.com) with a production application configured
 - [ ] [Stripe account](https://stripe.com) with products/prices configured
 - [ ] [Sentry account](https://sentry.io) for error tracking
 - [ ] [Upstash account](https://upstash.com) for Redis (rate limiting)
-- [ ] OAuth credentials (Google and/or GitHub)
 - [ ] [OpenAI API key](https://platform.openai.com) for AI features
 - [ ] Domain name (optional but recommended)
 
@@ -36,53 +36,51 @@ Before deploying, ensure you have:
 
 These must be set for the application to function:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string with pooling | `postgresql://...` |
-| `DIRECT_URL` | Direct PostgreSQL connection for migrations | `postgresql://...` |
-| `NEXTAUTH_SECRET` | Session encryption key (32+ chars) | `openssl rand -base64 32` |
-| `NEXTAUTH_URL` | Production URL | `https://remedi.example.com` |
+| Variable              | Description                               | Example                      |
+| --------------------- | ----------------------------------------- | ---------------------------- |
+| `DATABASE_URL`        | PostgreSQL connection string with pooling | `postgresql://...`           |
+| `NEXT_PUBLIC_APP_URL` | Production URL                            | `https://remedi.example.com` |
 
 ### Authentication Variables
 
-| Variable | Description |
-|----------|-------------|
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
-| `GITHUB_ID` | GitHub OAuth client ID |
-| `GITHUB_SECRET` | GitHub OAuth client secret |
+| Variable                            | Description                                                |
+| ----------------------------------- | ---------------------------------------------------------- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key                                      |
+| `CLERK_SECRET_KEY`                  | Clerk secret key                                           |
+| `CLERK_WEBHOOK_SECRET`              | Clerk webhook signing secret (recommended)                 |
+| `AUTH_SECRET`                       | Extra secret used for hashing/analytics salt (recommended) |
 
 ### Payment Variables (Stripe)
 
-| Variable | Description |
-|----------|-------------|
-| `STRIPE_SECRET_KEY` | Stripe secret API key |
-| `STRIPE_PUBLISHABLE_KEY` | Stripe publishable key |
-| `STRIPE_WEBHOOK_SECRET` | Webhook signing secret |
-| `STRIPE_BASIC_MONTHLY_PRICE_ID` | Price ID for Basic monthly |
-| `STRIPE_BASIC_YEARLY_PRICE_ID` | Price ID for Basic yearly |
+| Variable                          | Description                  |
+| --------------------------------- | ---------------------------- |
+| `STRIPE_SECRET_KEY`               | Stripe secret API key        |
+| `STRIPE_PUBLISHABLE_KEY`          | Stripe publishable key       |
+| `STRIPE_WEBHOOK_SECRET`           | Webhook signing secret       |
+| `STRIPE_BASIC_MONTHLY_PRICE_ID`   | Price ID for Basic monthly   |
+| `STRIPE_BASIC_YEARLY_PRICE_ID`    | Price ID for Basic yearly    |
 | `STRIPE_PREMIUM_MONTHLY_PRICE_ID` | Price ID for Premium monthly |
-| `STRIPE_PREMIUM_YEARLY_PRICE_ID` | Price ID for Premium yearly |
+| `STRIPE_PREMIUM_YEARLY_PRICE_ID`  | Price ID for Premium yearly  |
 
 ### Monitoring Variables
 
-| Variable | Description |
-|----------|-------------|
-| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN for error tracking |
-| `SENTRY_AUTH_TOKEN` | Sentry auth token for source maps |
-| `SENTRY_ORG` | Sentry organization slug |
-| `SENTRY_PROJECT` | Sentry project slug |
+| Variable                 | Description                       |
+| ------------------------ | --------------------------------- |
+| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN for error tracking     |
+| `SENTRY_AUTH_TOKEN`      | Sentry auth token for source maps |
+| `SENTRY_ORG`             | Sentry organization slug          |
+| `SENTRY_PROJECT`         | Sentry project slug               |
 
 ### Optional Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `OPENAI_API_KEY` | OpenAI API for AI search | Disabled |
-| `OPENFDA_API_KEY` | FDA API for higher rate limits | 40 req/min |
-| `UPSTASH_REDIS_REST_URL` | Redis for rate limiting | Disabled |
-| `UPSTASH_REDIS_REST_TOKEN` | Redis auth token | - |
-| `ENABLE_AI_SEARCH` | Enable AI features | `true` |
-| `MAINTENANCE_MODE` | Enable maintenance page | `false` |
+| Variable                   | Description                    | Default    |
+| -------------------------- | ------------------------------ | ---------- |
+| `OPENAI_API_KEY`           | OpenAI API for AI search       | Disabled   |
+| `OPENFDA_API_KEY`          | FDA API for higher rate limits | 40 req/min |
+| `UPSTASH_REDIS_REST_URL`   | Redis for rate limiting        | Disabled   |
+| `UPSTASH_REDIS_REST_TOKEN` | Redis auth token               | -          |
+| `ENABLE_AI_SEARCH`         | Enable AI features             | `true`     |
+| `MAINTENANCE_MODE`         | Enable maintenance page        | `false`    |
 
 ---
 
@@ -130,6 +128,7 @@ npm run prisma db seed
 ### Initial Setup
 
 1. **Connect Repository**
+
    ```bash
    # Install Vercel CLI
    npm i -g vercel
@@ -189,6 +188,7 @@ curl https://your-domain.com/api/health?verbose=true
 ```
 
 Expected response:
+
 ```json
 {
   "status": "healthy",
@@ -207,7 +207,7 @@ Expected response:
 
 1. **Homepage loads** - Visit the main URL
 2. **Search works** - Try searching for "ibuprofen"
-3. **Auth works** - Sign in with Google/GitHub
+3. **Auth works** - Sign in and sign out (Clerk)
 4. **Database connected** - Check `/api/health?verbose=true`
 5. **Stripe connected** - Visit billing page
 6. **Sentry connected** - Check Sentry dashboard for test event
@@ -244,15 +244,16 @@ PLAYWRIGHT_TEST_BASE_URL=https://your-domain.com npm run test:e2e
 
 Configure your monitoring service (UptimeRobot, Pingdom, etc.):
 
-| Check | URL | Interval |
-|-------|-----|----------|
-| Health | `/api/health` | 1 min |
-| Homepage | `/` | 5 min |
-| Search API | `/api/search?query=test` | 5 min |
+| Check      | URL                      | Interval |
+| ---------- | ------------------------ | -------- |
+| Health     | `/api/health`            | 1 min    |
+| Homepage   | `/`                      | 5 min    |
+| Search API | `/api/search?query=test` | 5 min    |
 
 ### Performance Monitoring
 
 Sentry automatically tracks:
+
 - Page load times
 - API response times
 - Core Web Vitals (LCP, FID, CLS)
@@ -283,10 +284,12 @@ npx prisma migrate resolve --rolled-back MIGRATION_NAME
 ### Emergency Procedures
 
 1. **Enable Maintenance Mode**
+
    ```bash
    # In Vercel environment variables
    MAINTENANCE_MODE=true
    ```
+
    Then redeploy or wait for automatic propagation.
 
 2. **Rollback to Previous Deployment**
@@ -316,11 +319,11 @@ npx prisma migrate resolve --rolled-back MIGRATION_NAME
 2. Verify SSL mode (`?sslmode=require`)
 3. Check IP allowlist if using managed database
 
-#### OAuth Redirect Errors
+#### Authentication Redirect Errors (Clerk)
 
-1. Verify `NEXTAUTH_URL` matches your domain
-2. Check OAuth provider callback URLs are configured
-3. Ensure provider credentials are correct
+1. Verify `NEXT_PUBLIC_APP_URL` matches your production domain
+2. Check Clerk Dashboard configuration (production instance, allowed origins, redirect URLs)
+3. Ensure Clerk keys are set (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`)
 
 #### Stripe Webhook Failures
 
@@ -359,8 +362,8 @@ vercel logs --filter api
 Before going live:
 
 - [ ] All secrets are in environment variables, not code
-- [ ] `NEXTAUTH_SECRET` is unique and secure (32+ characters)
-- [ ] OAuth redirect URIs are exact matches
+- [ ] Clerk production keys are set (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`)
+- [ ] Clerk webhook secret is configured (`CLERK_WEBHOOK_SECRET`) if using webhooks
 - [ ] Stripe webhook secret is configured
 - [ ] Rate limiting is enabled (Upstash Redis configured)
 - [ ] Sentry is receiving errors
