@@ -171,9 +171,29 @@ export async function POST(req: Request): Promise<Response> {
   if (eventType === "user.deleted") {
     const { id } = evt.data;
     if (id) {
-      await prisma.user.deleteMany({
+      const dbUser = await prisma.user.findUnique({
         where: { clerkId: id },
+        select: { id: true },
       });
+
+      if (dbUser) {
+        // Explicitly delete rows that will not cascade (onDelete: SetNull or no relation).
+        // This keeps user-deleted behavior privacy-friendly.
+        await prisma.$transaction([
+          prisma.favorite.deleteMany({ where: { userId: dbUser.id } }),
+          prisma.searchHistory.deleteMany({ where: { userId: dbUser.id } }),
+          prisma.filterPreference.deleteMany({ where: { userId: dbUser.id } }),
+          prisma.userEvent.deleteMany({ where: { userId: dbUser.id } }),
+          prisma.conversionEvent.deleteMany({ where: { userId: dbUser.id } }),
+          prisma.emailLog.deleteMany({ where: { userId: dbUser.id } }),
+          prisma.user.deleteMany({ where: { clerkId: id } }),
+        ]);
+      } else {
+        // If the DB user record was already removed, ensure we still delete by clerkId.
+        await prisma.user.deleteMany({
+          where: { clerkId: id },
+        });
+      }
     }
   }
 
