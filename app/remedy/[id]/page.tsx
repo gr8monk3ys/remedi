@@ -14,17 +14,38 @@ interface RemedyPageProps {
 
 const NUMERIC_MOCK_ID_PATTERN = /^\d+$/;
 
-async function getRemedy(id: string) {
+type RemedyLookup = {
+  remedy: (typeof DETAILED_REMEDIES)[string];
+  sourceUrl: string | null;
+};
+
+function sourceUrlFromReferences(
+  references: { title: string; url: string }[] | undefined,
+): string | null {
+  return references?.[0]?.url ?? null;
+}
+
+async function getRemedy(id: string): Promise<RemedyLookup | null> {
   // Mock remedy IDs are numeric; DB IDs are UUIDs.
   if (NUMERIC_MOCK_ID_PATTERN.test(id)) {
-    return DETAILED_REMEDIES[id] || null;
+    const remedy = DETAILED_REMEDIES[id] || null;
+    if (!remedy) return null;
+    return {
+      remedy,
+      sourceUrl: sourceUrlFromReferences(remedy.references),
+    };
   }
 
   // Try database first, fall back to mock data on error
   try {
     const dbRemedy = await getNaturalRemedyById(id);
     if (dbRemedy) {
-      return toDetailedRemedy(dbRemedy);
+      const remedy = toDetailedRemedy(dbRemedy);
+      return {
+        remedy,
+        sourceUrl:
+          dbRemedy.sourceUrl || sourceUrlFromReferences(remedy.references),
+      };
     }
   } catch (error) {
     logger.warn(
@@ -34,14 +55,20 @@ async function getRemedy(id: string) {
   }
 
   // Fallback to mock data
-  return DETAILED_REMEDIES[id] || null;
+  const remedy = DETAILED_REMEDIES[id] || null;
+  if (!remedy) return null;
+  return {
+    remedy,
+    sourceUrl: sourceUrlFromReferences(remedy.references),
+  };
 }
 
 export async function generateMetadata({
   params,
 }: RemedyPageProps): Promise<Metadata> {
   const { id } = await params;
-  const remedy = await getRemedy(id);
+  const lookup = await getRemedy(id);
+  const remedy = lookup?.remedy ?? null;
 
   if (!remedy) {
     return {
@@ -61,7 +88,9 @@ export async function generateMetadata({
 
 export default async function RemedyDetailPage({ params }: RemedyPageProps) {
   const { id } = await params;
-  const remedy = await getRemedy(id);
+  const lookup = await getRemedy(id);
+  const remedy = lookup?.remedy ?? null;
+  const sourceUrl = lookup?.sourceUrl ?? null;
 
   if (!remedy) {
     notFound();
@@ -94,6 +123,7 @@ export default async function RemedyDetailPage({ params }: RemedyPageProps) {
           precautions={remedy.precautions}
           scientificInfo={remedy.scientificInfo}
           references={remedy.references}
+          sourceUrl={sourceUrl}
           relatedRemedies={remedy.relatedRemedies}
         />
       </div>

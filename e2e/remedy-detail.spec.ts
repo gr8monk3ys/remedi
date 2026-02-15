@@ -109,8 +109,8 @@ test.describe("Remedy Detail Page", () => {
     // Should show scientific text
     await expect(page.getByText(/COX-2 and 5-LOX enzymes/i)).toBeVisible();
 
-    // Should show references heading
-    await expect(page.getByText("References")).toBeVisible();
+    // Should show sources heading
+    await expect(page.getByText("Sources")).toBeVisible();
 
     // Should show reference link
     const referenceLink = page.getByRole("link", {

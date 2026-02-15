@@ -21,6 +21,7 @@ interface RemedyContentProps {
   precautions: string;
   scientificInfo: string;
   references: { title: string; url: string }[];
+  sourceUrl?: string | null;
   relatedRemedies: { id: string; name: string }[];
 }
 
@@ -32,8 +33,24 @@ export function RemedyContent({
   precautions,
   scientificInfo,
   references,
+  sourceUrl,
   relatedRemedies,
 }: RemedyContentProps) {
+  const sources = (() => {
+    const list = [...references];
+    if (sourceUrl && !list.some((ref) => ref.url === sourceUrl)) {
+      list.unshift({ title: "Primary source", url: sourceUrl });
+    }
+
+    const seen = new Set<string>();
+    return list.filter((ref) => {
+      if (!ref.url) return false;
+      if (seen.has(ref.url)) return false;
+      seen.add(ref.url);
+      return true;
+    });
+  })();
+
   return (
     <div className="grid gap-6 md:grid-cols-3">
       {/* Main Content */}
@@ -98,11 +115,11 @@ export function RemedyContent({
             <p className="text-sm text-muted-foreground leading-relaxed">
               {scientificInfo}
             </p>
-            {references.length > 0 && (
+            {sources.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium mb-2">References</h4>
+                <h4 className="text-sm font-medium mb-2">Sources</h4>
                 <ul className="space-y-1.5">
-                  {references.map(
+                  {sources.map(
                     (ref: { title: string; url: string }, index: number) => (
                       <li key={index}>
                         <a
