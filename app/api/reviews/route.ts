@@ -27,6 +27,23 @@ const reviewsQuerySchema = z.object({
     .default(10),
 });
 
+const numericRemedyIdSchema = z.string().regex(/^\d+$/);
+
+function isNumericRemedyId(remedyId: string): boolean {
+  return numericRemedyIdSchema.safeParse(remedyId).success;
+}
+
+function emptyReviewPayload(page: number) {
+  return {
+    reviews: [],
+    total: 0,
+    page,
+    totalPages: 0,
+    averageRating: 0,
+    totalReviews: 0,
+  };
+}
+
 // GET /api/reviews - Get reviews for a remedy
 export async function GET(request: NextRequest) {
   try {
@@ -54,6 +71,15 @@ export async function GET(request: NextRequest) {
 
     const { remedyId, page, limit } = parsed.data;
     const skip = (page - 1) * limit;
+
+    // Mock remedy IDs used in demo content are numeric (e.g. "103").
+    // Skip DB queries for those to avoid UUID cast errors and return an empty state.
+    if (isNumericRemedyId(remedyId)) {
+      return NextResponse.json({
+        success: true,
+        data: emptyReviewPayload(page),
+      });
+    }
 
     const [reviews, total] = await Promise.all([
       prisma.remedyReview.findMany({
@@ -147,6 +173,19 @@ export async function POST(request: NextRequest) {
     }
 
     const { remedyId, remedyName, rating, title, comment } = parsed.data;
+
+    if (isNumericRemedyId(remedyId)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "INVALID_INPUT",
+            message: "Reviews are only available for database-backed remedies",
+          },
+        },
+        { status: 400 },
+      );
+    }
 
     // Check if user already reviewed this remedy
     const existingReview = await prisma.remedyReview.findFirst({

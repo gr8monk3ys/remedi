@@ -27,8 +27,8 @@ export function levenshteinDistance(a: string, b: string): number {
       } else {
         matrix[i][j] = Math.min(
           matrix[i - 1][j - 1] + 1, // substitution
-          matrix[i][j - 1] + 1,     // insertion
-          matrix[i - 1][j] + 1      // deletion
+          matrix[i][j - 1] + 1, // insertion
+          matrix[i - 1][j] + 1, // deletion
         );
       }
     }
@@ -44,10 +44,10 @@ export function levenshteinDistance(a: string, b: string): number {
 export function stringSimilarity(str1: string, str2: string): number {
   if (!str1.length && !str2.length) return 1; // Both empty = identical
   if (!str1.length || !str2.length) return 0; // One empty = completely different
-  
+
   const distance = levenshteinDistance(str1.toLowerCase(), str2.toLowerCase());
   const maxLength = Math.max(str1.length, str2.length);
-  
+
   // Convert distance to similarity score (0-1)
   return 1 - distance / maxLength;
 }
@@ -60,31 +60,31 @@ export function stringSimilarity(str1: string, str2: string): number {
  * @returns Array of items sorted by relevance with added similarity score
  */
 export function fuzzySearch<T>(
-  query: string, 
-  items: T[], 
-  getSearchableText: (item: T) => string
+  query: string,
+  items: T[],
+  getSearchableText: (item: T) => string,
 ): Array<T & { similarityScore: number }> {
   const lowerQuery = query.toLowerCase();
-  
+
   // Calculate similarity scores for all items
-  const scoredItems = items.map(item => {
+  const scoredItems = items.map((item) => {
     const text = getSearchableText(item).toLowerCase();
-    
+
     // Calculate different scoring methods
     const exactMatchScore = text.includes(lowerQuery) ? 1 : 0;
     const similarityScore = stringSimilarity(lowerQuery, text);
-    
+
     // Weight exact matches higher than fuzzy matches
     const finalScore = exactMatchScore * 0.7 + similarityScore * 0.3;
-    
+
     return {
       ...item,
-      similarityScore: finalScore
+      similarityScore: finalScore,
     };
   });
-  
+
   // Filter out very low scores and sort by score (highest first)
   return scoredItems
-    .filter(item => item.similarityScore > 0.2) // Only reasonably good matches
+    .filter((item) => item.similarityScore > 0.2) // Only reasonably good matches
     .sort((a, b) => b.similarityScore - a.similarityScore);
 }

@@ -9,17 +9,17 @@ export async function POST(_request: NextRequest) {
   if (!currentUser || !userIsAdmin) {
     return NextResponse.json(
       { ok: false, message: "Admin access required" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
   try {
     const result = await runProductionChecks();
     return NextResponse.json(result);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { ok: false, message: "Production checks failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

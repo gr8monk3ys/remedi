@@ -61,6 +61,7 @@ export type ErrorCode =
   | "UNAUTHORIZED"
   | "FORBIDDEN"
   | "RATE_LIMIT_EXCEEDED"
+  | "LIMIT_EXCEEDED"
   | "CONFLICT"
   // Server errors (5xx)
   | "INTERNAL_ERROR"
@@ -79,6 +80,7 @@ const ERROR_STATUS_MAP: Record<ErrorCode, number> = {
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
   RATE_LIMIT_EXCEEDED: 429,
+  LIMIT_EXCEEDED: 429,
   CONFLICT: 409,
   // 5xx Server Errors
   INTERNAL_ERROR: 500,

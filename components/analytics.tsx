@@ -29,7 +29,10 @@ interface AnalyticsProps {
   googleAnalyticsId?: string;
 }
 
-export function Analytics({ plausibleDomain, googleAnalyticsId }: AnalyticsProps) {
+export function Analytics({
+  plausibleDomain,
+  googleAnalyticsId,
+}: AnalyticsProps) {
   const hasPlausible = !!plausibleDomain;
   const hasGA = !!googleAnalyticsId;
 
@@ -82,16 +85,40 @@ export function Analytics({ plausibleDomain, googleAnalyticsId }: AnalyticsProps
  */
 export function trackEvent(
   eventName: string,
-  props?: Record<string, string | number | boolean>
+  props?: Record<string, string | number | boolean>,
 ) {
   // Plausible tracking
-  if (typeof window !== "undefined" && (window as unknown as { plausible?: (name: string, options?: { props?: Record<string, string | number | boolean> }) => void }).plausible) {
-    (window as unknown as { plausible: (name: string, options?: { props?: Record<string, string | number | boolean> }) => void }).plausible(eventName, { props });
+  if (
+    typeof window !== "undefined" &&
+    (
+      window as unknown as {
+        plausible?: (
+          name: string,
+          options?: { props?: Record<string, string | number | boolean> },
+        ) => void;
+      }
+    ).plausible
+  ) {
+    (
+      window as unknown as {
+        plausible: (
+          name: string,
+          options?: { props?: Record<string, string | number | boolean> },
+        ) => void;
+      }
+    ).plausible(eventName, { props });
   }
 
   // Google Analytics tracking
-  if (typeof window !== "undefined" && (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag) {
-    (window as unknown as { gtag: (...args: unknown[]) => void }).gtag("event", eventName, props);
+  if (
+    typeof window !== "undefined" &&
+    (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag
+  ) {
+    (window as unknown as { gtag: (...args: unknown[]) => void }).gtag(
+      "event",
+      eventName,
+      props,
+    );
   }
 }
 

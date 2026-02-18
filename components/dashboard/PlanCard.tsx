@@ -16,6 +16,7 @@ interface PlanCardProps {
   interval?: "monthly" | "yearly";
   onSelect?: () => void;
   onManage?: () => void;
+  actionLabel?: string;
   isLoading?: boolean;
   className?: string;
 }
@@ -55,6 +56,7 @@ export function PlanCard({
   interval = "monthly",
   onSelect,
   onManage,
+  actionLabel,
   isLoading = false,
   className,
 }: PlanCardProps) {
@@ -164,7 +166,7 @@ export function PlanCard({
             !onSelect && "opacity-50 cursor-not-allowed",
           )}
         >
-          {plan === "free" ? "Downgrade" : "Upgrade"}
+          {actionLabel ?? (plan === "free" ? "Downgrade" : "Upgrade")}
         </button>
       )}
     </div>

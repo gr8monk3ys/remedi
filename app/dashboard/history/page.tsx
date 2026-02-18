@@ -5,6 +5,8 @@ import { HistoryTableSkeleton } from "@/components/dashboard/HistoryTable";
 import { HistoryPageClient } from "./history-client";
 import type { SearchHistoryItem } from "@/types/dashboard";
 import type { Metadata } from "next";
+import Link from "next/link";
+import { getEffectivePlanLimits } from "@/lib/trial";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -29,6 +31,41 @@ export default async function HistoryPage({ searchParams }: PageProps) {
 
   if (!user) {
     return null;
+  }
+
+  const { limits } = await getEffectivePlanLimits(user.id);
+
+  if (!limits.canAccessHistory) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Search History</h1>
+          <p className="text-muted-foreground mt-1">
+            Search history is available on Basic and Premium plans.
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-border bg-card p-6">
+          <p className="text-foreground">
+            Upgrade to unlock your full search history and export tools.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/pricing"
+              className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Upgrade
+            </Link>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center justify-center rounded-lg border border-border bg-card px-6 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              Back to Dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const params = await searchParams;

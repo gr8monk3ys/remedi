@@ -8,6 +8,7 @@ import { fetchWithCSRF } from "@/lib/fetch-with-csrf";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useSearchHistory } from "@/hooks/use-search-history";
 import { createLogger } from "@/lib/logger";
+import { useFeatureAccess } from "@/components/upgrade/FeatureGate";
 import { SearchInput } from "./SearchInput";
 import { SearchTabs } from "./SearchTabs";
 import { SearchHistory } from "./SearchHistory";
@@ -15,6 +16,82 @@ import { SearchResults } from "./SearchResults";
 import type { SearchResult, AIInsights, AIRecommendation } from "./types";
 
 const log = createLogger("search-component");
+
+type SearchEndpointType = "search" | "ai-search";
+
+type APIErrorResponse = {
+  success?: boolean;
+  error?: {
+    code?: string;
+    message?: string;
+    retryAfter?: number;
+    details?: unknown;
+  };
+};
+
+class UserFacingSearchError extends Error {
+  readonly userMessage: string;
+
+  constructor(userMessage: string) {
+    super(userMessage);
+    this.name = "UserFacingSearchError";
+    this.userMessage = userMessage;
+  }
+}
+
+function parseRetryAfterHeader(value: string | null): number | null {
+  if (!value) return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return Math.ceil(parsed);
+}
+
+function parseRetryAfterFromDetails(details: unknown): number | null {
+  if (!details || typeof details !== "object") return null;
+  const retryAfter = (details as { retryAfter?: unknown }).retryAfter;
+  if (typeof retryAfter !== "number" || retryAfter <= 0) return null;
+  return Math.ceil(retryAfter);
+}
+
+async function parseApiErrorResponse(response: Response): Promise<{
+  code?: string;
+  message?: string;
+  retryAfter: number | null;
+}> {
+  let parsedBody: APIErrorResponse | null = null;
+
+  try {
+    parsedBody = (await response.json()) as APIErrorResponse;
+  } catch {
+    parsedBody = null;
+  }
+
+  const headerRetryAfter = parseRetryAfterHeader(
+    response.headers.get("Retry-After"),
+  );
+  const bodyRetryAfter =
+    typeof parsedBody?.error?.retryAfter === "number" &&
+    parsedBody.error.retryAfter > 0
+      ? Math.ceil(parsedBody.error.retryAfter)
+      : parseRetryAfterFromDetails(parsedBody?.error?.details);
+
+  return {
+    code: parsedBody?.error?.code,
+    message: parsedBody?.error?.message,
+    retryAfter: bodyRetryAfter ?? headerRetryAfter,
+  };
+}
+
+function formatRateLimitMessage(
+  endpoint: SearchEndpointType,
+  retryAfter: number | null,
+): string {
+  const endpointLabel = endpoint === "ai-search" ? "AI search" : "Search";
+  if (retryAfter && retryAfter > 0) {
+    return `${endpointLabel} is temporarily rate-limited. Please wait ${retryAfter}s and try again.`;
+  }
+  return `${endpointLabel} is temporarily rate-limited. Please try again in about a minute.`;
+}
 
 interface SearchComponentProps extends React.HTMLProps<HTMLDivElement> {
   onSearch?: (results: SearchResult[]) => void;
@@ -27,6 +104,8 @@ export function SearchComponent({
   ...props
 }: SearchComponentProps) {
   const router = useRouter();
+  const { hasAccess: canAccessHistory } = useFeatureAccess("canAccessHistory");
+  const showHistoryTab = canAccessHistory === true;
   const {
     isFavorite,
     addFavorite,
@@ -37,7 +116,7 @@ export function SearchComponent({
     history: searchHistory,
     clearHistory,
     isLoading: historyLoading,
-  } = useSearchHistory(10);
+  } = useSearchHistory(10, { enabled: showHistoryTab });
 
   // Search state
   const [query, setQuery] = useState<string>("");
@@ -78,6 +157,13 @@ export function SearchComponent({
     };
     checkAiAvailability();
   }, []);
+
+  // If the user can't access history (or auth is still loading), keep them on Results.
+  useEffect(() => {
+    if (!showHistoryTab && activeTab === "history") {
+      setActiveTab("results");
+    }
+  }, [showHistoryTab, activeTab]);
 
   // Memoized filter options - optimized single-pass calculation
   const categoryOptions = useMemo(() => {
@@ -163,6 +249,8 @@ export function SearchComponent({
         let apiResponse;
 
         if (useAiSearch && aiSearchAvailable) {
+          const endpointType: SearchEndpointType = "ai-search";
+
           // Use fetchWithCSRF for POST requests to include CSRF token
           response = await fetchWithCSRF("/api/ai-search", {
             method: "POST",
@@ -171,13 +259,32 @@ export function SearchComponent({
           });
 
           if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const { code, message, retryAfter } =
+              await parseApiErrorResponse(response);
+
+            if (response.status === 429 || code === "RATE_LIMIT_EXCEEDED") {
+              throw new UserFacingSearchError(
+                formatRateLimitMessage(endpointType, retryAfter),
+              );
+            }
+
+            throw new UserFacingSearchError(
+              message || "AI search failed. Please try again.",
+            );
           }
 
           apiResponse = await response.json();
 
           if (apiResponse.success === false) {
-            setError(apiResponse.error?.message || "AI search failed");
+            if (apiResponse.error?.code === "RATE_LIMIT_EXCEEDED") {
+              const retryAfter =
+                typeof apiResponse.error?.retryAfter === "number"
+                  ? Math.ceil(apiResponse.error.retryAfter)
+                  : null;
+              setError(formatRateLimitMessage(endpointType, retryAfter));
+            } else {
+              setError(apiResponse.error?.message || "AI search failed");
+            }
             setResults([]);
             setFilteredResults([]);
             return;
@@ -202,16 +309,37 @@ export function SearchComponent({
           setFilteredResults(aiResults);
           if (onSearch) onSearch(aiResults);
         } else {
+          const endpointType: SearchEndpointType = "search";
+
           response = await fetch(
             `/api/search?query=${encodeURIComponent(queryToSearch)}`,
           );
           if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const { code, message, retryAfter } =
+              await parseApiErrorResponse(response);
+
+            if (response.status === 429 || code === "RATE_LIMIT_EXCEEDED") {
+              throw new UserFacingSearchError(
+                formatRateLimitMessage(endpointType, retryAfter),
+              );
+            }
+
+            throw new UserFacingSearchError(
+              message || "Search failed. Please try again.",
+            );
           }
           apiResponse = await response.json();
 
           if (apiResponse.success === false) {
-            setError(apiResponse.error?.message || "Search failed");
+            if (apiResponse.error?.code === "RATE_LIMIT_EXCEEDED") {
+              const retryAfter =
+                typeof apiResponse.error?.retryAfter === "number"
+                  ? Math.ceil(apiResponse.error.retryAfter)
+                  : null;
+              setError(formatRateLimitMessage(endpointType, retryAfter));
+            } else {
+              setError(apiResponse.error?.message || "Search failed");
+            }
             setResults([]);
             setFilteredResults([]);
             return;
@@ -229,7 +357,11 @@ export function SearchComponent({
         setActiveTab("results");
       } catch (error) {
         log.error("Error searching", error);
-        setError("Failed to retrieve search results. Please try again.");
+        if (error instanceof UserFacingSearchError) {
+          setError(error.userMessage);
+        } else {
+          setError("Failed to retrieve search results. Please try again.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -296,20 +428,23 @@ export function SearchComponent({
           setActiveTab={setActiveTab}
           resultsCount={results.length}
           historyCount={searchHistory.length}
+          showHistoryTab={showHistoryTab}
           showFilters={showFilters}
           toggleFilters={toggleFilters}
           activeFiltersCount={categoryFilters.length + nutrientFilters.length}
         />
       )}
 
-      {activeTab === "history" && searchHistory.length > 0 && (
-        <SearchHistory
-          history={searchHistory}
-          isLoading={historyLoading}
-          onSelectQuery={handleSelectHistoryQuery}
-          onClearHistory={clearHistory}
-        />
-      )}
+      {showHistoryTab &&
+        activeTab === "history" &&
+        searchHistory.length > 0 && (
+          <SearchHistory
+            history={searchHistory}
+            isLoading={historyLoading}
+            onSelectQuery={handleSelectHistoryQuery}
+            onClearHistory={clearHistory}
+          />
+        )}
 
       {activeTab === "results" && (
         <div ref={searchResultsRef}>

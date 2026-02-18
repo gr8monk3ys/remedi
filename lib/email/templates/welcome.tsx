@@ -4,14 +4,19 @@
  * Sent to new users when they sign up.
  */
 
-import { Button, Heading, Section, Text } from '@react-email/components'
-import * as React from 'react'
-import { BaseLayout } from './base-layout'
-import { WelcomeEmailData } from '../types'
-import { EMAIL_BRAND, getEmailUrl, EMAIL_URLS, getUnsubscribeUrl } from '../config'
+import { Button, Heading, Section, Text } from "@react-email/components";
+import * as React from "react";
+import { BaseLayout } from "./base-layout";
+import { WelcomeEmailData } from "../types";
+import {
+  EMAIL_BRAND,
+  getEmailUrl,
+  EMAIL_URLS,
+  getUnsubscribeUrl,
+} from "../config";
 
 interface WelcomeEmailProps extends WelcomeEmailData {
-  userId?: string
+  userId?: string;
 }
 
 export function WelcomeEmail({
@@ -19,12 +24,12 @@ export function WelcomeEmail({
   loginUrl,
   userId,
 }: WelcomeEmailProps): React.ReactElement {
-  const effectiveLoginUrl = loginUrl || getEmailUrl(EMAIL_URLS.login)
+  const effectiveLoginUrl = loginUrl || getEmailUrl(EMAIL_URLS.login);
 
   return (
     <BaseLayout
       preview={`Welcome to ${EMAIL_BRAND.name}, ${name}! Start exploring natural alternatives.`}
-      unsubscribeUrl={userId ? getUnsubscribeUrl(userId, 'welcome') : undefined}
+      unsubscribeUrl={userId ? getUnsubscribeUrl(userId, "welcome") : undefined}
     >
       <Heading style={styles.heading}>Welcome to {EMAIL_BRAND.name}!</Heading>
 
@@ -77,7 +82,7 @@ export function WelcomeEmail({
 
       <Section style={styles.disclaimerSection}>
         <Text style={styles.disclaimer}>
-          <strong>Medical Disclaimer:</strong> The information provided by{' '}
+          <strong>Medical Disclaimer:</strong> The information provided by{" "}
           {EMAIL_BRAND.name} is for informational purposes only and is not
           intended as medical advice. Always consult with a qualified healthcare
           professional before making any changes to your medication or health
@@ -85,82 +90,82 @@ export function WelcomeEmail({
         </Text>
       </Section>
     </BaseLayout>
-  )
+  );
 }
 
 const styles = {
   heading: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '24px',
-    fontWeight: 'bold' as const,
-    margin: '0 0 24px 0',
-    textAlign: 'center' as const,
+    fontSize: "24px",
+    fontWeight: "bold" as const,
+    margin: "0 0 24px 0",
+    textAlign: "center" as const,
   },
   greeting: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '16px',
-    lineHeight: '24px',
-    margin: '0 0 16px 0',
+    fontSize: "16px",
+    lineHeight: "24px",
+    margin: "0 0 16px 0",
   },
   paragraph: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '14px',
-    lineHeight: '24px',
-    margin: '0 0 16px 0',
+    fontSize: "14px",
+    lineHeight: "24px",
+    margin: "0 0 16px 0",
   },
   featuresSection: {
-    backgroundColor: '#f9fafb',
-    borderRadius: '8px',
-    margin: '24px 0',
-    padding: '20px',
+    backgroundColor: "#f9fafb",
+    borderRadius: "8px",
+    margin: "24px 0",
+    padding: "20px",
   },
   featuresTitle: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '14px',
-    fontWeight: 'bold' as const,
-    margin: '0 0 12px 0',
+    fontSize: "14px",
+    fontWeight: "bold" as const,
+    margin: "0 0 12px 0",
   },
   featuresList: {
-    margin: '0',
-    paddingLeft: '20px',
+    margin: "0",
+    paddingLeft: "20px",
   },
   featureItem: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '14px',
-    lineHeight: '28px',
+    fontSize: "14px",
+    lineHeight: "28px",
   },
   ctaSection: {
-    margin: '32px 0',
-    textAlign: 'center' as const,
+    margin: "32px 0",
+    textAlign: "center" as const,
   },
   ctaButton: {
     backgroundColor: EMAIL_BRAND.primaryColor,
-    borderRadius: '6px',
-    color: '#ffffff',
-    display: 'inline-block',
-    fontSize: '16px',
-    fontWeight: 'bold' as const,
-    padding: '12px 32px',
-    textDecoration: 'none',
+    borderRadius: "6px",
+    color: "#ffffff",
+    display: "inline-block",
+    fontSize: "16px",
+    fontWeight: "bold" as const,
+    padding: "12px 32px",
+    textDecoration: "none",
   },
   signature: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '14px',
-    lineHeight: '24px',
-    margin: '24px 0 0 0',
+    fontSize: "14px",
+    lineHeight: "24px",
+    margin: "24px 0 0 0",
   },
   disclaimerSection: {
-    borderTop: '1px solid #e5e7eb',
-    marginTop: '24px',
-    paddingTop: '24px',
+    borderTop: "1px solid #e5e7eb",
+    marginTop: "24px",
+    paddingTop: "24px",
   },
   disclaimer: {
     color: EMAIL_BRAND.footerColor,
-    fontSize: '12px',
-    fontStyle: 'italic' as const,
-    lineHeight: '18px',
-    margin: '0',
+    fontSize: "12px",
+    fontStyle: "italic" as const,
+    lineHeight: "18px",
+    margin: "0",
   },
-}
+};
 
-export default WelcomeEmail
+export default WelcomeEmail;

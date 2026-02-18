@@ -441,9 +441,14 @@ test.describe("Drug Interaction Checker", () => {
 
   test("should be responsive on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto("/interactions");
 
-    // Heading should still be visible
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    // Core page text should still be visible on small screens.
+    await expect(
+      page.getByText("Drug Interaction Checker").first(),
+    ).toBeVisible({
+      timeout: 10000,
+    });
 
     // Input and Add button should be accessible
     await expect(page.getByLabel(/Substance name/i)).toBeVisible();

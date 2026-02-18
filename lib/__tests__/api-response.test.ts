@@ -126,6 +126,7 @@ describe("API Response Utilities", () => {
         { code: "UNAUTHORIZED", expectedStatus: 401 },
         { code: "FORBIDDEN", expectedStatus: 403 },
         { code: "RATE_LIMIT_EXCEEDED", expectedStatus: 429 },
+        { code: "LIMIT_EXCEEDED", expectedStatus: 429 },
         { code: "CONFLICT", expectedStatus: 409 },
         { code: "INTERNAL_ERROR", expectedStatus: 500 },
         { code: "DATABASE_ERROR", expectedStatus: 500 },

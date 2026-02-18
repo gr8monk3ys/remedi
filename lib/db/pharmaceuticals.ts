@@ -5,28 +5,36 @@
  */
 
 import { prisma } from "./client";
-import { parsePharmaceutical } from "./parsers";
+import { parsePharmaceutical, type RawPharmaceutical } from "./parsers";
 import type { ProcessedDrug, ParsedPharmaceutical } from "../types";
 
 /**
  * Search for pharmaceuticals by name or ingredients
- * Note: SQLite doesn't support case-insensitive mode, so we search with lowercase
+ * Uses case-insensitive matching in PostgreSQL.
  */
 export async function searchPharmaceuticals(
   query: string,
 ): Promise<ParsedPharmaceutical[]> {
-  const lowerQuery = query.toLowerCase();
+  const trimmed = query.trim();
+  if (!trimmed) return [];
 
-  const results = await prisma.pharmaceutical.findMany({
-    where: {
-      OR: [
-        { name: { contains: lowerQuery } },
-        { description: { contains: lowerQuery } },
-        { category: { contains: lowerQuery } },
-      ],
-    },
-    take: 10,
-  });
+  // Prisma does not support substring matching inside text[] elements, so we
+  // use a small raw query to search "ingredients" as well.
+  const like = `%${trimmed}%`;
+  const results = await prisma.$queryRaw<RawPharmaceutical[]>`
+    SELECT *
+    FROM "Pharmaceutical"
+    WHERE "name" ILIKE ${like}
+       OR "description" ILIKE ${like}
+       OR "category" ILIKE ${like}
+       OR EXISTS (
+         SELECT 1
+         FROM unnest("ingredients") AS ingredient
+         WHERE ingredient ILIKE ${like}
+       )
+    ORDER BY "name" ASC
+    LIMIT 10
+  `;
 
   return results.map(parsePharmaceutical);
 }

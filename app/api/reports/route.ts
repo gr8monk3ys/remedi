@@ -17,27 +17,11 @@ import { successResponse, errorResponse } from "@/lib/api/response";
 import { reportGenerateSchema } from "@/lib/validations/reports";
 import { getValidationErrorMessage } from "@/lib/validations/api";
 import { createLogger } from "@/lib/logger";
-import {
-  getPlanLimits,
-  isWithinLimit,
-  parsePlanType,
-} from "@/lib/stripe-config";
-import type { PlanType } from "@/lib/stripe-config";
+import { getPlanLimits, isWithinLimit } from "@/lib/stripe-config";
 import { generateRemedyReport } from "@/lib/ai/report-generator";
+import { getTrialStatus } from "@/lib/trial";
 
 const logger = createLogger("reports-api");
-
-async function getUserPlan(userId: string): Promise<PlanType> {
-  const { prisma } = await import("@/lib/db");
-  const sub = await prisma.subscription.findUnique({
-    where: { userId },
-    select: { plan: true, status: true },
-  });
-  if (sub && sub.status === "active") {
-    return parsePlanType(sub.plan);
-  }
-  return "free";
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -87,7 +71,7 @@ export async function POST(request: Request) {
     }
 
     // Check plan limit
-    const plan = await getUserPlan(user.id);
+    const plan = (await getTrialStatus(user.id)).plan;
     const limits = getPlanLimits(plan);
     const monthlyCount = await countMonthlyReports(user.id);
 

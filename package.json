@@ -8,6 +8,8 @@
     "dev": "next dev",
     "build": "bunx prisma generate && bunx prisma migrate resolve --rolled-back 20250207_clerk_migration 2>/dev/null; bunx prisma migrate deploy && next build",
     "start": "next start",
+    "format:check": "prettier --check \"{app,components,context,hooks,lib,scripts,__tests__,e2e,prisma}/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{ts,tsx,js,jsx,json,css,md,mjs,yml,yaml}\"",
+    "format:write": "prettier --write \"{app,components,context,hooks,lib,scripts,__tests__,e2e,prisma}/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{ts,tsx,js,jsx,json,css,md,mjs,yml,yaml}\"",
     "lint": "eslint .",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -22,7 +24,7 @@
     "import:fda": "bun run scripts/import-openfda-data.ts",
     "import:fda:dry": "bun run scripts/import-openfda-data.ts --dry-run",
     "import:fda:quick": "bun run scripts/import-openfda-data.ts --limit 50",
-    "type-check": "DATABASE_URL=${DATABASE_URL:-postgresql://localhost:5432/remedi} bunx prisma generate && tsc --noEmit",
+    "type-check": "DATABASE_URL=${DATABASE_URL:-postgresql://remedi:remedi_dev@localhost:5433/remedi?schema=public} bunx prisma generate && tsc --noEmit",
     "init": "bunx prisma generate && bunx prisma migrate dev && bunx prisma db seed",
     "db:verify": "bun run scripts/verify-db.ts",
     "db:integrity": "bun run scripts/check-data-integrity.ts",
@@ -30,7 +32,8 @@
     "health:check": "bun run scripts/health-check.ts",
     "health:check:http": "bun run scripts/health-check-http.ts",
     "prod:check": "bun run scripts/production-check.ts",
-    "predeploy": "bun run lint && bun run type-check && bun run test:run && bun run db:verify && bun run db:integrity && bun run prod:check",
+    "predeploy": "bun run format:check && bun run lint && bun run type-check && bun run test:run && bun run db:verify && bun run db:integrity && bun run prod:check",
+    "quality:check": "bun run format:check && bun run lint && bun run type-check && bun run test:run && bun run test:e2e && bun run db:verify && bun run db:integrity && bun run prod:check",
     "prepare": "husky"
   },
   "dependencies": {

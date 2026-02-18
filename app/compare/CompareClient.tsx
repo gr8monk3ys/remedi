@@ -32,6 +32,8 @@ const logger = createLogger("compare-page");
  */
 interface CompareClientProps {
   initialIds: string[];
+  maxCompareItems: number;
+  trimmedFromCount: number | null;
 }
 
 /**
@@ -41,6 +43,8 @@ interface CompareClientProps {
  */
 export function CompareClient({
   initialIds,
+  maxCompareItems,
+  trimmedFromCount,
 }: CompareClientProps): React.ReactElement {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -52,17 +56,31 @@ export function CompareClient({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showShareToast, setShowShareToast] = useState(false);
+  const [showTrimNotice, setShowTrimNotice] = useState(true);
 
   // Get IDs from URL or context - memoize to prevent unstable array reference.
   // After initial load, idsFromUrl updates reactively when URL changes client-side.
   const idsFromUrl = searchParams.get("ids");
   const ids = useMemo(() => {
-    return idsFromUrl
-      ? idsFromUrl.split(",").filter((id) => id.trim())
+    const rawIds = idsFromUrl
+      ? idsFromUrl
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean)
       : initialIds.length > 0
         ? initialIds
         : items.map((item) => item.id);
-  }, [idsFromUrl, initialIds, items]);
+
+    // Enforce plan cap and remove duplicates while preserving order.
+    const uniqueIds: string[] = [];
+    for (const id of rawIds) {
+      if (!id || uniqueIds.includes(id)) continue;
+      uniqueIds.push(id);
+      if (uniqueIds.length >= maxCompareItems) break;
+    }
+
+    return uniqueIds;
+  }, [idsFromUrl, initialIds, items, maxCompareItems]);
 
   // Fetch remedies data
   const fetchRemedies = useCallback(async () => {
@@ -156,6 +174,10 @@ export function CompareClient({
     return <ComparisonSkeleton />;
   }
 
+  const showAddSlot = remedies.length < maxCompareItems;
+  const headerColumnCount = remedies.length + (showAddSlot ? 1 : 0);
+  const minColumnWidthPx = 260;
+
   return (
     <>
       {/* Page header */}
@@ -217,6 +239,26 @@ export function CompareClient({
         </div>
       )}
 
+      {/* Notice when a shared link exceeds plan cap (server-trimmed) */}
+      {trimmedFromCount && showTrimNotice && (
+        <div className="flex items-start gap-3 p-4 mb-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+          <AlertCircle className="w-5 h-5 text-amber-700 dark:text-amber-200 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              This shared comparison included {trimmedFromCount} remedies. Your
+              plan supports up to {maxCompareItems} at once, so we're showing
+              the first {maxCompareItems}.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowTrimNotice(false)}
+            className="text-sm text-amber-800 dark:text-amber-200 underline hover:no-underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Empty state */}
       {remedies.length === 0 && !error && (
         <div className="text-center py-16">
@@ -258,183 +300,200 @@ export function CompareClient({
 
           {/* Desktop grid view */}
           <div
-            className={`bg-card rounded-xl shadow-sm overflow-hidden print:shadow-none ${isMobile ? "hidden md:block" : ""}`}
+            className={`bg-card rounded-xl shadow-sm print:shadow-none ${isMobile ? "hidden md:block" : ""}`}
             id="comparison-content"
           >
-            {/* Remedy headers */}
-            <div
-              className="grid gap-4 p-4 border-b border-border bg-muted"
-              style={{
-                gridTemplateColumns: `repeat(${Math.min(remedies.length + (remedies.length < 4 ? 1 : 0), 4)}, minmax(0, 1fr))`,
-              }}
-            >
-              {remedies.map((remedy) => (
-                <div key={remedy.id} className="relative">
-                  <button
-                    onClick={() => handleRemoveRemedy(remedy.id)}
-                    className="absolute -top-1 -right-1 p-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors z-10 print:hidden"
-                    aria-label={`Remove ${remedy.name} from comparison`}
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                  <Link href={`/remedy/${remedy.id}`} className="block group">
-                    <div className="aspect-square relative rounded-lg overflow-hidden mb-3 bg-muted">
-                      {remedy.imageUrl ? (
-                        <Image
-                          src={remedy.imageUrl}
-                          alt={remedy.name}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                          No Image
+            <div className="overflow-x-auto">
+              <div className="min-w-full w-max">
+                {/* Remedy headers */}
+                <div
+                  className="grid gap-4 p-4 border-b border-border bg-muted"
+                  style={{
+                    gridTemplateColumns: `repeat(${headerColumnCount}, minmax(${minColumnWidthPx}px, 1fr))`,
+                  }}
+                >
+                  {remedies.map((remedy) => (
+                    <div key={remedy.id} className="relative">
+                      <button
+                        onClick={() => handleRemoveRemedy(remedy.id)}
+                        className="absolute -top-1 -right-1 p-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors z-10 print:hidden"
+                        aria-label={`Remove ${remedy.name} from comparison`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                      <Link
+                        href={`/remedy/${remedy.id}`}
+                        className="block group"
+                      >
+                        <div className="aspect-square relative rounded-lg overflow-hidden mb-3 bg-muted">
+                          {remedy.imageUrl ? (
+                            <Image
+                              src={remedy.imageUrl}
+                              alt={remedy.name}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                              No Image
+                            </div>
+                          )}
                         </div>
-                      )}
+                        <h2 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                          {remedy.name}
+                        </h2>
+                        {remedy.category && (
+                          <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded">
+                            {remedy.category}
+                          </span>
+                        )}
+                      </Link>
                     </div>
-                    <h2 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                      {remedy.name}
-                    </h2>
-                    {remedy.category && (
-                      <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded">
-                        {remedy.category}
-                      </span>
-                    )}
-                  </Link>
-                </div>
-              ))}
+                  ))}
 
-              {/* Add another remedy slot */}
-              {remedies.length < 4 && (
-                <div className="print:hidden">
-                  <AddRemedySlot onClick={handleAddRemedy} />
-                </div>
-              )}
-            </div>
-
-            {/* Comparison sections */}
-            <ExpandableSection title="Evidence Level">
-              <ComparisonRow
-                label="Evidence Level"
-                remedies={remedies}
-                renderCell={(remedy) => (
-                  <EvidenceBadge level={remedy.evidenceLevel} />
-                )}
-                highlight
-              />
-            </ExpandableSection>
-
-            <ExpandableSection title="Benefits">
-              <ComparisonRow
-                label="Benefits"
-                remedies={remedies}
-                renderCell={(remedy) => (
-                  <BulletList
-                    items={remedy.benefits || remedy.matchingNutrients}
-                    emptyMessage="No benefits listed"
-                  />
-                )}
-              />
-            </ExpandableSection>
-
-            <ExpandableSection title="Usage">
-              <ComparisonRow
-                label="Usage"
-                remedies={remedies}
-                renderCell={(remedy) => (
-                  <p className="text-sm text-foreground">
-                    {remedy.usage || "Usage information not available"}
-                  </p>
-                )}
-              />
-            </ExpandableSection>
-
-            <ExpandableSection title="Dosage">
-              <ComparisonRow
-                label="Dosage"
-                remedies={remedies}
-                renderCell={(remedy) => (
-                  <p className="text-sm text-foreground font-medium">
-                    {remedy.dosage || "Dosage information not available"}
-                  </p>
-                )}
-                highlight
-              />
-            </ExpandableSection>
-
-            <ExpandableSection title="Precautions">
-              <ComparisonRow
-                label="Precautions"
-                remedies={remedies}
-                renderCell={(remedy) => (
-                  <div className="text-sm text-amber-700 dark:text-amber-400">
-                    {remedy.precautions ||
-                      "Precaution information not available"}
-                  </div>
-                )}
-              />
-            </ExpandableSection>
-
-            <ExpandableSection title="Interactions">
-              <ComparisonRow
-                label="Interactions"
-                remedies={remedies}
-                renderCell={(remedy) => (
-                  <p className="text-sm text-foreground">
-                    {remedy.interactions || "No known interactions documented"}
-                  </p>
-                )}
-              />
-            </ExpandableSection>
-
-            <ExpandableSection title="Scientific Information">
-              <ComparisonRow
-                label="Scientific Info"
-                remedies={remedies}
-                renderCell={(remedy) => (
-                  <p className="text-sm text-foreground">
-                    {remedy.scientificInfo ||
-                      "Scientific information not available"}
-                  </p>
-                )}
-              />
-            </ExpandableSection>
-
-            {/* Related pharmaceuticals if available */}
-            {remedies.some((r) => r.relatedPharmaceuticals?.length) && (
-              <ExpandableSection
-                title="Related Pharmaceuticals"
-                defaultExpanded={false}
-              >
-                <ComparisonRow
-                  label="Related Pharmaceuticals"
-                  remedies={remedies}
-                  renderCell={(remedy) => (
-                    <div className="space-y-1">
-                      {remedy.relatedPharmaceuticals?.length ? (
-                        remedy.relatedPharmaceuticals.map((pharma) => (
-                          <div
-                            key={pharma.id}
-                            className="flex items-center justify-between text-sm"
-                          >
-                            <span className="text-foreground">
-                              {pharma.name}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {(pharma.similarityScore * 100).toFixed(0)}% match
-                            </span>
-                          </div>
-                        ))
-                      ) : (
-                        <span className="text-sm text-muted-foreground italic">
-                          No related pharmaceuticals
-                        </span>
-                      )}
+                  {/* Add another remedy slot */}
+                  {showAddSlot && (
+                    <div className="print:hidden">
+                      <AddRemedySlot onClick={handleAddRemedy} />
                     </div>
                   )}
-                />
-              </ExpandableSection>
-            )}
+                </div>
+
+                {/* Comparison sections */}
+                <ExpandableSection title="Evidence Level">
+                  <ComparisonRow
+                    label="Evidence Level"
+                    remedies={remedies}
+                    minColumnWidth={minColumnWidthPx}
+                    renderCell={(remedy) => (
+                      <EvidenceBadge level={remedy.evidenceLevel} />
+                    )}
+                    highlight
+                  />
+                </ExpandableSection>
+
+                <ExpandableSection title="Benefits">
+                  <ComparisonRow
+                    label="Benefits"
+                    remedies={remedies}
+                    minColumnWidth={minColumnWidthPx}
+                    renderCell={(remedy) => (
+                      <BulletList
+                        items={remedy.benefits || remedy.matchingNutrients}
+                        emptyMessage="No benefits listed"
+                      />
+                    )}
+                  />
+                </ExpandableSection>
+
+                <ExpandableSection title="Usage">
+                  <ComparisonRow
+                    label="Usage"
+                    remedies={remedies}
+                    minColumnWidth={minColumnWidthPx}
+                    renderCell={(remedy) => (
+                      <p className="text-sm text-foreground">
+                        {remedy.usage || "Usage information not available"}
+                      </p>
+                    )}
+                  />
+                </ExpandableSection>
+
+                <ExpandableSection title="Dosage">
+                  <ComparisonRow
+                    label="Dosage"
+                    remedies={remedies}
+                    minColumnWidth={minColumnWidthPx}
+                    renderCell={(remedy) => (
+                      <p className="text-sm text-foreground font-medium">
+                        {remedy.dosage || "Dosage information not available"}
+                      </p>
+                    )}
+                    highlight
+                  />
+                </ExpandableSection>
+
+                <ExpandableSection title="Precautions">
+                  <ComparisonRow
+                    label="Precautions"
+                    remedies={remedies}
+                    minColumnWidth={minColumnWidthPx}
+                    renderCell={(remedy) => (
+                      <div className="text-sm text-amber-700 dark:text-amber-400">
+                        {remedy.precautions ||
+                          "Precaution information not available"}
+                      </div>
+                    )}
+                  />
+                </ExpandableSection>
+
+                <ExpandableSection title="Interactions">
+                  <ComparisonRow
+                    label="Interactions"
+                    remedies={remedies}
+                    minColumnWidth={minColumnWidthPx}
+                    renderCell={(remedy) => (
+                      <p className="text-sm text-foreground">
+                        {remedy.interactions ||
+                          "No known interactions documented"}
+                      </p>
+                    )}
+                  />
+                </ExpandableSection>
+
+                <ExpandableSection title="Scientific Information">
+                  <ComparisonRow
+                    label="Scientific Info"
+                    remedies={remedies}
+                    minColumnWidth={minColumnWidthPx}
+                    renderCell={(remedy) => (
+                      <p className="text-sm text-foreground">
+                        {remedy.scientificInfo ||
+                          "Scientific information not available"}
+                      </p>
+                    )}
+                  />
+                </ExpandableSection>
+
+                {/* Related pharmaceuticals if available */}
+                {remedies.some((r) => r.relatedPharmaceuticals?.length) && (
+                  <ExpandableSection
+                    title="Related Pharmaceuticals"
+                    defaultExpanded={false}
+                  >
+                    <ComparisonRow
+                      label="Related Pharmaceuticals"
+                      remedies={remedies}
+                      minColumnWidth={minColumnWidthPx}
+                      renderCell={(remedy) => (
+                        <div className="space-y-1">
+                          {remedy.relatedPharmaceuticals?.length ? (
+                            remedy.relatedPharmaceuticals.map((pharma) => (
+                              <div
+                                key={pharma.id}
+                                className="flex items-center justify-between text-sm"
+                              >
+                                <span className="text-foreground">
+                                  {pharma.name}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {(pharma.similarityScore * 100).toFixed(0)}%
+                                  match
+                                </span>
+                              </div>
+                            ))
+                          ) : (
+                            <span className="text-sm text-muted-foreground italic">
+                              No related pharmaceuticals
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    />
+                  </ExpandableSection>
+                )}
+              </div>
+            </div>
           </div>
         </>
       )}

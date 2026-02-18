@@ -7,7 +7,7 @@
  * @see https://docs.sentry.io/platforms/javascript/guides/nextjs/
  */
 
-import * as Sentry from '@sentry/nextjs'
+import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -20,16 +20,14 @@ Sentry.init({
 
   // Performance Monitoring
   // Capture 10% of transactions in production for performance monitoring
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
 
   // Filter out known non-critical errors
   ignoreErrors: [
     // Network errors
-    'Network request failed',
-    'Failed to fetch',
-    'AbortError',
-    // Rate limiting
-    'Too Many Requests',
+    "Network request failed",
+    "Failed to fetch",
+    "AbortError",
   ],
 
   // Debug mode (disable in production)
@@ -44,35 +42,35 @@ Sentry.init({
   // Before sending event, add extra context and filter
   beforeSend(event, hint) {
     // Don't send events in development
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[Sentry] Edge event captured (not sent in development):', {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[Sentry] Edge event captured (not sent in development):", {
         message: event.message,
         exception: hint?.originalException,
-      })
-      return null
+      });
+      return null;
     }
 
     // Add edge runtime context
     event.tags = {
       ...event.tags,
-      runtime: 'edge',
-    }
+      runtime: "edge",
+    };
 
-    return event
+    return event;
   },
 
   // Before sending a transaction, filter out unnecessary ones
   beforeSendTransaction(event) {
     // Skip health check transactions
-    if (event.transaction?.includes('/api/health')) {
-      return null
+    if (event.transaction?.includes("/api/health")) {
+      return null;
     }
 
     // Skip static file transactions
-    if (event.transaction?.includes('/_next/')) {
-      return null
+    if (event.transaction?.includes("/_next/")) {
+      return null;
     }
 
-    return event
+    return event;
   },
-})
+});

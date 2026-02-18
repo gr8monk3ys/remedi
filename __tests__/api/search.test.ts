@@ -14,6 +14,7 @@ import { NextRequest } from "next/server";
 vi.mock("@/lib/db", () => ({
   searchPharmaceuticals: vi.fn(),
   getNaturalRemediesForPharmaceutical: vi.fn(),
+  generateRemedyMappingsForPharmaceutical: vi.fn().mockResolvedValue([]),
   upsertPharmaceutical: vi.fn(),
   saveSearchHistory: vi.fn(),
 }));
@@ -26,11 +27,6 @@ vi.mock("@/lib/openFDA", () => ({
 // Mock the fuzzy search
 vi.mock("@/lib/fuzzy-search", () => ({
   fuzzySearch: vi.fn(),
-}));
-
-// Mock the remedy mapping
-vi.mock("@/lib/remedyMapping", () => ({
-  findNaturalRemediesForDrug: vi.fn().mockResolvedValue([]),
 }));
 
 // Mock rate limiting
@@ -76,6 +72,17 @@ import {
 } from "@/lib/db";
 import { searchFdaDrugs } from "@/lib/openFDA";
 import { fuzzySearch } from "@/lib/fuzzy-search";
+
+type SearchPharmaceuticalsResult = Awaited<
+  ReturnType<typeof searchPharmaceuticals>
+>;
+type SearchRemediesResult = Awaited<
+  ReturnType<typeof getNaturalRemediesForPharmaceutical>
+>;
+type UpsertPharmaceuticalResult = Awaited<
+  ReturnType<typeof upsertPharmaceutical>
+>;
+type FuzzySearchResult = ReturnType<typeof fuzzySearch>;
 
 describe("GET /api/search", () => {
   beforeEach(() => {
@@ -152,7 +159,7 @@ describe("GET /api/search", () => {
 
       vi.mocked(searchPharmaceuticals).mockResolvedValue([mockPharmaceutical]);
       vi.mocked(getNaturalRemediesForPharmaceutical).mockResolvedValue(
-        mockRemedies as any,
+        mockRemedies as SearchRemediesResult,
       );
 
       const request = new NextRequest(
@@ -210,7 +217,9 @@ describe("GET /api/search", () => {
           benefits: ["Sleep regulation"],
         },
       ]);
-      vi.mocked(upsertPharmaceutical).mockResolvedValue({} as any);
+      vi.mocked(upsertPharmaceutical).mockResolvedValue(
+        {} as UpsertPharmaceuticalResult,
+      );
 
       const request = new NextRequest(
         "http://localhost:3000/api/search?query=melatonin",
@@ -234,7 +243,9 @@ describe("GET /api/search", () => {
 
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
       vi.mocked(searchFdaDrugs).mockResolvedValue([fdaDrug]);
-      vi.mocked(upsertPharmaceutical).mockResolvedValue({} as any);
+      vi.mocked(upsertPharmaceutical).mockResolvedValue(
+        {} as UpsertPharmaceuticalResult,
+      );
 
       const request = new NextRequest(
         "http://localhost:3000/api/search?query=vitamin-d",
@@ -266,7 +277,7 @@ describe("GET /api/search", () => {
           benefits: ["Bone health"],
           similarityScore: 0.8,
           searchText: "Vitamin D3 Supplement",
-        } as any,
+        } as FuzzySearchResult[number],
       ]);
 
       const request = new NextRequest(
@@ -412,11 +423,11 @@ describe("GET /api/search", () => {
           category: "Test",
           ingredients: [],
           benefits: [],
-        } as any,
+        } as SearchPharmaceuticalsResult[number],
       ]);
       vi.mocked(getNaturalRemediesForPharmaceutical).mockResolvedValue([
         mockRemedy,
-      ] as any);
+      ] as SearchRemediesResult);
 
       const request = new NextRequest(
         "http://localhost:3000/api/search?query=test",

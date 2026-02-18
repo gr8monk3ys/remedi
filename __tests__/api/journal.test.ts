@@ -19,9 +19,14 @@ const mockGetJournalEntryById = vi.fn();
 const mockGetJournalEntries = vi.fn();
 const mockGetTrackedRemedies = vi.fn();
 const mockPrismaSubscriptionFindUnique = vi.fn();
+const mockGetTrialStatus = vi.fn();
 
 vi.mock("@/lib/auth", () => ({
   getCurrentUser: () => mockGetCurrentUser(),
+}));
+
+vi.mock("@/lib/trial", () => ({
+  getTrialStatus: (...args: unknown[]) => mockGetTrialStatus(...args),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -77,6 +82,15 @@ describe("/api/journal", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetCurrentUser.mockResolvedValue(authenticatedUser);
+    mockGetTrialStatus.mockResolvedValue({
+      isActive: false,
+      isEligible: true,
+      hasUsedTrial: false,
+      startDate: null,
+      endDate: null,
+      daysRemaining: 0,
+      plan: "basic",
+    });
     // Default: user has basic plan (journal access)
     mockPrismaSubscriptionFindUnique.mockResolvedValue({
       plan: "basic",
@@ -98,7 +112,15 @@ describe("/api/journal", () => {
     });
 
     it("should return 403 when user is on free plan", async () => {
-      mockPrismaSubscriptionFindUnique.mockResolvedValue(null);
+      mockGetTrialStatus.mockResolvedValue({
+        isActive: false,
+        isEligible: true,
+        hasUsedTrial: false,
+        startDate: null,
+        endDate: null,
+        daysRemaining: 0,
+        plan: "free",
+      });
       const { GET } = await import("@/app/api/journal/route");
       const request = new NextRequest("http://localhost:3000/api/journal");
       const response = await GET(request);
@@ -191,7 +213,15 @@ describe("/api/journal", () => {
     });
 
     it("should return 403 when user is on free plan", async () => {
-      mockPrismaSubscriptionFindUnique.mockResolvedValue(null);
+      mockGetTrialStatus.mockResolvedValue({
+        isActive: false,
+        isEligible: true,
+        hasUsedTrial: false,
+        startDate: null,
+        endDate: null,
+        daysRemaining: 0,
+        plan: "free",
+      });
       const { POST } = await import("@/app/api/journal/route");
       const request = new Request("http://localhost:3000/api/journal", {
         method: "POST",

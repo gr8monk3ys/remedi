@@ -44,9 +44,17 @@ const mockUserCreate = vi.fn();
 const mockUserUpdate = vi.fn();
 const mockUserDeleteMany = vi.fn();
 const mockEmailPreferenceUpsert = vi.fn();
+const mockTransaction = vi.fn();
+const mockFavoriteDeleteMany = vi.fn();
+const mockSearchHistoryDeleteMany = vi.fn();
+const mockFilterPreferenceDeleteMany = vi.fn();
+const mockUserEventDeleteMany = vi.fn();
+const mockConversionEventDeleteMany = vi.fn();
+const mockEmailLogDeleteMany = vi.fn();
 
 vi.mock("@/lib/db", () => ({
   prisma: {
+    $transaction: (...args: unknown[]) => mockTransaction(...args),
     user: {
       findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
       create: (...args: unknown[]) => mockUserCreate(...args),
@@ -55,6 +63,26 @@ vi.mock("@/lib/db", () => ({
     },
     emailPreference: {
       upsert: (...args: unknown[]) => mockEmailPreferenceUpsert(...args),
+    },
+    favorite: {
+      deleteMany: (...args: unknown[]) => mockFavoriteDeleteMany(...args),
+    },
+    searchHistory: {
+      deleteMany: (...args: unknown[]) => mockSearchHistoryDeleteMany(...args),
+    },
+    filterPreference: {
+      deleteMany: (...args: unknown[]) =>
+        mockFilterPreferenceDeleteMany(...args),
+    },
+    userEvent: {
+      deleteMany: (...args: unknown[]) => mockUserEventDeleteMany(...args),
+    },
+    conversionEvent: {
+      deleteMany: (...args: unknown[]) =>
+        mockConversionEventDeleteMany(...args),
+    },
+    emailLog: {
+      deleteMany: (...args: unknown[]) => mockEmailLogDeleteMany(...args),
     },
   },
 }));
@@ -131,6 +159,14 @@ beforeEach(() => {
 
   // Default: welcome email succeeds
   mockSendWelcomeEmail.mockResolvedValue({ success: true });
+
+  // Default: transaction awaits all operations (so rejections propagate)
+  mockTransaction.mockImplementation(async (ops: unknown) => {
+    if (Array.isArray(ops)) {
+      return Promise.all(ops);
+    }
+    return [];
+  });
 });
 
 afterEach(() => {
@@ -900,6 +936,13 @@ describe("/api/webhooks/clerk", () => {
           type: "user.deleted",
           data: { id: "user_test123" },
         });
+        mockUserFindUnique.mockResolvedValue({ id: "db-user-1" });
+        mockFavoriteDeleteMany.mockResolvedValue({ count: 0 });
+        mockSearchHistoryDeleteMany.mockResolvedValue({ count: 0 });
+        mockFilterPreferenceDeleteMany.mockResolvedValue({ count: 0 });
+        mockUserEventDeleteMany.mockResolvedValue({ count: 0 });
+        mockConversionEventDeleteMany.mockResolvedValue({ count: 0 });
+        mockEmailLogDeleteMany.mockResolvedValue({ count: 0 });
         mockUserDeleteMany.mockResolvedValue({ count: 1 });
 
         const { POST } = await import("@/app/api/webhooks/clerk/route");
@@ -919,9 +962,32 @@ describe("/api/webhooks/clerk", () => {
         const response = await POST(request);
 
         expect(response.status).toBe(200);
+        expect(mockUserFindUnique).toHaveBeenCalledWith({
+          where: { clerkId: "user_test123" },
+          select: { id: true },
+        });
+        expect(mockFavoriteDeleteMany).toHaveBeenCalledWith({
+          where: { userId: "db-user-1" },
+        });
+        expect(mockSearchHistoryDeleteMany).toHaveBeenCalledWith({
+          where: { userId: "db-user-1" },
+        });
+        expect(mockFilterPreferenceDeleteMany).toHaveBeenCalledWith({
+          where: { userId: "db-user-1" },
+        });
+        expect(mockUserEventDeleteMany).toHaveBeenCalledWith({
+          where: { userId: "db-user-1" },
+        });
+        expect(mockConversionEventDeleteMany).toHaveBeenCalledWith({
+          where: { userId: "db-user-1" },
+        });
+        expect(mockEmailLogDeleteMany).toHaveBeenCalledWith({
+          where: { userId: "db-user-1" },
+        });
         expect(mockUserDeleteMany).toHaveBeenCalledWith({
           where: { clerkId: "user_test123" },
         });
+        expect(mockTransaction).toHaveBeenCalledTimes(1);
       });
 
       it("should not call deleteMany when id is missing", async () => {
@@ -955,6 +1021,7 @@ describe("/api/webhooks/clerk", () => {
           type: "user.deleted",
           data: { id: "user_nonexistent" },
         });
+        mockUserFindUnique.mockResolvedValue(null);
         mockUserDeleteMany.mockResolvedValue({ count: 0 });
 
         const { POST } = await import("@/app/api/webhooks/clerk/route");
@@ -974,6 +1041,13 @@ describe("/api/webhooks/clerk", () => {
         const response = await POST(request);
 
         expect(response.status).toBe(200);
+        expect(mockTransaction).not.toHaveBeenCalled();
+        expect(mockFavoriteDeleteMany).not.toHaveBeenCalled();
+        expect(mockSearchHistoryDeleteMany).not.toHaveBeenCalled();
+        expect(mockFilterPreferenceDeleteMany).not.toHaveBeenCalled();
+        expect(mockUserEventDeleteMany).not.toHaveBeenCalled();
+        expect(mockConversionEventDeleteMany).not.toHaveBeenCalled();
+        expect(mockEmailLogDeleteMany).not.toHaveBeenCalled();
       });
     });
 

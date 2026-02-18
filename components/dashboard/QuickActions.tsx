@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Heart, FileText, Sparkles } from "lucide-react";
+import { Search, Heart, FileText, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface QuickAction {
@@ -37,9 +37,9 @@ const defaultActions: QuickAction[] = [
   },
   {
     href: "/dashboard/subscription",
-    label: "Upgrade Plan",
-    description: "Get more features",
-    icon: Sparkles,
+    label: "Subscription",
+    description: "Manage billing & invoices",
+    icon: CreditCard,
     color:
       "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400",
   },

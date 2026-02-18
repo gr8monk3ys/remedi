@@ -16,6 +16,7 @@ export const PLAN_LIMITS = {
     maxFavorites: 3,
     maxSearchesPerDay: 5,
     maxAiSearchesPerDay: 0,
+    maxExportsPerDay: 0,
     canExport: false,
     canCompare: false,
     maxCompareItems: 0,
@@ -32,6 +33,7 @@ export const PLAN_LIMITS = {
     maxFavorites: 50,
     maxSearchesPerDay: 100,
     maxAiSearchesPerDay: 10,
+    maxExportsPerDay: -1, // Unlimited
     canExport: true,
     canCompare: true,
     maxCompareItems: 4,
@@ -48,6 +50,7 @@ export const PLAN_LIMITS = {
     maxFavorites: -1, // Unlimited
     maxSearchesPerDay: -1, // Unlimited
     maxAiSearchesPerDay: 50,
+    maxExportsPerDay: -1, // Unlimited
     canExport: true,
     canCompare: true,
     maxCompareItems: 10,

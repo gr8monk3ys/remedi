@@ -16,9 +16,14 @@ const mockUpdateReportContent = vi.fn();
 const mockCountMonthlyReports = vi.fn();
 const mockGenerateRemedyReport = vi.fn();
 const mockPrismaSubscriptionFindUnique = vi.fn();
+const mockGetTrialStatus = vi.fn();
 
 vi.mock("@/lib/auth", () => ({
   getCurrentUser: () => mockGetCurrentUser(),
+}));
+
+vi.mock("@/lib/trial", () => ({
+  getTrialStatus: (...args: unknown[]) => mockGetTrialStatus(...args),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -70,6 +75,15 @@ describe("/api/reports", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetCurrentUser.mockResolvedValue(authenticatedUser);
+    mockGetTrialStatus.mockResolvedValue({
+      isActive: false,
+      isEligible: true,
+      hasUsedTrial: false,
+      startDate: null,
+      endDate: null,
+      daysRemaining: 0,
+      plan: "basic",
+    });
     // Default: user has basic plan
     mockPrismaSubscriptionFindUnique.mockResolvedValue({
       plan: "basic",
@@ -182,7 +196,15 @@ describe("/api/reports", () => {
     });
 
     it("should return 403 when free user tries to generate report", async () => {
-      mockPrismaSubscriptionFindUnique.mockResolvedValue(null); // free plan
+      mockGetTrialStatus.mockResolvedValue({
+        isActive: false,
+        isEligible: true,
+        hasUsedTrial: false,
+        startDate: null,
+        endDate: null,
+        daysRemaining: 0,
+        plan: "free",
+      });
       mockCountMonthlyReports.mockResolvedValue(0);
       const { POST } = await import("@/app/api/reports/route");
       const request = new Request("http://localhost:3000/api/reports", {

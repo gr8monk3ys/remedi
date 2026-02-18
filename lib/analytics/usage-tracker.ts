@@ -163,9 +163,11 @@ export async function incrementUsage(
       ? "maxSearchesPerDay"
       : type === "aiSearches"
         ? "maxAiSearchesPerDay"
-        : type === "comparisons"
-          ? "maxCompareItems"
-          : "maxSearchesPerDay"; // exports use searches limit
+        : type === "exports"
+          ? "maxExportsPerDay"
+          : type === "comparisons"
+            ? "maxCompareItems"
+            : "maxSearchesPerDay";
 
   const limit = limits[limitKey];
 
@@ -235,9 +237,11 @@ export async function canPerformAction(
       ? "maxSearchesPerDay"
       : type === "aiSearches"
         ? "maxAiSearchesPerDay"
-        : type === "comparisons"
-          ? "maxCompareItems"
-          : "maxSearchesPerDay";
+        : type === "exports"
+          ? "maxExportsPerDay"
+          : type === "comparisons"
+            ? "maxCompareItems"
+            : "maxSearchesPerDay";
 
   const limit = limits[limitKey];
 

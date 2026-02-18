@@ -17,8 +17,13 @@ import {
   isFavorite,
   getCollectionNames,
   getFavoriteById,
+  prisma,
 } from "@/lib/db";
-import { successResponse, errorResponse } from "@/lib/api/response";
+import {
+  successResponse,
+  errorResponse,
+  getStatusCode,
+} from "@/lib/api/response";
 import {
   addFavoriteSchema,
   updateFavoriteSchema,
@@ -29,6 +34,8 @@ import {
 import { verifyOwnership, verifyResourceOwnership } from "@/lib/authorization";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { getEffectivePlanLimits } from "@/lib/trial";
+import { PLAN_LIMITS } from "@/lib/stripe-config";
 
 const logger = createLogger("favorites-api");
 
@@ -144,6 +151,52 @@ export async function POST(request: NextRequest) {
     );
     if (!authorized && error) {
       return error;
+    }
+
+    const { sessionId, userId } = validation.data;
+
+    if (!sessionId && !userId) {
+      return NextResponse.json(
+        errorResponse(
+          "INVALID_INPUT",
+          "Either sessionId or userId must be provided",
+        ),
+        { status: 400 },
+      );
+    }
+
+    // Enforce max favorites per plan (server-side).
+    let maxFavorites: number = PLAN_LIMITS.FREE.maxFavorites;
+    let plan = "free";
+    let isTrial = false;
+
+    if (userId) {
+      const effective = await getEffectivePlanLimits(userId);
+      maxFavorites = effective.limits.maxFavorites;
+      plan = effective.plan;
+      isTrial = effective.isTrial;
+    }
+
+    if (maxFavorites !== -1) {
+      const existingCount = await prisma.favorite.count({
+        where: userId ? { userId } : { sessionId: sessionId! },
+      });
+
+      if (existingCount >= maxFavorites) {
+        return NextResponse.json(
+          errorResponse(
+            "LIMIT_EXCEEDED",
+            `You've reached the maximum of ${maxFavorites} favorites on your ${plan} plan. Upgrade for more.`,
+            {
+              plan,
+              isTrial,
+              current: existingCount,
+              limit: maxFavorites,
+            },
+          ),
+          { status: getStatusCode("LIMIT_EXCEEDED") },
+        );
+      }
     }
 
     const favorite = await addFavorite(validation.data);

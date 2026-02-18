@@ -262,3 +262,66 @@ export function isStripeConfigured(): boolean {
     !!process.env.STRIPE_SECRET_KEY && !!process.env.STRIPE_PUBLISHABLE_KEY
   );
 }
+
+export type StripeMode = "test" | "live" | "unknown";
+
+/**
+ * Infer Stripe key mode from the configured secret/publishable keys.
+ *
+ * This is safe to expose in admin tooling since it does not reveal the key.
+ */
+export function getStripeMode(): StripeMode {
+  const secret = process.env.STRIPE_SECRET_KEY || "";
+  const publishable = process.env.STRIPE_PUBLISHABLE_KEY || "";
+
+  if (secret.startsWith("sk_test_") || publishable.startsWith("pk_test_")) {
+    return "test";
+  }
+  if (secret.startsWith("sk_live_") || publishable.startsWith("pk_live_")) {
+    return "live";
+  }
+  return "unknown";
+}
+
+export type StripeInvoiceSummary = {
+  id: string;
+  number: string | null;
+  status: Stripe.Invoice.Status | null;
+  currency: string;
+  amountDue: number;
+  amountPaid: number;
+  created: number;
+  hostedInvoiceUrl: string | null;
+  invoicePdf: string | null;
+  periodStart: number | null;
+  periodEnd: number | null;
+};
+
+/**
+ * List recent invoices for a Stripe customer.
+ *
+ * Note: amounts are returned in the smallest currency unit (e.g. cents).
+ */
+export async function listCustomerInvoices(
+  customerId: string,
+  { limit = 10 }: { limit?: number } = {},
+): Promise<StripeInvoiceSummary[]> {
+  const invoices = await getStripe().invoices.list({
+    customer: customerId,
+    limit,
+  });
+
+  return invoices.data.map((inv) => ({
+    id: inv.id,
+    number: inv.number ?? null,
+    status: inv.status ?? null,
+    currency: inv.currency,
+    amountDue: inv.amount_due,
+    amountPaid: inv.amount_paid,
+    created: inv.created,
+    hostedInvoiceUrl: inv.hosted_invoice_url ?? null,
+    invoicePdf: inv.invoice_pdf ?? null,
+    periodStart: inv.period_start ?? null,
+    periodEnd: inv.period_end ?? null,
+  }));
+}

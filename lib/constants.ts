@@ -40,9 +40,9 @@ export const PAGINATION_CONFIG = {
  */
 export const OPENFDA_CONFIG = {
   /** Base URL for OpenFDA API */
-  BASE_URL: 'https://api.fda.gov',
+  BASE_URL: "https://api.fda.gov",
   /** Drug label endpoint */
-  DRUG_LABEL_ENDPOINT: '/drug/label.json',
+  DRUG_LABEL_ENDPOINT: "/drug/label.json",
   /** Maximum retries for API requests */
   MAX_RETRIES: 3,
   /** Delay between retries (ms) */
@@ -70,14 +70,14 @@ export const DB_LIMITS = {
  * These are normalized during query processing
  */
 export const COMMON_SUFFIXES = [
-  'supplement',
-  'pill',
-  'tablet',
-  'capsule',
-  'medication',
-  'medicine',
-  'drug',
-  'dose',
+  "supplement",
+  "pill",
+  "tablet",
+  "capsule",
+  "medication",
+  "medicine",
+  "drug",
+  "dose",
 ] as const;
 
 /**
@@ -85,35 +85,30 @@ export const COMMON_SUFFIXES = [
  * Maps standard spellings to common misspellings for better search
  */
 export const SPELLING_VARIANTS: Record<string, readonly string[]> = {
-  ibuprofen: ['ibuprofin', 'ibuprophen', 'ibuprofen'],
-  acetaminophen: [
-    'acetaminophen',
-    'acetaminofin',
-    'acetaminophine',
-    'tylenol',
-  ],
-  tylenol: ['tylanol', 'tylenol', 'tilenol'],
-  vitamin: ['vitamine', 'vitamin', 'vitamins'],
-  melatonin: ['melatonine', 'melatonin', 'melatonen'],
-  aspirin: ['asprin', 'aspirin', 'aspirine'],
+  ibuprofen: ["ibuprofin", "ibuprophen", "ibuprofen"],
+  acetaminophen: ["acetaminophen", "acetaminofin", "acetaminophine", "tylenol"],
+  tylenol: ["tylanol", "tylenol", "tilenol"],
+  vitamin: ["vitamine", "vitamin", "vitamins"],
+  melatonin: ["melatonine", "melatonin", "melatonen"],
+  aspirin: ["asprin", "aspirin", "aspirine"],
   diphenhydramine: [
-    'diphenhydramine',
-    'diphenhydramin',
-    'diphenhydramine',
-    'benadryl',
+    "diphenhydramine",
+    "diphenhydramin",
+    "diphenhydramine",
+    "benadryl",
   ],
-  omeprazole: ['omeprazole', 'omeprazol', 'omeprezole'],
-  calcium: ['calcium', 'calcium carbonate', 'calcum'],
+  omeprazole: ["omeprazole", "omeprazol", "omeprezole"],
+  calcium: ["calcium", "calcium carbonate", "calcum"],
 } as const;
 
 /**
  * Evidence levels for natural remedies
  */
 export const EVIDENCE_LEVELS = {
-  STRONG: 'Strong',
-  MODERATE: 'Moderate',
-  LIMITED: 'Limited',
-  UNKNOWN: 'Unknown',
+  STRONG: "Strong",
+  MODERATE: "Moderate",
+  LIMITED: "Limited",
+  UNKNOWN: "Unknown",
 } as const;
 
 export type EvidenceLevel =
@@ -123,16 +118,16 @@ export type EvidenceLevel =
  * Remedy categories
  */
 export const REMEDY_CATEGORIES = {
-  FOOD: 'Food',
-  HERBAL_REMEDY: 'Herbal Remedy',
-  SPICE: 'Spice',
-  ROOT: 'Root',
-  HERBAL_TEA: 'Herbal Tea',
-  JUICE: 'Juice',
-  NATURAL_SOURCE: 'Natural Source',
-  SUPPLEMENT: 'Supplement',
-  MINERAL: 'Mineral',
-  VITAMIN: 'Vitamin',
+  FOOD: "Food",
+  HERBAL_REMEDY: "Herbal Remedy",
+  SPICE: "Spice",
+  ROOT: "Root",
+  HERBAL_TEA: "Herbal Tea",
+  JUICE: "Juice",
+  NATURAL_SOURCE: "Natural Source",
+  SUPPLEMENT: "Supplement",
+  MINERAL: "Mineral",
+  VITAMIN: "Vitamin",
 } as const;
 
 export type RemedyCategory =
@@ -142,16 +137,16 @@ export type RemedyCategory =
  * Pharmaceutical categories
  */
 export const PHARMACEUTICAL_CATEGORIES = {
-  PAIN_RELIEVER: 'Pain Reliever',
-  SLEEP_AID: 'Sleep Aid',
-  DIGESTIVE_HEALTH: 'Digestive Health',
-  ALLERGY_MEDICATION: 'Allergy Medication',
-  VITAMIN_SUPPLEMENT: 'Vitamin Supplement',
-  MINERAL_SUPPLEMENT: 'Mineral Supplement',
-  NUTRITIONAL_SUPPLEMENT: 'Nutritional Supplement',
-  ANTI_INFLAMMATORY: 'Anti-Inflammatory',
-  ANTIBIOTIC: 'Antibiotic',
-  ANTACID: 'Antacid',
+  PAIN_RELIEVER: "Pain Reliever",
+  SLEEP_AID: "Sleep Aid",
+  DIGESTIVE_HEALTH: "Digestive Health",
+  ALLERGY_MEDICATION: "Allergy Medication",
+  VITAMIN_SUPPLEMENT: "Vitamin Supplement",
+  MINERAL_SUPPLEMENT: "Mineral Supplement",
+  NUTRITIONAL_SUPPLEMENT: "Nutritional Supplement",
+  ANTI_INFLAMMATORY: "Anti-Inflammatory",
+  ANTIBIOTIC: "Antibiotic",
+  ANTACID: "Antacid",
 } as const;
 
 export type PharmaceuticalCategory =
@@ -161,9 +156,9 @@ export type PharmaceuticalCategory =
  * Replacement types for remedy mappings
  */
 export const REPLACEMENT_TYPES = {
-  ALTERNATIVE: 'Alternative',
-  COMPLEMENTARY: 'Complementary',
-  SUPPLEMENT: 'Supplement',
+  ALTERNATIVE: "Alternative",
+  COMPLEMENTARY: "Complementary",
+  SUPPLEMENT: "Supplement",
 } as const;
 
 export type ReplacementType =
@@ -190,7 +185,7 @@ export const RATE_LIMIT_CONFIG = {
   /** Time window in seconds */
   WINDOW_SECONDS: 60,
   /** Identifier for anonymous users */
-  ANONYMOUS_IDENTIFIER: 'anonymous',
+  ANONYMOUS_IDENTIFIER: "anonymous",
 } as const;
 
 /**
@@ -200,16 +195,11 @@ export const SECURITY_CONFIG = {
   /** Maximum request body size (bytes) */
   MAX_REQUEST_SIZE: 1048576, // 1MB
   /** Blocked user agents (bots, scrapers) */
-  BLOCKED_USER_AGENTS: [
-    'bot',
-    'crawler',
-    'spider',
-    'scraper',
-  ] as const,
+  BLOCKED_USER_AGENTS: ["bot", "crawler", "spider", "scraper"] as const,
   /** Allowed image domains for Next.js Image component */
   ALLOWED_IMAGE_DOMAINS: [
-    'images.unsplash.com',
-    'via.placeholder.com',
+    "images.unsplash.com",
+    "via.placeholder.com",
   ] as const,
 } as const;
 
@@ -217,12 +207,12 @@ export const SECURITY_CONFIG = {
  * Application Metadata
  */
 export const APP_METADATA = {
-  NAME: 'Remedi',
-  VERSION: '0.1.0',
-  API_VERSION: 'v1',
+  NAME: "Remedi",
+  VERSION: "0.1.0",
+  API_VERSION: "v1",
   DESCRIPTION:
-    'Find natural alternatives to pharmaceutical drugs and supplements',
-  AUTHOR: 'Remedi Team',
+    "Find natural alternatives to pharmaceutical drugs and supplements",
+  AUTHOR: "Remedi Team",
 } as const;
 
 /**
@@ -230,29 +220,29 @@ export const APP_METADATA = {
  */
 export const ERROR_MESSAGES = {
   // Client errors
-  QUERY_REQUIRED: 'Search query is required',
-  QUERY_TOO_SHORT: 'Search query is too short',
-  QUERY_TOO_LONG: 'Search query is too long (maximum 100 characters)',
-  INVALID_QUERY: 'Search query contains invalid characters',
-  REMEDY_NOT_FOUND: 'Remedy not found',
-  INVALID_REMEDY_ID: 'Invalid remedy ID format',
-  INVALID_PAGE: 'Invalid page number',
-  INVALID_PAGE_SIZE: 'Invalid page size',
+  QUERY_REQUIRED: "Search query is required",
+  QUERY_TOO_SHORT: "Search query is too short",
+  QUERY_TOO_LONG: "Search query is too long (maximum 100 characters)",
+  INVALID_QUERY: "Search query contains invalid characters",
+  REMEDY_NOT_FOUND: "Remedy not found",
+  INVALID_REMEDY_ID: "Invalid remedy ID format",
+  INVALID_PAGE: "Invalid page number",
+  INVALID_PAGE_SIZE: "Invalid page size",
   // Server errors
-  DATABASE_ERROR: 'Database error occurred',
-  FDA_API_ERROR: 'Error fetching data from FDA API',
-  INTERNAL_ERROR: 'Internal server error occurred',
-  SERVICE_UNAVAILABLE: 'Service temporarily unavailable',
-  RATE_LIMIT_EXCEEDED: 'Too many requests. Please try again later.',
+  DATABASE_ERROR: "Database error occurred",
+  FDA_API_ERROR: "Error fetching data from FDA API",
+  INTERNAL_ERROR: "Internal server error occurred",
+  SERVICE_UNAVAILABLE: "Service temporarily unavailable",
+  RATE_LIMIT_EXCEEDED: "Too many requests. Please try again later.",
 } as const;
 
 /**
  * Success Messages
  */
 export const SUCCESS_MESSAGES = {
-  SEARCH_COMPLETE: 'Search completed successfully',
-  REMEDY_FOUND: 'Remedy details retrieved successfully',
-  DATA_UPDATED: 'Data updated successfully',
+  SEARCH_COMPLETE: "Search completed successfully",
+  REMEDY_FOUND: "Remedy details retrieved successfully",
+  DATA_UPDATED: "Data updated successfully",
 } as const;
 
 /**
@@ -260,7 +250,7 @@ export const SUCCESS_MESSAGES = {
  * Used for placeholder images when no specific image is available
  */
 export const UNSPLASH_CONFIG = {
-  BASE_URL: 'https://images.unsplash.com',
+  BASE_URL: "https://images.unsplash.com",
   /** Default image dimensions */
   DEFAULT_WIDTH: 800,
   DEFAULT_HEIGHT: 600,
@@ -273,10 +263,10 @@ export const UNSPLASH_CONFIG = {
  * Centralized keys for localStorage to avoid conflicts
  */
 export const STORAGE_KEYS = {
-  SEARCH_HISTORY: 'remedi_search_history',
-  FAVORITES: 'remedi_favorites',
-  THEME: 'remedi_theme',
-  USER_PREFERENCES: 'remedi_user_preferences',
+  SEARCH_HISTORY: "remedi_search_history",
+  FAVORITES: "remedi_favorites",
+  THEME: "remedi_theme",
+  USER_PREFERENCES: "remedi_user_preferences",
 } as const;
 
 /**

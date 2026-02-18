@@ -9,6 +9,9 @@
 
 import { defineConfig, devices } from "@playwright/test";
 
+const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3000";
+const configuredWorkers = Number(process.env.PLAYWRIGHT_WORKERS || "4");
+
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -21,7 +24,7 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
 
-  /* Run tests in files in parallel */
+  /* Tests can run in parallel by default with local E2E auth mode enabled. */
   fullyParallel: true,
 
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -30,20 +33,19 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
 
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* CI runs serially; local defaults to PLAYWRIGHT_WORKERS (4). */
+  workers: process.env.CI ? 1 : configuredWorkers,
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ["html", { open: "never" }],
-    ["list"],
     process.env.CI ? ["github"] : ["list"],
   ],
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3000",
+    baseURL,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
@@ -96,8 +98,11 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "bun run dev",
-    url: "http://localhost:3000",
+    command:
+      process.env.PLAYWRIGHT_WEBSERVER_COMMAND ||
+      "export E2E_LOCAL_AUTH=true E2E_DISABLE_SENTRY=true; npm run dev -- --webpack",
+    url: baseURL,
+    cwd: process.cwd(),
     reuseExistingServer: true,
     stdout: "ignore",
     stderr: "pipe",

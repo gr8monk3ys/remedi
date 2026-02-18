@@ -28,16 +28,19 @@ Search for natural remedies based on a pharmaceutical drug or supplement name.
 **Endpoint**: `GET /api/search`
 
 **Query Parameters**:
+
 - `query` (required): Search query string (1-100 characters)
 - `sessionId` (optional): Session ID for tracking search history
 - `userId` (optional): User ID (for authenticated users)
 
 **Example Request**:
+
 ```bash
 curl "http://localhost:3000/api/search?query=ibuprofen&sessionId=123e4567-e89b-12d3-a456-426614174000"
 ```
 
 **Example Response**:
+
 ```json
 [
   {
@@ -53,11 +56,13 @@ curl "http://localhost:3000/api/search?query=ibuprofen&sessionId=123e4567-e89b-1
 ```
 
 **Search Strategy**:
+
 1. Database search (fastest)
 2. FDA OpenFDA API (external)
 3. Mock data fallback
 
 **Features**:
+
 - Automatic query normalization
 - Spelling variant handling
 - Search history tracking (when sessionId provided)
@@ -73,6 +78,7 @@ Records a search query for analytics and user history.
 **Endpoint**: `POST /api/search-history`
 
 **Request Body**:
+
 ```json
 {
   "query": "ibuprofen",
@@ -83,6 +89,7 @@ Records a search query for analytics and user history.
 ```
 
 **Example Response**:
+
 ```json
 {
   "success": true,
@@ -101,17 +108,20 @@ Retrieve recent searches for a session or user.
 **Endpoint**: `GET /api/search-history`
 
 **Query Parameters**:
+
 - `sessionId` (optional): Session ID
 - `userId` (optional): User ID
 - `limit` (optional): Number of results (default: 10, max: 100)
 - `popular` (optional): Set to "true" to get popular searches instead
 
 **Example Request**:
+
 ```bash
 curl "http://localhost:3000/api/search-history?sessionId=123e4567-e89b-12d3-a456-426614174000&limit=5"
 ```
 
 **Example Response**:
+
 ```json
 {
   "success": true,
@@ -136,10 +146,12 @@ Retrieve most frequently searched terms across all users.
 **Endpoint**: `GET /api/search-history?popular=true`
 
 **Query Parameters**:
+
 - `popular`: "true" (required)
 - `limit` (optional): Number of results (default: 5)
 
 **Example Response**:
+
 ```json
 {
   "success": true,
@@ -160,12 +172,14 @@ Delete all search history for a session or user.
 **Endpoint**: `DELETE /api/search-history`
 
 **Query Parameters**:
+
 - `sessionId` (optional): Session ID
 - `userId` (optional): User ID
 
 **Note**: At least one of sessionId or userId must be provided.
 
 **Example Response**:
+
 ```json
 {
   "success": true,
@@ -187,6 +201,7 @@ Add a natural remedy to favorites.
 **Endpoint**: `POST /api/favorites`
 
 **Request Body**:
+
 ```json
 {
   "remedyId": "2948e6c5-b2bf-45f6-90ea-88e1e8cef15b",
@@ -198,6 +213,7 @@ Add a natural remedy to favorites.
 ```
 
 **Example Response**:
+
 ```json
 {
   "success": true,
@@ -217,6 +233,7 @@ Add a natural remedy to favorites.
 ```
 
 **Error (409 Conflict)**:
+
 ```json
 {
   "success": false,
@@ -235,6 +252,7 @@ Retrieve all favorites for a session or user.
 **Endpoint**: `GET /api/favorites`
 
 **Query Parameters**:
+
 - `sessionId` (optional): Session ID
 - `userId` (optional): User ID
 - `collectionName` (optional): Filter by collection name
@@ -242,11 +260,13 @@ Retrieve all favorites for a session or user.
 - `check` (optional): Remedy ID to check if favorited
 
 **Example Request (Get all favorites)**:
+
 ```bash
 curl "http://localhost:3000/api/favorites?sessionId=123e4567-e89b-12d3-a456-426614174000"
 ```
 
 **Example Response**:
+
 ```json
 {
   "success": true,
@@ -268,11 +288,13 @@ curl "http://localhost:3000/api/favorites?sessionId=123e4567-e89b-12d3-a456-4266
 ```
 
 **Example Request (Get collections)**:
+
 ```bash
 curl "http://localhost:3000/api/favorites?sessionId=123e4567-e89b-12d3-a456-426614174000&collections=true"
 ```
 
 **Example Response**:
+
 ```json
 {
   "success": true,
@@ -283,11 +305,13 @@ curl "http://localhost:3000/api/favorites?sessionId=123e4567-e89b-12d3-a456-4266
 ```
 
 **Example Request (Check if favorited)**:
+
 ```bash
 curl "http://localhost:3000/api/favorites?sessionId=123e4567-e89b-12d3-a456-426614174000&check=2948e6c5-b2bf-45f6-90ea-88e1e8cef15b"
 ```
 
 **Example Response**:
+
 ```json
 {
   "success": true,
@@ -305,6 +329,7 @@ Update notes or collection name for a favorite.
 **Endpoint**: `PUT /api/favorites`
 
 **Request Body**:
+
 ```json
 {
   "id": "fav-123",
@@ -314,6 +339,7 @@ Update notes or collection name for a favorite.
 ```
 
 **Example Response**:
+
 ```json
 {
   "success": true,
@@ -339,14 +365,17 @@ Remove a remedy from favorites.
 **Endpoint**: `DELETE /api/favorites`
 
 **Query Parameters**:
+
 - `id` (required): Favorite ID (UUID)
 
 **Example Request**:
+
 ```bash
 curl -X DELETE "http://localhost:3000/api/favorites?id=fav-123"
 ```
 
 **Example Response**:
+
 ```json
 {
   "success": true,
@@ -367,6 +396,7 @@ Save or update filter preferences for a session or user.
 **Endpoint**: `POST /api/filter-preferences`
 
 **Request Body**:
+
 ```json
 {
   "sessionId": "123e4567-e89b-12d3-a456-426614174000",
@@ -379,6 +409,7 @@ Save or update filter preferences for a session or user.
 ```
 
 **Example Response**:
+
 ```json
 {
   "success": true,
@@ -405,17 +436,20 @@ Retrieve saved filter preferences.
 **Endpoint**: `GET /api/filter-preferences`
 
 **Query Parameters**:
+
 - `sessionId` (optional): Session ID
 - `userId` (optional): User ID
 
 **Note**: At least one of sessionId or userId must be provided.
 
 **Example Request**:
+
 ```bash
 curl "http://localhost:3000/api/filter-preferences?sessionId=123e4567-e89b-12d3-a456-426614174000"
 ```
 
 **Example Response (with saved preferences)**:
+
 ```json
 {
   "success": true,
@@ -436,6 +470,7 @@ curl "http://localhost:3000/api/filter-preferences?sessionId=123e4567-e89b-12d3-
 ```
 
 **Example Response (no saved preferences)**:
+
 ```json
 {
   "success": true,
@@ -459,12 +494,14 @@ Reset filter preferences to default.
 **Endpoint**: `DELETE /api/filter-preferences`
 
 **Query Parameters**:
+
 - `sessionId` (optional): Session ID
 - `userId` (optional): User ID
 
 **Note**: At least one of sessionId or userId must be provided.
 
 **Example Response**:
+
 ```json
 {
   "success": true,
@@ -485,14 +522,17 @@ Retrieve detailed information about a specific natural remedy.
 **Endpoint**: `GET /api/remedy/[id]`
 
 **Path Parameters**:
+
 - `id` (required): Remedy ID (UUID or slug format)
 
 **Example Request**:
+
 ```bash
 curl "http://localhost:3000/api/remedy/2948e6c5-b2bf-45f6-90ea-88e1e8cef15b"
 ```
 
 **Example Response**:
+
 ```json
 {
   "id": "2948e6c5-b2bf-45f6-90ea-88e1e8cef15b",
@@ -546,14 +586,14 @@ All API endpoints use standardized error responses.
 
 ### Error Codes
 
-| Code | Status | Description |
-|------|--------|-------------|
-| `INVALID_INPUT` | 400 | Request validation failed |
-| `MISSING_PARAMETER` | 400 | Required parameter not provided |
-| `RESOURCE_NOT_FOUND` | 404 | Requested resource doesn't exist |
-| `CONFLICT` | 409 | Resource already exists (e.g., duplicate favorite) |
-| `INTERNAL_ERROR` | 500 | Server error occurred |
-| `DATABASE_ERROR` | 500 | Database operation failed |
+| Code                 | Status | Description                                        |
+| -------------------- | ------ | -------------------------------------------------- |
+| `INVALID_INPUT`      | 400    | Request validation failed                          |
+| `MISSING_PARAMETER`  | 400    | Required parameter not provided                    |
+| `RESOURCE_NOT_FOUND` | 404    | Requested resource doesn't exist                   |
+| `CONFLICT`           | 409    | Resource already exists (e.g., duplicate favorite) |
+| `INTERNAL_ERROR`     | 500    | Server error occurred                              |
+| `DATABASE_ERROR`     | 500    | Database operation failed                          |
 
 ### Example Error Response
 
@@ -595,7 +635,7 @@ All successful API responses follow this format:
 Use the session utility to manage anonymous user sessions:
 
 ```typescript
-import { getSessionId } from '@/lib/session';
+import { getSessionId } from "@/lib/session";
 
 // Get or create session ID
 const sessionId = getSessionId();
@@ -612,8 +652,8 @@ All API validation schemas and types are available in `lib/validations/api.ts`:
 import type {
   SearchQuery,
   AddFavorite,
-  SaveFilterPreferences
-} from '@/lib/validations/api';
+  SaveFilterPreferences,
+} from "@/lib/validations/api";
 ```
 
 ---
@@ -629,6 +669,7 @@ Currently, no rate limiting is implemented. This will be added in a future updat
 ## Changelog
 
 ### 2025-10-26
+
 - Added Search History API
 - Added Favorites API with full CRUD operations
 - Added Filter Preferences API
@@ -636,6 +677,7 @@ Currently, no rate limiting is implemented. This will be added in a future updat
 - Created session management utility
 
 ### Previous
+
 - Initial API implementation
 - Search endpoint with multi-tier strategy
 - Remedy details endpoint

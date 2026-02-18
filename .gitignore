@@ -47,3 +47,12 @@ test-results/
 # clerk configuration (can include secrets)
 /.clerk/
 .env*.local
+
+# tooling
+.playwright-mcp/
+
+# local audit screenshots (not part of the product)
+audit-*.png
+fixed-*.png
+homepage.png
+about-page.png

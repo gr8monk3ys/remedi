@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, type ReactNode } from "react";
+import { Component, type ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   useUser,
@@ -55,8 +55,30 @@ class AuthErrorBoundary extends Component<
 
 function AuthSection(): ReactNode {
   const { isLoaded } = useUser();
+  const [showFallbackSignIn, setShowFallbackSignIn] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded) {
+      setShowFallbackSignIn(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setShowFallbackSignIn(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [isLoaded]);
 
   if (!isLoaded) {
+    if (showFallbackSignIn) {
+      return (
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/sign-in">Sign In</Link>
+        </Button>
+      );
+    }
+
     return <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />;
   }
 

@@ -13,7 +13,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { mockSessionId, mockFavorite } from "../mocks";
 
 // Mock database functions
+const mockFavoriteCount = vi.fn();
 vi.mock("@/lib/db", () => ({
+  prisma: {
+    favorite: {
+      count: (...args: unknown[]) => mockFavoriteCount(...args),
+    },
+  },
   addFavorite: vi.fn(),
   getFavorites: vi.fn(),
   updateFavorite: vi.fn(),
@@ -61,6 +67,7 @@ import { GET, POST, PUT, DELETE } from "@/app/api/favorites/route";
 describe("/api/favorites", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFavoriteCount.mockResolvedValue(0);
     vi.mocked(verifyOwnership).mockResolvedValue({
       authorized: true,
       currentUserId: null,

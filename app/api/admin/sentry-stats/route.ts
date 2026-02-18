@@ -4,14 +4,12 @@ import { getCurrentUser, isAdmin } from "@/lib/auth";
 const SENTRY_BASE = "https://sentry.io/api/0";
 const CACHE_TTL_SECONDS = Number(process.env.SENTRY_STATS_TTL || "60");
 let cachedAt = 0;
-let cachedResponse:
-  | {
-      ok: boolean;
-      errorCount24h?: number;
-      lastEventAt?: string | null;
-      message?: string;
-    }
-  | null = null;
+let cachedResponse: {
+  ok: boolean;
+  errorCount24h?: number;
+  lastEventAt?: string | null;
+  message?: string;
+} | null = null;
 
 function requiredEnv(name: string): string | null {
   const value = process.env[name];
@@ -25,7 +23,7 @@ export async function GET(_request: NextRequest) {
   if (!currentUser || !userIsAdmin) {
     return NextResponse.json(
       { ok: false, message: "Admin access required" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 

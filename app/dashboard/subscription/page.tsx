@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { PLANS } from "@/lib/stripe-config";
+import { isStripeConfigured, listCustomerInvoices } from "@/lib/stripe";
 import { SubscriptionClient } from "./subscription-client";
 import type { PlanType } from "@/lib/stripe-config";
 import type { Metadata } from "next";
@@ -34,6 +35,7 @@ export default async function SubscriptionPage(): Promise<React.JSX.Element | nu
       interval: true,
       currentPeriodEnd: true,
       cancelAtPeriodEnd: true,
+      customerId: true,
     },
   });
 
@@ -57,6 +59,51 @@ export default async function SubscriptionPage(): Promise<React.JSX.Element | nu
     subscription.status === "active" &&
     currentPlan !== "free";
 
+  let invoices: Array<{
+    id: string;
+    number: string | null;
+    status: string | null;
+    currency: string;
+    amountDue: number;
+    amountPaid: number;
+    createdAt: string;
+    hostedInvoiceUrl: string | null;
+    invoicePdf: string | null;
+    periodStart: string | null;
+    periodEnd: string | null;
+  }> = [];
+
+  if (
+    hasActiveSubscription &&
+    subscription?.customerId &&
+    isStripeConfigured()
+  ) {
+    try {
+      const raw = await listCustomerInvoices(subscription.customerId, {
+        limit: 6,
+      });
+      invoices = raw.map((inv) => ({
+        id: inv.id,
+        number: inv.number,
+        status: inv.status,
+        currency: inv.currency,
+        amountDue: inv.amountDue,
+        amountPaid: inv.amountPaid,
+        createdAt: new Date(inv.created * 1000).toISOString(),
+        hostedInvoiceUrl: inv.hostedInvoiceUrl,
+        invoicePdf: inv.invoicePdf,
+        periodStart: inv.periodStart
+          ? new Date(inv.periodStart * 1000).toISOString()
+          : null,
+        periodEnd: inv.periodEnd
+          ? new Date(inv.periodEnd * 1000).toISOString()
+          : null,
+      }));
+    } catch {
+      invoices = [];
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -74,6 +121,7 @@ export default async function SubscriptionPage(): Promise<React.JSX.Element | nu
         currentPeriodEnd={subscription?.currentPeriodEnd?.toISOString() ?? null}
         cancelAtPeriodEnd={subscription?.cancelAtPeriodEnd ?? false}
         hasActiveSubscription={hasActiveSubscription}
+        invoices={invoices}
         usage={{
           favorites: {
             current: favoritesCount,

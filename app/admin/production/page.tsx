@@ -1,18 +1,20 @@
 import { isConnected, prisma } from "@/lib/db";
-import { hasUpstashRedis } from "@/lib/env";
-import { getStripe } from "@/lib/stripe";
+import { getStripe, getStripeMode } from "@/lib/stripe";
 import { isSentryConfigured } from "@/lib/observability";
 import { HealthStatus } from "./health-status";
 import { SentryStatus } from "./sentry-status";
+import { UpstashStatus } from "./upstash-status";
 import { ProductionCheckButton } from "./production-check";
 
 export const dynamic = "force-dynamic";
 
 const REQUIRED_ENV = [
-  "AUTH_SECRET",
-  "NEXTAUTH_URL",
+  "DATABASE_URL",
+  "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+  "CLERK_SECRET_KEY",
   "NEXT_PUBLIC_APP_URL",
   "STRIPE_SECRET_KEY",
+  "STRIPE_PUBLISHABLE_KEY",
   "STRIPE_WEBHOOK_SECRET",
   "STRIPE_BASIC_MONTHLY_PRICE_ID",
   "STRIPE_BASIC_YEARLY_PRICE_ID",
@@ -21,11 +23,18 @@ const REQUIRED_ENV = [
 ];
 
 const RECOMMENDED_ENV = [
+  "CLERK_WEBHOOK_SECRET",
+  "AUTH_SECRET",
+  "OPENAI_API_KEY",
+  "OPENFDA_API_KEY",
   "NEXT_PUBLIC_SENTRY_DSN",
+  "NEXT_PUBLIC_SENTRY_RELEASE",
   "SENTRY_AUTH_TOKEN",
+  "SENTRY_ORG",
+  "SENTRY_PROJECT",
   "UPSTASH_REDIS_REST_URL",
   "UPSTASH_REDIS_REST_TOKEN",
-  "EMAIL_SERVER",
+  "RESEND_API_KEY",
   "EMAIL_FROM",
 ];
 
@@ -40,8 +49,8 @@ export default async function ProductionReadinessPage() {
   const required = checkEnvStatus(REQUIRED_ENV);
   const recommended = checkEnvStatus(RECOMMENDED_ENV);
   const dbOk = await isConnected();
-  const upstashOk = hasUpstashRedis();
   const sentryOk = isSentryConfigured();
+  const stripeMode = getStripeMode();
   const webhookStatus = await prisma.webhookStatus.findUnique({
     where: { provider: "stripe" },
     select: { lastReceivedAt: true, lastEventType: true },
@@ -52,6 +61,37 @@ export default async function ProductionReadinessPage() {
     stripeOk = true;
   } catch {
     stripeOk = false;
+  }
+
+  let remediesTotal = 0;
+  let remediesMissingSourceUrl = 0;
+  let pharmaTotal = 0;
+  let pharmaWithoutMappings = 0;
+  let mappingsTotal = 0;
+  let interactionsTotal = 0;
+
+  if (dbOk) {
+    try {
+      [
+        remediesTotal,
+        remediesMissingSourceUrl,
+        pharmaTotal,
+        pharmaWithoutMappings,
+        mappingsTotal,
+        interactionsTotal,
+      ] = await Promise.all([
+        prisma.naturalRemedy.count(),
+        prisma.naturalRemedy.count({
+          where: { OR: [{ sourceUrl: null }, { sourceUrl: "" }] },
+        }),
+        prisma.pharmaceutical.count(),
+        prisma.pharmaceutical.count({ where: { remedies: { none: {} } } }),
+        prisma.naturalRemedyMapping.count(),
+        prisma.drugInteraction.count(),
+      ]);
+    } catch {
+      // Data health metrics are best-effort; don't block the page.
+    }
   }
 
   const missingRequired = required.filter((item) => !item.present).length;
@@ -138,15 +178,14 @@ export default async function ProductionReadinessPage() {
             value={dbOk ? "Healthy" : "Unavailable"}
             status={dbOk ? "good" : "bad"}
           />
-          <ServiceRow
-            label="Upstash Redis"
-            value={upstashOk ? "Configured" : "Not configured"}
-            status={upstashOk ? "good" : "warn"}
-          />
+          <UpstashStatus />
           <ServiceRow
             label="Stripe"
             value={stripeOk ? "Reachable" : "Unavailable"}
             status={stripeOk ? "good" : "warn"}
+            subtitle={
+              stripeMode !== "unknown" ? `Mode: ${stripeMode}` : undefined
+            }
           />
           <ServiceRow
             label="Sentry"
@@ -165,6 +204,41 @@ export default async function ProductionReadinessPage() {
           />
           <HealthStatus />
           <SentryStatus />
+        </div>
+      </section>
+
+      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
+        <h2 className="text-xl font-semibold text-foreground mb-4">
+          Data Health
+        </h2>
+        <div className="grid md:grid-cols-2 gap-4">
+          <ServiceRow
+            label="Natural remedies"
+            value={dbOk ? `${remediesTotal} total` : "Unavailable"}
+            status={
+              !dbOk ? "warn" : remediesMissingSourceUrl === 0 ? "good" : "warn"
+            }
+            subtitle={
+              dbOk ? `${remediesMissingSourceUrl} missing sourceUrl` : undefined
+            }
+          />
+          <ServiceRow
+            label="Pharmaceutical coverage"
+            value={dbOk ? `${pharmaTotal} pharmaceuticals` : "Unavailable"}
+            status={
+              !dbOk ? "warn" : pharmaWithoutMappings === 0 ? "good" : "warn"
+            }
+            subtitle={
+              dbOk
+                ? `${pharmaWithoutMappings} without mappings • ${mappingsTotal} total mappings`
+                : undefined
+            }
+          />
+          <ServiceRow
+            label="Drug interactions"
+            value={dbOk ? `${interactionsTotal} interactions` : "Unavailable"}
+            status={!dbOk ? "warn" : interactionsTotal > 0 ? "good" : "warn"}
+          />
         </div>
       </section>
 

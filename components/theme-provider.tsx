@@ -3,7 +3,7 @@
 import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
-type Attribute = 'class' | 'data-theme' | 'data-mode';
+type Attribute = "class" | "data-theme" | "data-mode";
 
 interface ThemeProviderProps {
   children: React.ReactNode;

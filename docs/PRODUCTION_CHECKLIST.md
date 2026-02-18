@@ -21,15 +21,15 @@ Use this checklist to ensure Remedi is ready for production launch.
 - [ ] `NODE_ENV` = `production`
 - [ ] `DATABASE_URL` - PostgreSQL connection string (with pooling)
 - [ ] `DIRECT_URL` - Direct PostgreSQL connection (for migrations)
-- [ ] `NEXTAUTH_SECRET` - Secure random string (32+ characters)
-- [ ] `NEXTAUTH_URL` - Production URL (e.g., `https://remedi.com`)
+- [ ] `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk publishable key
+- [ ] `CLERK_SECRET_KEY` - Clerk secret key
+- [ ] `NEXT_PUBLIC_APP_URL` - Production URL (e.g., `https://remedi.com`)
 
 #### Authentication
 
-- [ ] `GOOGLE_CLIENT_ID` - Google OAuth client ID
-- [ ] `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
-- [ ] `GITHUB_ID` - GitHub OAuth client ID
-- [ ] `GITHUB_SECRET` - GitHub OAuth client secret
+- [ ] `CLERK_WEBHOOK_SECRET` - Clerk webhook signing secret
+- [ ] `NEXT_PUBLIC_CLERK_SIGN_IN_URL` - Sign-in route (typically `/sign-in`)
+- [ ] `NEXT_PUBLIC_CLERK_SIGN_UP_URL` - Sign-up route (typically `/sign-up`)
 
 #### Payments (Stripe)
 
@@ -43,8 +43,7 @@ Use this checklist to ensure Remedi is ready for production launch.
 
 #### Monitoring
 
-- [ ] `NEXT_PUBLIC_SENTRY_DSN` - Sentry DSN for client-side
-- [ ] `SENTRY_DSN` - Sentry DSN for server-side
+- [ ] `NEXT_PUBLIC_SENTRY_DSN` - Sentry DSN (client + server)
 - [ ] `SENTRY_AUTH_TOKEN` - Auth token for source map uploads
 - [ ] `SENTRY_ORG` - Sentry organization slug
 - [ ] `SENTRY_PROJECT` - Sentry project slug
@@ -61,11 +60,15 @@ Use this checklist to ensure Remedi is ready for production launch.
 - [ ] `RESEND_API_KEY` - For transactional emails
 - [ ] `EMAIL_FROM` - Verified sender email address
 
-### OAuth Configuration
+### Clerk Configuration
 
-- [ ] **Google OAuth** - Redirect URI configured: `https://your-domain.com/api/auth/callback/google`
-- [ ] **GitHub OAuth** - Callback URL configured: `https://your-domain.com/api/auth/callback/github`
-- [ ] **OAuth apps use production credentials** (not development/test)
+- [ ] **Production domain configured** in Clerk dashboard
+- [ ] **Sign-in/sign-up URLs configured** to match app routes
+- [ ] **Webhook endpoint configured**: `https://your-domain.com/api/webhooks/clerk`
+- [ ] **Webhook events enabled**:
+  - [ ] `user.created`
+  - [ ] `user.updated`
+  - [ ] `user.deleted`
 
 ### Stripe Configuration
 
@@ -87,6 +90,7 @@ Use this checklist to ensure Remedi is ready for production launch.
 - [ ] **DSN configured** in environment variables
 - [ ] **Source maps uploading** during build
 - [ ] **Alerts configured** for new errors
+- [ ] **Rate-limit alert rule** for `API rate limit exceeded` (tag: `rate_limit.identifier`)
 - [ ] **Team notifications** set up (Slack, email, PagerDuty)
 
 ### DNS & SSL
@@ -207,19 +211,21 @@ Use this checklist to ensure Remedi is ready for production launch.
 
 Set up alerts for:
 
-| Service | URL | Alert Threshold |
-|---------|-----|-----------------|
-| API Health | `/api/health` | Down > 1 min |
-| Homepage | `/` | Down > 2 min |
-| Search API | `/api/search?query=test` | Error > 5% |
+| Service    | URL                      | Alert Threshold |
+| ---------- | ------------------------ | --------------- |
+| API Health | `/api/health`            | Down > 1 min    |
+| Homepage   | `/`                      | Down > 2 min    |
+| Search API | `/api/search?query=test` | Error > 5%      |
 
 ### Error Monitoring (Sentry)
 
 Configure alerts for:
 
+- See `docs/SENTRY_ALERTS.md` for recommended rules and tags.
 - [ ] **New errors** - Alert immediately
 - [ ] **Error spike** - >10 errors/minute
 - [ ] **P99 latency** - >3 seconds
+- [ ] **429 spike** - rate-limit exceeded events increase abnormally
 
 ### Resource Monitoring
 
@@ -233,29 +239,29 @@ Watch for:
 
 ## Support Contacts
 
-| Service | Support Link |
-|---------|--------------|
-| Vercel | https://vercel.com/support |
-| Stripe | https://support.stripe.com |
-| Sentry | https://sentry.io/support |
-| Neon | https://neon.tech/docs |
+| Service  | Support Link                 |
+| -------- | ---------------------------- |
+| Vercel   | https://vercel.com/support   |
+| Stripe   | https://support.stripe.com   |
+| Sentry   | https://sentry.io/support    |
+| Neon     | https://neon.tech/docs       |
 | Supabase | https://supabase.com/support |
-| Upstash | https://upstash.com/docs |
+| Upstash  | https://upstash.com/docs     |
 
 ---
 
 ## Checklist Sign-Off
 
-| Role | Name | Date | Signature |
-|------|------|------|-----------|
-| Developer | | | |
-| DevOps | | | |
-| Product Owner | | | |
+| Role          | Name | Date | Signature |
+| ------------- | ---- | ---- | --------- |
+| Developer     |      |      |           |
+| DevOps        |      |      |           |
+| Product Owner |      |      |           |
 
 ---
 
-**Launch Date**: _______________
+**Launch Date**: **\*\***\_\_\_**\*\***
 
-**Launch Time**: _______________
+**Launch Time**: **\*\***\_\_\_**\*\***
 
-**Version**: _______________
+**Version**: **\*\***\_\_\_**\*\***

@@ -4,14 +4,14 @@
  * Sent when a user requests a password reset (for future email auth).
  */
 
-import { Button, Heading, Section, Text } from '@react-email/components'
-import * as React from 'react'
-import { BaseLayout } from './base-layout'
-import { PasswordResetData } from '../types'
-import { EMAIL_BRAND } from '../config'
+import { Button, Heading, Section, Text } from "@react-email/components";
+import * as React from "react";
+import { BaseLayout } from "./base-layout";
+import { PasswordResetData } from "../types";
+import { EMAIL_BRAND } from "../config";
 
 interface PasswordResetEmailProps extends PasswordResetData {
-  userId?: string
+  userId?: string;
 }
 
 export function PasswordResetEmail({
@@ -26,7 +26,7 @@ export function PasswordResetEmail({
       <Text style={styles.greeting}>Hi {name},</Text>
 
       <Text style={styles.paragraph}>
-        We received a request to reset the password for your {EMAIL_BRAND.name}{' '}
+        We received a request to reset the password for your {EMAIL_BRAND.name}{" "}
         account. Click the button below to create a new password.
       </Text>
 
@@ -69,93 +69,93 @@ export function PasswordResetEmail({
         The {EMAIL_BRAND.name} Team
       </Text>
     </BaseLayout>
-  )
+  );
 }
 
 const styles = {
   heading: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '24px',
-    fontWeight: 'bold' as const,
-    margin: '0 0 24px 0',
-    textAlign: 'center' as const,
+    fontSize: "24px",
+    fontWeight: "bold" as const,
+    margin: "0 0 24px 0",
+    textAlign: "center" as const,
   },
   greeting: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '16px',
-    lineHeight: '24px',
-    margin: '0 0 16px 0',
+    fontSize: "16px",
+    lineHeight: "24px",
+    margin: "0 0 16px 0",
   },
   paragraph: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '14px',
-    lineHeight: '24px',
-    margin: '0 0 16px 0',
+    fontSize: "14px",
+    lineHeight: "24px",
+    margin: "0 0 16px 0",
   },
   ctaSection: {
-    margin: '32px 0',
-    textAlign: 'center' as const,
+    margin: "32px 0",
+    textAlign: "center" as const,
   },
   ctaButton: {
     backgroundColor: EMAIL_BRAND.primaryColor,
-    borderRadius: '6px',
-    color: '#ffffff',
-    display: 'inline-block',
-    fontSize: '16px',
-    fontWeight: 'bold' as const,
-    padding: '14px 40px',
-    textDecoration: 'none',
+    borderRadius: "6px",
+    color: "#ffffff",
+    display: "inline-block",
+    fontSize: "16px",
+    fontWeight: "bold" as const,
+    padding: "14px 40px",
+    textDecoration: "none",
   },
   expirySection: {
-    backgroundColor: '#fef3c7',
-    border: '1px solid #f59e0b',
-    borderRadius: '8px',
-    margin: '24px 0',
-    padding: '12px 16px',
-    textAlign: 'center' as const,
+    backgroundColor: "#fef3c7",
+    border: "1px solid #f59e0b",
+    borderRadius: "8px",
+    margin: "24px 0",
+    padding: "12px 16px",
+    textAlign: "center" as const,
   },
   expiryText: {
-    color: '#92400e',
-    fontSize: '13px',
-    margin: '0',
+    color: "#92400e",
+    fontSize: "13px",
+    margin: "0",
   },
   urlSection: {
-    backgroundColor: '#f9fafb',
-    borderRadius: '4px',
-    margin: '16px 0',
-    padding: '12px',
-    wordBreak: 'break-all' as const,
+    backgroundColor: "#f9fafb",
+    borderRadius: "4px",
+    margin: "16px 0",
+    padding: "12px",
+    wordBreak: "break-all" as const,
   },
   urlText: {
     color: EMAIL_BRAND.primaryColor,
-    fontSize: '12px',
-    margin: '0',
+    fontSize: "12px",
+    margin: "0",
   },
   securitySection: {
-    backgroundColor: '#fef2f2',
-    border: '1px solid #fecaca',
-    borderRadius: '8px',
-    margin: '24px 0',
-    padding: '16px',
+    backgroundColor: "#fef2f2",
+    border: "1px solid #fecaca",
+    borderRadius: "8px",
+    margin: "24px 0",
+    padding: "16px",
   },
   securityTitle: {
-    color: '#991b1b',
-    fontSize: '14px',
-    fontWeight: 'bold' as const,
-    margin: '0 0 8px 0',
+    color: "#991b1b",
+    fontSize: "14px",
+    fontWeight: "bold" as const,
+    margin: "0 0 8px 0",
   },
   securityText: {
-    color: '#991b1b',
-    fontSize: '13px',
-    lineHeight: '20px',
-    margin: '0 0 8px 0',
+    color: "#991b1b",
+    fontSize: "13px",
+    lineHeight: "20px",
+    margin: "0 0 8px 0",
   },
   signature: {
     color: EMAIL_BRAND.textColor,
-    fontSize: '14px',
-    lineHeight: '24px',
-    margin: '24px 0 0 0',
+    fontSize: "14px",
+    lineHeight: "24px",
+    margin: "24px 0 0 0",
   },
-}
+};
 
-export default PasswordResetEmail
+export default PasswordResetEmail;

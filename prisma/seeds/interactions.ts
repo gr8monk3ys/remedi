@@ -953,8 +953,8 @@ export const drugInteractions: InteractionSeedData[] = [
 export async function seedInteractions(
   prisma: import("@prisma/client").PrismaClient,
 ): Promise<void> {
-  console.log("\nSeeding drug interactions...");
-  console.log(`Total interactions to seed: ${drugInteractions.length}`);
+  console.warn("\nSeeding drug interactions...");
+  console.warn(`Total interactions to seed: ${drugInteractions.length}`);
 
   let created = 0;
   let skipped = 0;
@@ -1001,7 +1001,7 @@ export async function seedInteractions(
     }
   }
 
-  console.log(
+  console.warn(
     `Drug interactions seeded: ${created} created/updated, ${skipped} skipped.`,
   );
 }

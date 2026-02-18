@@ -42,6 +42,7 @@ export {
   getNaturalRemedyById,
   searchNaturalRemedies,
   getNaturalRemediesForPharmaceutical,
+  generateRemedyMappingsForPharmaceutical,
   toDetailedRemedy,
   createRemedyMapping,
   getAllCategories,

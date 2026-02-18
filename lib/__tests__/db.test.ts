@@ -8,6 +8,7 @@ const {
   mockSearchHistory,
   mockFavorite,
   mockFilterPreference,
+  mockQueryRaw,
   mockDisconnect,
 } = vi.hoisted(() => ({
   mockPharmaceutical: {
@@ -43,6 +44,7 @@ const {
     findFirst: vi.fn(),
     deleteMany: vi.fn(),
   },
+  mockQueryRaw: vi.fn(),
   mockDisconnect: vi.fn(),
 }));
 
@@ -57,6 +59,7 @@ vi.mock("@prisma/client", () => {
         searchHistory: mockSearchHistory,
         favorite: mockFavorite,
         filterPreference: mockFilterPreference,
+        $queryRaw: mockQueryRaw,
         $disconnect: mockDisconnect,
       };
     },
@@ -89,7 +92,7 @@ describe("db module", () => {
   });
 
   describe("searchPharmaceuticals", () => {
-    it("should search pharmaceuticals by lowercase query", async () => {
+    it("should search pharmaceuticals by query", async () => {
       const mockResults = [
         {
           id: "1",
@@ -107,20 +110,11 @@ describe("db module", () => {
         },
       ];
 
-      (mockPharmaceutical.findMany as Mock).mockResolvedValue(mockResults);
+      (mockQueryRaw as Mock).mockResolvedValue(mockResults);
 
       const results = await searchPharmaceuticals("Ibuprofen");
 
-      expect(mockPharmaceutical.findMany).toHaveBeenCalledWith({
-        where: {
-          OR: [
-            { name: { contains: "ibuprofen" } },
-            { description: { contains: "ibuprofen" } },
-            { category: { contains: "ibuprofen" } },
-          ],
-        },
-        take: 10,
-      });
+      expect(mockQueryRaw).toHaveBeenCalled();
 
       expect(results).toHaveLength(1);
       expect(results[0].ingredients).toEqual(["ibuprofen"]);
@@ -128,7 +122,7 @@ describe("db module", () => {
     });
 
     it("should return empty array when no results", async () => {
-      (mockPharmaceutical.findMany as Mock).mockResolvedValue([]);
+      (mockQueryRaw as Mock).mockResolvedValue([]);
 
       const results = await searchPharmaceuticals("nonexistent");
       expect(results).toEqual([]);

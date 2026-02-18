@@ -14,14 +14,14 @@ import {
   Preview,
   Section,
   Text,
-} from '@react-email/components'
-import * as React from 'react'
-import { EMAIL_BRAND, getEmailUrl, EMAIL_URLS } from '../config'
+} from "@react-email/components";
+import * as React from "react";
+import { EMAIL_BRAND, getEmailUrl, EMAIL_URLS } from "../config";
 
 interface BaseLayoutProps {
-  preview: string
-  children: React.ReactNode
-  unsubscribeUrl?: string
+  preview: string;
+  children: React.ReactNode;
+  unsubscribeUrl?: string;
 }
 
 export function BaseLayout({
@@ -29,7 +29,7 @@ export function BaseLayout({
   children,
   unsubscribeUrl,
 }: BaseLayoutProps): React.ReactElement {
-  const currentYear = new Date().getFullYear()
+  const currentYear = new Date().getFullYear();
 
   return (
     <Html>
@@ -52,7 +52,7 @@ export function BaseLayout({
           <Section style={styles.footer}>
             <Text style={styles.footerText}>
               This email was sent by {EMAIL_BRAND.name}. If you have any
-              questions, please contact us at{' '}
+              questions, please contact us at{" "}
               <Link
                 href={getEmailUrl(EMAIL_URLS.support)}
                 style={styles.footerLink}
@@ -68,7 +68,7 @@ export function BaseLayout({
               >
                 Privacy Policy
               </Link>
-              {' | '}
+              {" | "}
               <Link
                 href={getEmailUrl(EMAIL_URLS.termsOfService)}
                 style={styles.footerLink}
@@ -77,7 +77,7 @@ export function BaseLayout({
               </Link>
               {unsubscribeUrl && (
                 <>
-                  {' | '}
+                  {" | "}
                   <Link href={unsubscribeUrl} style={styles.footerLink}>
                     Unsubscribe
                   </Link>
@@ -92,7 +92,7 @@ export function BaseLayout({
         </Container>
       </Body>
     </Html>
-  )
+  );
 }
 
 const styles = {
@@ -100,63 +100,63 @@ const styles = {
     backgroundColor: EMAIL_BRAND.backgroundColor,
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-    margin: '0',
-    padding: '0',
+    margin: "0",
+    padding: "0",
   },
   container: {
-    backgroundColor: '#ffffff',
-    margin: '0 auto',
-    maxWidth: '600px',
-    padding: '0',
+    backgroundColor: "#ffffff",
+    margin: "0 auto",
+    maxWidth: "600px",
+    padding: "0",
   },
   header: {
     backgroundColor: EMAIL_BRAND.primaryColor,
-    padding: '32px 24px',
-    textAlign: 'center' as const,
+    padding: "32px 24px",
+    textAlign: "center" as const,
   },
   logoLink: {
-    textDecoration: 'none',
+    textDecoration: "none",
   },
   logoText: {
-    color: '#ffffff',
-    fontSize: '32px',
-    fontWeight: 'bold' as const,
-    margin: '0',
+    color: "#ffffff",
+    fontSize: "32px",
+    fontWeight: "bold" as const,
+    margin: "0",
   },
   tagline: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: '14px',
-    margin: '8px 0 0 0',
+    color: "rgba(255, 255, 255, 0.9)",
+    fontSize: "14px",
+    margin: "8px 0 0 0",
   },
   content: {
-    padding: '32px 24px',
+    padding: "32px 24px",
   },
   footer: {
-    backgroundColor: '#f3f4f6',
-    borderTop: '1px solid #e5e7eb',
-    padding: '24px',
-    textAlign: 'center' as const,
+    backgroundColor: "#f3f4f6",
+    borderTop: "1px solid #e5e7eb",
+    padding: "24px",
+    textAlign: "center" as const,
   },
   footerText: {
     color: EMAIL_BRAND.footerColor,
-    fontSize: '12px',
-    lineHeight: '20px',
-    margin: '0 0 16px 0',
+    fontSize: "12px",
+    lineHeight: "20px",
+    margin: "0 0 16px 0",
   },
   footerLinks: {
     color: EMAIL_BRAND.footerColor,
-    fontSize: '12px',
-    margin: '0 0 16px 0',
+    fontSize: "12px",
+    margin: "0 0 16px 0",
   },
   footerLink: {
     color: EMAIL_BRAND.primaryColor,
-    textDecoration: 'none',
+    textDecoration: "none",
   },
   copyright: {
-    color: '#9ca3af',
-    fontSize: '11px',
-    margin: '0',
+    color: "#9ca3af",
+    fontSize: "11px",
+    margin: "0",
   },
-}
+};
 
-export default BaseLayout
+export default BaseLayout;
