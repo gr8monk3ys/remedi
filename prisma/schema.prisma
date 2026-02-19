@@ -529,3 +529,27 @@ model RemedyReport {
 
   @@index([userId])
 }
+
+// Dead-letter queue for failed Stripe webhook events.
+// Events are upserted here before handler execution (status="pending").
+// On success they transition to "processed". On failure they transition
+// to "failed" with the error preserved for manual replay.
+// We always return HTTP 200 to Stripe after storing the event so Stripe
+// stops retrying — recovery is done by replaying rows where status="failed".
+model WebhookEvent {
+  id            String    @id @default(cuid())
+  stripeEventId String    @unique
+  type          String
+  payload       Json
+  status        String    @default("pending") // pending | processed | failed
+  attempts      Int       @default(0)
+  lastError     String?   @db.Text
+  processedAt   DateTime? @db.Timestamptz
+  createdAt     DateTime  @default(now()) @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @db.Timestamptz
+
+  @@index([status])
+  @@index([stripeEventId])
+  @@index([type])
+  @@index([createdAt(sort: Desc)])
+}

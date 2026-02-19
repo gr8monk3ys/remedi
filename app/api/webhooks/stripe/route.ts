@@ -10,8 +10,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import Stripe from "stripe";
-import { stripe, getPlanByPriceId, PLANS } from "@/lib/stripe";
+import {
+  stripe,
+  getPlanByPriceId,
+  PLANS,
+  extractBillingPeriod,
+} from "@/lib/stripe";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { createLogger } from "@/lib/logger";
 import {
   sendSubscriptionConfirmation,
@@ -73,26 +79,11 @@ async function handleCheckoutSessionCompleted(
   const priceId = subscriptionItem?.price.id;
   const plan = priceId ? getPlanByPriceId(priceId) : "basic";
 
-  // Billing period is stored on the subscription, but some test fixtures (or
-  // older mocks) may place it on the subscription item. Support both.
-  const subscriptionLevelBilling = stripeSubscription as unknown as {
-    current_period_start?: number | null;
-    current_period_end?: number | null;
-  };
-  const currentPeriodStartUnix =
-    subscriptionLevelBilling.current_period_start ??
-    subscriptionItem?.current_period_start ??
-    null;
-  const currentPeriodEndUnix =
-    subscriptionLevelBilling.current_period_end ??
-    subscriptionItem?.current_period_end ??
-    null;
-  const currentPeriodStart = currentPeriodStartUnix
-    ? new Date(currentPeriodStartUnix * 1000)
-    : new Date();
-  const currentPeriodEnd = currentPeriodEndUnix
-    ? new Date(currentPeriodEndUnix * 1000)
-    : new Date();
+  // Extract billing period dates (subscription-level first, item-level fallback)
+  const { currentPeriodStart: extractedStart, currentPeriodEnd: extractedEnd } =
+    extractBillingPeriod(stripeSubscription);
+  const currentPeriodStart = extractedStart ?? new Date();
+  const currentPeriodEnd = extractedEnd ?? new Date();
 
   // Update subscription in database
   await prisma.subscription.upsert({
@@ -195,24 +186,12 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const priceId = subscriptionItem?.price.id;
   const plan = priceId ? getPlanByPriceId(priceId) : dbSubscription.plan;
 
-  const subscriptionLevelBilling = subscription as unknown as {
-    current_period_start?: number | null;
-    current_period_end?: number | null;
-  };
-  const currentPeriodStartUnix =
-    subscriptionLevelBilling.current_period_start ??
-    subscriptionItem?.current_period_start ??
-    null;
-  const currentPeriodEndUnix =
-    subscriptionLevelBilling.current_period_end ??
-    subscriptionItem?.current_period_end ??
-    null;
-  const currentPeriodStart = currentPeriodStartUnix
-    ? new Date(currentPeriodStartUnix * 1000)
-    : dbSubscription.currentPeriodStart;
-  const currentPeriodEnd = currentPeriodEndUnix
-    ? new Date(currentPeriodEndUnix * 1000)
-    : dbSubscription.currentPeriodEnd;
+  // Extract billing period dates (subscription-level first, item-level fallback)
+  const { currentPeriodStart: extractedStart, currentPeriodEnd: extractedEnd } =
+    extractBillingPeriod(subscription);
+  const currentPeriodStart =
+    extractedStart ?? dbSubscription.currentPeriodStart;
+  const currentPeriodEnd = extractedEnd ?? dbSubscription.currentPeriodEnd;
 
   // Map Stripe status to our status
   let status: string = dbSubscription.status;
@@ -435,7 +414,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify webhook signature
+    // Verify webhook signature — failures return 400 (not our event to store)
     let event: Stripe.Event;
     try {
       event = await verifyWebhookSignature(body, signature);
@@ -444,41 +423,132 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
-    // Handle the event
-    switch (event.type) {
-      case "checkout.session.completed":
-        await handleCheckoutSessionCompleted(
-          event.data.object as Stripe.Checkout.Session,
-        );
-        break;
-
-      case "customer.subscription.created":
-      case "customer.subscription.updated":
-        await handleSubscriptionUpdated(
-          event.data.object as Stripe.Subscription,
-        );
-        break;
-
-      case "customer.subscription.deleted":
-        await handleSubscriptionDeleted(
-          event.data.object as Stripe.Subscription,
-        );
-        break;
-
-      case "invoice.payment_succeeded":
-        await handleInvoicePaymentSucceeded(
-          event.data.object as Stripe.Invoice,
-        );
-        break;
-
-      case "invoice.payment_failed":
-        await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
-        break;
-
-      default:
-        log.debug("Unhandled event type", { eventType: event.type });
+    // -------------------------------------------------------------------------
+    // Phase 1: Record the event in the DLQ table before doing any work.
+    // Using upsert so replayed events (same stripeEventId) are idempotent.
+    // -------------------------------------------------------------------------
+    let webhookEventRecord: { id: string; attempts: number } | null = null;
+    try {
+      webhookEventRecord = await prisma.webhookEvent.upsert({
+        where: { stripeEventId: event.id },
+        create: {
+          stripeEventId: event.id,
+          type: event.type,
+          payload: event as unknown as Prisma.InputJsonValue,
+          status: "pending",
+          attempts: 1,
+        },
+        update: {
+          // Increment attempts on each retry so we can see how many times
+          // Stripe (or our own replay logic) has attempted delivery.
+          status: "pending",
+          attempts: { increment: 1 },
+          lastError: null,
+        },
+        select: { id: true, attempts: true },
+      });
+    } catch (dlqWriteError) {
+      // If we cannot write to the DLQ we still want to attempt processing
+      // (fail open), but we warn loudly so this is surfaced in Sentry.
+      log.error("Failed to write WebhookEvent DLQ record", dlqWriteError, {
+        stripeEventId: event.id,
+        eventType: event.type,
+      });
     }
 
+    // -------------------------------------------------------------------------
+    // Phase 2: Dispatch to the event-specific handler.
+    // -------------------------------------------------------------------------
+    let handlerError: Error | null = null;
+
+    try {
+      switch (event.type) {
+        case "checkout.session.completed":
+          await handleCheckoutSessionCompleted(
+            event.data.object as Stripe.Checkout.Session,
+          );
+          break;
+
+        case "customer.subscription.created":
+        case "customer.subscription.updated":
+          await handleSubscriptionUpdated(
+            event.data.object as Stripe.Subscription,
+          );
+          break;
+
+        case "customer.subscription.deleted":
+          await handleSubscriptionDeleted(
+            event.data.object as Stripe.Subscription,
+          );
+          break;
+
+        case "invoice.payment_succeeded":
+          await handleInvoicePaymentSucceeded(
+            event.data.object as Stripe.Invoice,
+          );
+          break;
+
+        case "invoice.payment_failed":
+          await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
+          break;
+
+        default:
+          log.debug("Unhandled event type", { eventType: event.type });
+      }
+    } catch (err) {
+      handlerError = err instanceof Error ? err : new Error(String(err));
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase 3: Persist the outcome.
+    // "processed" on success, "failed" on handler error.
+    // We return HTTP 200 in both cases so Stripe stops retrying — the event
+    // is safely stored for manual replay when status="failed".
+    // -------------------------------------------------------------------------
+    if (webhookEventRecord) {
+      try {
+        if (handlerError) {
+          await prisma.webhookEvent.update({
+            where: { id: webhookEventRecord.id },
+            data: {
+              status: "failed",
+              lastError: handlerError.message,
+            },
+          });
+
+          // Alert via Sentry (routed through log.error → Sentry captureException)
+          log.error(
+            "Stripe webhook handler failed — event stored in DLQ",
+            handlerError,
+            {
+              stripeEventId: event.id,
+              webhookEventId: webhookEventRecord.id,
+              eventType: event.type,
+              attempts: webhookEventRecord.attempts,
+            },
+          );
+        } else {
+          await prisma.webhookEvent.update({
+            where: { id: webhookEventRecord.id },
+            data: {
+              status: "processed",
+              processedAt: new Date(),
+            },
+          });
+        }
+      } catch (dlqUpdateError) {
+        // DLQ status update failed — log loudly but do not change the HTTP
+        // response code (Stripe should not retry based on our internal state).
+        log.error("Failed to update WebhookEvent DLQ status", dlqUpdateError, {
+          stripeEventId: event.id,
+          targetStatus: handlerError ? "failed" : "processed",
+        });
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Update the lightweight WebhookStatus health-check record (last-seen).
+    // -------------------------------------------------------------------------
     try {
       await prisma.webhookStatus.upsert({
         where: { provider: "stripe" },
@@ -498,9 +568,10 @@ export async function POST(request: NextRequest) {
       log.warn("Failed to update webhook status", { error });
     }
 
+    // Always return 200 — if the handler failed, the event is in the DLQ.
     return NextResponse.json({ received: true });
   } catch (error) {
-    log.error("Error processing webhook", error);
+    log.error("Unexpected error in webhook handler", error);
     return NextResponse.json(
       { error: "Webhook handler failed" },
       { status: 500 },
