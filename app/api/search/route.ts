@@ -20,6 +20,7 @@ import { MOCK_PHARMACEUTICALS, MOCK_REMEDY_MAPPINGS } from "@/lib/mock-data";
 import { COMMON_SUFFIXES, SPELLING_VARIANTS } from "@/lib/constants";
 import { createLogger } from "@/lib/logger";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
+import { getCurrentUser } from "@/lib/auth";
 import type { ProcessedDrug, NaturalRemedy } from "@/lib/types";
 
 const log = createLogger("search-api");
@@ -55,7 +56,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const queryParam = searchParams.get("query");
     const sessionId = searchParams.get("sessionId") || undefined;
-    const userId = searchParams.get("userId") || undefined;
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
 
     log.info("Search query received", { query: queryParam });
 
@@ -158,8 +160,10 @@ export async function GET(req: NextRequest) {
 
         if (remedies.length > 0) {
           log.info("Found remedies from database", { count: remedies.length });
-          void saveHistory(remedies.length);
-          void trackSearchEvent(remedies.length, "database");
+          void Promise.allSettled([
+            saveHistory(remedies.length),
+            trackSearchEvent(remedies.length, "database"),
+          ]);
           const processingTime = Date.now() - startTime;
           return NextResponse.json(
             successResponse(remedies, {
@@ -194,8 +198,10 @@ export async function GET(req: NextRequest) {
           log.info("Generated remedies from database", {
             count: remedies.length,
           });
-          void saveHistory(remedies.length);
-          void trackSearchEvent(remedies.length, "database_generated");
+          void Promise.allSettled([
+            saveHistory(remedies.length),
+            trackSearchEvent(remedies.length, "database_generated"),
+          ]);
           const processingTime = Date.now() - startTime;
           return NextResponse.json(
             successResponse(remedies, {
@@ -241,6 +247,12 @@ export async function GET(req: NextRequest) {
         log.error("Failed to save pharmaceutical to database", error);
       }
 
+      if (persistedPharmaceuticalId === null) {
+        console.warn(
+          "[search] Could not persist pharmaceutical, proceeding without ID",
+        );
+      }
+
       // Generate remedy mappings using our DB-backed deterministic matcher.
       if (persistedPharmaceuticalId) {
         try {
@@ -259,8 +271,10 @@ export async function GET(req: NextRequest) {
         log.info("Found remedies using database matcher", {
           count: remedies.length,
         });
-        void saveHistory(remedies.length);
-        void trackSearchEvent(remedies.length, "openfda");
+        void Promise.allSettled([
+          saveHistory(remedies.length),
+          trackSearchEvent(remedies.length, "openfda"),
+        ]);
         const processingTime = Date.now() - startTime;
         return NextResponse.json(
           successResponse(remedies, {
@@ -295,8 +309,10 @@ export async function GET(req: NextRequest) {
 
     if (matchedPharmaceuticals.length === 0) {
       log.info("No pharmaceutical found", { query });
-      void saveHistory(0);
-      void trackSearchEvent(0, "fallback");
+      void Promise.allSettled([
+        saveHistory(0),
+        trackSearchEvent(0, "fallback"),
+      ]);
       const processingTime = Date.now() - startTime;
       return NextResponse.json(
         successResponse([], {
@@ -341,8 +357,10 @@ export async function GET(req: NextRequest) {
     );
 
     log.info("Found remedies from mock data", { count: sortedRemedies.length });
-    void saveHistory(sortedRemedies.length);
-    void trackSearchEvent(sortedRemedies.length, "fallback");
+    void Promise.allSettled([
+      saveHistory(sortedRemedies.length),
+      trackSearchEvent(sortedRemedies.length, "fallback"),
+    ]);
     const processingTime = Date.now() - startTime;
     return NextResponse.json(
       successResponse(sortedRemedies, {
