@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { successResponse, errorResponse } from "@/lib/api/response";
 import { z } from "zod";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
 
 const logger = createLogger("api-admin-users");
@@ -23,6 +24,12 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.adminActions,
+  );
+  if (!allowed && rateLimitResponse) return rateLimitResponse;
+
   try {
     const currentUser = await getCurrentUser();
     const userIsAdmin = await isAdmin();
@@ -69,6 +76,14 @@ export async function PATCH(
       },
     });
 
+    if (validation.data.role) {
+      logger.warn("Admin changed user role", {
+        adminId: currentUser.id,
+        targetUserId: id,
+        newRole: validation.data.role,
+      });
+    }
+
     return NextResponse.json(successResponse(user));
   } catch (error) {
     logger.error("Error updating user", error);
@@ -80,9 +95,15 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.adminActions,
+  );
+  if (!allowed && rateLimitResponse) return rateLimitResponse;
+
   try {
     const currentUser = await getCurrentUser();
     const userIsAdmin = await isAdmin();
@@ -106,6 +127,11 @@ export async function DELETE(
 
     await prisma.user.delete({
       where: { id },
+    });
+
+    logger.warn("Admin deleted user", {
+      adminId: currentUser.id,
+      deletedUserId: id,
     });
 
     return NextResponse.json(
