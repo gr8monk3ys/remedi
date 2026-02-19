@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/response";
 import { createLogger } from "@/lib/logger";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
+import { getCurrentUser } from "@/lib/auth";
 import type { DetailedRemedy } from "@/lib/types";
 
 const log = createLogger("remedy-api");
@@ -161,7 +162,8 @@ export async function GET(
   try {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get("sessionId") || undefined;
-    const userId = searchParams.get("userId") || undefined;
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
     const { id } = await params;
     log.debug("Fetching remedy details", { id });
 
