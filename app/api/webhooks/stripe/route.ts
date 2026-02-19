@@ -79,11 +79,26 @@ async function handleCheckoutSessionCompleted(
   const priceId = subscriptionItem?.price.id;
   const plan = priceId ? getPlanByPriceId(priceId) : "basic";
 
-  // Extract billing period dates (subscription-level first, item-level fallback)
-  const { currentPeriodStart: extractedStart, currentPeriodEnd: extractedEnd } =
-    extractBillingPeriod(stripeSubscription);
-  const currentPeriodStart = extractedStart ?? new Date();
-  const currentPeriodEnd = extractedEnd ?? new Date();
+  // Billing period is stored on the subscription, but some test fixtures (or
+  // older mocks) may place it on the subscription item. Support both.
+  const subscriptionLevelBilling = stripeSubscription as unknown as {
+    current_period_start?: number | null;
+    current_period_end?: number | null;
+  };
+  const currentPeriodStartUnix =
+    subscriptionLevelBilling.current_period_start ??
+    subscriptionItem?.current_period_start ??
+    null;
+  const currentPeriodEndUnix =
+    subscriptionLevelBilling.current_period_end ??
+    subscriptionItem?.current_period_end ??
+    null;
+  const currentPeriodStart = currentPeriodStartUnix
+    ? new Date(currentPeriodStartUnix * 1000)
+    : new Date();
+  const currentPeriodEnd = currentPeriodEndUnix
+    ? new Date(currentPeriodEndUnix * 1000)
+    : new Date();
 
   // Update subscription in database
   await prisma.subscription.upsert({
@@ -186,12 +201,24 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const priceId = subscriptionItem?.price.id;
   const plan = priceId ? getPlanByPriceId(priceId) : dbSubscription.plan;
 
-  // Extract billing period dates (subscription-level first, item-level fallback)
-  const { currentPeriodStart: extractedStart, currentPeriodEnd: extractedEnd } =
-    extractBillingPeriod(subscription);
-  const currentPeriodStart =
-    extractedStart ?? dbSubscription.currentPeriodStart;
-  const currentPeriodEnd = extractedEnd ?? dbSubscription.currentPeriodEnd;
+  const subscriptionLevelBilling = subscription as unknown as {
+    current_period_start?: number | null;
+    current_period_end?: number | null;
+  };
+  const currentPeriodStartUnix =
+    subscriptionLevelBilling.current_period_start ??
+    subscriptionItem?.current_period_start ??
+    null;
+  const currentPeriodEndUnix =
+    subscriptionLevelBilling.current_period_end ??
+    subscriptionItem?.current_period_end ??
+    null;
+  const currentPeriodStart = currentPeriodStartUnix
+    ? new Date(currentPeriodStartUnix * 1000)
+    : dbSubscription.currentPeriodStart;
+  const currentPeriodEnd = currentPeriodEndUnix
+    ? new Date(currentPeriodEndUnix * 1000)
+    : dbSubscription.currentPeriodEnd;
 
   // Map Stripe status to our status
   let status: string = dbSubscription.status;

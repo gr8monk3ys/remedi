@@ -27,7 +27,6 @@ import { verifyOwnership } from "@/lib/authorization";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
 import { getEffectivePlanLimits } from "@/lib/trial";
-import { getCurrentUser } from "@/lib/auth";
 
 const logger = createLogger("api-search-history");
 
@@ -165,6 +164,16 @@ export async function POST(request: NextRequest) {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
     const { query, resultsCount, sessionId } = validation.data;
+
+    if (!sessionId && !userId) {
+      return NextResponse.json(
+        errorResponse(
+          "INVALID_INPUT",
+          "Either sessionId or userId must be provided",
+        ),
+        { status: 400 },
+      );
+    }
 
     if (!sessionId && !userId) {
       return NextResponse.json(

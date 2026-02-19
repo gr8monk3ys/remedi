@@ -38,7 +38,6 @@ interface AnalyticsProps {
 export function Analytics({
   plausibleDomain,
   googleAnalyticsId,
-  nonce,
 }: AnalyticsProps) {
   const hasPlausible = !!plausibleDomain;
   const hasGA = !!googleAnalyticsId;

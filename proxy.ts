@@ -65,7 +65,6 @@ const BLOCKED_USER_AGENTS = [
 const E2E_AUTH_COOKIE_NAMES = ["e2e_auth", "__session"] as const;
 
 function isE2ELocalAuthEnabled(): boolean {
-  if (process.env.NODE_ENV === "production") return false;
   return process.env.E2E_LOCAL_AUTH === "true";
 }
 
@@ -76,35 +75,9 @@ function isE2EAuthenticated(req: NextRequest): boolean {
 }
 
 /**
- * Set CORS headers on a response.
- * Access-Control-Allow-Origin is only set when the origin is in the allowed list.
+ * Add security headers to response
  */
-function setCORSHeaders(
-  response: NextResponse,
-  origin: string | null,
-  allowedOrigins: string[],
-): void {
-  if (origin && allowedOrigins.includes(origin)) {
-    response.headers.set("Access-Control-Allow-Origin", origin);
-    response.headers.set("Vary", "Origin");
-  }
-  response.headers.set(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS",
-  );
-  response.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-Requested-With, X-CSRF-Token",
-  );
-  response.headers.set("Access-Control-Max-Age", "86400");
-}
-
-/**
- * Add security headers to response.
- * In production, a per-request nonce replaces 'unsafe-inline' in script-src so
- * only scripts that carry the matching nonce attribute are executed by the browser.
- */
-function addSecurityHeaders(response: NextResponse, nonce: string): void {
+function addSecurityHeaders(response: NextResponse): void {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -117,19 +90,16 @@ function addSecurityHeaders(response: NextResponse, nonce: string): void {
 
   const isProduction = process.env.NODE_ENV === "production";
   const clerkScriptSrc = "https://*.clerk.accounts.dev https://*.clerk.com";
-  // Production: nonce-based allowlist eliminates 'unsafe-inline' XSS surface.
-  // Development: keep 'unsafe-inline' + 'unsafe-eval' for HMR hot-reload.
-  const scriptSrc = isProduction
-    ? `script-src 'self' 'nonce-${nonce}' ${clerkScriptSrc} https://js.stripe.com`
-    : `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${clerkScriptSrc} https://js.stripe.com`;
   const cspDirectives = [
     "default-src 'self'",
-    scriptSrc,
+    isProduction
+      ? `script-src 'self' 'unsafe-inline' ${clerkScriptSrc}`
+      : `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${clerkScriptSrc}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' https://images.unsplash.com https://img.clerk.com https://*.clerk.com data: blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://api.fda.gov https://api.openai.com https://api.clerk.com https://*.clerk.accounts.dev https://*.clerk.com https://*.sentry.io https://sentry.io https://*.ingest.sentry.io https://api.stripe.com",
-    "frame-src 'self' https://accounts.clerk.com https://*.clerk.accounts.dev https://*.clerk.com https://js.stripe.com",
+    "connect-src 'self' https://api.fda.gov https://api.openai.com https://api.clerk.com https://*.clerk.accounts.dev https://*.clerk.com",
+    "frame-src 'self' https://accounts.clerk.com https://*.clerk.accounts.dev https://*.clerk.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -194,7 +164,19 @@ export default clerkMiddleware(async (authObj, req: NextRequest) => {
     const origin = req.headers.get("origin");
     const allowedOrigins = getAllowedOrigins();
     const response = new NextResponse(null, { status: 204 });
-    setCORSHeaders(response, origin, allowedOrigins);
+    if (origin && allowedOrigins.includes(origin)) {
+      response.headers.set("Access-Control-Allow-Origin", origin);
+      response.headers.set("Vary", "Origin");
+    }
+    response.headers.set(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS",
+    );
+    response.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Requested-With, X-CSRF-Token",
+    );
+    response.headers.set("Access-Control-Max-Age", "86400");
     return response;
   }
 
@@ -262,18 +244,9 @@ export default clerkMiddleware(async (authObj, req: NextRequest) => {
     }
   }
 
-  // Generate a per-request nonce. It is forwarded to server components via the
-  // x-nonce request header so they can stamp inline <script> tags with it.
-  // The same value is embedded in the CSP response header so the browser
-  // enforces the allowlist.
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-  const requestHeaders = new Headers(req.headers);
-  requestHeaders.set("x-nonce", nonce);
-
-  // Continue with the request, propagating the modified request headers, then
-  // apply security headers (including the nonce-based CSP) to the response.
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
-  addSecurityHeaders(response, nonce);
+  // Continue with the request and add security headers
+  const response = NextResponse.next();
+  addSecurityHeaders(response);
 
   // Issue a CSRF token cookie if one does not already exist.
   // This allows client-side code (fetchWithCSRF) to read the cookie and
@@ -288,7 +261,19 @@ export default clerkMiddleware(async (authObj, req: NextRequest) => {
   if (pathname.startsWith("/api/")) {
     const origin = req.headers.get("origin");
     const allowedOrigins = getAllowedOrigins();
-    setCORSHeaders(response, origin, allowedOrigins);
+
+    if (origin && allowedOrigins.includes(origin)) {
+      response.headers.set("Access-Control-Allow-Origin", origin);
+      response.headers.set("Vary", "Origin");
+    }
+    response.headers.set(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS",
+    );
+    response.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Requested-With, X-CSRF-Token",
+    );
   }
 
   return response;

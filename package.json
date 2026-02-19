@@ -34,9 +34,7 @@
     "prod:check": "bun run scripts/production-check.ts",
     "predeploy": "bun run format:check && bun run lint && bun run type-check && bun run test:run && bun run db:verify && bun run db:integrity && bun run prod:check",
     "quality:check": "bun run format:check && bun run lint && bun run type-check && bun run test:run && bun run test:e2e && bun run db:verify && bun run db:integrity && bun run prod:check",
-    "prepare": "husky",
-    "test:integration": "TEST_DATABASE_URL=postgresql://remedi:remedi_dev@localhost:5433/remedi_test vitest run --config vitest.integration.config.ts",
-    "db:test:setup": "TEST_DATABASE_URL=postgresql://remedi:remedi_dev@localhost:5433/remedi_test bunx prisma migrate deploy"
+    "prepare": "husky"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.37.3",

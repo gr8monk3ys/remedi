@@ -36,7 +36,6 @@ import { trackUserEventSafe } from "@/lib/analytics/user-events";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { getEffectivePlanLimits } from "@/lib/trial";
 import { PLAN_LIMITS } from "@/lib/stripe-config";
-import { getCurrentUser } from "@/lib/auth";
 
 const logger = createLogger("favorites-api");
 
@@ -178,7 +177,7 @@ export async function POST(request: NextRequest) {
       return error;
     }
 
-    const { sessionId } = validation.data;
+    const { sessionId, userId } = validation.data;
 
     if (!sessionId && !userId) {
       return NextResponse.json(
@@ -224,7 +223,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const favorite = await addFavorite({ ...validation.data, userId });
+    const favorite = await addFavorite(validation.data);
 
     await trackUserEventSafe({
       request,
