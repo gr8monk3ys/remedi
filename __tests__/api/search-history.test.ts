@@ -14,6 +14,11 @@ const mockGetPopularSearches = vi.fn();
 const mockVerifyOwnership = vi.fn();
 const mockWithRateLimit = vi.fn();
 const mockGetEffectivePlanLimits = vi.fn();
+const mockGetCurrentUser = vi.fn();
+
+vi.mock("@/lib/auth", () => ({
+  getCurrentUser: (...args: unknown[]) => mockGetCurrentUser(...args),
+}));
 
 vi.mock("@/lib/db", () => ({
   saveSearchHistory: (...args: unknown[]) => mockSaveSearchHistory(...args),
@@ -95,6 +100,8 @@ describe("/api/search-history", () => {
       plan: "basic",
       isTrial: false,
     });
+    // Default: unauthenticated (userId derived from session, not URL params)
+    mockGetCurrentUser.mockResolvedValue(null);
   });
 
   describe("GET /api/search-history", () => {
@@ -135,6 +142,14 @@ describe("/api/search-history", () => {
     });
 
     it("should return history for an authorized user with access", async () => {
+      // Simulate authenticated user — userId comes from session, not URL params
+      mockGetCurrentUser.mockResolvedValueOnce({
+        id: "user-1",
+        name: "Test User",
+        email: "test@example.com",
+        image: null,
+        role: "user",
+      });
       const history = [
         {
           id: "history-1",
@@ -146,7 +161,7 @@ describe("/api/search-history", () => {
       mockGetSearchHistory.mockResolvedValue(history);
 
       const request = new NextRequest(
-        "http://localhost:3000/api/search-history?userId=user-1&limit=5",
+        "http://localhost:3000/api/search-history?limit=5",
       );
       const response = await GET(request);
       const data = await response.json();
@@ -200,10 +215,18 @@ describe("/api/search-history", () => {
     });
 
     it("should return 500 when history query fails", async () => {
+      // Simulate authenticated user so the request reaches the DB query
+      mockGetCurrentUser.mockResolvedValueOnce({
+        id: "user-1",
+        name: "Test User",
+        email: "test@example.com",
+        image: null,
+        role: "user",
+      });
       mockGetSearchHistory.mockRejectedValue(new Error("DB failure"));
 
       const request = new NextRequest(
-        "http://localhost:3000/api/search-history?userId=user-1",
+        "http://localhost:3000/api/search-history",
       );
       const response = await GET(request);
       const data = await response.json();
