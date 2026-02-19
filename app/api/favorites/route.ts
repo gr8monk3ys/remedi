@@ -47,7 +47,8 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get("sessionId") || undefined;
-    const userId = searchParams.get("userId") || undefined;
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
     const collectionName = searchParams.get("collectionName") || undefined;
     const getCollections = searchParams.get("collections") === "true";
     const checkFavorite = searchParams.get("check");
@@ -79,11 +80,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Parse page/limit from query params as numbers before validation
+    const pageRaw = parseInt(searchParams.get("page") || "1", 10);
+    const limitRaw = parseInt(searchParams.get("limit") || "20", 10);
+
     // Validate query parameters
     const validation = getFavoritesSchema.safeParse({
       sessionId,
       userId,
       collectionName,
+      page: Number.isNaN(pageRaw) ? 1 : pageRaw,
+      limit: Number.isNaN(limitRaw) ? 20 : limitRaw,
     });
 
     if (!validation.success) {
@@ -96,13 +103,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get favorites
-    const favorites = await getFavorites(sessionId, userId, collectionName);
+    const { page, limit } = validation.data;
+    const skip = (page - 1) * limit;
+
+    // Get favorites with pagination
+    const { favorites, total } = await getFavorites(
+      sessionId,
+      userId,
+      collectionName,
+      skip,
+      limit,
+    );
 
     return NextResponse.json(
       successResponse({
         favorites,
-        count: favorites.length,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       }),
     );
   } catch (error) {
@@ -144,9 +165,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
+
     // Verify user can create favorite for this userId
     const { authorized, error } = await verifyOwnership(
-      validation.data.userId,
+      userId,
       validation.data.sessionId,
     );
     if (!authorized && error) {
@@ -203,7 +227,7 @@ export async function POST(request: NextRequest) {
 
     await trackUserEventSafe({
       request,
-      userId: validation.data.userId,
+      userId,
       sessionId: validation.data.sessionId,
       eventType: "add_favorite",
       eventData: {

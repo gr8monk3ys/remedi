@@ -87,6 +87,9 @@ export const RATE_LIMITS = {
     window: 60,
     identifier: "interactions-check",
   },
+
+  // Admin actions: 20 requests per minute (protects against automation on sensitive endpoints)
+  adminActions: { limit: 20, window: 60, identifier: "admin-actions" },
 } as const;
 
 /**

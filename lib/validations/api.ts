@@ -231,6 +231,20 @@ export const getFavoritesSchema = z.object({
   sessionId: sessionIdSchema.optional(),
   userId: z.string().optional(),
   collectionName: z.string().optional(),
+  page: z
+    .number({ message: "Page must be a number" })
+    .int({ message: "Page must be an integer" })
+    .positive({ message: "Page must be positive" })
+    .min(1, { message: "Page must be at least 1" })
+    .max(1000, { message: "Page number is too large" })
+    .default(1),
+  limit: z
+    .number({ message: "Limit must be a number" })
+    .int({ message: "Limit must be an integer" })
+    .positive({ message: "Limit must be positive" })
+    .min(1, { message: "Limit must be at least 1" })
+    .max(100, { message: "Limit cannot exceed 100" })
+    .default(20),
 });
 
 export const deleteFavoriteSchema = z.object({

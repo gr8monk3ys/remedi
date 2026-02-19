@@ -130,8 +130,9 @@ describe("/api/filter-preferences", () => {
         error: mockError,
       });
       const { GET } = await import("@/app/api/filter-preferences/route");
+      // Use sessionId (not userId) — userId is now derived from session, not URL params
       const request = new NextRequest(
-        "http://localhost:3000/api/filter-preferences?userId=other-user",
+        `http://localhost:3000/api/filter-preferences?sessionId=${mockSessionId}`,
       );
       const response = await GET(request);
 
@@ -348,8 +349,9 @@ describe("/api/filter-preferences", () => {
         error: mockError,
       });
       const { DELETE } = await import("@/app/api/filter-preferences/route");
+      // Use sessionId (not userId) — userId is now derived from session, not URL params
       const request = new NextRequest(
-        "http://localhost:3000/api/filter-preferences?userId=other-user",
+        `http://localhost:3000/api/filter-preferences?sessionId=${mockSessionId}`,
         { method: "DELETE" },
       );
       const response = await DELETE(request);

@@ -27,6 +27,12 @@ interface AnalyticsProps {
    * Google Analytics measurement ID (e.g., "G-XXXXXXXXXX")
    */
   googleAnalyticsId?: string;
+
+  /**
+   * CSP nonce forwarded from the middleware x-nonce header.
+   * Required in production to satisfy the nonce-based script-src policy.
+   */
+  nonce?: string;
 }
 
 export function Analytics({
@@ -50,6 +56,7 @@ export function Analytics({
           data-domain={plausibleDomain}
           src="https://plausible.io/js/script.js"
           strategy="afterInteractive"
+          nonce={nonce}
         />
       )}
 
@@ -59,8 +66,13 @@ export function Analytics({
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
             strategy="afterInteractive"
+            nonce={nonce}
           />
-          <Script id="google-analytics" strategy="afterInteractive">
+          <Script
+            id="google-analytics"
+            strategy="afterInteractive"
+            nonce={nonce}
+          >
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}

@@ -41,14 +41,12 @@ export async function getNaturalRemedyById(
 export async function searchNaturalRemedies(
   query: string,
 ): Promise<ParsedNaturalRemedy[]> {
-  const lowerQuery = query.toLowerCase();
-
   const results = await prisma.naturalRemedy.findMany({
     where: {
       OR: [
-        { name: { contains: lowerQuery } },
-        { description: { contains: lowerQuery } },
-        { category: { contains: lowerQuery } },
+        { name: { contains: query, mode: "insensitive" } },
+        { description: { contains: query, mode: "insensitive" } },
+        { category: { contains: query, mode: "insensitive" } },
       ],
     },
     take: 20,

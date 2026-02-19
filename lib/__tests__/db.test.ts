@@ -298,7 +298,7 @@ describe("db module", () => {
   });
 
   describe("searchNaturalRemedies", () => {
-    it("should search with lowercase query", async () => {
+    it("should search case-insensitively using mode: insensitive", async () => {
       (mockNaturalRemedy.findMany as Mock).mockResolvedValue([]);
 
       await searchNaturalRemedies("GINGER");
@@ -306,9 +306,9 @@ describe("db module", () => {
       expect(mockNaturalRemedy.findMany).toHaveBeenCalledWith({
         where: {
           OR: [
-            { name: { contains: "ginger" } },
-            { description: { contains: "ginger" } },
-            { category: { contains: "ginger" } },
+            { name: { contains: "GINGER", mode: "insensitive" } },
+            { description: { contains: "GINGER", mode: "insensitive" } },
+            { category: { contains: "GINGER", mode: "insensitive" } },
           ],
         },
         take: 20,

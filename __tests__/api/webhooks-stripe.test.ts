@@ -46,6 +46,10 @@ vi.mock("@/lib/stripe", () => ({
     basic: { name: "Basic", price: 9.99, yearlyPrice: 99 },
     premium: { name: "Premium", price: 19.99, yearlyPrice: 199 },
   },
+  extractBillingPeriod: vi.fn().mockReturnValue({
+    currentPeriodStart: new Date("2024-01-01"),
+    currentPeriodEnd: new Date("2024-02-01"),
+  }),
 }));
 
 // Mock Prisma
@@ -54,6 +58,10 @@ const mockUpsert = vi.fn();
 const mockUpdate = vi.fn();
 const mockWebhookStatusUpsert = vi.fn().mockResolvedValue({});
 const mockUserFindUnique = vi.fn().mockResolvedValue(null);
+const mockWebhookEventUpsert = vi
+  .fn()
+  .mockResolvedValue({ id: "dlq_123", attempts: 1 });
+const mockWebhookEventUpdate = vi.fn().mockResolvedValue({});
 
 vi.mock("@/lib/db", () => ({
   prisma: {
@@ -64,6 +72,10 @@ vi.mock("@/lib/db", () => ({
     },
     webhookStatus: {
       upsert: (...args: unknown[]) => mockWebhookStatusUpsert(...args),
+    },
+    webhookEvent: {
+      upsert: (...args: unknown[]) => mockWebhookEventUpsert(...args),
+      update: (...args: unknown[]) => mockWebhookEventUpdate(...args),
     },
     user: {
       findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
@@ -510,6 +522,122 @@ describe("/api/webhooks/stripe", () => {
       });
     });
 
+    describe("DLQ (WebhookEvent) behavior", () => {
+      it("should mark event as processed on success", async () => {
+        mockConstructEvent.mockReturnValue({
+          type: "customer.created", // unhandled but valid
+          data: { object: {} },
+        });
+
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
+
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          { method: "POST", body: JSON.stringify({}) },
+        );
+
+        await POST(request);
+
+        expect(mockWebhookEventUpsert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            create: expect.objectContaining({ status: "pending", attempts: 1 }),
+          }),
+        );
+        expect(mockWebhookEventUpdate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              status: "processed",
+              processedAt: expect.any(Date),
+            }),
+          }),
+        );
+      });
+
+      it("should mark event as failed and still return 200 when handler throws", async () => {
+        mockConstructEvent.mockReturnValue({
+          type: "customer.subscription.updated",
+          data: {
+            object: { id: "sub_test", metadata: {}, items: { data: [] } },
+          },
+        });
+        // Force handler to throw
+        mockFindUnique.mockRejectedValue(new Error("DB unavailable"));
+
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
+
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          { method: "POST", body: JSON.stringify({}) },
+        );
+
+        const response = await POST(request);
+        const json = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(json.received).toBe(true);
+        expect(mockWebhookEventUpdate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              status: "failed",
+              lastError: "DB unavailable",
+            }),
+          }),
+        );
+      });
+
+      it("should increment attempts on duplicate event replay", async () => {
+        mockConstructEvent.mockReturnValue({
+          type: "customer.created",
+          data: { object: {} },
+        });
+        // Simulate Stripe replaying the same event — upsert's update path runs
+        mockWebhookEventUpsert.mockResolvedValueOnce({
+          id: "dlq_123",
+          attempts: 2,
+        });
+
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
+
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          { method: "POST", body: JSON.stringify({}) },
+        );
+
+        await POST(request);
+
+        expect(mockWebhookEventUpsert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            update: expect.objectContaining({
+              attempts: { increment: 1 },
+            }),
+          }),
+        );
+      });
+
+      it("should proceed with handler even if DLQ write fails", async () => {
+        mockConstructEvent.mockReturnValue({
+          type: "customer.created",
+          data: { object: {} },
+        });
+        // DLQ table unavailable
+        mockWebhookEventUpsert.mockRejectedValueOnce(
+          new Error("DLQ unavailable"),
+        );
+
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
+
+        const request = new NextRequest(
+          "http://localhost:3000/api/webhooks/stripe",
+          { method: "POST", body: JSON.stringify({}) },
+        );
+
+        const response = await POST(request);
+
+        // Fail-open: handler still runs and returns 200
+        expect(response.status).toBe(200);
+      });
+    });
+
     describe("Unhandled events", () => {
       it("should acknowledge unhandled event types", async () => {
         mockConstructEvent.mockReturnValue({
@@ -560,7 +688,7 @@ describe("/api/webhooks/stripe", () => {
         expect(json.error).toContain("Invalid signature");
       });
 
-      it("should handle database errors during checkout", async () => {
+      it("should return 200 and store failed event in DLQ when handler throws", async () => {
         mockConstructEvent.mockReturnValue({
           type: "checkout.session.completed",
           data: { object: mockStripeSession },
@@ -568,6 +696,7 @@ describe("/api/webhooks/stripe", () => {
 
         mockFindUnique.mockResolvedValue(null);
         mockRetrieve.mockResolvedValue(mockStripeSubscription);
+        // Simulate a DB error mid-handler
         mockUpsert.mockRejectedValue(new Error("Database error"));
 
         const { POST } = await import("@/app/api/webhooks/stripe/route");
@@ -582,7 +711,15 @@ describe("/api/webhooks/stripe", () => {
 
         const response = await POST(request);
 
-        expect(response.status).toBe(500);
+        // Handler errors are caught by the DLQ — webhook returns 200 so
+        // Stripe stops retrying. The event is stored with status="failed"
+        // for manual replay via WHERE status='failed' query.
+        expect(response.status).toBe(200);
+        expect(mockWebhookEventUpdate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({ status: "failed" }),
+          }),
+        );
       });
     });
   });

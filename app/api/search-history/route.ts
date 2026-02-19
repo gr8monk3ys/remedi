@@ -35,10 +35,20 @@ const logger = createLogger("api-search-history");
  * Retrieve search history for a session or user
  */
 export async function GET(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.searchHistory,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get("sessionId") || undefined;
-    const userId = searchParams.get("userId") || undefined;
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
     const limitParam = searchParams.get("limit");
     const showPopular = searchParams.get("popular") === "true";
 
@@ -151,7 +161,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { query, resultsCount, sessionId, userId } = validation.data;
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
+    const { query, resultsCount, sessionId } = validation.data;
+
+    if (!sessionId && !userId) {
+      return NextResponse.json(
+        errorResponse(
+          "INVALID_INPUT",
+          "Either sessionId or userId must be provided",
+        ),
+        { status: 400 },
+      );
+    }
 
     if (!sessionId && !userId) {
       return NextResponse.json(
@@ -213,7 +235,8 @@ export async function DELETE(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get("sessionId") || undefined;
-    const userId = searchParams.get("userId") || undefined;
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
 
     if (!sessionId && !userId) {
       return NextResponse.json(

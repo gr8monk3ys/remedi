@@ -46,10 +46,12 @@ export async function getFavorites(
   sessionId?: string,
   userId?: string,
   collectionName?: string,
-): Promise<FavoriteOutput[]> {
+  skip = 0,
+  take = 20,
+): Promise<{ favorites: FavoriteOutput[]; total: number }> {
   // Security: require at least one identifier to prevent returning all records
   if (!sessionId && !userId) {
-    return [];
+    return { favorites: [], total: 0 };
   }
 
   // Build OR conditions only for provided identifiers
@@ -57,14 +59,22 @@ export async function getFavorites(
   if (sessionId) orConditions.push({ sessionId });
   if (userId) orConditions.push({ userId });
 
-  return prisma.favorite.findMany({
-    where: {
-      OR: orConditions,
-      ...(collectionName ? { collectionName } : {}),
-    },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  const where = {
+    OR: orConditions,
+    ...(collectionName ? { collectionName } : {}),
+  };
+
+  const [favorites, total] = await Promise.all([
+    prisma.favorite.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take,
+    }),
+    prisma.favorite.count({ where }),
+  ]);
+
+  return { favorites, total };
 }
 
 /**

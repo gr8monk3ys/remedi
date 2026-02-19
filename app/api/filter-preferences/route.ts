@@ -21,6 +21,7 @@ import {
 import { verifyOwnership } from "@/lib/authorization";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
+import { getCurrentUser } from "@/lib/auth";
 
 const logger = createLogger("api-filter-preferences");
 
@@ -29,10 +30,20 @@ const logger = createLogger("api-filter-preferences");
  * Get filter preferences for a session or user
  */
 export async function GET(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.filterPreferences,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get("sessionId") || undefined;
-    const userId = searchParams.get("userId") || undefined;
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
 
     // Validate query parameters
     const validation = getFilterPreferencesSchema.safeParse({
@@ -129,7 +140,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { sessionId, userId } = validation.data;
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
+    const { sessionId } = validation.data;
 
     if (!sessionId && !userId) {
       return NextResponse.json(
@@ -147,7 +160,10 @@ export async function POST(request: NextRequest) {
       return error;
     }
 
-    const preferences = await saveFilterPreferences(validation.data);
+    const preferences = await saveFilterPreferences({
+      ...validation.data,
+      userId,
+    });
 
     return NextResponse.json(
       successResponse({
@@ -182,7 +198,8 @@ export async function DELETE(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get("sessionId") || undefined;
-    const userId = searchParams.get("userId") || undefined;
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id;
 
     if (!sessionId && !userId) {
       return NextResponse.json(

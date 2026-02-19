@@ -36,9 +36,15 @@ function getClientIp(request: NextRequest): string | null {
   );
 }
 
+// Set ANALYTICS_IP_SALT env var for consistent IP hashing across restarts
 function hashIp(ip: string | null): string | null {
   if (!ip) return null;
-  const salt = process.env.ANALYTICS_IP_SALT || process.env.AUTH_SECRET || "";
+  const salt = process.env.ANALYTICS_IP_SALT || "";
+  if (!salt) {
+    console.warn(
+      "[analytics] ANALYTICS_IP_SALT not set; IP hashing uses empty salt",
+    );
+  }
   return crypto.createHash("sha256").update(`${ip}:${salt}`).digest("hex");
 }
 
