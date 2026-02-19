@@ -77,7 +77,10 @@ describe("/api/favorites", () => {
 
   describe("GET /api/favorites", () => {
     it("should return list of favorites", async () => {
-      vi.mocked(getFavorites).mockResolvedValue([mockFavorite]);
+      vi.mocked(getFavorites).mockResolvedValue({
+        favorites: [mockFavorite],
+        total: 1,
+      });
 
       const request = new NextRequest(
         `http://localhost:3000/api/favorites?sessionId=${mockSessionId}`,
@@ -93,6 +96,8 @@ describe("/api/favorites", () => {
         mockSessionId,
         undefined,
         undefined,
+        0,
+        20,
       );
     });
 
@@ -134,7 +139,10 @@ describe("/api/favorites", () => {
     });
 
     it("should filter favorites by collection name", async () => {
-      vi.mocked(getFavorites).mockResolvedValue([mockFavorite]);
+      vi.mocked(getFavorites).mockResolvedValue({
+        favorites: [mockFavorite],
+        total: 1,
+      });
 
       const request = new NextRequest(
         `http://localhost:3000/api/favorites?sessionId=${mockSessionId}&collectionName=Pain%20Relief`,
@@ -146,6 +154,8 @@ describe("/api/favorites", () => {
         mockSessionId,
         undefined,
         "Pain Relief",
+        0,
+        20,
       );
     });
 
