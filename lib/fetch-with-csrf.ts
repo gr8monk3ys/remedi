@@ -2,6 +2,7 @@
  * Client-side fetch utilities with CSRF token support
  *
  * Automatically includes CSRF token header for state-changing requests.
+ * For retry logic, use `lib/fetch-with-retry.ts`.
  */
 
 const CSRF_COOKIE_NAME = "csrf_token";

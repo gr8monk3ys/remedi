@@ -1,8 +1,16 @@
 /**
- * CSRF-aware Fetch Utilities
+ * CSRF-aware Fetch Utilities (canonical client fetch module)
  *
  * Provides fetch wrappers that automatically include CSRF tokens
  * for state-changing requests (POST, PUT, DELETE, PATCH).
+ *
+ * This is the primary fetch module used across the app. All client
+ * components and lib/fetch-with-retry.ts import from here.
+ *
+ * Also exports typed helpers: fetchJSON, apiRequest, ApiResponse.
+ *
+ * For a minimal CSRF-only utility (no JSON helpers), see
+ * lib/fetch-with-csrf.ts which also provides postWithCSRF.
  */
 
 const CSRF_COOKIE_NAME = "csrf_token";
