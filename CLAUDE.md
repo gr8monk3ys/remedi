@@ -177,7 +177,7 @@ bunx playwright test -g "search" # Run tests matching pattern
 - `lib/openFDA.ts` - FDA API with retry/error handling
 - `lib/remedyMapping.ts` - Remedy matching algorithm
 - `prisma/schema.prisma` - Database schema
-- `middleware.ts` - Security headers, CORS, auth protection
+- `proxy.ts` - Security headers, CSP, CORS, auth protection (Next.js middleware)
 - `next.config.ts` - Turbopack configuration, image config
 
 ## Disclaimer
