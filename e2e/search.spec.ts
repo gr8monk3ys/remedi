@@ -216,42 +216,45 @@ test.describe("Search Functionality", () => {
   test("should navigate to remedy detail when clicking a result card", async ({
     page,
   }) => {
+    await page.route("**/api/search**", async (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          data: [
+            {
+              id: "mock-remedy-3",
+              name: "Mock Remedy 3",
+              description: "Mock result used to verify detail-page navigation.",
+              imageUrl: "",
+              category: "Herbal",
+              matchingNutrients: ["Vitamin C"],
+              similarityScore: 0.9,
+            },
+          ],
+        }),
+      });
+    });
+
     const searchInput = page.getByRole("searchbox");
 
     await searchInput.fill("acetaminophen");
-    await searchInput.press("Enter");
-
-    // Wait for API response
-    await page
-      .waitForResponse(
+    await Promise.all([
+      page.waitForResponse(
         (response) =>
           response.url().includes("/api/search") && response.status() === 200,
-        { timeout: 10000 },
-      )
-      .catch(() => {});
+        { timeout: 15000 },
+      ),
+      searchInput.press("Enter"),
+    ]);
 
-    // Wait a moment for results to render
-    await page.waitForTimeout(1000);
-
-    // Try to find and click the first result card
-    // SearchResultCard renders as a shadcn Card with onClick navigating to /remedy/[id]
     const firstCard = page
-      .locator("#search-results")
-      .locator("[data-favorite-button]")
+      .locator("#search-results [data-search-result-card]")
       .first();
-
-    if (await firstCard.isVisible().catch(() => false)) {
-      // Click the card itself (not the favorite button)
-      // The card container has the onClick, so click on the card's heading
-      const cardParent = firstCard.locator("..").locator("..").locator("..");
-      await cardParent.click();
-
-      // Wait for navigation to remedy page
-      await page.waitForURL("**/remedy/**", { timeout: 5000 }).catch(() => {});
-
-      const isDetailPage = page.url().includes("/remedy");
-      expect(isDetailPage).toBeTruthy();
-    }
+    await expect(firstCard).toBeVisible({ timeout: 10000 });
+    await firstCard.getByRole("heading", { name: /Mock Remedy 3/i }).click();
+    await expect(page).toHaveURL(/\/remedy\/mock-remedy-3/, { timeout: 10000 });
   });
 
   test("should show tabs after search results are available", async ({
@@ -332,20 +335,21 @@ test.describe("Search Functionality", () => {
     const searchInput = page.getByRole("searchbox");
 
     await searchInput.fill("test");
-    await searchInput.press("Enter");
+    await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/search") && response.status() === 500,
+        { timeout: 15000 },
+      ),
+      searchInput.press("Enter"),
+    ]);
 
-    // Wait for error response
-    await page
-      .waitForResponse((response) => response.url().includes("/api/search"), {
-        timeout: 10000,
-      })
-      .catch(() => {});
-
-    // Error message should be displayed in the results area
-    const errorMessage = page
-      .locator("#search-results")
-      .getByText(/failed|error|try again/i);
-    await expect(errorMessage).toBeVisible({ timeout: 5000 });
+    // Error copy may render in results content or a toast region.
+    await expect(
+      page.getByText(
+        /internal server error|search failed|failed to retrieve search results|try again/i,
+      ),
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test("should show retry-after guidance when standard search is rate limited", async ({

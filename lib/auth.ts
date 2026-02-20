@@ -71,8 +71,10 @@ async function getOrCreateE2ELocalUser(): Promise<AuthUser> {
 
   if (firstUser) return firstUser;
 
-  return prisma.user.create({
-    data: {
+  return prisma.user.upsert({
+    where: { email: E2E_LOCAL_USER_EMAIL },
+    update: { name: E2E_LOCAL_USER_NAME },
+    create: {
       email: E2E_LOCAL_USER_EMAIL,
       name: E2E_LOCAL_USER_NAME,
     },

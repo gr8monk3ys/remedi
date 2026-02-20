@@ -49,6 +49,7 @@ export const SearchResultCard = memo(function SearchResultCard({
 
   return (
     <Card
+      data-search-result-card
       className={cn(
         "cursor-pointer transition-all hover:shadow-md",
         isComparing && "ring-2 ring-primary",

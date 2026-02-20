@@ -9,8 +9,10 @@
 
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3000";
-const configuredWorkers = Number(process.env.PLAYWRIGHT_WORKERS || "4");
+const playwrightPort = Number(process.env.PLAYWRIGHT_PORT || "3105");
+const baseURL =
+  process.env.PLAYWRIGHT_TEST_BASE_URL || `http://localhost:${playwrightPort}`;
+const configuredWorkers = Number(process.env.PLAYWRIGHT_WORKERS || "2");
 
 /**
  * Read environment variables from file.
@@ -23,6 +25,10 @@ const configuredWorkers = Number(process.env.PLAYWRIGHT_WORKERS || "4");
  */
 export default defineConfig({
   testDir: "./e2e",
+
+  // Local E2E runs against a Next dev server and external APIs; allow extra room
+  // to reduce false failures from startup and transient I/O slowness.
+  timeout: 45_000,
 
   /* Tests can run in parallel by default with local E2E auth mode enabled. */
   fullyParallel: true,
@@ -100,7 +106,7 @@ export default defineConfig({
   webServer: {
     command:
       process.env.PLAYWRIGHT_WEBSERVER_COMMAND ||
-      "export E2E_LOCAL_AUTH=true E2E_DISABLE_SENTRY=true; npm run dev -- --webpack",
+      `export PORT=${playwrightPort} E2E_LOCAL_AUTH=true E2E_DISABLE_SENTRY=true; npm run dev -- --webpack --port ${playwrightPort}`,
     url: baseURL,
     cwd: process.cwd(),
     reuseExistingServer: true,
