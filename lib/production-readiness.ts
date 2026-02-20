@@ -28,6 +28,7 @@ const RECOMMENDED_ENV = [
   "UPSTASH_REDIS_REST_TOKEN",
   "RESEND_API_KEY",
   "EMAIL_FROM",
+  "ANALYTICS_IP_SALT",
 ];
 
 export type ProductionCheckResult = {

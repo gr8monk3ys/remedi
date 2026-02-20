@@ -59,6 +59,7 @@ Use this checklist to ensure Remedi is ready for production launch.
 - [ ] `OPENFDA_API_KEY` - For higher FDA API rate limits
 - [ ] `RESEND_API_KEY` - For transactional emails
 - [ ] `EMAIL_FROM` - Verified sender email address
+- [ ] `ANALYTICS_IP_SALT` - Random salt used for hashed IP analytics
 
 ### Clerk Configuration
 
@@ -115,6 +116,17 @@ Use this checklist to ensure Remedi is ready for production launch.
 - [ ] **Bundle size acceptable** (check with `npm run build`)
 - [ ] **Images optimized** (using next/image)
 - [ ] **Static assets cached** (automatic with Vercel)
+
+### Product Experience (UI/UX)
+
+- [ ] **Visual direction is consistent** across `/`, `/pricing`, `/landing`, dashboard, and auth pages
+- [ ] **Typography is intentional** (primary body font + display heading font) and readable on mobile and desktop
+- [ ] **Color system is coherent** (no off-theme one-off blues/purples unless intentionally branded)
+- [ ] **Meaningful motion present** (page/section reveal, hover states, loading transitions) without feeling excessive
+- [ ] **No generic template feel** (hero, cards, CTA hierarchy, and icon treatment feel brand-specific)
+- [ ] **Spacing and alignment QA** done at common breakpoints (375px, 768px, 1024px, 1440px)
+- [ ] **Accessibility pass completed** (focus states, keyboard nav, contrast, reduced-motion behavior)
+- [ ] **Empty/loading/error states are polished** and visually consistent with success states
 
 ### Testing
 
