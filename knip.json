@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip/schema.json",
+  "ignoreFiles": [
+    "vitest.integration.config.ts",
+    "vitest.setup.ts",
+    "lib/accessibility.ts",
+    "prisma/seed*.js",
+    "prisma/seed.ts",
+    "prisma/seeds/**",
+    "prisma/seed-data/**",
+    "public/sw.js",
+    "scripts/create-stripe-products.ts",
+    "scripts/data-quality-report.ts",
+    "integration/**",
+    "lib/e2e/**",
+    "lib/analytics/index.ts"
+  ],
+  "rules": {
+    "exports": "off",
+    "types": "off"
+  }
+}
