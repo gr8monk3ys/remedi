@@ -10,12 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import Stripe from "stripe";
-import {
-  stripe,
-  getPlanByPriceId,
-  PLANS,
-  extractBillingPeriod,
-} from "@/lib/stripe";
+import { stripe, getPlanByPriceId, PLANS } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { createLogger } from "@/lib/logger";

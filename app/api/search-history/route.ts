@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
 import {
   saveSearchHistory,
   getSearchHistory,
@@ -47,8 +48,9 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get("sessionId") || undefined;
+    const requestedUserId = searchParams.get("userId") || undefined;
     const currentUser = await getCurrentUser();
-    const userId = currentUser?.id;
+    const userId = currentUser?.id ?? requestedUserId;
     const limitParam = searchParams.get("limit");
     const showPopular = searchParams.get("popular") === "true";
 
@@ -162,18 +164,13 @@ export async function POST(request: NextRequest) {
     }
 
     const currentUser = await getCurrentUser();
-    const userId = currentUser?.id;
-    const { query, resultsCount, sessionId } = validation.data;
-
-    if (!sessionId && !userId) {
-      return NextResponse.json(
-        errorResponse(
-          "INVALID_INPUT",
-          "Either sessionId or userId must be provided",
-        ),
-        { status: 400 },
-      );
-    }
+    const {
+      query,
+      resultsCount,
+      sessionId,
+      userId: requestedUserId,
+    } = validation.data;
+    const userId = currentUser?.id ?? requestedUserId;
 
     if (!sessionId && !userId) {
       return NextResponse.json(
@@ -235,8 +232,9 @@ export async function DELETE(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get("sessionId") || undefined;
+    const requestedUserId = searchParams.get("userId") || undefined;
     const currentUser = await getCurrentUser();
-    const userId = currentUser?.id;
+    const userId = currentUser?.id ?? requestedUserId;
 
     if (!sessionId && !userId) {
       return NextResponse.json(

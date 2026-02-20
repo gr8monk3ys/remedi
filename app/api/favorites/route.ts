@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createLogger } from "@/lib/logger";
+import { getCurrentUser } from "@/lib/auth";
 import {
   addFavorite,
   getFavorites,
@@ -166,20 +167,16 @@ export async function POST(request: NextRequest) {
     }
 
     const currentUser = await getCurrentUser();
-    const userId = currentUser?.id;
+    const { sessionId, userId: requestedUserId } = validation.data;
+    const ownerUserId = requestedUserId ?? currentUser?.id;
 
-    // Verify user can create favorite for this userId
-    const { authorized, error } = await verifyOwnership(
-      userId,
-      validation.data.sessionId,
-    );
+    // Verify user can create favorite for this user/session scope
+    const { authorized, error } = await verifyOwnership(ownerUserId, sessionId);
     if (!authorized && error) {
       return error;
     }
 
-    const { sessionId, userId } = validation.data;
-
-    if (!sessionId && !userId) {
+    if (!sessionId && !ownerUserId) {
       return NextResponse.json(
         errorResponse(
           "INVALID_INPUT",
@@ -194,8 +191,8 @@ export async function POST(request: NextRequest) {
     let plan = "free";
     let isTrial = false;
 
-    if (userId) {
-      const effective = await getEffectivePlanLimits(userId);
+    if (ownerUserId) {
+      const effective = await getEffectivePlanLimits(ownerUserId);
       maxFavorites = effective.limits.maxFavorites;
       plan = effective.plan;
       isTrial = effective.isTrial;
@@ -203,7 +200,9 @@ export async function POST(request: NextRequest) {
 
     if (maxFavorites !== -1) {
       const existingCount = await prisma.favorite.count({
-        where: userId ? { userId } : { sessionId: sessionId! },
+        where: ownerUserId
+          ? { userId: ownerUserId }
+          : { sessionId: sessionId! },
       });
 
       if (existingCount >= maxFavorites) {
@@ -223,12 +222,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const favorite = await addFavorite(validation.data);
+    const favorite = await addFavorite({
+      ...validation.data,
+      userId: ownerUserId,
+    });
 
     await trackUserEventSafe({
       request,
-      userId,
-      sessionId: validation.data.sessionId,
+      userId: ownerUserId,
+      sessionId,
       eventType: "add_favorite",
       eventData: {
         remedyId: validation.data.remedyId,
