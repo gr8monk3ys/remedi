@@ -142,7 +142,7 @@ export function UpgradeModal({
             className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-2xl md:w-full bg-card rounded-2xl shadow-xl z-50 overflow-hidden max-h-[90vh] flex flex-col"
           >
             {/* Header */}
-            <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-8 text-white">
+            <div className="relative bg-gradient-to-r from-[color-mix(in_srgb,var(--primary-dark)_82%,black)] to-[color-mix(in_srgb,var(--accent-dark)_75%,black)] px-6 py-8 text-white">
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full transition-colors"
@@ -228,8 +228,8 @@ export function UpgradeModal({
                 </div>
 
                 {/* Premium Plan */}
-                <div className="border-2 border-blue-500 rounded-xl p-4 relative">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs font-medium px-3 py-1 rounded-full">
+                <div className="relative rounded-xl border-2 border-primary p-4">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-medium text-white">
                     Most Popular
                   </div>
                   <h4 className="font-semibold text-foreground mb-1">
@@ -257,7 +257,7 @@ export function UpgradeModal({
                     disabled={
                       loadingCheckout === "premium" || currentPlan === "premium"
                     }
-                    className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-white transition-colors hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {loadingCheckout === "premium" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -279,7 +279,7 @@ export function UpgradeModal({
                   <button
                     onClick={handleStartTrial}
                     disabled={isStartingTrial}
-                    className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                    className="flex items-center gap-2 font-medium text-primary hover:underline"
                   >
                     {isStartingTrial ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

@@ -237,7 +237,7 @@ export function FeatureGate({
               {/* Upgrade button */}
               <motion.button
                 onClick={handleUpgradeClick}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-white transition-colors hover:bg-primary-light"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -261,7 +261,7 @@ export function FeatureGate({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 ring-2 ring-blue-500/50 rounded-lg pointer-events-none"
+              className="absolute inset-0 ring-2 ring-primary/50 rounded-lg pointer-events-none"
             />
           )}
         </AnimatePresence>

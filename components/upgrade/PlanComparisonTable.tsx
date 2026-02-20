@@ -52,7 +52,7 @@ export function PlanComparisonTable() {
               <th className="text-center py-3 px-2 font-medium text-muted-foreground">
                 Basic
               </th>
-              <th className="text-center py-3 px-2 font-medium text-blue-600 dark:text-blue-400">
+              <th className="text-center py-3 px-2 font-medium text-primary">
                 Premium
               </th>
             </tr>
@@ -74,7 +74,7 @@ export function PlanComparisonTable() {
                 <td className="text-center py-3 px-2 text-foreground">
                   <CellValue value={row.basic} />
                 </td>
-                <td className="text-center py-3 px-2 font-medium text-blue-600 dark:text-blue-400">
+                <td className="text-center py-3 px-2 font-medium text-primary">
                   <CellValue value={row.premium} />
                 </td>
               </tr>

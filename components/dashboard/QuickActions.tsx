@@ -18,7 +18,7 @@ const defaultActions: QuickAction[] = [
     label: "Search Remedies",
     description: "Find natural alternatives",
     icon: Search,
-    color: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+    color: "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary",
   },
   {
     href: "/dashboard/favorites",
@@ -41,7 +41,7 @@ const defaultActions: QuickAction[] = [
     description: "Manage billing & invoices",
     icon: CreditCard,
     color:
-      "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400",
+      "bg-[color:color-mix(in_srgb,var(--accent-dark)_16%,white)] text-[var(--accent-dark)] dark:bg-[color:color-mix(in_srgb,var(--accent-dark)_22%,black)] dark:text-[var(--accent-light)]",
   },
 ];
 

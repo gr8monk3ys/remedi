@@ -21,7 +21,7 @@ const activityIcons = {
 };
 
 const activityColors = {
-  search: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+  search: "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary",
   favorite_add:
     "bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400",
   favorite_remove: "bg-muted text-muted-foreground",

@@ -29,14 +29,16 @@ const planIcons: Record<PlanType, typeof Sparkles> = {
 
 const planColors: Record<PlanType, string> = {
   free: "border-border",
-  basic: "border-blue-200 dark:border-blue-800",
-  premium: "border-purple-200 dark:border-purple-800",
+  basic: "border-primary/30 dark:border-primary/50",
+  premium:
+    "border-[color:color-mix(in_srgb,var(--accent-dark)_45%,transparent)] dark:border-[color:color-mix(in_srgb,var(--accent-light)_50%,transparent)]",
 };
 
 const planBgColors: Record<PlanType, string> = {
   free: "bg-muted",
-  basic: "bg-blue-50 dark:bg-blue-900/20",
-  premium: "bg-purple-50 dark:bg-purple-900/20",
+  basic: "bg-primary/10 dark:bg-primary/20",
+  premium:
+    "bg-[color:color-mix(in_srgb,var(--accent-dark)_14%,white)] dark:bg-[color:color-mix(in_srgb,var(--accent-dark)_24%,black)]",
 };
 
 /**
@@ -100,8 +102,9 @@ export function PlanCard({
           className={cn(
             "h-6 w-6",
             plan === "free" && "text-muted-foreground",
-            plan === "basic" && "text-blue-600 dark:text-blue-400",
-            plan === "premium" && "text-purple-600 dark:text-purple-400",
+            plan === "basic" && "text-primary",
+            plan === "premium" &&
+              "text-[var(--accent-dark)] dark:text-[var(--accent-light)]",
           )}
         />
       </div>

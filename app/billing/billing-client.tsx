@@ -231,12 +231,12 @@ function PlanCard({
     <div
       className={`relative bg-card rounded-xl shadow-md overflow-hidden ${
         highlighted
-          ? "ring-2 ring-blue-500 dark:ring-blue-400"
+          ? "ring-2 ring-primary/60 dark:ring-primary/70"
           : "border border-border"
       }`}
     >
       {highlighted && (
-        <div className="absolute top-0 left-0 right-0 bg-blue-500 text-white text-center py-1 text-sm font-medium">
+        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-[color-mix(in_srgb,var(--primary-dark)_82%,black)] to-[color-mix(in_srgb,var(--accent-dark)_75%,black)] text-white text-center py-1 text-sm font-medium">
           <Sparkles className="w-4 h-4 inline mr-1" />
           Most Popular
         </div>
@@ -267,7 +267,7 @@ function PlanCard({
               : disabled
                 ? "bg-muted text-muted-foreground cursor-not-allowed"
                 : highlighted
-                  ? "bg-blue-500 hover:bg-blue-600 text-white"
+                  ? "bg-primary text-white hover:bg-primary-light"
                   : "bg-primary text-primary-foreground hover:bg-primary/90"
           }`}
         >

@@ -106,7 +106,7 @@ export function TrialBanner({
               ? "bg-gradient-to-r from-red-500 to-orange-500"
               : isWarning
                 ? "bg-gradient-to-r from-orange-500 to-yellow-500"
-                : "bg-gradient-to-r from-blue-500 to-purple-500"
+                : "bg-gradient-to-r from-[color-mix(in_srgb,var(--primary-dark)_82%,black)] to-[color-mix(in_srgb,var(--accent-dark)_75%,black)]"
           } text-white`}
         >
           <div className="container mx-auto flex items-center justify-between gap-4">
@@ -191,7 +191,7 @@ export function TrialBadge({ className = "" }: { className?: string }) {
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
         isUrgent
           ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-          : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+          : "bg-primary/15 text-primary dark:bg-primary/25 dark:text-primary"
       } ${className}`}
     >
       <Sparkles className="w-3 h-3" />
@@ -276,10 +276,10 @@ export function StartTrialButton({
 
   const variantClasses = {
     primary:
-      "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white",
+      "bg-gradient-to-r from-[color-mix(in_srgb,var(--primary-dark)_82%,black)] to-[color-mix(in_srgb,var(--accent-dark)_75%,black)] text-white hover:opacity-95",
     secondary: "bg-muted text-foreground hover:bg-muted/80",
     outline:
-      "border-2 border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20",
+      "border-2 border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20",
   };
 
   return (

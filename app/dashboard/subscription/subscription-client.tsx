@@ -448,7 +448,7 @@ export function SubscriptionClient({
                           href={invoice.hostedInvoiceUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                          className="text-sm font-medium text-primary hover:underline"
                         >
                           View
                         </a>
@@ -458,7 +458,7 @@ export function SubscriptionClient({
                           href={invoice.invoicePdf}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                          className="text-sm font-medium text-primary hover:underline"
                         >
                           PDF
                         </a>
@@ -474,7 +474,7 @@ export function SubscriptionClient({
 
       {/* Plan Features Summary for Free Users */}
       {currentPlan === "free" && (
-        <div className="bg-gradient-to-r from-primary/5 to-purple-500/5 dark:from-primary/10 dark:to-purple-500/10 rounded-xl border border-primary/20 p-6">
+        <div className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-[color-mix(in_srgb,var(--accent-dark)_18%,transparent)] p-6 dark:from-primary/10 dark:to-[color-mix(in_srgb,var(--accent-dark)_28%,transparent)]">
           <div className="flex items-start gap-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
               <Crown className="h-5 w-5 text-primary" aria-hidden="true" />
