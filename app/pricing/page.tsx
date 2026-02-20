@@ -50,11 +50,11 @@ export default async function PricingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-background to-muted">
+    <main className="min-h-screen bg-gradient-to-b from-background via-surface to-background">
       {/* Hero Section */}
       <section className="pt-24 pb-12 px-4">
         <div className="container mx-auto max-w-6xl text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+          <h1 className="text-4xl md:text-5xl font-semibold text-foreground mb-4">
             Simple, Transparent Pricing
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
@@ -63,7 +63,7 @@ export default async function PricingPage() {
           </p>
 
           {/* Money-back guarantee badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-sm font-medium">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
             <svg
               className="w-5 h-5"
               fill="none"
@@ -114,7 +114,7 @@ export default async function PricingPage() {
                   <th className="text-center py-4 px-4 font-semibold text-foreground">
                     Basic
                   </th>
-                  <th className="text-center py-4 px-4 font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-t-lg">
+                  <th className="text-center py-4 px-4 rounded-t-lg bg-primary/10 font-semibold text-primary">
                     Premium
                   </th>
                 </tr>
@@ -136,7 +136,7 @@ export default async function PricingPage() {
                     <td className="py-4 px-4 text-center">
                       <FeatureValue value={feature.basic} />
                     </td>
-                    <td className="py-4 px-4 text-center bg-blue-50/50 dark:bg-blue-900/10">
+                    <td className="py-4 px-4 text-center bg-primary/5">
                       <FeatureValue value={feature.premium} highlight />
                     </td>
                   </tr>
@@ -173,7 +173,7 @@ export default async function PricingPage() {
                   &ldquo;{testimonial.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent-dark font-bold text-white">
                     {testimonial.name[0]}
                   </div>
                   <div>
@@ -240,7 +240,7 @@ export default async function PricingPage() {
           </p>
           <a
             href="#pricing"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold text-lg transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-lg font-semibold text-white shadow-[0_12px_30px_color-mix(in_srgb,var(--primary)_28%,transparent)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-light"
           >
             Get Started Today
             <svg
@@ -274,7 +274,7 @@ function FeatureValue({
   if (typeof value === "boolean") {
     return value ? (
       <svg
-        className={`w-5 h-5 mx-auto ${highlight ? "text-blue-500" : "text-green-500"}`}
+        className={`w-5 h-5 mx-auto ${highlight ? "text-primary" : "text-green-600"}`}
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -294,9 +294,7 @@ function FeatureValue({
   return (
     <span
       className={`${
-        highlight
-          ? "text-blue-600 dark:text-blue-400 font-medium"
-          : "text-foreground"
+        highlight ? "text-primary font-medium" : "text-foreground"
       }`}
     >
       {value}

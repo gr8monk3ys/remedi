@@ -227,7 +227,7 @@ export function PricingClient({
             }`}
           >
             Yearly
-            <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold px-2 py-0.5 rounded-full">
+            <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
               Save {YEARLY_DISCOUNT_PERCENT}%
             </span>
           </button>
@@ -252,7 +252,7 @@ export function PricingClient({
         <div className="mt-12 text-center">
           <a
             href="/billing"
-            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+            className="font-medium text-primary hover:underline"
           >
             Manage your subscription
           </a>
@@ -265,7 +265,7 @@ export function PricingClient({
           <p className="text-muted-foreground mb-4">Already have an account?</p>
           <Link
             href="/sign-in?redirect_url=/pricing"
-            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+            className="font-medium text-primary hover:underline"
           >
             Sign in to manage your subscription
           </Link>

@@ -88,8 +88,8 @@ export function PricingCards({
       >
         <div className="p-8">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Sparkles className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <div className="rounded-lg bg-primary/10 p-2">
+              <Sparkles className="w-6 h-6 text-primary" />
             </div>
             <h3 className="text-xl font-bold text-foreground">
               {PLANS.basic.name}
@@ -143,7 +143,7 @@ export function PricingCards({
 
           <FeatureList
             features={PLANS.basic.features}
-            checkClass="text-blue-500"
+            checkClass="text-primary"
           />
         </div>
       </motion.div>
@@ -153,18 +153,18 @@ export function PricingCards({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="relative bg-card rounded-2xl shadow-xl overflow-hidden border-2 border-blue-500 dark:border-blue-400"
+        className="relative overflow-hidden rounded-2xl border-2 border-primary bg-card shadow-xl"
       >
         {/* Popular badge */}
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-center py-2 text-sm font-medium">
+        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-[color-mix(in_srgb,var(--primary-dark)_82%,black)] to-[color-mix(in_srgb,var(--accent-dark)_75%,black)] py-2 text-center text-sm font-medium text-white">
           <Crown className="w-4 h-4 inline mr-1" />
           Most Popular
         </div>
 
         <div className="p-8 pt-14">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-              <Crown className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            <div className="rounded-lg bg-accent/35 p-2">
+              <Crown className="w-6 h-6 text-[var(--accent-dark)]" />
             </div>
             <h3 className="text-xl font-bold text-foreground">
               {PLANS.premium.name}
@@ -192,7 +192,7 @@ export function PricingCards({
             <button
               onClick={onStartTrial}
               disabled={loading === "trial"}
-              className="w-full py-3 px-4 mb-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+              className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[color-mix(in_srgb,var(--primary-dark)_82%,black)] to-[color-mix(in_srgb,var(--accent-dark)_75%,black)] px-4 py-3 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:opacity-95"
             >
               {loading === "trial" ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -211,7 +211,7 @@ export function PricingCards({
             className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
               currentPlan === "premium"
                 ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 cursor-default"
-                : "bg-blue-500 hover:bg-blue-600 text-white"
+                : "bg-primary text-white hover:bg-primary-light"
             }`}
           >
             {loading === "premium" ? (
@@ -230,7 +230,7 @@ export function PricingCards({
 
           <FeatureList
             features={PLANS.premium.features}
-            checkClass="text-purple-500"
+            checkClass="text-[var(--accent-dark)]"
           />
         </div>
       </motion.div>

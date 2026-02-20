@@ -39,14 +39,14 @@ export function LandingClient({ trackView = true }: { trackView?: boolean }) {
       <Link
         href="/pricing"
         onClick={handleCtaClick("primary_pricing")}
-        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
+        className="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-white shadow-[0_10px_30px_color-mix(in_srgb,var(--primary)_30%,transparent)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-light"
       >
         See Pricing
       </Link>
       <Link
         href="/"
         onClick={handleCtaClick("secondary_search")}
-        className="inline-flex items-center justify-center px-6 py-3 rounded-lg border border-border text-foreground font-semibold hover:bg-muted transition-colors"
+        className="inline-flex items-center justify-center rounded-xl border border-primary/20 bg-card/80 px-6 py-3 font-semibold text-foreground backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-primary/5"
       >
         Try a Search
       </Link>

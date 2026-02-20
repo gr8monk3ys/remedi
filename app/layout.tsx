@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { Fraunces, IBM_Plex_Mono, Manrope } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { PWARegister } from "@/components/PWARegister";
 import { Analytics } from "@/components/analytics";
@@ -11,6 +12,26 @@ import {
 } from "@/lib/structured-data";
 import { getBaseUrl } from "@/lib/url";
 import "./globals.css";
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  variable: "--font-roboto-mono",
+  weight: ["400", "500"],
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["500", "600", "700"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -116,7 +137,11 @@ export default async function RootLayout({
   const webSchemaJson = JSON.stringify(webSiteSchema);
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${manrope.variable} ${ibmPlexMono.variable} ${fraunces.variable}`}
+    >
       <head>
         <script
           type="application/ld+json"
@@ -149,7 +174,7 @@ export default async function RootLayout({
 
 function Footer() {
   return (
-    <footer className="border-t">
+    <footer className="border-t border-primary/10 bg-card/60 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
         <Separator className="mb-6" />
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">

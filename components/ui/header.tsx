@@ -108,12 +108,22 @@ export function Header() {
   const { items, getCompareUrl } = useCompare();
 
   return (
-    <header className="fixed top-0 left-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
+    <header className="fixed top-0 left-0 z-50 w-full border-b border-primary/10 bg-background/78 backdrop-blur-xl">
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px opacity-60"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 50%, transparent), transparent)",
+        }}
+      />
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 md:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-1.5 font-bold text-lg">
-          <Leaf className="h-5 w-5 text-primary" />
-          <span>Remedi</span>
+        <Link
+          href="/"
+          className="group flex items-center gap-1.5 text-lg font-semibold tracking-tight"
+        >
+          <Leaf className="h-5 w-5 text-primary transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" />
+          <span className="font-[var(--font-display)]">Remedi</span>
         </Link>
 
         {/* Desktop Navigation */}

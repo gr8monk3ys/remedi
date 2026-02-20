@@ -8,15 +8,15 @@ export const metadata = {
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-muted via-background to-blue-50">
+    <main className="min-h-screen bg-gradient-to-b from-background via-surface to-background">
       <section className="pt-24 pb-16 px-4">
         <div className="container mx-auto max-w-5xl">
           <div className="flex flex-col gap-10">
-            <div>
-              <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-700 text-sm font-semibold px-3 py-1">
+            <div className="reveal-up">
+              <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
                 Launching Early Access
               </span>
-              <h1 className="mt-6 text-4xl md:text-5xl font-bold text-foreground">
+              <h1 className="mt-6 text-4xl font-semibold text-foreground md:text-5xl">
                 Find natural alternatives that are practical, safe, and
                 evidence-based.
               </h1>
@@ -27,9 +27,11 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <LandingClient />
+            <div className="reveal-up reveal-delay-1">
+              <LandingClient />
+            </div>
 
-            <div className="grid md:grid-cols-3 gap-6 mt-6">
+            <div className="mt-6 grid gap-6 md:grid-cols-3">
               {[
                 {
                   title: "Faster decisions",
@@ -46,7 +48,7 @@ export default function LandingPage() {
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-xl bg-card shadow-sm border border-border p-6"
+                  className="reveal-up surface-glow rounded-xl border border-border bg-card/90 p-6 shadow-sm backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1"
                 >
                   <h3 className="text-lg font-semibold text-foreground">
                     {item.title}
@@ -61,9 +63,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="py-16 px-4 bg-card">
+      <section className="bg-card/65 py-16 px-4 backdrop-blur-sm">
         <div className="container mx-auto max-w-5xl grid md:grid-cols-2 gap-10">
-          <div>
+          <div className="reveal-up">
             <h2 className="text-3xl font-bold text-foreground">
               Built to increase trust and conversion
             </h2>
@@ -77,9 +79,9 @@ export default function LandingPage() {
               <li>• Premium workflows for professionals</li>
             </ul>
           </div>
-          <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-8 shadow-lg">
+          <div className="reveal-up reveal-delay-1 rounded-2xl bg-gradient-to-br from-[color-mix(in_srgb,var(--primary-dark)_80%,black)] via-[color-mix(in_srgb,var(--primary)_72%,black)] to-[color-mix(in_srgb,var(--accent-dark)_56%,black)] p-8 text-white shadow-lg">
             <h3 className="text-2xl font-semibold">Why users stay</h3>
-            <p className="mt-3 text-blue-100">
+            <p className="mt-3 text-white/85">
               Practical comparisons, decision support, and continuous updates
               keep users coming back.
             </p>
