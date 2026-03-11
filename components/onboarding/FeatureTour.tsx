@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useOnboarding } from "@/context/OnboardingContext";
 import { cn } from "@/lib/utils";
@@ -139,11 +139,9 @@ export function FeatureTour({ onComplete, onSkip }: FeatureTourProps) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    let styles: React.CSSProperties = {};
-
     switch (step?.position) {
       case "bottom":
-        styles = {
+        return {
           top: `${highlightRect.bottom + padding}px`,
           left: `${Math.max(
             padding,
@@ -153,9 +151,8 @@ export function FeatureTour({ onComplete, onSkip }: FeatureTourProps) {
             ),
           )}px`,
         };
-        break;
       case "top":
-        styles = {
+        return {
           top: `${Math.max(padding, highlightRect.top - tooltipHeight - padding)}px`,
           left: `${Math.max(
             padding,
@@ -165,9 +162,8 @@ export function FeatureTour({ onComplete, onSkip }: FeatureTourProps) {
             ),
           )}px`,
         };
-        break;
       case "left":
-        styles = {
+        return {
           top: `${Math.max(
             padding,
             Math.min(
@@ -177,9 +173,8 @@ export function FeatureTour({ onComplete, onSkip }: FeatureTourProps) {
           )}px`,
           left: `${Math.max(padding, highlightRect.left - tooltipWidth - padding)}px`,
         };
-        break;
       case "right":
-        styles = {
+        return {
           top: `${Math.max(
             padding,
             Math.min(
@@ -189,15 +184,12 @@ export function FeatureTour({ onComplete, onSkip }: FeatureTourProps) {
           )}px`,
           left: `${highlightRect.right + padding}px`,
         };
-        break;
       default:
-        styles = {
+        return {
           top: `${highlightRect.bottom + padding}px`,
           left: `${highlightRect.left + highlightRect.width / 2 - tooltipWidth / 2}px`,
         };
     }
-
-    return styles;
   }, [highlightRect, step?.position]);
 
   // Don't render if not loaded or shouldn't show
@@ -206,178 +198,184 @@ export function FeatureTour({ onComplete, onSkip }: FeatureTourProps) {
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[100]"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="tour-step-title"
-    >
-      {/* Overlay with spotlight cutout */}
-      <div className="absolute inset-0">
-        {highlightRect ? (
-          <svg
-            className="absolute inset-0 w-full h-full"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <mask id="spotlight-mask">
-                <rect x="0" y="0" width="100%" height="100%" fill="white" />
-                <rect
-                  x={highlightRect.left - 8}
-                  y={highlightRect.top - 8}
-                  width={highlightRect.width + 16}
-                  height={highlightRect.height + 16}
-                  rx="8"
-                  fill="black"
-                />
-              </mask>
-            </defs>
-            <rect
-              x="0"
-              y="0"
-              width="100%"
-              height="100%"
-              fill="rgba(0, 0, 0, 0.7)"
-              mask="url(#spotlight-mask)"
-            />
-          </svg>
-        ) : (
-          <div className="absolute inset-0 bg-black/70" />
-        )}
-      </div>
-
-      {/* Highlight ring */}
-      <AnimatePresence>
-        {highlightRect && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute pointer-events-none"
-            style={{
-              top: highlightRect.top - 8,
-              left: highlightRect.left - 8,
-              width: highlightRect.width + 16,
-              height: highlightRect.height + 16,
-            }}
-          >
-            <div className="w-full h-full rounded-lg border-2 border-green-500 shadow-lg ring-4 ring-green-500/30" />
-            {/* Pulse animation */}
-            <motion.div
-              className="absolute inset-0 rounded-lg border-2 border-green-500"
-              animate={{
-                scale: [1, 1.05, 1],
-                opacity: [0.5, 0, 0.5],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Tooltip */}
-      <motion.div
-        ref={tooltipRef}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 10 }}
-        className="absolute w-[340px] bg-card rounded-xl shadow-2xl overflow-hidden"
-        style={getTooltipPosition()}
+    <LazyMotion features={domAnimation}>
+      <div
+        className="fixed inset-0 z-[100]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tour-step-title"
       >
-        {/* Header */}
-        <div className="p-4 bg-gradient-to-r from-green-500 to-emerald-600">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg text-white">
-                {step?.icon}
-              </div>
-              <h3
-                id="tour-step-title"
-                className="text-lg font-semibold text-white"
-              >
-                {step?.title}
-              </h3>
-            </div>
-            <button
-              onClick={handleSkip}
-              className="p-1 text-white/70 hover:text-white transition-colors"
-              aria-label="Skip tour"
+        {/* Overlay with spotlight cutout */}
+        <div className="absolute inset-0">
+          {highlightRect ? (
+            <svg
+              className="absolute inset-0 h-full w-full"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-4">
-          {/* Progress indicator */}
-          <div className="flex gap-1.5 mb-4">
-            {TOUR_STEPS.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentStep(index)}
-                className={cn(
-                  "h-1.5 rounded-full flex-1 transition-all duration-300",
-                  index === currentStep
-                    ? "bg-green-500"
-                    : index < currentStep
-                      ? "bg-green-500/50"
-                      : "bg-muted",
-                )}
-                aria-label={`Go to step ${index + 1}`}
+              <defs>
+                <mask id="spotlight-mask">
+                  <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                  <rect
+                    x={highlightRect.left - 8}
+                    y={highlightRect.top - 8}
+                    width={highlightRect.width + 16}
+                    height={highlightRect.height + 16}
+                    rx="8"
+                    fill="black"
+                  />
+                </mask>
+              </defs>
+              <rect
+                x="0"
+                y="0"
+                width="100%"
+                height="100%"
+                fill="rgba(0, 0, 0, 0.7)"
+                mask="url(#spotlight-mask)"
               />
-            ))}
-          </div>
-
-          <p className="text-muted-foreground text-sm mb-4">
-            {step?.description}
-          </p>
-
-          {/* Navigation */}
-          <div className="flex items-center justify-between">
-            <button
-              onClick={prevStep}
-              disabled={isFirstStep}
-              className={cn(
-                "flex items-center gap-1 text-sm font-medium transition-colors",
-                isFirstStep
-                  ? "text-muted-foreground/40 cursor-not-allowed"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back
-            </button>
-
-            <span className="text-xs text-muted-foreground">
-              {currentStep + 1} of {TOUR_STEPS.length}
-            </span>
-
-            <button
-              onClick={nextStep}
-              className="flex items-center gap-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
-            >
-              {isLastStep ? "Finish" : "Next"}
-              {!isLastStep && <ChevronRight className="w-4 h-4" />}
-            </button>
-          </div>
-
-          {/* Don't show again */}
-          <label className="flex items-center gap-2 mt-4 pt-4 border-t border-border text-sm text-muted-foreground cursor-pointer">
-            <input
-              type="checkbox"
-              checked={dontShowAgain}
-              onChange={(e) => setDontShowAgain(e.target.checked)}
-              className="w-4 h-4 rounded border-border text-green-600 focus:ring-green-500"
-            />
-            Do not show this tour again
-          </label>
+            </svg>
+          ) : (
+            <div className="absolute inset-0 bg-black/70" />
+          )}
         </div>
-      </motion.div>
-    </div>
+
+        {/* Highlight ring */}
+        <AnimatePresence>
+          {highlightRect && (
+            <m.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute pointer-events-none"
+              style={{
+                top: highlightRect.top - 8,
+                left: highlightRect.left - 8,
+                width: highlightRect.width + 16,
+                height: highlightRect.height + 16,
+              }}
+            >
+              <div className="h-full w-full rounded-lg border-2 border-green-500 shadow-lg ring-4 ring-green-500/30" />
+              {/* Pulse animation */}
+              <m.div
+                className="absolute inset-0 rounded-lg border-2 border-green-500"
+                animate={{
+                  scale: [1, 1.05, 1],
+                  opacity: [0.5, 0, 0.5],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            </m.div>
+          )}
+        </AnimatePresence>
+
+        {/* Tooltip */}
+        <m.div
+          ref={tooltipRef}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          className="absolute w-[340px] overflow-hidden rounded-xl bg-card shadow-2xl"
+          style={getTooltipPosition()}
+        >
+          {/* Header */}
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-white/20 p-2 text-white">
+                  {step?.icon}
+                </div>
+                <h3
+                  id="tour-step-title"
+                  className="text-lg font-semibold text-white"
+                >
+                  {step?.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={handleSkip}
+                className="p-1 text-white/70 transition-colors hover:text-white"
+                aria-label="Skip tour"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-4">
+            {/* Progress indicator */}
+            <div className="mb-4 flex gap-1.5">
+              {TOUR_STEPS.map((tourStep, index) => (
+                <button
+                  type="button"
+                  key={tourStep.id}
+                  onClick={() => setCurrentStep(index)}
+                  className={cn(
+                    "h-1.5 flex-1 rounded-full transition-all duration-300",
+                    index === currentStep
+                      ? "bg-green-500"
+                      : index < currentStep
+                        ? "bg-green-500/50"
+                        : "bg-muted",
+                  )}
+                  aria-label={`Go to step ${index + 1}`}
+                />
+              ))}
+            </div>
+
+            <p className="mb-4 text-sm text-muted-foreground">
+              {step?.description}
+            </p>
+
+            {/* Navigation */}
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={prevStep}
+                disabled={isFirstStep}
+                className={cn(
+                  "flex items-center gap-1 text-sm font-medium transition-colors",
+                  isFirstStep
+                    ? "cursor-not-allowed text-muted-foreground/40"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Back
+              </button>
+
+              <span className="text-xs text-muted-foreground">
+                {currentStep + 1} of {TOUR_STEPS.length}
+              </span>
+
+              <button
+                type="button"
+                onClick={nextStep}
+                className="flex items-center gap-1 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+              >
+                {isLastStep ? "Finish" : "Next"}
+                {!isLastStep && <ChevronRight className="h-4 w-4" />}
+              </button>
+            </div>
+
+            {/* Don't show again */}
+            <label className="mt-4 flex cursor-pointer items-center gap-2 border-t border-border pt-4 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={dontShowAgain}
+                onChange={(e) => setDontShowAgain(e.target.checked)}
+                className="h-4 w-4 rounded border-border text-green-600 focus:ring-green-500"
+              />
+              Do not show this tour again
+            </label>
+          </div>
+        </m.div>
+      </div>
+    </LazyMotion>
   );
 }

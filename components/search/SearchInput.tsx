@@ -4,7 +4,7 @@ import { useCallback, useRef, useEffect } from "react";
 import { Search as SearchIcon, X as XIcon, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { badgeVariants } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
@@ -140,8 +140,10 @@ export function SearchInput({
             aria-label="Toggle AI search"
           />
           <button
+            type="button"
             onClick={() => setUseAiSearch(!useAiSearch)}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            aria-pressed={useAiSearch}
           >
             <Sparkles
               className={cn("h-3.5 w-3.5", useAiSearch && "text-primary")}
@@ -154,16 +156,21 @@ export function SearchInput({
       )}
 
       {/* Suggestions */}
-      <div className="flex flex-wrap gap-1.5 justify-center">
+      <div className="flex flex-wrap justify-center gap-1.5">
         {suggestions.map((suggestion) => (
-          <Badge
+          <button
+            type="button"
             key={suggestion}
-            variant={query === suggestion ? "default" : "outline"}
-            className="cursor-pointer transition-colors hover:bg-accent"
+            className={cn(
+              badgeVariants({
+                variant: query === suggestion ? "default" : "outline",
+              }),
+              "cursor-pointer hover:bg-accent",
+            )}
             onClick={() => handleSuggestionClick(suggestion)}
           >
             {suggestion}
-          </Badge>
+          </button>
         ))}
       </div>
     </div>

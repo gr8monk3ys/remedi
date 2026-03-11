@@ -41,6 +41,7 @@ describe("Session Management", () => {
     Object.defineProperty(global, "crypto", {
       value: {
         randomUUID: vi.fn(() => "550e8400-e29b-41d4-a716-446655440000"),
+        getRandomValues: vi.fn((array: Uint8Array) => array),
       },
       writable: true,
       configurable: true,
@@ -121,10 +122,17 @@ describe("Session Management", () => {
       warnSpy.mockRestore();
     });
 
-    it("should use fallback UUID generation when crypto.randomUUID unavailable", async () => {
-      // Remove crypto.randomUUID
+    it("should use crypto.getRandomValues when crypto.randomUUID is unavailable", async () => {
       Object.defineProperty(global, "crypto", {
-        value: undefined,
+        value: {
+          getRandomValues: vi.fn((array: Uint8Array) => {
+            array.set([
+              0x12, 0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef, 0x24, 0x68, 0xac,
+              0xf0, 0x11, 0x22, 0x33, 0x44,
+            ]);
+            return array;
+          }),
+        },
         writable: true,
         configurable: true,
       });
@@ -139,6 +147,27 @@ describe("Session Management", () => {
       expect(sessionId).toMatch(
         /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
       );
+    });
+
+    it("should return empty string when secure crypto APIs are unavailable", async () => {
+      Object.defineProperty(global, "crypto", {
+        value: undefined,
+        writable: true,
+        configurable: true,
+      });
+
+      mockLocalStorage.getItem.mockReturnValue(null);
+
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      vi.resetModules();
+      const { getSessionId } = await import("../session");
+      const sessionId = getSessionId();
+
+      expect(sessionId).toBe("");
+      expect(mockLocalStorage.setItem).not.toHaveBeenCalled();
+
+      errorSpy.mockRestore();
     });
   });
 
