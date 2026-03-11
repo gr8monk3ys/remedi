@@ -17,28 +17,13 @@ import {
 } from "@/lib/api/response";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { MOCK_PHARMACEUTICALS, MOCK_REMEDY_MAPPINGS } from "@/lib/mock-data";
-import { COMMON_SUFFIXES, SPELLING_VARIANTS } from "@/lib/constants";
 import { createLogger } from "@/lib/logger";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
 import { getCurrentUser } from "@/lib/auth";
+import { normalizeSearchQuery } from "@/lib/search/query-normalization";
 import type { ProcessedDrug, NaturalRemedy } from "@/lib/types";
 
 const log = createLogger("search-api");
-
-// Pre-compiled regex patterns (avoid re-creating on every request)
-const SUFFIX_PATTERNS = COMMON_SUFFIXES.map(
-  (suffix) => new RegExp(`\\s${suffix}s?\\b`, "gi"),
-);
-
-const VARIANT_PATTERNS = Object.entries(SPELLING_VARIANTS).map(
-  ([standard, variants]) => ({
-    standard,
-    patterns: variants.map((variant) => ({
-      test: variant,
-      regex: new RegExp(variant, "gi"),
-    })),
-  }),
-);
 
 export async function GET(req: NextRequest) {
   const startTime = Date.now();
@@ -103,22 +88,7 @@ export async function GET(req: NextRequest) {
     };
 
     // Process query - remove common suffixes and extra words
-    let processedQuery = query.toLowerCase();
-    // Remove common suffixes that might cause search issues
-    SUFFIX_PATTERNS.forEach((pattern) => {
-      processedQuery = processedQuery.replace(pattern, "");
-    });
-
-    // Find if any variant matches and replace with standard spelling
-    VARIANT_PATTERNS.forEach(({ standard, patterns }) => {
-      patterns.forEach(({ test, regex }) => {
-        if (processedQuery.includes(test)) {
-          processedQuery = processedQuery.replace(regex, standard);
-        }
-      });
-    });
-
-    processedQuery = processedQuery.trim();
+    const processedQuery = normalizeSearchQuery(query);
     log.debug("Query processed", {
       original: query,
       processed: processedQuery,

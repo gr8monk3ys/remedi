@@ -993,10 +993,11 @@ export async function seedInteractions(
       });
       created++;
     } catch (error) {
-      console.warn(
-        `  Skipped interaction: ${interaction.substanceA} + ${interaction.substanceB}`,
+      console.warn("Skipped interaction while seeding drug interactions", {
+        substanceA: interaction.substanceA,
+        substanceB: interaction.substanceB,
         error,
-      );
+      });
       skipped++;
     }
   }

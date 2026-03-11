@@ -379,7 +379,7 @@ async function importDrugs(config: ImportConfig): Promise<void> {
         }
       }
     } catch (error) {
-      console.error(`❌ Error processing dataset ${dataset}:`, error);
+      console.error("Error processing dataset", { dataset, error });
       totalErrors++;
     }
   }

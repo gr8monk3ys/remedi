@@ -30,14 +30,21 @@ function isE2EAuthenticated(req: NextRequest): boolean {
   );
 }
 
-function compileRouteMatcher(pattern: string): RegExp {
+type CompiledRouteMatcher = {
+  matches: (pathname: string) => boolean;
+};
+
+function compileRouteMatcher(pattern: string): CompiledRouteMatcher {
   if (pattern.endsWith("(.*)")) {
-    const prefix = pattern.slice(0, -4).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return new RegExp(`^${prefix}.*$`);
+    const prefix = pattern.slice(0, -4);
+    return {
+      matches: (pathname: string) => pathname.startsWith(prefix),
+    };
   }
 
-  const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`^${escaped}$`);
+  return {
+    matches: (pathname: string) => pathname === pattern,
+  };
 }
 
 export function createRouteMatcher(
@@ -45,7 +52,7 @@ export function createRouteMatcher(
 ): (req: NextRequest) => boolean {
   const matchers = patterns.map(compileRouteMatcher);
   return (req: NextRequest) =>
-    matchers.some((matcher) => matcher.test(req.nextUrl.pathname));
+    matchers.some((matcher) => matcher.matches(req.nextUrl.pathname));
 }
 
 export function clerkMiddleware(handler: MockClerkMiddlewareHandler) {
