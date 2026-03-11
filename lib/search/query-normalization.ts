@@ -78,5 +78,13 @@ export function normalizeSearchQuery(query: string): string {
     index += 1;
   }
 
-  return replacedTokens.filter((token) => !isSuffixToken(token)).join(" ");
+  const strippedTokens = replacedTokens.filter(
+    (token) => !isSuffixToken(token),
+  );
+
+  if (strippedTokens.length > 0) {
+    return strippedTokens.join(" ");
+  }
+
+  return replacedTokens.join(" ");
 }

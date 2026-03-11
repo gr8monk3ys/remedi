@@ -20,4 +20,9 @@ describe("normalizeSearchQuery", () => {
       "vitamin d sleep support",
     );
   });
+
+  it("keeps suffix-only queries non-empty after normalization", () => {
+    expect(normalizeSearchQuery("pill")).toBe("pill");
+    expect(normalizeSearchQuery("tablets")).toBe("tablets");
+  });
 });
