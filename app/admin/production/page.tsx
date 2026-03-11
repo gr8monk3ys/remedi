@@ -55,10 +55,14 @@ export default async function ProductionReadinessPage() {
     where: { provider: "stripe" },
     select: { lastReceivedAt: true, lastEventType: true },
   });
-  const stripeOk = await getStripe()
-    .products.list({ limit: 1 })
-    .then(() => true)
-    .catch(() => false);
+  const stripeOk = await (async () => {
+    try {
+      await getStripe().products.list({ limit: 1 });
+      return true;
+    } catch {
+      return false;
+    }
+  })();
 
   let remediesTotal = 0;
   let remediesMissingSourceUrl = 0;
