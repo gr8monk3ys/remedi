@@ -45,14 +45,9 @@ function missingEnv(names: string[]) {
 export async function runProductionChecks(): Promise<ProductionCheckResult> {
   const missingRequired = missingEnv(REQUIRED_ENV);
   const missingRecommended = missingEnv(RECOMMENDED_ENV);
-
-  let dbOk = false;
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    dbOk = true;
-  } catch {
-    dbOk = false;
-  }
+  const dbOk = await prisma.$queryRaw`SELECT 1`
+    .then(() => true)
+    .catch(() => false);
 
   return {
     ok: missingRequired.length === 0 && dbOk,

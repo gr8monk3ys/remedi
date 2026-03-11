@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { Fraunces, IBM_Plex_Mono, Manrope } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { PWARegister } from "@/components/PWARegister";
@@ -182,18 +183,18 @@ function Footer() {
             Remedi. For informational purposes only.
           </p>
           <nav className="flex gap-4">
-            <a
+            <Link
               href="/faq"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               FAQ
-            </a>
-            <a
+            </Link>
+            <Link
               href="/about"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               About
-            </a>
+            </Link>
           </nav>
         </div>
       </div>

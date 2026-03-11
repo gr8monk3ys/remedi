@@ -12,7 +12,7 @@ interface UserMenuProps {
 export function UserMenu({ className = "" }: UserMenuProps) {
   return (
     <div className={className}>
-      <UserButton afterSignOutUrl="/" />
+      <UserButton />
     </div>
   );
 }

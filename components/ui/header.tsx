@@ -2,13 +2,7 @@
 
 import { Component, type ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  useUser,
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { useUser, SignInButton, UserButton } from "@clerk/nextjs";
 import { GitCompare, Leaf, Menu } from "lucide-react";
 import { useCompare } from "@/context/CompareContext";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -54,7 +48,7 @@ class AuthErrorBoundary extends Component<
 }
 
 function AuthSection(): ReactNode {
-  const { isLoaded } = useUser();
+  const { isLoaded, isSignedIn } = useUser();
   const [showFallbackSignIn, setShowFallbackSignIn] = useState(false);
 
   useEffect(() => {
@@ -82,19 +76,14 @@ function AuthSection(): ReactNode {
     return <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />;
   }
 
-  return (
-    <>
-      <SignedIn>
-        <UserButton afterSignOutUrl="/" />
-      </SignedIn>
-      <SignedOut>
-        <SignInButton mode="modal">
-          <Button variant="outline" size="sm">
-            Sign In
-          </Button>
-        </SignInButton>
-      </SignedOut>
-    </>
+  return isSignedIn ? (
+    <UserButton />
+  ) : (
+    <SignInButton mode="modal">
+      <Button variant="outline" size="sm">
+        Sign In
+      </Button>
+    </SignInButton>
   );
 }
 

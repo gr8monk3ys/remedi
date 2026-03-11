@@ -16,6 +16,26 @@ import {
 const SESSION_COOKIE_NAMES = ["e2e_auth", "__session"] as const;
 const DEFAULT_REDIRECT = "/";
 
+export function sanitizeRedirectPath(input: string | null | undefined): string {
+  if (!input || typeof window === "undefined") return DEFAULT_REDIRECT;
+
+  try {
+    const candidate = new URL(input, window.location.origin);
+
+    if (candidate.origin !== window.location.origin) {
+      return DEFAULT_REDIRECT;
+    }
+
+    if (!candidate.pathname.startsWith("/")) {
+      return DEFAULT_REDIRECT;
+    }
+
+    return `${candidate.pathname}${candidate.search}${candidate.hash}`;
+  } catch {
+    return DEFAULT_REDIRECT;
+  }
+}
+
 type AuthContextValue = {
   isLoaded: boolean;
   isSignedIn: boolean;
@@ -60,8 +80,7 @@ function clearSessionCookies(): void {
 function getRedirectUrl(): string {
   if (typeof window === "undefined") return DEFAULT_REDIRECT;
   const params = new URLSearchParams(window.location.search);
-  const redirectUrl = params.get("redirect_url");
-  return redirectUrl || DEFAULT_REDIRECT;
+  return sanitizeRedirectPath(params.get("redirect_url"));
 }
 
 export function ClerkProvider({ children }: { children: ReactNode }) {
@@ -178,7 +197,7 @@ export function UserButton({
       aria-label="User menu"
       onClick={() => {
         clearSessionCookies();
-        window.location.assign(afterSignOutUrl);
+        window.location.assign(sanitizeRedirectPath(afterSignOutUrl));
       }}
     >
       E2E User

@@ -58,13 +58,10 @@ async function parseApiErrorResponse(response: Response): Promise<{
   message?: string;
   retryAfter: number | null;
 }> {
-  let parsedBody: APIErrorResponse | null = null;
-
-  try {
-    parsedBody = (await response.json()) as APIErrorResponse;
-  } catch {
-    parsedBody = null;
-  }
+  const parsedBody = await response
+    .json()
+    .then((body) => body as APIErrorResponse)
+    .catch(() => null);
 
   const headerRetryAfter = parseRetryAfterHeader(
     response.headers.get("Retry-After"),

@@ -9,21 +9,35 @@
 import { createLogger } from "@/lib/logger";
 
 const logger = createLogger("session");
+const SESSION_KEY = "remedi_session_id";
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
+}
 
 /**
  * Generate a UUID v4
  */
 function generateUUID(): string {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
+  if (typeof globalThis.crypto === "undefined") {
+    throw new Error("Secure crypto API is unavailable");
   }
 
-  // Fallback for older browsers
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  if (globalThis.crypto.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  const bytes = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(bytes);
+
+  // Force RFC 4122 v4 UUID version and variant bits.
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hex = bytesToHex(bytes);
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 /**
@@ -38,26 +52,36 @@ export function getSessionId(): string {
     return "";
   }
 
-  const SESSION_KEY = "remedi_session_id";
-
   try {
     // Try to get existing session ID
-    let sessionId = localStorage.getItem(SESSION_KEY);
+    const existingSessionId = localStorage.getItem(SESSION_KEY);
 
-    if (!sessionId) {
-      // Generate new session ID
-      sessionId = generateUUID();
-      localStorage.setItem(SESSION_KEY, sessionId);
+    if (existingSessionId) {
+      return existingSessionId;
     }
-
-    return sessionId;
   } catch (error) {
-    // If localStorage is not available (e.g., private browsing), generate temporary ID
-    logger.warn("localStorage not available, using temporary session", {
+    logger.warn("Failed to read session ID from localStorage", {
       error,
     });
-    return generateUUID();
   }
+
+  let sessionId: string;
+  try {
+    sessionId = generateUUID();
+  } catch (error) {
+    logger.error("Failed to generate secure session ID", error);
+    return "";
+  }
+
+  try {
+    localStorage.setItem(SESSION_KEY, sessionId);
+  } catch (error) {
+    logger.warn("Failed to persist session ID to localStorage", {
+      error,
+    });
+  }
+
+  return sessionId;
 }
 
 /**
@@ -68,8 +92,6 @@ export function clearSessionId(): void {
   if (typeof window === "undefined") {
     return;
   }
-
-  const SESSION_KEY = "remedi_session_id";
 
   try {
     localStorage.removeItem(SESSION_KEY);
@@ -85,8 +107,6 @@ export function hasSessionId(): boolean {
   if (typeof window === "undefined") {
     return false;
   }
-
-  const SESSION_KEY = "remedi_session_id";
 
   try {
     return localStorage.getItem(SESSION_KEY) !== null;
