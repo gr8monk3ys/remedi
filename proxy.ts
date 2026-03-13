@@ -75,9 +75,21 @@ function isE2EAuthenticated(req: NextRequest): boolean {
 }
 
 /**
+ * Generate a cryptographic nonce for CSP.
+ * Uses crypto.randomUUID() which is available in all modern runtimes
+ * (Node 19+, Edge, Workers). The UUID is base64-encoded to produce a
+ * compact, URL-safe token suitable for CSP nonce values.
+ */
+function generateCspNonce(): string {
+  const uuid = crypto.randomUUID();
+  // btoa is available in Edge and Node 16+; produces a short base64 token.
+  return btoa(uuid);
+}
+
+/**
  * Add security headers to response
  */
-function addSecurityHeaders(response: NextResponse): void {
+function addSecurityHeaders(response: NextResponse, nonce: string): void {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -90,11 +102,14 @@ function addSecurityHeaders(response: NextResponse): void {
 
   const isProduction = process.env.NODE_ENV === "production";
   const clerkScriptSrc = "https://*.clerk.accounts.dev https://*.clerk.com";
+  // 'unsafe-inline' is kept as a fallback for older browsers that do not
+  // support nonces. Nonce-aware browsers ignore 'unsafe-inline' when a
+  // nonce source is present, so this is safe and follows CSP best practices.
   const cspDirectives = [
     "default-src 'self'",
     isProduction
-      ? `script-src 'self' 'unsafe-inline' ${clerkScriptSrc}`
-      : `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${clerkScriptSrc}`,
+      ? `script-src 'self' 'unsafe-inline' 'nonce-${nonce}' ${clerkScriptSrc}`
+      : `script-src 'self' 'unsafe-inline' 'unsafe-eval' 'nonce-${nonce}' ${clerkScriptSrc}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' https://images.unsplash.com https://img.clerk.com https://*.clerk.com data: blob:",
     "font-src 'self' data:",
@@ -244,9 +259,16 @@ export default clerkMiddleware(async (authObj, req: NextRequest) => {
     }
   }
 
+  // Generate a per-request CSP nonce and forward it to the server
+  // component tree via a custom request header. layout.tsx reads this
+  // value with `headers().get('x-nonce')` and passes it to <Script> tags.
+  const nonce = generateCspNonce();
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-nonce", nonce);
+
   // Continue with the request and add security headers
-  const response = NextResponse.next();
-  addSecurityHeaders(response);
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  addSecurityHeaders(response, nonce);
 
   // Issue a CSRF token cookie if one does not already exist.
   // This allows client-side code (fetchWithCSRF) to read the cookie and

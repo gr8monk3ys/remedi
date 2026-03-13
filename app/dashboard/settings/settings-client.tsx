@@ -124,7 +124,8 @@ export function SettingsClient({
     setIsExporting(true);
 
     try {
-      const response = await fetch("/api/account/export");
+      const exportUrl = `/api/account/export?confirmation=${encodeURIComponent(userEmail)}`;
+      const response = await fetch(exportUrl);
 
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
@@ -149,7 +150,7 @@ export function SettingsClient({
     } finally {
       setIsExporting(false);
     }
-  }, []);
+  }, [userEmail]);
 
   return (
     <div className="space-y-6">

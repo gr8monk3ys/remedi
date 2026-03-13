@@ -35,6 +35,29 @@ export async function GET(request: NextRequest): Promise<Response> {
     );
   }
 
+  // Re-authentication: require the user to confirm their email address to
+  // mitigate session-hijacking data exfiltration.  A stolen session token
+  // alone is not sufficient -- the caller must also know the account email.
+  const confirmation = request.nextUrl.searchParams.get("confirmation");
+  if (!confirmation) {
+    return NextResponse.json(
+      errorResponse(
+        "MISSING_PARAMETER",
+        'A "confirmation" query parameter is required. Pass your account email address to confirm the export.',
+      ),
+      { status: 400 },
+    );
+  }
+  if (confirmation !== user.email) {
+    return NextResponse.json(
+      errorResponse(
+        "INVALID_INPUT",
+        "The confirmation value does not match your account email address.",
+      ),
+      { status: 400 },
+    );
+  }
+
   const { limits, plan, isTrial } = await getEffectivePlanLimits(user.id);
   if (!limits.canExport) {
     return NextResponse.json(

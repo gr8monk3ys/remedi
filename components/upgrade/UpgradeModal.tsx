@@ -142,7 +142,7 @@ export function UpgradeModal({
             className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-2xl md:w-full bg-card rounded-2xl shadow-xl z-50 overflow-hidden max-h-[90vh] flex flex-col"
           >
             {/* Header */}
-            <div className="relative bg-gradient-to-r from-[color-mix(in_srgb,var(--primary-dark)_82%,black)] to-[color-mix(in_srgb,var(--accent-dark)_75%,black)] px-6 py-8 text-white">
+            <div className="premium-gradient-band relative px-6 py-8 text-white">
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full transition-colors"

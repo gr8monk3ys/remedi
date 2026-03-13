@@ -5,7 +5,7 @@
  */
 
 // Client
-export { isAIEnabled, getOpenAIClient } from "./client";
+export { isAIEnabled, getOpenAIClient, openaiCircuitBreaker } from "./client";
 
 // Matching
 export { enhanceRemedyMatching } from "./matching";

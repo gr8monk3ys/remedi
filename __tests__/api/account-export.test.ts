@@ -120,9 +120,37 @@ describe("/api/account/export", () => {
     expect(json.error.code).toBe("UNAUTHORIZED");
   });
 
-  it("returns JSON export and increments usage", async () => {
+  it("returns 400 when confirmation parameter is missing", async () => {
     const { GET } = await import("@/app/api/account/export/route");
     const request = new NextRequest("http://localhost:3000/api/account/export");
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(json.success).toBe(false);
+    expect(json.error.code).toBe("MISSING_PARAMETER");
+    expect(json.error.message).toContain("confirmation");
+  });
+
+  it("returns 400 when confirmation does not match user email", async () => {
+    const { GET } = await import("@/app/api/account/export/route");
+    const request = new NextRequest(
+      "http://localhost:3000/api/account/export?confirmation=wrong@example.com",
+    );
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(json.success).toBe(false);
+    expect(json.error.code).toBe("INVALID_INPUT");
+    expect(json.error.message).toContain("does not match");
+  });
+
+  it("returns JSON export and increments usage", async () => {
+    const { GET } = await import("@/app/api/account/export/route");
+    const request = new NextRequest(
+      "http://localhost:3000/api/account/export?confirmation=test%40example.com",
+    );
     const response = await GET(request);
     const text = await response.text();
     const parsed = JSON.parse(text) as Record<string, unknown>;

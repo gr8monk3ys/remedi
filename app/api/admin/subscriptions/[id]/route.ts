@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { successResponse, errorResponse } from "@/lib/api/response";
 import { z } from "zod";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
 
 const logger = createLogger("api-admin-subscriptions");
@@ -22,6 +23,12 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.adminActions,
+  );
+  if (!allowed && rateLimitResponse) return rateLimitResponse;
+
   try {
     const currentUser = await getCurrentUser();
     const userIsAdmin = await isAdmin();

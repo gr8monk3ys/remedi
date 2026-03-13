@@ -82,6 +82,16 @@ export function validateEnv(): void {
     return;
   }
 
+  if (
+    process.env.E2E_LOCAL_AUTH === "true" &&
+    process.env.NODE_ENV === "production"
+  ) {
+    throw new EnvValidationError(
+      "E2E_LOCAL_AUTH must not be enabled in production. " +
+        "It bypasses Clerk authentication entirely.",
+    );
+  }
+
   const missing: string[] = [];
 
   // Check required variables

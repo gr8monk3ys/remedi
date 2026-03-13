@@ -9,8 +9,15 @@
 
 import type { DrugSearchResult, FdaDrugResult, ProcessedDrug } from "./types";
 import { createLogger } from "@/lib/logger";
+import { CircuitBreaker, CircuitBreakerOpenError } from "@/lib/circuit-breaker";
 
 const logger = createLogger("openfda");
+
+const fdaCircuitBreaker = new CircuitBreaker({
+  name: "openfda",
+  failureThreshold: 5,
+  resetTimeoutMs: 30_000,
+});
 
 const FDA_BASE_URL = "https://api.fda.gov";
 const FDA_API_KEY = process.env.OPENFDA_API_KEY;
@@ -100,28 +107,34 @@ export async function searchFdaDrugs(
   limit = 5,
 ): Promise<ProcessedDrug[]> {
   try {
-    const searchQuery = encodeURIComponent(query);
-    const endpoint = `/drug/label.json?search=${searchQuery}&limit=${limit}`;
-    const url = buildFdaUrl(endpoint);
+    return await fdaCircuitBreaker.call(async () => {
+      const searchQuery = encodeURIComponent(query);
+      const endpoint = `/drug/label.json?search=${searchQuery}&limit=${limit}`;
+      const url = buildFdaUrl(endpoint);
 
-    const response = await fetchWithRetry(url);
+      const response = await fetchWithRetry(url);
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        logger.debug("No results found", { query });
-        return [];
+      if (!response.ok) {
+        if (response.status === 404) {
+          logger.debug("No results found", { query });
+          return [];
+        }
+        throw new Error(
+          `FDA API error: ${response.status} ${response.statusText}`,
+        );
       }
-      throw new Error(
-        `FDA API error: ${response.status} ${response.statusText}`,
-      );
-    }
 
-    const data: DrugSearchResult = await response.json();
+      const data: DrugSearchResult = await response.json();
 
-    // Process the FDA API results into our application format
-    return processFdaResults(data.results);
+      // Process the FDA API results into our application format
+      return processFdaResults(data.results);
+    });
   } catch (error) {
-    logger.error("Error searching FDA drugs", error);
+    if (error instanceof CircuitBreakerOpenError) {
+      logger.warn("OpenFDA circuit breaker is open, falling back to mock data");
+    } else {
+      logger.error("Error searching FDA drugs", error);
+    }
     // Return empty array instead of throwing to allow fallback to mock data
     return [];
   }
@@ -136,32 +149,40 @@ export async function getFdaDrugById(
   fdaId: string,
 ): Promise<ProcessedDrug | null> {
   try {
-    const endpoint = `/drug/label.json?search=id:${fdaId}`;
-    const url = buildFdaUrl(endpoint);
+    return await fdaCircuitBreaker.call(async () => {
+      const endpoint = `/drug/label.json?search=id:${fdaId}`;
+      const url = buildFdaUrl(endpoint);
 
-    const response = await fetchWithRetry(url);
+      const response = await fetchWithRetry(url);
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        logger.debug("Drug not found by ID", { fdaId });
+      if (!response.ok) {
+        if (response.status === 404) {
+          logger.debug("Drug not found by ID", { fdaId });
+          return null;
+        }
+        throw new Error(
+          `FDA API error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const data: DrugSearchResult = await response.json();
+
+      if (data.results.length === 0) {
         return null;
       }
-      throw new Error(
-        `FDA API error: ${response.status} ${response.statusText}`,
-      );
-    }
 
-    const data: DrugSearchResult = await response.json();
-
-    if (data.results.length === 0) {
-      return null;
-    }
-
-    // Process the FDA API result into our application format
-    const processedDrugs = processFdaResults(data.results);
-    return processedDrugs[0] || null;
+      // Process the FDA API result into our application format
+      const processedDrugs = processFdaResults(data.results);
+      return processedDrugs[0] || null;
+    });
   } catch (error) {
-    logger.error("Error fetching FDA drug by ID", error);
+    if (error instanceof CircuitBreakerOpenError) {
+      logger.warn(
+        "OpenFDA circuit breaker is open, skipping drug lookup by ID",
+      );
+    } else {
+      logger.error("Error fetching FDA drug by ID", error);
+    }
     return null;
   }
 }

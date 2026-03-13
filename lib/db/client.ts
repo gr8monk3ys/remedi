@@ -51,6 +51,9 @@ function createPrismaClient(): PrismaClient {
     globalForPrisma.prismaPool ??
     new Pool({
       connectionString: databaseUrl,
+      max: 3,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
     });
 
   if (!isProduction) {

@@ -156,7 +156,7 @@ export function PricingCards({
         className="relative overflow-hidden rounded-2xl border-2 border-primary bg-card shadow-xl"
       >
         {/* Popular badge */}
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-[color-mix(in_srgb,var(--primary-dark)_82%,black)] to-[color-mix(in_srgb,var(--accent-dark)_75%,black)] py-2 text-center text-sm font-medium text-white">
+        <div className="premium-gradient-band absolute top-0 left-0 right-0 py-2 text-center text-sm font-medium text-white">
           <Crown className="w-4 h-4 inline mr-1" />
           Most Popular
         </div>
@@ -164,7 +164,7 @@ export function PricingCards({
         <div className="p-8 pt-14">
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-lg bg-accent/35 p-2">
-              <Crown className="w-6 h-6 text-[var(--accent-dark)]" />
+              <Crown className="accent-text h-6 w-6" />
             </div>
             <h3 className="text-xl font-bold text-foreground">
               {PLANS.premium.name}
@@ -192,7 +192,7 @@ export function PricingCards({
             <button
               onClick={onStartTrial}
               disabled={loading === "trial"}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[color-mix(in_srgb,var(--primary-dark)_82%,black)] to-[color-mix(in_srgb,var(--accent-dark)_75%,black)] px-4 py-3 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:opacity-95"
+              className="premium-gradient-band mb-3 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:opacity-95"
             >
               {loading === "trial" ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -230,7 +230,7 @@ export function PricingCards({
 
           <FeatureList
             features={PLANS.premium.features}
-            checkClass="text-[var(--accent-dark)]"
+            checkClass="accent-text"
           />
         </div>
       </motion.div>

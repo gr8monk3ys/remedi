@@ -474,7 +474,7 @@ export function SubscriptionClient({
 
       {/* Plan Features Summary for Free Users */}
       {currentPlan === "free" && (
-        <div className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-[color-mix(in_srgb,var(--accent-dark)_18%,transparent)] p-6 dark:from-primary/10 dark:to-[color-mix(in_srgb,var(--accent-dark)_28%,transparent)]">
+        <div className="accent-fade-surface rounded-xl border border-primary/20 p-6">
           <div className="flex items-start gap-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
               <Crown className="h-5 w-5 text-primary" aria-hidden="true" />

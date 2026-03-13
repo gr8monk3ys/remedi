@@ -4,7 +4,8 @@
  * Uses AI to extract intent and entities from user queries.
  */
 
-import { getOpenAIClient } from "./client";
+import { getOpenAIClient, openaiCircuitBreaker } from "./client";
+import { CircuitBreakerOpenError } from "@/lib/circuit-breaker";
 import { buildNLPPrompt } from "./prompts";
 import type { NLPQueryResult } from "./types";
 import { createLogger } from "@/lib/logger";
@@ -25,12 +26,14 @@ export async function processNaturalLanguageQuery(
   try {
     const prompt = buildNLPPrompt(query);
 
-    const completion = await client.chat.completions.create({
-      model: "gpt-4-turbo-preview",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.5,
-      max_tokens: 300,
-    });
+    const completion = await openaiCircuitBreaker.call(() =>
+      client.chat.completions.create({
+        model: "gpt-4-turbo-preview",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.5,
+        max_tokens: 300,
+      }),
+    );
 
     const response = completion.choices[0]?.message?.content;
     if (!response) {
@@ -39,7 +42,11 @@ export async function processNaturalLanguageQuery(
 
     return JSON.parse(response);
   } catch (error) {
-    logger.error("NLP processing error", error);
+    if (error instanceof CircuitBreakerOpenError) {
+      logger.warn("OpenAI circuit breaker is open, skipping NLP processing");
+    } else {
+      logger.error("NLP processing error", error);
+    }
     return { intent: "search" };
   }
 }

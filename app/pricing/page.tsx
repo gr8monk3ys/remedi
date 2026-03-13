@@ -173,7 +173,7 @@ export default async function PricingPage() {
                   &ldquo;{testimonial.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent-dark font-bold text-white">
+                  <div className="premium-avatar-gradient flex h-10 w-10 items-center justify-center rounded-full font-bold text-white">
                     {testimonial.name[0]}
                   </div>
                   <div>
