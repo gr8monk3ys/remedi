@@ -40,8 +40,7 @@ const defaultActions: QuickAction[] = [
     label: "Subscription",
     description: "Manage billing & invoices",
     icon: CreditCard,
-    color:
-      "bg-[color:color-mix(in_srgb,var(--accent-dark)_16%,white)] text-[var(--accent-dark)] dark:bg-[color:color-mix(in_srgb,var(--accent-dark)_22%,black)] dark:text-[var(--accent-light)]",
+    color: "dashboard-accent-chip",
   },
 ];
 

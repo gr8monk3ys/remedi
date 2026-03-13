@@ -106,7 +106,7 @@ export function TrialBanner({
               ? "bg-gradient-to-r from-red-500 to-orange-500"
               : isWarning
                 ? "bg-gradient-to-r from-orange-500 to-yellow-500"
-                : "bg-gradient-to-r from-[color-mix(in_srgb,var(--primary-dark)_82%,black)] to-[color-mix(in_srgb,var(--accent-dark)_75%,black)]"
+                : "premium-gradient-band"
           } text-white`}
         >
           <div className="container mx-auto flex items-center justify-between gap-4">
@@ -275,8 +275,7 @@ export function StartTrialButton({
   };
 
   const variantClasses = {
-    primary:
-      "bg-gradient-to-r from-[color-mix(in_srgb,var(--primary-dark)_82%,black)] to-[color-mix(in_srgb,var(--accent-dark)_75%,black)] text-white hover:opacity-95",
+    primary: "premium-gradient-band text-white hover:opacity-95",
     secondary: "bg-muted text-foreground hover:bg-muted/80",
     outline:
       "border-2 border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20",

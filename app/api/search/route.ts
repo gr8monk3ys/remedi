@@ -189,42 +189,6 @@ export async function GET(req: NextRequest) {
             },
           );
         }
-
-        // No explicit mappings yet; generate deterministic DB-backed mappings.
-        try {
-          remedies = await generateRemedyMappingsForPharmaceutical({
-            pharmaceuticalId: pharmaceutical.id,
-            drug: pharmaceutical,
-          });
-        } catch (matchError) {
-          log.warn("Failed to generate remedy mappings from database", {
-            error: String(matchError),
-          });
-        }
-
-        if (remedies.length > 0) {
-          log.info("Generated remedies from database", {
-            count: remedies.length,
-          });
-          void saveHistory(remedies.length);
-          void trackSearchEvent(remedies.length, "database_generated");
-          const processingTime = Date.now() - startTime;
-          return NextResponse.json(
-            successResponse(remedies, {
-              total: remedies.length,
-              processingTime,
-              apiVersion: "1.0",
-              source: "database" as const,
-            }),
-            {
-              status: 200,
-              headers: {
-                "Cache-Control":
-                  "public, s-maxage=300, stale-while-revalidate=3600",
-              },
-            },
-          );
-        }
       }
     } catch (dbError) {
       // Database unavailable - gracefully fall through to FDA API and mock data

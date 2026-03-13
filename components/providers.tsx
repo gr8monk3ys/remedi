@@ -1,10 +1,11 @@
 "use client";
 
-import { Component, type ReactNode } from "react";
+import { Component, useState, type ReactNode } from "react";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CompareProvider } from "@/context/CompareContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { Toaster } from "@/components/ui/toaster";
 import { createLogger } from "@/lib/logger";
@@ -67,16 +68,33 @@ class ClerkErrorBoundary extends Component<
  * Inner providers that wrap the app content regardless of auth state
  */
 function AppProviders({ children }: ProvidersProps): ReactNode {
+  // useState ensures a single QueryClient per app lifetime (standard Next.js pattern)
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 5 * 60 * 1000, // 5 minutes
+            gcTime: 10 * 60 * 1000, // 10 minutes
+            retry: 1,
+            refetchOnWindowFocus: false,
+          },
+        },
+      }),
+  );
+
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <OnboardingProvider>
-        <CompareProvider>
-          {children}
-          <ComparisonBar />
-        </CompareProvider>
-      </OnboardingProvider>
-      <Toaster />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <OnboardingProvider>
+          <CompareProvider>
+            {children}
+            <ComparisonBar />
+          </CompareProvider>
+        </OnboardingProvider>
+        <Toaster />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

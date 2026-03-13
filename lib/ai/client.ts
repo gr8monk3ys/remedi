@@ -6,11 +6,21 @@
 
 import OpenAI from "openai";
 import { createLogger } from "@/lib/logger";
+import { CircuitBreaker } from "@/lib/circuit-breaker";
 
 const logger = createLogger("ai-client");
 
 let openaiClient: OpenAI | null = null;
 let aiDisabled = false;
+
+/**
+ * Shared circuit breaker for all OpenAI API calls
+ */
+export const openaiCircuitBreaker = new CircuitBreaker({
+  name: "openai",
+  failureThreshold: 5,
+  resetTimeoutMs: 30_000,
+});
 
 /**
  * Check if AI features are available

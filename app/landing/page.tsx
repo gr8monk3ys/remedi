@@ -79,7 +79,7 @@ export default function LandingPage() {
               <li>• Premium workflows for professionals</li>
             </ul>
           </div>
-          <div className="reveal-up reveal-delay-1 rounded-2xl bg-gradient-to-br from-[color-mix(in_srgb,var(--primary-dark)_80%,black)] via-[color-mix(in_srgb,var(--primary)_72%,black)] to-[color-mix(in_srgb,var(--accent-dark)_56%,black)] p-8 text-white shadow-lg">
+          <div className="premium-gradient-panel reveal-up reveal-delay-1 rounded-2xl p-8 text-white shadow-lg">
             <h3 className="text-2xl font-semibold">Why users stay</h3>
             <p className="mt-3 text-white/85">
               Practical comparisons, decision support, and continuous updates

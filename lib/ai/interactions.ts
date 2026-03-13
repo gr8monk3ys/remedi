@@ -4,7 +4,8 @@
  * Uses AI to analyze potential interactions between natural remedies and medications.
  */
 
-import { getOpenAIClient } from "./client";
+import { getOpenAIClient, openaiCircuitBreaker } from "./client";
+import { CircuitBreakerOpenError } from "@/lib/circuit-breaker";
 import { buildInteractionPrompt, INTERACTION_SYSTEM_PROMPT } from "./prompts";
 import type { DrugInteractionResult } from "./types";
 import { createLogger } from "@/lib/logger";
@@ -44,15 +45,17 @@ export async function checkDrugInteractions(
   try {
     const prompt = buildInteractionPrompt(remedyName, medications);
 
-    const completion = await client.chat.completions.create({
-      model: "gpt-4-turbo-preview",
-      messages: [
-        { role: "system", content: INTERACTION_SYSTEM_PROMPT },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.3,
-      max_tokens: 800,
-    });
+    const completion = await openaiCircuitBreaker.call(() =>
+      client.chat.completions.create({
+        model: "gpt-4-turbo-preview",
+        messages: [
+          { role: "system", content: INTERACTION_SYSTEM_PROMPT },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.3,
+        max_tokens: 800,
+      }),
+    );
 
     const response = completion.choices[0]?.message?.content;
     if (!response) {
@@ -61,7 +64,11 @@ export async function checkDrugInteractions(
 
     return JSON.parse(response);
   } catch (error) {
-    logger.error("Drug interaction check error", error);
+    if (error instanceof CircuitBreakerOpenError) {
+      logger.warn("OpenAI circuit breaker is open, skipping interaction check");
+    } else {
+      logger.error("Drug interaction check error", error);
+    }
     return {
       hasInteractions: true,
       warnings: ["Unable to verify interactions. Consult healthcare provider."],

@@ -236,7 +236,7 @@ function PlanCard({
       }`}
     >
       {highlighted && (
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-[color-mix(in_srgb,var(--primary-dark)_82%,black)] to-[color-mix(in_srgb,var(--accent-dark)_75%,black)] text-white text-center py-1 text-sm font-medium">
+        <div className="premium-gradient-band absolute top-0 left-0 right-0 py-1 text-center text-sm font-medium text-white">
           <Sparkles className="w-4 h-4 inline mr-1" />
           Most Popular
         </div>

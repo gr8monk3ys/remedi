@@ -5,7 +5,8 @@
  */
 
 import { prisma } from "../db";
-import { getOpenAIClient } from "./client";
+import { getOpenAIClient, openaiCircuitBreaker } from "./client";
+import { CircuitBreakerOpenError } from "@/lib/circuit-breaker";
 import { buildMatchingPrompt, SYSTEM_PROMPT } from "./prompts";
 import { createLogger } from "@/lib/logger";
 
@@ -105,15 +106,17 @@ export async function enhanceRemedyMatching(
       preferences,
     });
 
-    const completion = await client.chat.completions.create({
-      model: "gpt-4-turbo-preview",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 1500,
-    });
+    const completion = await openaiCircuitBreaker.call(() =>
+      client.chat.completions.create({
+        model: "gpt-4-turbo-preview",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 1500,
+      }),
+    );
 
     const response = completion.choices[0]?.message?.content;
     if (!response) {
@@ -122,7 +125,11 @@ export async function enhanceRemedyMatching(
 
     return parseAIResponse(response, allRemedies);
   } catch (error) {
-    logger.error("AI matching error", error);
+    if (error instanceof CircuitBreakerOpenError) {
+      logger.warn("OpenAI circuit breaker is open, skipping AI matching");
+    } else {
+      logger.error("AI matching error", error);
+    }
     return [];
   }
 }

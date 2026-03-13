@@ -45,6 +45,15 @@ const logger = createLogger("favorites-api");
  * Get all favorites for a session or user
  */
 export async function GET(request: NextRequest) {
+  // Check rate limit
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.favorites,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get("sessionId") || undefined;
