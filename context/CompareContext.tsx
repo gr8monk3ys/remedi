@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { createLogger } from "@/lib/logger";
-import { useAuth } from "@clerk/nextjs";
+import { usePlanQuery } from "@/hooks/queries";
 
 const logger = createLogger("compare-context");
 
@@ -65,7 +65,7 @@ interface CompareProviderProps {
 export function CompareProvider({
   children,
 }: CompareProviderProps): React.JSX.Element {
-  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
+  const { data: planData } = usePlanQuery();
   const [items, setItems] = useState<CompareItem[]>([]);
   const [maxItems, setMaxItems] = useState(DEFAULT_MAX_COMPARE_ITEMS);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -94,54 +94,27 @@ export function CompareProvider({
     setIsHydrated(true);
   }, []);
 
-  // Fetch effective plan limits for signed-in users to set compare cap.
-  // Anonymous users keep the default cap (they'll be prompted to upgrade on /compare).
+  // Derive max compare items from plan data (cached via React Query).
   useEffect(() => {
-    if (!isAuthLoaded) return;
+    if (!planData) return;
 
-    if (!isSignedIn) {
+    const limits = planData.limits as
+      | { canCompare?: boolean; maxCompareItems?: unknown }
+      | undefined;
+    const canCompare = Boolean(limits?.canCompare);
+    const maxCompareItems = limits?.maxCompareItems;
+
+    if (
+      canCompare &&
+      typeof maxCompareItems === "number" &&
+      Number.isFinite(maxCompareItems) &&
+      maxCompareItems > 0
+    ) {
+      setMaxItems(Math.min(maxCompareItems, ABSOLUTE_MAX_COMPARE_ITEMS));
+    } else {
       setMaxItems(DEFAULT_MAX_COMPARE_ITEMS);
-      return;
     }
-
-    const controller = new AbortController();
-
-    async function loadPlan() {
-      try {
-        const res = await fetch("/api/plan", { signal: controller.signal });
-        const json = (await res.json()) as
-          | {
-              success: true;
-              data: {
-                limits?: { canCompare?: boolean; maxCompareItems?: unknown };
-              };
-            }
-          | { success: false };
-
-        if (!res.ok || !json.success) return;
-
-        const canCompare = Boolean(json.data.limits?.canCompare);
-        const maxCompareItems = json.data.limits?.maxCompareItems;
-
-        if (
-          canCompare &&
-          typeof maxCompareItems === "number" &&
-          Number.isFinite(maxCompareItems) &&
-          maxCompareItems > 0
-        ) {
-          setMaxItems(Math.min(maxCompareItems, ABSOLUTE_MAX_COMPARE_ITEMS));
-        } else {
-          setMaxItems(DEFAULT_MAX_COMPARE_ITEMS);
-        }
-      } catch (error) {
-        if ((error as { name?: string }).name === "AbortError") return;
-        logger.debug("Failed to load plan limits for compare cap", { error });
-      }
-    }
-
-    void loadPlan();
-    return () => controller.abort();
-  }, [isAuthLoaded, isSignedIn]);
+  }, [planData]);
 
   // Persist to localStorage when items change
   useEffect(() => {

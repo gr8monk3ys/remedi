@@ -2,11 +2,17 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api/client";
 import { fetchWithCSRF } from "@/lib/fetch-with-csrf";
-import { useFavorites } from "@/hooks/use-favorites";
-import { useSearchHistory } from "@/hooks/use-search-history";
+import {
+  useFavoritesQuery,
+  useToggleFavorite,
+  useSearchHistoryQuery,
+} from "@/hooks/queries";
+import { useDbUser } from "@/hooks/use-db-user";
+import { useSessionId } from "@/hooks/use-session-id";
 import { createLogger } from "@/lib/logger";
 import { useFeatureAccess } from "@/components/upgrade/FeatureGate";
 import { SearchInput } from "./SearchInput";
@@ -101,19 +107,32 @@ export function SearchComponent({
   ...props
 }: SearchComponentProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { dbUserId } = useDbUser();
+  const sessionId = useSessionId();
   const { hasAccess: canAccessHistory } = useFeatureAccess("canAccessHistory");
   const showHistoryTab = canAccessHistory === true;
-  const {
-    isFavorite,
-    addFavorite,
-    removeFavorite,
-    isLoading: favoritesLoading,
-  } = useFavorites();
-  const {
-    history: searchHistory,
-    clearHistory,
-    isLoading: historyLoading,
-  } = useSearchHistory(10, { enabled: showHistoryTab });
+  const { data: favorites = [], isLoading: favoritesLoading } =
+    useFavoritesQuery();
+  const toggleFavoriteMutation = useToggleFavorite();
+  const isFavorite = useCallback(
+    (remedyId: string) => favorites.some((f) => f.remedyId === remedyId),
+    [favorites],
+  );
+  const { data: searchHistory = [], isLoading: historyLoading } =
+    useSearchHistoryQuery(10);
+
+  const clearHistory = useCallback(async () => {
+    if (!dbUserId && !sessionId) return;
+    const params = new URLSearchParams();
+    if (dbUserId) {
+      params.append("userId", dbUserId);
+    } else if (sessionId) {
+      params.append("sessionId", sessionId);
+    }
+    await apiClient.delete(`/api/search-history?${params.toString()}`);
+    await queryClient.invalidateQueries({ queryKey: ["search-history"] });
+  }, [dbUserId, sessionId, queryClient]);
 
   // Search state
   const [query, setQuery] = useState<string>("");
@@ -381,16 +400,16 @@ export function SearchComponent({
     async (e: React.MouseEvent, remedyId: string, remedyName: string) => {
       e.stopPropagation();
       try {
-        if (isFavorite(remedyId)) {
-          await removeFavorite(remedyId);
-        } else {
-          await addFavorite(remedyId, remedyName);
-        }
+        await toggleFavoriteMutation.mutateAsync({
+          remedyId,
+          remedyName,
+          action: isFavorite(remedyId) ? "remove" : "add",
+        });
       } catch (error) {
         log.error("Failed to toggle favorite", error);
       }
     },
-    [isFavorite, addFavorite, removeFavorite],
+    [isFavorite, toggleFavoriteMutation],
   );
 
   const handleSelectHistoryQuery = useCallback(

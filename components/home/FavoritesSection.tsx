@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { Heart, ArrowRight } from "lucide-react";
-import { useFavorites } from "@/hooks/use-favorites";
+import { useFavoritesQuery } from "@/hooks/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function FavoritesSection() {
-  const { favorites, isLoading } = useFavorites();
+  const { data: favorites = [], isLoading } = useFavoritesQuery();
 
   if (isLoading) {
     return (
