@@ -4,6 +4,10 @@
 
 A modern web application designed to help users find natural alternatives to pharmaceutical drugs and supplements. The app integrates with the OpenFDA API and uses an intelligent database-first search strategy to provide accurate, science-backed natural remedy recommendations.
 
+## Preview
+
+![Remedi home page preview](docs/screenshots/home.png)
+
 ## Features
 
 - **Fast Search**: Find natural alternatives to common pharmaceuticals quickly
@@ -44,7 +48,7 @@ A modern web application designed to help users find natural alternatives to pha
 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/remedi.git
+git clone https://github.com/gr8monk3ys/remedi.git
 cd remedi
 ```
 
