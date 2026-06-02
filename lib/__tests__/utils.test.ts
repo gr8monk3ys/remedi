@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { cn } from "../utils";
+import { cn, isUuid } from "../utils";
 
 describe("cn (className utility)", () => {
   it("should merge class names", () => {
@@ -83,5 +83,33 @@ describe("cn (className utility)", () => {
 
   it("should handle numeric values (from clsx)", () => {
     expect(cn("foo", 0, 1, "bar")).toBe("foo 1 bar");
+  });
+});
+
+describe("isUuid", () => {
+  it("accepts well-formed UUIDs (Prisma @default(uuid))", () => {
+    expect(isUuid("123e4567-e89b-42d3-a456-426614174000")).toBe(true);
+    expect(isUuid("00000000-0000-0000-0000-000000000000")).toBe(true);
+  });
+
+  it("is case-insensitive", () => {
+    expect(isUuid("123E4567-E89B-42D3-A456-426614174000")).toBe(true);
+  });
+
+  it("rejects mock and non-uuid IDs", () => {
+    expect(isUuid("101")).toBe(false);
+    expect(isUuid("mock-remedy-3")).toBe(false);
+    expect(isUuid("rem-1")).toBe(false);
+    expect(isUuid("")).toBe(false);
+    expect(isUuid("not-a-uuid")).toBe(false);
+  });
+
+  it("rejects malformed UUID-like strings", () => {
+    // Wrong length (last segment too short)
+    expect(isUuid("123e4567-e89b-42d3-a456-42661417400")).toBe(false);
+    // Non-hex character
+    expect(isUuid("123e4567-e89b-42d3-a456-42661417400g")).toBe(false);
+    // Missing hyphens
+    expect(isUuid("123e4567e89b42d3a456426614174000")).toBe(false);
   });
 });

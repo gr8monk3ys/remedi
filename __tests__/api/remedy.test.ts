@@ -1,7 +1,11 @@
 /**
  * Tests for /api/remedy/[id] route
  *
- * Tests fetching detailed remedy information by ID
+ * Tests fetching detailed remedy information by ID.
+ *
+ * Note: database remedy IDs are Postgres `uuid` values, so the route only
+ * queries the DB for UUID-shaped IDs. Non-UUID IDs (mock IDs, slugs) skip the
+ * DB and fall through to mock data — exercised explicitly below.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -54,6 +58,15 @@ import { getNaturalRemedyById } from "@/lib/db";
 
 type RemedyLookupResult = Awaited<ReturnType<typeof getNaturalRemedyById>>;
 
+// Valid UUID-shaped IDs for tests that exercise the database path.
+const REMEDY_ID = "11111111-1111-4111-8111-111111111111";
+const FULL_REMEDY_ID = "22222222-2222-4222-8222-222222222222";
+const ERROR_REMEDY_ID = "33333333-3333-4333-8333-333333333333";
+const STRUCTURE_REMEDY_ID = "44444444-4444-4444-8444-444444444444";
+const CONTENT_TYPE_REMEDY_ID = "55555555-5555-4555-8555-555555555555";
+const RELATED_REMEDY_ID = "66666666-6666-4666-8666-666666666666";
+const SCIENTIFIC_REMEDY_ID = "77777777-7777-4777-8777-777777777777";
+
 describe("GET /api/remedy/[id]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -62,7 +75,7 @@ describe("GET /api/remedy/[id]", () => {
   describe("Valid Remedy ID", () => {
     it("should return remedy details from database when found", async () => {
       const mockRemedy = {
-        id: "test-remedy-id",
+        id: REMEDY_ID,
         name: "Turmeric",
         description: "Powerful anti-inflammatory spice",
         category: "Spice",
@@ -97,26 +110,26 @@ describe("GET /api/remedy/[id]", () => {
       );
 
       const request = new NextRequest(
-        "http://localhost:3000/api/remedy/test-remedy-id",
+        `http://localhost:3000/api/remedy/${REMEDY_ID}`,
       );
-      const params = Promise.resolve({ id: "test-remedy-id" });
+      const params = Promise.resolve({ id: REMEDY_ID });
       const response = await GET(request, { params });
       const json = await response.json();
 
       expect(response.status).toBe(200);
       expect(json.success).toBe(true);
-      expect(json.data).toHaveProperty("id", "test-remedy-id");
+      expect(json.data).toHaveProperty("id", REMEDY_ID);
       expect(json.data).toHaveProperty("name", "Turmeric");
       expect(json.data).toHaveProperty("description");
       expect(json.data).toHaveProperty("benefits");
       expect(Array.isArray(json.data.benefits)).toBe(true);
       expect(json.data).toHaveProperty("evidenceLevel", "Strong");
-      expect(getNaturalRemedyById).toHaveBeenCalledWith("test-remedy-id");
+      expect(getNaturalRemedyById).toHaveBeenCalledWith(REMEDY_ID);
     });
 
     it("should return remedy with all expected fields", async () => {
       const mockRemedy = {
-        id: "full-remedy",
+        id: FULL_REMEDY_ID,
         name: "Ginger",
         description: "Root with medicinal properties",
         category: "Root",
@@ -139,9 +152,9 @@ describe("GET /api/remedy/[id]", () => {
       );
 
       const request = new NextRequest(
-        "http://localhost:3000/api/remedy/full-remedy",
+        `http://localhost:3000/api/remedy/${FULL_REMEDY_ID}`,
       );
-      const params = Promise.resolve({ id: "full-remedy" });
+      const params = Promise.resolve({ id: FULL_REMEDY_ID });
       const response = await GET(request, { params });
       const json = await response.json();
 
@@ -198,7 +211,7 @@ describe("GET /api/remedy/[id]", () => {
   });
 
   describe("ID Format Validation", () => {
-    it("should handle UUID format IDs", async () => {
+    it("should query the database for UUID-shaped IDs", async () => {
       const uuidId = "123e4567-e89b-12d3-a456-426614174000";
       vi.mocked(getNaturalRemedyById).mockResolvedValue(null);
 
@@ -212,7 +225,9 @@ describe("GET /api/remedy/[id]", () => {
       expect([200, 404]).toContain(response.status);
     });
 
-    it("should handle slug format IDs", async () => {
+    it("should NOT query the database for non-UUID (slug) IDs", async () => {
+      // DB IDs are Postgres uuids; a slug would throw an invalid-input error,
+      // so the route must skip the DB and use mock data instead.
       const slugId = "turmeric-root";
       vi.mocked(getNaturalRemedyById).mockResolvedValue(null);
 
@@ -222,8 +237,9 @@ describe("GET /api/remedy/[id]", () => {
       const params = Promise.resolve({ id: slugId });
       const response = await GET(request, { params });
 
-      expect(getNaturalRemedyById).toHaveBeenCalledWith(slugId);
-      expect([200, 404]).toContain(response.status);
+      expect(getNaturalRemedyById).not.toHaveBeenCalled();
+      // Slug is not in mock data, so it resolves to 404 rather than a 500.
+      expect(response.status).toBe(404);
     });
   });
 
@@ -234,9 +250,9 @@ describe("GET /api/remedy/[id]", () => {
       );
 
       const request = new NextRequest(
-        "http://localhost:3000/api/remedy/test-id",
+        `http://localhost:3000/api/remedy/${ERROR_REMEDY_ID}`,
       );
-      const params = Promise.resolve({ id: "test-id" });
+      const params = Promise.resolve({ id: ERROR_REMEDY_ID });
       const response = await GET(request, { params });
       const json = await response.json();
 
@@ -271,7 +287,7 @@ describe("GET /api/remedy/[id]", () => {
   describe("Response Format", () => {
     it("should return proper JSON structure", async () => {
       const mockRemedy = {
-        id: "test-id",
+        id: STRUCTURE_REMEDY_ID,
         name: "Test Remedy",
         description: "Test description",
         category: "Test Category",
@@ -294,9 +310,9 @@ describe("GET /api/remedy/[id]", () => {
       );
 
       const request = new NextRequest(
-        "http://localhost:3000/api/remedy/test-id",
+        `http://localhost:3000/api/remedy/${STRUCTURE_REMEDY_ID}`,
       );
-      const params = Promise.resolve({ id: "test-id" });
+      const params = Promise.resolve({ id: STRUCTURE_REMEDY_ID });
       const response = await GET(request, { params });
       const json = await response.json();
 
@@ -311,7 +327,7 @@ describe("GET /api/remedy/[id]", () => {
 
     it("should include proper content-type header", async () => {
       vi.mocked(getNaturalRemedyById).mockResolvedValue({
-        id: "test",
+        id: CONTENT_TYPE_REMEDY_ID,
         name: "Test",
         description: "Test",
         category: "Test",
@@ -321,8 +337,10 @@ describe("GET /api/remedy/[id]", () => {
         updatedAt: new Date(),
       } as unknown as RemedyLookupResult);
 
-      const request = new NextRequest("http://localhost:3000/api/remedy/test");
-      const params = Promise.resolve({ id: "test" });
+      const request = new NextRequest(
+        `http://localhost:3000/api/remedy/${CONTENT_TYPE_REMEDY_ID}`,
+      );
+      const params = Promise.resolve({ id: CONTENT_TYPE_REMEDY_ID });
       const response = await GET(request, { params });
 
       expect(response.headers.get("content-type")).toContain(
@@ -334,7 +352,7 @@ describe("GET /api/remedy/[id]", () => {
   describe("Related Remedies", () => {
     it("should include related remedies in response", async () => {
       const mockRemedy = {
-        id: "main-remedy",
+        id: RELATED_REMEDY_ID,
         name: "Main Remedy",
         description: "Main remedy description",
         category: "Category",
@@ -362,9 +380,9 @@ describe("GET /api/remedy/[id]", () => {
       );
 
       const request = new NextRequest(
-        "http://localhost:3000/api/remedy/main-remedy",
+        `http://localhost:3000/api/remedy/${RELATED_REMEDY_ID}`,
       );
-      const params = Promise.resolve({ id: "main-remedy" });
+      const params = Promise.resolve({ id: RELATED_REMEDY_ID });
       const response = await GET(request, { params });
       const json = await response.json();
 
@@ -378,7 +396,7 @@ describe("GET /api/remedy/[id]", () => {
   describe("Scientific References", () => {
     it("should include scientific references in response", async () => {
       const mockRemedy = {
-        id: "scientific-remedy",
+        id: SCIENTIFIC_REMEDY_ID,
         name: "Scientific Remedy",
         description: "Well-researched remedy",
         category: "Category",
@@ -406,9 +424,9 @@ describe("GET /api/remedy/[id]", () => {
       );
 
       const request = new NextRequest(
-        "http://localhost:3000/api/remedy/scientific-remedy",
+        `http://localhost:3000/api/remedy/${SCIENTIFIC_REMEDY_ID}`,
       );
-      const params = Promise.resolve({ id: "scientific-remedy" });
+      const params = Promise.resolve({ id: SCIENTIFIC_REMEDY_ID });
       const response = await GET(request, { params });
       const json = await response.json();
 

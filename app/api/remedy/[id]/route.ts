@@ -10,6 +10,7 @@ import {
 import { createLogger } from "@/lib/logger";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
 import { getCurrentUser } from "@/lib/auth";
+import { isUuid } from "@/lib/utils";
 import type { DetailedRemedy } from "@/lib/types";
 
 const log = createLogger("remedy-api");
@@ -182,7 +183,9 @@ export async function GET(
     }
 
     // First try to fetch from database
-    const dbRemedy = /^\d+$/.test(id) ? null : await getNaturalRemedyById(id);
+    // DB IDs are Postgres uuids; non-uuid IDs (e.g. mock "101") would throw an
+    // invalid-input error, so skip the DB and fall through to mock data.
+    const dbRemedy = isUuid(id) ? await getNaturalRemedyById(id) : null;
 
     if (dbRemedy) {
       const detailedRemedy = toDetailedRemedy(dbRemedy);
