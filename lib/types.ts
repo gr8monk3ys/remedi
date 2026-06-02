@@ -84,6 +84,8 @@ export interface DetailedRemedy extends NaturalRemedy {
   scientificInfo: string;
   references: Reference[];
   relatedRemedies: RelatedRemedy[];
+  /** Strength of scientific evidence: Strong, Moderate, Limited, Traditional. */
+  evidenceLevel?: string | null;
 }
 
 export interface Reference {

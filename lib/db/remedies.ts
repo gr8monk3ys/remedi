@@ -179,6 +179,7 @@ export function toDetailedRemedy(
       remedy.scientificInfo || "Scientific information not available.",
     references: references || [],
     relatedRemedies: relatedRemedies || [],
+    evidenceLevel: remedy.evidenceLevel ?? null,
   };
 }
 

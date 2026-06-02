@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { FavoriteToggle } from "@/components/remedy/FavoriteToggle";
+import { EvidenceBadge } from "@/components/remedy/EvidenceBadge";
 
 interface RemedyHeroProps {
   id: string;
@@ -8,6 +9,7 @@ interface RemedyHeroProps {
   category: string;
   similarityScore: number;
   matchingNutrients: string[];
+  evidenceLevel?: string | null;
 }
 
 export function RemedyHero({
@@ -17,6 +19,7 @@ export function RemedyHero({
   category,
   similarityScore,
   matchingNutrients,
+  evidenceLevel,
 }: RemedyHeroProps) {
   const scorePercent = Math.round(similarityScore * 100);
 
@@ -24,9 +27,10 @@ export function RemedyHero({
     <div className="mb-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Badge variant="secondary" className="mb-3">
-            {category}
-          </Badge>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">{category}</Badge>
+            <EvidenceBadge level={evidenceLevel} />
+          </div>
           <h1 className="text-3xl font-bold tracking-tight">{name}</h1>
           <p className="mt-2 text-muted-foreground max-w-2xl">{description}</p>
         </div>

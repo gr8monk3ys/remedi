@@ -121,6 +121,7 @@ export default async function RemedyDetailPage({ params }: RemedyPageProps) {
           category={remedy.category}
           similarityScore={remedy.similarityScore}
           matchingNutrients={remedy.matchingNutrients}
+          evidenceLevel={remedy.evidenceLevel}
         />
 
         <Separator className="mb-8" />

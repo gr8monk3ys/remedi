@@ -18,6 +18,7 @@ export const DETAILED_REMEDIES: Record<
     scientificInfo: string;
     references: { title: string; url: string }[];
     relatedRemedies: { id: string; name: string }[];
+    evidenceLevel?: string | null;
   }
 > = {
   "101": {
@@ -27,6 +28,7 @@ export const DETAILED_REMEDIES: Record<
       "Natural vitamin D production through sunlight exposure on skin.",
     imageUrl: "",
     category: "Lifestyle Change",
+    evidenceLevel: "Strong",
     matchingNutrients: ["Vitamin D3"],
     similarityScore: 0.9,
     usage:
@@ -54,6 +56,7 @@ export const DETAILED_REMEDIES: Record<
     description: "Salmon, mackerel, and other fatty fish rich in vitamin D.",
     imageUrl: "",
     category: "Food Source",
+    evidenceLevel: "Moderate",
     matchingNutrients: ["Vitamin D3", "Omega-3"],
     similarityScore: 0.8,
     usage:
@@ -81,6 +84,7 @@ export const DETAILED_REMEDIES: Record<
     description: "Contains curcumin which has anti-inflammatory properties.",
     imageUrl: "",
     category: "Herbal Remedy",
+    evidenceLevel: "Moderate",
     matchingNutrients: ["Curcumin"],
     similarityScore: 0.85,
     usage:
@@ -108,6 +112,7 @@ export const DETAILED_REMEDIES: Record<
     description: "Root with anti-inflammatory and digestive properties.",
     imageUrl: "",
     category: "Herbal Remedy",
+    evidenceLevel: "Limited",
     matchingNutrients: ["Gingerols", "Shogaols"],
     similarityScore: 0.8,
     usage:
