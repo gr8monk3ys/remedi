@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, GitCompare, Trash2 } from "lucide-react";
-import { useCompare } from "@/context/CompareContext";
+import { useCompare } from "@/lib/context/CompareContext";
 
 /**
  * Props for ComparisonBar component

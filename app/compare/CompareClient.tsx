@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, Share2, ArrowLeft, AlertCircle } from "lucide-react";
-import { useCompare } from "@/context/CompareContext";
+import { useCompare } from "@/lib/context/CompareContext";
 import {
   ExportComparison,
   MobileComparisonSwiper,

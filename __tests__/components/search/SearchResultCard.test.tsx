@@ -21,7 +21,7 @@ const mockIsInComparison = vi.fn();
 const mockAddToCompare = vi.fn();
 const mockRemoveFromCompare = vi.fn();
 
-vi.mock("@/context/CompareContext", () => ({
+vi.mock("@/lib/context/CompareContext", () => ({
   useCompare: vi.fn(() => ({
     isInComparison: mockIsInComparison,
     addToCompare: mockAddToCompare,

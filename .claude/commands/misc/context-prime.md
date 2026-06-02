@@ -16,6 +16,7 @@ Systematically load and understand the project context by following these steps:
 ### 1. Project Structure Analysis
 
 First, explore the project structure:
+
 ```bash
 # Get directory tree (excluding common noise)
 find . -type f -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.py" -o -name "*.go" -o -name "*.rs" | head -50
@@ -29,16 +30,19 @@ ls -la package.json tsconfig.json .env.example Cargo.toml go.mod pyproject.toml 
 Load these critical files (if they exist):
 
 **Project Configuration:**
+
 - `package.json` - Dependencies, scripts, project metadata
 - `tsconfig.json` / `jsconfig.json` - TypeScript/JS configuration
 - `.env.example` - Environment variables needed
 
 **Documentation:**
+
 - `README.md` - Project overview and setup
 - `CLAUDE.md` - AI-specific instructions
-- `CONTRIBUTING.md` - Development guidelines
+- `.github/CONTRIBUTING.md` - Development guidelines
 
 **Architecture:**
+
 - `src/index.ts` or `src/main.ts` - Entry point
 - `src/app/layout.tsx` - Next.js root layout
 - `prisma/schema.prisma` - Database schema
@@ -56,26 +60,31 @@ After reading files, document your understanding:
 **Primary Language:** [TypeScript / JavaScript / Python / etc.]
 
 ## Tech Stack
+
 - **Framework:** [Next.js 15 / Express / FastAPI / etc.]
 - **Database:** [Supabase / Prisma / MongoDB / etc.]
 - **Styling:** [Tailwind / CSS Modules / styled-components / etc.]
 - **State:** [Zustand / Redux / Context / etc.]
 
 ## Key Directories
+
 - `src/app/` - [description]
 - `src/components/` - [description]
 - `src/lib/` - [description]
 
 ## Important Patterns
+
 1. [Pattern 1 observed in codebase]
 2. [Pattern 2 observed in codebase]
 
 ## Development Commands
+
 - `npm run dev` - [what it does]
 - `npm run build` - [what it does]
 - `npm run test` - [what it does]
 
 ## Environment Variables Required
+
 - `DATABASE_URL` - [purpose]
 - `API_KEY` - [purpose]
 ```

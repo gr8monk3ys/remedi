@@ -6,7 +6,7 @@ import { X, Leaf, ChevronRight, ChevronLeft } from "lucide-react";
 import {
   useOnboarding,
   type HealthInterests,
-} from "@/context/OnboardingContext";
+} from "@/lib/context/OnboardingContext";
 import { cn } from "@/lib/utils";
 import {
   WelcomeStep,

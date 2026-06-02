@@ -136,7 +136,7 @@ Optional: visit [http://localhost:3000/landing](http://localhost:3000/landing) f
 ├── tailwind.config.ts        # Tailwind CSS configuration
 ├── tsconfig.json             # TypeScript configuration
 ├── CLAUDE.md                 # Architecture guide
-└── TODO.md                   # Task tracking
+└── docs/TODO.md                   # Task tracking
 ```
 
 ## API Routes
@@ -330,11 +330,11 @@ Contributions are welcome! Please:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-See [TODO.md](TODO.md) for a list of planned features and improvements.
+See [TODO.md](docs/TODO.md) for a list of planned features and improvements.
 
 ## Development Roadmap
 
-See [TODO.md](TODO.md) for the complete roadmap. Key priorities:
+See [TODO.md](docs/TODO.md) for the complete roadmap. Key priorities:
 
 - [ ] Expand database seed with more remedies
 - [ ] Add testing infrastructure (Vitest)
@@ -345,7 +345,7 @@ See [TODO.md](TODO.md) for the complete roadmap. Key priorities:
 ## Documentation
 
 - [CLAUDE.md](CLAUDE.md) - Architecture and implementation guide
-- [TODO.md](TODO.md) - Task tracking and roadmap
+- [TODO.md](docs/TODO.md) - Task tracking and roadmap
 - [COMPLETED_TASKS.md](COMPLETED_TASKS.md) - Completed work summary
 
 ## License

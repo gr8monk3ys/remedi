@@ -3,8 +3,8 @@
 import { Component, useState, type ReactNode } from "react";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
-import { CompareProvider } from "@/context/CompareContext";
-import { OnboardingProvider } from "@/context/OnboardingContext";
+import { CompareProvider } from "@/lib/context/CompareContext";
+import { OnboardingProvider } from "@/lib/context/OnboardingContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { Toaster } from "@/components/ui/toaster";

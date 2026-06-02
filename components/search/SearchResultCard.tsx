@@ -3,7 +3,7 @@
 import { memo } from "react";
 import Image from "next/image";
 import { ExternalLink, Heart, GitCompare, Check } from "lucide-react";
-import { useCompare } from "@/context/CompareContext";
+import { useCompare } from "@/lib/context/CompareContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
