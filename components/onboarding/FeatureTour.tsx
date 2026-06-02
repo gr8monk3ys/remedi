@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { useOnboarding } from "@/context/OnboardingContext";
+import { useOnboarding } from "@/lib/context/OnboardingContext";
 import { cn } from "@/lib/utils";
 import { TOUR_STEPS } from "./feature-tour.constants";
 

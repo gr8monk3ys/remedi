@@ -13,7 +13,7 @@ import {
   X,
   ArrowRight,
 } from "lucide-react";
-import { useOnboarding } from "@/context/OnboardingContext";
+import { useOnboarding } from "@/lib/context/OnboardingContext";
 import { cn } from "@/lib/utils";
 
 // Suggested search categories with examples

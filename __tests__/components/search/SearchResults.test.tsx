@@ -16,7 +16,7 @@ import { SearchResults } from "@/components/search/SearchResults";
 import type { SearchResult } from "@/components/search/types";
 
 // Mock the CompareContext used by SearchResultCard
-vi.mock("@/context/CompareContext", () => ({
+vi.mock("@/lib/context/CompareContext", () => ({
   useCompare: vi.fn(() => ({
     isInComparison: vi.fn(() => false),
     addToCompare: vi.fn(),

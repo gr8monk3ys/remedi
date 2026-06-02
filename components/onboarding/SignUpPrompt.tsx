@@ -14,7 +14,7 @@ import {
   Bell,
 } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
-import { useOnboarding } from "@/context/OnboardingContext";
+import { useOnboarding } from "@/lib/context/OnboardingContext";
 import { cn } from "@/lib/utils";
 
 interface SignUpPromptProps {

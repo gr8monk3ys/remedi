@@ -4,7 +4,7 @@ import { Component, type ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { useUser, SignInButton, UserButton } from "@clerk/nextjs";
 import { GitCompare, Leaf, Menu } from "lucide-react";
-import { useCompare } from "@/context/CompareContext";
+import { useCompare } from "@/lib/context/CompareContext";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

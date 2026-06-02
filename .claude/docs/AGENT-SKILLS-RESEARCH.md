@@ -10,21 +10,21 @@ This document outlines the design and implementation strategy for enhancing the 
 
 ### Current Architecture
 
-| Component | Invocation | Format | Purpose |
-|-----------|------------|--------|---------|
-| **Commands** | Explicit (`/api-new`) | Markdown + YAML frontmatter | User-initiated tasks with `$ARGUMENTS` |
-| **Agents** | Auto-activated by context | Markdown + YAML frontmatter | Specialized AI personalities for domains |
-| **MCP Servers** | Tool calls | JSON config | External service integrations |
+| Component       | Invocation                | Format                      | Purpose                                  |
+| --------------- | ------------------------- | --------------------------- | ---------------------------------------- |
+| **Commands**    | Explicit (`/api-new`)     | Markdown + YAML frontmatter | User-initiated tasks with `$ARGUMENTS`   |
+| **Agents**      | Auto-activated by context | Markdown + YAML frontmatter | Specialized AI personalities for domains |
+| **MCP Servers** | Tool calls                | JSON config                 | External service integrations            |
 
 ### Proposed Skills System
 
-| Aspect | Commands | Skills | Agents |
-|--------|----------|--------|--------|
-| **Trigger** | User types `/command` | Auto-invoked by conversation context | Auto-activated by domain context |
-| **Loading** | Full content on invoke | Progressive (name+description first) | Full content on activation |
-| **Scope** | Single task execution | Task augmentation/enhancement | Behavioral/expertise overlay |
-| **Tool Access** | Full | Configurable via `allowed-tools` | Full |
-| **State** | Stateless | Can maintain session context | Stateless |
+| Aspect          | Commands               | Skills                               | Agents                           |
+| --------------- | ---------------------- | ------------------------------------ | -------------------------------- |
+| **Trigger**     | User types `/command`  | Auto-invoked by conversation context | Auto-activated by domain context |
+| **Loading**     | Full content on invoke | Progressive (name+description first) | Full content on activation       |
+| **Scope**       | Single task execution  | Task augmentation/enhancement        | Behavioral/expertise overlay     |
+| **Tool Access** | Full                   | Configurable via `allowed-tools`     | Full                             |
+| **State**       | Stateless              | Can maintain session context         | Stateless                        |
 
 ### When to Use Each
 
@@ -94,9 +94,9 @@ Skills can limit available tools for safety:
 
 ```yaml
 allowed-tools:
-  - Read        # Can read files
-  - Grep        # Can search
-  - Edit        # Can modify existing files
+  - Read # Can read files
+  - Grep # Can search
+  - Edit # Can modify existing files
   # Write not included = cannot create new files
   # Bash not included = cannot execute commands
 ```
@@ -109,7 +109,7 @@ Skills that work together for API development workflows.
 
 #### Skill: api-creation
 
-```yaml
+````yaml
 ---
 name: api-creation
 description: Auto-enhances API endpoint creation with Next.js 15 patterns, Zod validation, and consistent error handling
@@ -179,8 +179,9 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-```
-```
+````
+
+````
 
 #### Skill: api-testing
 
@@ -233,8 +234,9 @@ describe('API /api/[route]', () => {
     });
   });
 });
-```
-```
+````
+
+````
 
 ### Bundle: Frontend Development
 
@@ -269,7 +271,7 @@ priority: 75
    - Define prop types explicitly
    - Use discriminated unions for variants
    - Export types for consumers
-```
+````
 
 #### Skill: state-management
 
@@ -523,7 +525,7 @@ description: Safe refactoring with analysis, planning, execution, and verificati
 ```typescript
 interface AgentScore {
   agent: string;
-  confidence: number;    // 0-100
+  confidence: number; // 0-100
   relevanceFactors: {
     keywordMatch: number;
     fileTypeMatch: number;
@@ -541,8 +543,18 @@ function scoreAgent(agent: Agent, context: Context): AgentScore {
 
   return {
     agent: agent.name,
-    confidence: weightedAverage([keywordScore, fileTypeScore, contextScore, historyScore]),
-    relevanceFactors: { keywordScore, fileTypeScore, contextScore, historyScore }
+    confidence: weightedAverage([
+      keywordScore,
+      fileTypeScore,
+      contextScore,
+      historyScore,
+    ]),
+    relevanceFactors: {
+      keywordScore,
+      fileTypeScore,
+      contextScore,
+      historyScore,
+    },
   };
 }
 
@@ -558,15 +570,19 @@ For independent tasks, multiple agents can work simultaneously:
 ```typescript
 interface ParallelExecution {
   tasks: AgentTask[];
-  dependencies: Map<string, string[]>;  // task -> dependencies
+  dependencies: Map<string, string[]>; // task -> dependencies
   results: Map<string, AgentResult>;
 }
 
 // Example: Code review workflow
 const codeReviewTasks = [
-  { agent: 'security-engineer', task: 'security-review', dependencies: [] },
-  { agent: 'performance-engineer', task: 'performance-review', dependencies: [] },
-  { agent: 'code-reviewer', task: 'quality-review', dependencies: [] },
+  { agent: "security-engineer", task: "security-review", dependencies: [] },
+  {
+    agent: "performance-engineer",
+    task: "performance-review",
+    dependencies: [],
+  },
+  { agent: "code-reviewer", task: "quality-review", dependencies: [] },
 ];
 
 // All three run in parallel, then results aggregated
@@ -577,6 +593,7 @@ const codeReviewTasks = [
 ### Phase 1: Skill Infrastructure (Week 1)
 
 1. **Create Skills Directory Structure**
+
    ```
    .claude/
    ├── skills/
@@ -641,27 +658,27 @@ const codeReviewTasks = [
 
 ### New Files
 
-| File | Purpose |
-|------|---------|
-| `.claude/skills/api/api-creation.md` | API creation enhancement skill |
-| `.claude/skills/api/api-testing.md` | API testing generation skill |
-| `.claude/skills/frontend/component-patterns.md` | Component best practices |
-| `.claude/skills/frontend/state-management.md` | State management guidance |
-| `.claude/skills/database/query-optimization.md` | DB query optimization |
-| `.claude/skills/database/migration-safety.md` | Safe migration patterns |
-| `.claude/skills/devops/ci-cd-patterns.md` | CI/CD best practices |
-| `.claude/orchestrators/fullstack-feature.md` | Full-stack workflow |
-| `.claude/orchestrators/code-review.md` | Review workflow |
-| `.claude/orchestrators/refactoring.md` | Refactoring workflow |
+| File                                            | Purpose                        |
+| ----------------------------------------------- | ------------------------------ |
+| `.claude/skills/api/api-creation.md`            | API creation enhancement skill |
+| `.claude/skills/api/api-testing.md`             | API testing generation skill   |
+| `.claude/skills/frontend/component-patterns.md` | Component best practices       |
+| `.claude/skills/frontend/state-management.md`   | State management guidance      |
+| `.claude/skills/database/query-optimization.md` | DB query optimization          |
+| `.claude/skills/database/migration-safety.md`   | Safe migration patterns        |
+| `.claude/skills/devops/ci-cd-patterns.md`       | CI/CD best practices           |
+| `.claude/orchestrators/fullstack-feature.md`    | Full-stack workflow            |
+| `.claude/orchestrators/code-review.md`          | Review workflow                |
+| `.claude/orchestrators/refactoring.md`          | Refactoring workflow           |
 
 ### Modified Files
 
-| File | Changes |
-|------|---------|
-| `.claude-plugin/plugin.json` | Add `skills` and `orchestrators` arrays |
-| `CLAUDE.md` | Document skills and orchestration systems |
-| `README.md` | Update feature counts and descriptions |
-| `TODO.md` | Mark tasks complete, add new items |
+| File                         | Changes                                   |
+| ---------------------------- | ----------------------------------------- |
+| `.claude-plugin/plugin.json` | Add `skills` and `orchestrators` arrays   |
+| `CLAUDE.md`                  | Document skills and orchestration systems |
+| `README.md`                  | Update feature counts and descriptions    |
+| `docs/TODO.md`               | Mark tasks complete, add new items        |
 
 ## 7. Success Metrics
 
@@ -673,15 +690,15 @@ const codeReviewTasks = [
 
 ## 8. Risks and Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Over-activation | Skills trigger unnecessarily | Tunable confidence thresholds |
-| Conflicting skills | Multiple skills compete | Priority system, mutual exclusion |
-| Performance | Slow skill matching | Progressive disclosure, caching |
-| Complexity | Hard to maintain | Clear documentation, tests |
+| Risk               | Impact                       | Mitigation                        |
+| ------------------ | ---------------------------- | --------------------------------- |
+| Over-activation    | Skills trigger unnecessarily | Tunable confidence thresholds     |
+| Conflicting skills | Multiple skills compete      | Priority system, mutual exclusion |
+| Performance        | Slow skill matching          | Progressive disclosure, caching   |
+| Complexity         | Hard to maintain             | Clear documentation, tests        |
 
 ---
 
-*Document created: 2026-01-13*
-*Last updated: 2026-01-13*
-*Status: Research Complete - Ready for Implementation*
+_Document created: 2026-01-13_
+_Last updated: 2026-01-13_
+_Status: Research Complete - Ready for Implementation_
