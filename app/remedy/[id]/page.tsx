@@ -4,6 +4,7 @@ import { getNaturalRemedyById, toDetailedRemedy } from "@/lib/db";
 import { Separator } from "@/components/ui/separator";
 import { BackButton } from "@/components/remedy/BackButton";
 import { logger } from "@/lib/logger";
+import { isUuid } from "@/lib/utils";
 import { DETAILED_REMEDIES } from "./mockRemedies";
 import { RemedyHero } from "./RemedyHero";
 import { RemedyContent } from "./RemedyContent";
@@ -36,22 +37,26 @@ async function getRemedy(id: string): Promise<RemedyLookup | null> {
     };
   }
 
-  // Try database first, fall back to mock data on error
-  try {
-    const dbRemedy = await getNaturalRemedyById(id);
-    if (dbRemedy) {
-      const remedy = toDetailedRemedy(dbRemedy);
-      return {
-        remedy,
-        sourceUrl:
-          dbRemedy.sourceUrl || sourceUrlFromReferences(remedy.references),
-      };
+  // Only valid UUIDs exist in the database. Querying Postgres with a non-UUID
+  // id (e.g. a mock slug) throws an invalid-input error, so skip straight to
+  // the mock fallback for those. Mirrors the guard in app/api/remedy/[id].
+  if (isUuid(id)) {
+    try {
+      const dbRemedy = await getNaturalRemedyById(id);
+      if (dbRemedy) {
+        const remedy = toDetailedRemedy(dbRemedy);
+        return {
+          remedy,
+          sourceUrl:
+            dbRemedy.sourceUrl || sourceUrlFromReferences(remedy.references),
+        };
+      }
+    } catch (error) {
+      logger.warn(
+        "Database unavailable for remedy lookup, falling back to mock data",
+        { id, error },
+      );
     }
-  } catch (error) {
-    logger.warn(
-      "Database unavailable for remedy lookup, falling back to mock data",
-      { id, error },
-    );
   }
 
   // Fallback to mock data
