@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getNaturalRemedyById, toDetailedRemedy } from "@/lib/db";
@@ -27,7 +28,11 @@ function sourceUrlFromReferences(
   return references?.[0]?.url ?? null;
 }
 
-async function getRemedy(id: string): Promise<RemedyLookup | null> {
+// Deduplicate the per-request lookup: getRemedy runs in both generateMetadata
+// and the page component, so cache() collapses them into a single DB call.
+const getRemedy = cache(loadRemedy);
+
+async function loadRemedy(id: string): Promise<RemedyLookup | null> {
   // Demo/mock remedies are only served when demo data is enabled (off in
   // production by default) so a real deployment never renders fabricated data.
   const demoEnabled = isDemoDataEnabled();

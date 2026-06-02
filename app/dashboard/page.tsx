@@ -9,6 +9,7 @@ import {
 } from "@/components/dashboard/ActivityFeed";
 import { UsageProgressList } from "@/components/dashboard/UsageProgress";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { getTodayUsage } from "@/lib/analytics/usage-tracker";
 import { Search, Heart, Star, Sparkles } from "lucide-react";
 import type { ActivityItem, UsageData } from "@/types/dashboard";
 import type { Metadata } from "next";
@@ -232,7 +233,7 @@ async function UsageStats({ userId }: { userId: string }) {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
-  const [searchesToday, favoritesCount] = await Promise.all([
+  const [searchesToday, favoritesCount, todayUsage] = await Promise.all([
     prisma.searchHistory.count({
       where: {
         userId,
@@ -242,6 +243,7 @@ async function UsageStats({ userId }: { userId: string }) {
     prisma.favorite.count({
       where: { userId },
     }),
+    getTodayUsage(userId),
   ]);
 
   const usages: UsageData[] = [
@@ -257,7 +259,7 @@ async function UsageStats({ userId }: { userId: string }) {
     },
     {
       label: "AI Searches",
-      current: 0, // TODO: Track AI searches
+      current: todayUsage.aiSearches,
       limit: planDetails.limits.aiSearches,
     },
   ];
