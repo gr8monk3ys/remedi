@@ -12,6 +12,7 @@ import {
 } from "@/lib/api/response";
 import { createLogger } from "@/lib/logger";
 import { isUuid } from "@/lib/utils";
+import { isDemoDataEnabled } from "@/lib/env";
 import type { DetailedRemedy } from "@/lib/types";
 
 const log = createLogger("remedies-batch-api");
@@ -190,13 +191,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const remedies: DetailedRemedy[] = [];
     const notFoundIds: string[] = [];
 
+    // Mock data is only served as a fallback when demo data is enabled (off in
+    // production by default) so real deployments never return fabricated data.
+    const allowMockFallback = isDemoDataEnabled();
+
     for (const id of ids) {
       const dbRemedy = dbRemedyMap.get(id);
       if (dbRemedy) {
         remedies.push(dbRemedy);
       } else {
         // Try mock data fallback
-        const mockRemedy = MOCK_REMEDIES[id];
+        const mockRemedy = allowMockFallback ? MOCK_REMEDIES[id] : undefined;
         if (mockRemedy) {
           remedies.push(mockRemedy);
         } else {

@@ -11,6 +11,7 @@ import { createLogger } from "@/lib/logger";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
 import { getCurrentUser } from "@/lib/auth";
 import { isUuid } from "@/lib/utils";
+import { isDemoDataEnabled } from "@/lib/env";
 import type { DetailedRemedy } from "@/lib/types";
 
 const log = createLogger("remedy-api");
@@ -217,8 +218,9 @@ export async function GET(
       );
     }
 
-    // Fallback to mock data if not in database
-    const mockRemedy = DETAILED_REMEDIES[id];
+    // Fallback to mock data if not in database — demo data only, so a real
+    // production deployment never serves fabricated remedy details.
+    const mockRemedy = isDemoDataEnabled() ? DETAILED_REMEDIES[id] : undefined;
 
     if (!mockRemedy) {
       log.info("Remedy not found", { id });

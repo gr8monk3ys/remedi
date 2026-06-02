@@ -12,6 +12,7 @@ import {
 } from "@/lib/api/response";
 import { createLogger } from "@/lib/logger";
 import { isUuid } from "@/lib/utils";
+import { isDemoDataEnabled } from "@/lib/env";
 import type { DetailedRemedy, Reference, RelatedRemedy } from "@/lib/types";
 import { normalizeReferences } from "@/lib/references";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
@@ -397,14 +398,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       dbRemedyMap.set(dbRemedy.id, toCompareRemedy(parsed, pharmaceuticals));
     }
 
-    // Build result array maintaining order and using mock data as fallback
+    // Build result array maintaining order and using mock data as fallback.
+    // Mock data is only served when demo data is enabled (off in production by
+    // default) so real deployments never return fabricated remedies.
+    const allowMockFallback = isDemoDataEnabled();
     for (const id of ids) {
       const dbRemedy = dbRemedyMap.get(id);
       if (dbRemedy) {
         remedies.push(dbRemedy);
       } else {
         // Try mock data fallback
-        const mockRemedy = MOCK_REMEDIES[id];
+        const mockRemedy = allowMockFallback ? MOCK_REMEDIES[id] : undefined;
         if (mockRemedy) {
           remedies.push(mockRemedy);
         } else {

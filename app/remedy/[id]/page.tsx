@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { BackButton } from "@/components/remedy/BackButton";
 import { logger } from "@/lib/logger";
 import { isUuid } from "@/lib/utils";
+import { isDemoDataEnabled } from "@/lib/env";
 import { DETAILED_REMEDIES } from "./mockRemedies";
 import { RemedyHero } from "./RemedyHero";
 import { RemedyContent } from "./RemedyContent";
@@ -27,9 +28,13 @@ function sourceUrlFromReferences(
 }
 
 async function getRemedy(id: string): Promise<RemedyLookup | null> {
+  // Demo/mock remedies are only served when demo data is enabled (off in
+  // production by default) so a real deployment never renders fabricated data.
+  const demoEnabled = isDemoDataEnabled();
+
   // Mock remedy IDs are numeric; DB IDs are UUIDs.
   if (NUMERIC_MOCK_ID_PATTERN.test(id)) {
-    const remedy = DETAILED_REMEDIES[id] || null;
+    const remedy = demoEnabled ? DETAILED_REMEDIES[id] || null : null;
     if (!remedy) return null;
     return {
       remedy,
@@ -59,8 +64,8 @@ async function getRemedy(id: string): Promise<RemedyLookup | null> {
     }
   }
 
-  // Fallback to mock data
-  const remedy = DETAILED_REMEDIES[id] || null;
+  // Fallback to mock data (demo only)
+  const remedy = demoEnabled ? DETAILED_REMEDIES[id] || null : null;
   if (!remedy) return null;
   return {
     remedy,

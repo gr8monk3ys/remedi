@@ -20,6 +20,7 @@ import { MOCK_PHARMACEUTICALS, MOCK_REMEDY_MAPPINGS } from "@/lib/mock-data";
 import { createLogger } from "@/lib/logger";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
 import { getCurrentUser } from "@/lib/auth";
+import { isDemoDataEnabled } from "@/lib/env";
 import { normalizeSearchQuery } from "@/lib/search/query-normalization";
 import type { ProcessedDrug, NaturalRemedy } from "@/lib/types";
 
@@ -258,7 +259,32 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Step 3: Fall back to mock data
+    // Step 3: Fall back to mock data — only when demo data is enabled. In
+    // production this is off by default so we never present fabricated remedy
+    // matches as real results; an empty result is returned instead.
+    if (!isDemoDataEnabled()) {
+      log.info("No data from database or OpenFDA; demo fallback disabled", {
+        query,
+      });
+      void Promise.allSettled([saveHistory(0), trackSearchEvent(0, "none")]);
+      const processingTime = Date.now() - startTime;
+      return NextResponse.json(
+        successResponse([], {
+          total: 0,
+          processingTime,
+          apiVersion: "1.0",
+          source: "none" as const,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Cache-Control":
+              "public, s-maxage=300, stale-while-revalidate=3600",
+          },
+        },
+      );
+    }
+
     log.debug("Falling back to mock data");
     const searchablePharmaceuticals = MOCK_PHARMACEUTICALS.map((p) => ({
       ...p,

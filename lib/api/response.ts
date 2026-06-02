@@ -47,7 +47,7 @@ export interface ResponseMetadata {
   /** API version */
   apiVersion?: string;
   /** Data source indicator */
-  source?: "database" | "openfda" | "fallback";
+  source?: "database" | "openfda" | "fallback" | "none";
 }
 
 /**
