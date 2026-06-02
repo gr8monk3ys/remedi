@@ -183,6 +183,25 @@ export function isTest(): boolean {
 }
 
 /**
+ * Whether fabricated "mock"/demo remedy and pharmaceutical data may be served
+ * as a fallback when the database (and OpenFDA) return nothing.
+ *
+ * Enabled outside production by default so local development, automated tests,
+ * and demos work without a fully seeded database. Disabled in production unless
+ * `DEMO_MODE=true` is explicitly set, so a real deployment never presents
+ * fabricated medical content to users as though it were genuine data.
+ *
+ * Set `DEMO_MODE=false` to force it off everywhere (e.g. a staging environment
+ * that must mirror production behavior).
+ */
+export function isDemoDataEnabled(): boolean {
+  const flag = process.env.DEMO_MODE;
+  if (flag === "true") return true;
+  if (flag === "false") return false;
+  return process.env.NODE_ENV !== "production";
+}
+
+/**
  * Get database URL with validation
  */
 export function getDatabaseUrl(): string {

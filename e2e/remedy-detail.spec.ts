@@ -51,11 +51,12 @@ test.describe("Remedy Detail Page", () => {
     await expect(page.getByText(/anti-inflammatory properties/i)).toBeVisible();
   });
 
-  test("should display match score", async ({ page }) => {
+  test("should display relevance score", async ({ page }) => {
     await page.goto("/remedy/103");
 
-    // Match Score label and percentage
-    await expect(page.getByText("Match Score")).toBeVisible();
+    // Relevance label and percentage (informational similarity, not a
+    // medical-effectiveness measure)
+    await expect(page.getByText("Relevance")).toBeVisible();
     await expect(page.getByText("85%")).toBeVisible();
   });
 
