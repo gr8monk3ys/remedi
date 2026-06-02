@@ -90,7 +90,10 @@ function generateCspNonce(): string {
  * Add security headers to response
  */
 function addSecurityHeaders(response: NextResponse, nonce: string): void {
-  response.headers.set("X-Frame-Options", "DENY");
+  // X-Frame-Options is set to a hardcoded literal ("DENY"); no user input is
+  // involved, so the semgrep x-frame-options-misconfiguration rule is a false
+  // positive here.
+  response.headers.set("X-Frame-Options", "DENY"); // nosemgrep: javascript.express.security.x-frame-options-misconfiguration.x-frame-options-misconfiguration
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set(

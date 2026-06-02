@@ -11,6 +11,7 @@ import {
   getStatusCode,
 } from "@/lib/api/response";
 import { createLogger } from "@/lib/logger";
+import { isUuid } from "@/lib/utils";
 import type { DetailedRemedy, Reference, RelatedRemedy } from "@/lib/types";
 import { normalizeReferences } from "@/lib/references";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
@@ -345,29 +346,35 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // DB IDs are Postgres uuids; querying with non-uuid IDs (e.g. mock "101")
+    // throws an invalid-input error. Only query the DB for valid uuids and let
+    // the rest fall through to the mock-data fallback below.
+    const dbIds = ids.filter(isUuid);
     // Fetch remedies with their pharmaceutical mappings
-    const dbRemedies = await prisma.naturalRemedy.findMany({
-      where: {
-        id: { in: ids },
-      },
-      include: {
-        pharmaceuticals: {
+    const dbRemedies = dbIds.length
+      ? await prisma.naturalRemedy.findMany({
+          where: {
+            id: { in: dbIds },
+          },
           include: {
-            pharmaceutical: {
-              select: {
-                id: true,
-                name: true,
-                category: true,
+            pharmaceuticals: {
+              include: {
+                pharmaceutical: {
+                  select: {
+                    id: true,
+                    name: true,
+                    category: true,
+                  },
+                },
               },
+              orderBy: {
+                similarityScore: "desc",
+              },
+              take: 5, // Limit related pharmaceuticals per remedy
             },
           },
-          orderBy: {
-            similarityScore: "desc",
-          },
-          take: 5, // Limit related pharmaceuticals per remedy
-        },
-      },
-    });
+        })
+      : [];
 
     // Parse database results and convert to CompareRemedy format
     const remedies: CompareRemedy[] = [];

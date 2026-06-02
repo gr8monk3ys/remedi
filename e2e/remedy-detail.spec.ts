@@ -165,7 +165,11 @@ test.describe("Remedy Detail Page", () => {
   test("should display medical disclaimer", async ({ page }) => {
     await page.goto("/remedy/103");
 
-    await expect(page.getByText(/Medical Disclaimer/i)).toBeVisible();
+    // Target the disclaimer card heading specifically; a "Medical Disclaimer"
+    // footer link also matches getByText and would trip strict mode.
+    await expect(
+      page.getByRole("heading", { name: /Medical Disclaimer/i }),
+    ).toBeVisible();
     await expect(
       page.getByText(/not intended as a substitute for medical advice/i),
     ).toBeVisible();

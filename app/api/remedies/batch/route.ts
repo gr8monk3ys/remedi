@@ -11,6 +11,7 @@ import {
   getStatusCode,
 } from "@/lib/api/response";
 import { createLogger } from "@/lib/logger";
+import { isUuid } from "@/lib/utils";
 import type { DetailedRemedy } from "@/lib/types";
 
 const log = createLogger("remedies-batch-api");
@@ -164,12 +165,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { ids } = validation.data;
     log.info("Fetching batch remedies", { ids, count: ids.length });
 
-    // Fetch remedies from database
-    const dbRemedies = await prisma.naturalRemedy.findMany({
-      where: {
-        id: { in: ids },
-      },
-    });
+    // DB IDs are Postgres uuids; querying with non-uuid IDs (e.g. mock "101")
+    // throws an invalid-input error. Only query the DB for valid uuids and let
+    // the rest fall through to the mock-data fallback below.
+    const dbIds = ids.filter(isUuid);
+    const dbRemedies =
+      dbIds.length > 0
+        ? await prisma.naturalRemedy.findMany({
+            where: {
+              id: { in: dbIds },
+            },
+          })
+        : [];
 
     // Parse database results
     const parsedDbRemedies = dbRemedies.map(parseNaturalRemedy);

@@ -1,38 +1,44 @@
 # Project Rules
 
-This file defines project-specific rules that Claude should follow when working in this repository. Similar to `.cursorrules` or `.editorconfig`, these rules customize Claude's behavior for this specific project.
+This file defines project-specific rules that Claude should follow when working
+in this repository. These rules are intended to match the conventions the
+codebase actually follows (ESLint, Prettier, and tsconfig are the source of
+truth; this file documents them).
 
 ## How to Use
 
-1. Copy this file to your project root as `.claude/rules/PROJECT-RULES.md`
-2. Customize the rules for your project
-3. Claude will read and follow these rules
+These rules are already active for this repository. Update them when the
+underlying ESLint / Prettier / tsconfig configuration changes so the two stay
+in sync.
 
 ---
 
 ## Code Style Rules
 
 ### TypeScript
+
 ```yaml
 typescript:
-  strict: true
-  no_any: true
-  explicit_return_types: true
+  strict: true # tsconfig.json: strict + all strict* flags
+  no_any: warn # @typescript-eslint/no-explicit-any is "warn", not error
+  explicit_return_types: false # not enforced; inference is fine
   prefer_const: true
-  no_unused_vars: error
+  no_unused_vars: warn # warn, with ^_ ignore pattern for args/vars
 ```
 
-### Formatting
+### Formatting (Prettier 3 defaults — no custom .prettierrc)
+
 ```yaml
 formatting:
   indent: 2 spaces
-  quotes: single
-  semicolons: false
-  trailing_comma: es5
-  max_line_length: 100
+  quotes: double
+  semicolons: true
+  trailing_comma: all
+  max_line_length: 80
 ```
 
 ### Naming Conventions
+
 ```yaml
 naming:
   components: PascalCase
@@ -41,24 +47,27 @@ naming:
   files:
     components: PascalCase.tsx
     utilities: camelCase.ts
-    types: camelCase.types.ts
-    tests: *.test.ts or *.spec.ts
+    tests: *.test.ts (unit/Vitest) or *.spec.ts (E2E/Playwright)
 ```
 
 ## Architecture Rules
 
 ### File Organization
+
 ```yaml
+# This project keeps source at the repository root (no src/ directory).
+# The "@/*" path alias resolves to "./*" (see tsconfig.json).
 structure:
-  components: src/components/
-  hooks: src/hooks/
-  utils: src/lib/
-  types: src/types/
+  components: components/
+  hooks: hooks/
+  utils: lib/
+  types: types/
   api: app/api/
   pages: app/
 ```
 
 ### Component Rules
+
 ```yaml
 components:
   max_lines: 200
@@ -69,20 +78,23 @@ components:
 ```
 
 ### API Rules
+
 ```yaml
+# Standardized ApiResponse<T> from lib/api/response.ts.
 api:
   validation: zod_required
-  error_format: "{ error: string, success: false }"
-  success_format: "{ data: T, success: true }"
-  auth_middleware: required_for_protected
+  error_format: "{ success: false, error: { code, message, statusCode } }"
+  success_format: "{ success: true, data: T, metadata?: {...} }"
+  auth_middleware: required_for_protected # Clerk via proxy.ts
 ```
 
 ## Framework-Specific Rules
 
 ### Next.js
+
 ```yaml
 nextjs:
-  version: 15
+  version: 16
   router: app
   prefer_server_components: true
   use_server_actions: true
@@ -90,6 +102,7 @@ nextjs:
 ```
 
 ### React
+
 ```yaml
 react:
   hooks_only: true
@@ -101,6 +114,7 @@ react:
 ## Testing Rules
 
 ### Unit Tests
+
 ```yaml
 testing:
   framework: vitest
@@ -110,6 +124,7 @@ testing:
 ```
 
 ### Test Structure
+
 ```yaml
 test_structure:
   describe_component: true
@@ -121,6 +136,7 @@ test_structure:
 ## Security Rules
 
 ### General
+
 ```yaml
 security:
   no_secrets_in_code: true
@@ -130,6 +146,7 @@ security:
 ```
 
 ### Authentication
+
 ```yaml
 auth:
   jwt_in_httponly_cookies: true
@@ -140,6 +157,7 @@ auth:
 ## Documentation Rules
 
 ### Code Comments
+
 ```yaml
 comments:
   when: non_obvious_logic_only
@@ -149,6 +167,7 @@ comments:
 ```
 
 ### README
+
 ```yaml
 readme:
   required_sections:
@@ -161,6 +180,7 @@ readme:
 ## Git Rules
 
 ### Commits
+
 ```yaml
 commits:
   conventional_commits: true
@@ -170,6 +190,7 @@ commits:
 ```
 
 ### Branches
+
 ```yaml
 branches:
   main: protected
@@ -180,6 +201,7 @@ branches:
 ## Performance Rules
 
 ### General
+
 ```yaml
 performance:
   lazy_load_routes: true
@@ -189,6 +211,7 @@ performance:
 ```
 
 ### Database
+
 ```yaml
 database:
   no_n_plus_one: true
@@ -202,6 +225,7 @@ database:
 ## Rule Priorities
 
 When rules conflict, follow this priority:
+
 1. Security rules (highest)
 2. Correctness rules
 3. Performance rules
@@ -210,6 +234,7 @@ When rules conflict, follow this priority:
 ## Exceptions
 
 Document any exceptions to rules here:
+
 ```yaml
 exceptions:
   - file: legacy/old-component.tsx
