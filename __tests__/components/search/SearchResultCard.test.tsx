@@ -127,9 +127,9 @@ describe("SearchResultCard", () => {
     expect(screen.getByText(/Nutrients:/)).toBeInTheDocument();
   });
 
-  it("renders the similarity score", () => {
+  it("renders the relevance score", () => {
     render(<SearchResultCard {...defaultProps} />);
-    expect(screen.getByText("85% match")).toBeInTheDocument();
+    expect(screen.getByText("85% relevance")).toBeInTheDocument();
   });
 
   it("does not render similarity score when not provided", () => {

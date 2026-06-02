@@ -173,9 +173,12 @@ export const SearchResultCard = memo(function SearchResultCard({
               </div>
             )}
 
-            {/* Similarity Score */}
+            {/* Relevance (ingredient/property similarity — informational only) */}
             {result.similarityScore !== undefined && (
-              <div className="mt-2 flex items-center gap-2">
+              <div
+                className="mt-2 flex items-center gap-2"
+                title="Relevance reflects shared ingredients and properties — it is informational only and is not a measure of medical effectiveness."
+              >
                 <div className="h-1.5 w-16 rounded-full bg-secondary">
                   <div
                     className="h-1.5 rounded-full bg-primary"
@@ -185,7 +188,7 @@ export const SearchResultCard = memo(function SearchResultCard({
                   />
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {(result.similarityScore * 100).toFixed(0)}% match
+                  {(result.similarityScore * 100).toFixed(0)}% relevance
                 </span>
               </div>
             )}

@@ -39,11 +39,14 @@ export function RemedyHero({
         </div>
       </div>
 
-      {/* Match Score and Nutrients */}
+      {/* Relevance and Nutrients */}
       <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
         {similarityScore !== undefined && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Match Score</span>
+          <div
+            className="flex items-center gap-2"
+            title="Relevance reflects shared ingredients and properties — it is informational only and is not a measure of medical effectiveness."
+          >
+            <span className="text-sm text-muted-foreground">Relevance</span>
             <div className="flex items-center gap-2">
               <div className="h-2 w-24 rounded-full bg-secondary">
                 <div
