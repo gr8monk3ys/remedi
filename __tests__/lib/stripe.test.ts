@@ -40,7 +40,7 @@ vi.mock("stripe", () => {
 });
 
 // Mock Prisma
-vi.mock("../db", () => ({
+vi.mock("@/lib/db", () => ({
   prisma: {
     subscription: {
       findUnique: vi.fn(),
@@ -75,20 +75,20 @@ describe("Stripe Utilities", () => {
       delete process.env.STRIPE_SECRET_KEY;
       vi.resetModules();
 
-      const { getStripe } = await import("../stripe");
+      const { getStripe } = await import("@/lib/stripe");
 
       expect(() => getStripe()).toThrow("STRIPE_SECRET_KEY is not configured");
     });
 
     it("should return Stripe client when configured", async () => {
-      const { getStripe } = await import("../stripe");
+      const { getStripe } = await import("@/lib/stripe");
 
       const client = getStripe();
       expect(client).toBeDefined();
     });
 
     it("should reuse the same client instance", async () => {
-      const { getStripe } = await import("../stripe");
+      const { getStripe } = await import("@/lib/stripe");
 
       const client1 = getStripe();
       const client2 = getStripe();
@@ -99,7 +99,7 @@ describe("Stripe Utilities", () => {
 
   describe("getOrCreateStripeCustomer", () => {
     it("should return existing customer ID from database", async () => {
-      const { prisma } = await import("../db");
+      const { prisma } = await import("@/lib/db");
       vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
         customerId: "cus_existing",
         userId: "user-123",
@@ -107,7 +107,7 @@ describe("Stripe Utilities", () => {
         status: "active",
       } as never);
 
-      const { getOrCreateStripeCustomer } = await import("../stripe");
+      const { getOrCreateStripeCustomer } = await import("@/lib/stripe");
 
       const customerId = await getOrCreateStripeCustomer(
         "user-123",
@@ -119,7 +119,7 @@ describe("Stripe Utilities", () => {
     });
 
     it("should find existing Stripe customer by email", async () => {
-      const { prisma } = await import("../db");
+      const { prisma } = await import("@/lib/db");
       vi.mocked(prisma.subscription.findUnique).mockResolvedValue(null);
       vi.mocked(prisma.subscription.upsert).mockResolvedValue({} as never);
 
@@ -127,7 +127,7 @@ describe("Stripe Utilities", () => {
         data: [{ id: "cus_found_by_email" }],
       });
 
-      const { getOrCreateStripeCustomer } = await import("../stripe");
+      const { getOrCreateStripeCustomer } = await import("@/lib/stripe");
 
       const customerId = await getOrCreateStripeCustomer(
         "user-123",
@@ -142,14 +142,14 @@ describe("Stripe Utilities", () => {
     });
 
     it("should create new customer when not found", async () => {
-      const { prisma } = await import("../db");
+      const { prisma } = await import("@/lib/db");
       vi.mocked(prisma.subscription.findUnique).mockResolvedValue(null);
       vi.mocked(prisma.subscription.upsert).mockResolvedValue({} as never);
 
       mockStripe.customers.list.mockResolvedValue({ data: [] });
       mockStripe.customers.create.mockResolvedValue({ id: "cus_new" });
 
-      const { getOrCreateStripeCustomer } = await import("../stripe");
+      const { getOrCreateStripeCustomer } = await import("@/lib/stripe");
 
       const customerId = await getOrCreateStripeCustomer(
         "user-123",
@@ -173,7 +173,7 @@ describe("Stripe Utilities", () => {
         url: "https://checkout.stripe.com/pay/cs_test_123",
       });
 
-      const { createCheckoutSession } = await import("../stripe");
+      const { createCheckoutSession } = await import("@/lib/stripe");
 
       const session = await createCheckoutSession({
         customerId: "cus_123",
@@ -201,7 +201,7 @@ describe("Stripe Utilities", () => {
         url: "https://billing.stripe.com/session/bps_test_123",
       });
 
-      const { createBillingPortalSession } = await import("../stripe");
+      const { createBillingPortalSession } = await import("@/lib/stripe");
 
       const session = await createBillingPortalSession(
         "cus_123",
@@ -223,7 +223,7 @@ describe("Stripe Utilities", () => {
         cancel_at_period_end: true,
       });
 
-      const { cancelSubscription } = await import("../stripe");
+      const { cancelSubscription } = await import("@/lib/stripe");
 
       const result = await cancelSubscription("sub_123");
 
@@ -241,7 +241,7 @@ describe("Stripe Utilities", () => {
         cancel_at_period_end: false,
       });
 
-      const { reactivateSubscription } = await import("../stripe");
+      const { reactivateSubscription } = await import("@/lib/stripe");
 
       const result = await reactivateSubscription("sub_123");
 
@@ -254,7 +254,7 @@ describe("Stripe Utilities", () => {
 
   describe("isStripeConfigured", () => {
     it("should return true when both keys are set", async () => {
-      const { isStripeConfigured } = await import("../stripe");
+      const { isStripeConfigured } = await import("@/lib/stripe");
 
       expect(isStripeConfigured()).toBe(true);
     });
@@ -263,7 +263,7 @@ describe("Stripe Utilities", () => {
       delete process.env.STRIPE_SECRET_KEY;
       vi.resetModules();
 
-      const { isStripeConfigured } = await import("../stripe");
+      const { isStripeConfigured } = await import("@/lib/stripe");
 
       expect(isStripeConfigured()).toBe(false);
     });
@@ -272,7 +272,7 @@ describe("Stripe Utilities", () => {
       delete process.env.STRIPE_PUBLISHABLE_KEY;
       vi.resetModules();
 
-      const { isStripeConfigured } = await import("../stripe");
+      const { isStripeConfigured } = await import("@/lib/stripe");
 
       expect(isStripeConfigured()).toBe(false);
     });

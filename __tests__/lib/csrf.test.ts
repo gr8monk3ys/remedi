@@ -13,7 +13,7 @@ import {
   getCSRFTokenFromHeader,
   validateCSRFToken,
   csrfMiddleware,
-} from "../csrf";
+} from "@/lib/csrf";
 
 describe("CSRF Protection Utilities", () => {
   describe("generateCSRFToken", () => {

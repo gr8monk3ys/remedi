@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { isDemoDataEnabled } from "../env";
+import { isDemoDataEnabled } from "@/lib/env";
 
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
 const ORIGINAL_DEMO_MODE = process.env.DEMO_MODE;

@@ -12,8 +12,8 @@ import {
   isSuccessResponse,
   isErrorResponse,
   getStatusCode,
-} from "../api/response";
-import type { ApiResponse, ErrorCode } from "../api/response";
+} from "@/lib/api/response";
+import type { ApiResponse, ErrorCode } from "@/lib/api/response";
 
 describe("API Response Utilities", () => {
   describe("successResponse", () => {

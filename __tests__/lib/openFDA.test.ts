@@ -11,7 +11,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { MockedFunction } from "vitest";
-import { mockFdaApiResponse } from "../../__tests__/mocks";
+import { mockFdaApiResponse } from "@/__tests__/mocks";
 
 // Store original fetch
 const originalFetch = global.fetch;
@@ -43,7 +43,7 @@ afterEach(() => {
 // Import after mocking
 async function getModule() {
   vi.resetModules();
-  return import("../openFDA");
+  return import("@/lib/openFDA");
 }
 
 describe("OpenFDA API Integration", () => {

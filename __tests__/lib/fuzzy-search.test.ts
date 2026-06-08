@@ -3,7 +3,7 @@ import {
   levenshteinDistance,
   stringSimilarity,
   fuzzySearch,
-} from "../fuzzy-search";
+} from "@/lib/fuzzy-search";
 
 describe("levenshteinDistance", () => {
   it("should return 0 for identical strings", () => {

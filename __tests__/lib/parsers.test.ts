@@ -14,7 +14,7 @@ import {
   serializeArray,
   isPostgres,
   isSqlite,
-} from "../db/parsers";
+} from "@/lib/db/parsers";
 
 describe("Database Parsers", () => {
   describe("parseJsonArray", () => {

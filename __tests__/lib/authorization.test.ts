@@ -35,7 +35,7 @@ import {
   verifyOwnership,
   verifyResourceOwnership,
   getEffectiveIdentifiers,
-} from "../authorization";
+} from "@/lib/authorization";
 
 describe("Authorization Utilities", () => {
   beforeEach(() => {

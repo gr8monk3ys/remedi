@@ -63,7 +63,7 @@ describe("Session Management", () => {
       const existingId = "123e4567-e89b-12d3-a456-426614174000";
       mockLocalStorage.getItem.mockReturnValue(existingId);
 
-      const { getSessionId } = await import("../session");
+      const { getSessionId } = await import("@/lib/session");
       const sessionId = getSessionId();
 
       expect(sessionId).toBe(existingId);
@@ -76,7 +76,7 @@ describe("Session Management", () => {
     it("should generate and store new session ID when none exists", async () => {
       mockLocalStorage.getItem.mockReturnValue(null);
 
-      const { getSessionId } = await import("../session");
+      const { getSessionId } = await import("@/lib/session");
       const sessionId = getSessionId();
 
       expect(sessionId).toBe("550e8400-e29b-41d4-a716-446655440000");
@@ -93,7 +93,7 @@ describe("Session Management", () => {
       delete global.window;
 
       vi.resetModules();
-      const { getSessionId } = await import("../session");
+      const { getSessionId } = await import("@/lib/session");
       const sessionId = getSessionId();
 
       expect(sessionId).toBe("");
@@ -110,7 +110,7 @@ describe("Session Management", () => {
       // Suppress console.warn for this test
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-      const { getSessionId } = await import("../session");
+      const { getSessionId } = await import("@/lib/session");
       const sessionId = getSessionId();
 
       // Should still return a UUID
@@ -140,7 +140,7 @@ describe("Session Management", () => {
       mockLocalStorage.getItem.mockReturnValue(null);
 
       vi.resetModules();
-      const { getSessionId } = await import("../session");
+      const { getSessionId } = await import("@/lib/session");
       const sessionId = getSessionId();
 
       // Should still generate a valid UUID-like string
@@ -161,7 +161,7 @@ describe("Session Management", () => {
       const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
       vi.resetModules();
-      const { getSessionId } = await import("../session");
+      const { getSessionId } = await import("@/lib/session");
       const sessionId = getSessionId();
 
       expect(sessionId).toBe("");
@@ -173,7 +173,7 @@ describe("Session Management", () => {
 
   describe("clearSessionId", () => {
     it("should remove session ID from localStorage", async () => {
-      const { clearSessionId } = await import("../session");
+      const { clearSessionId } = await import("@/lib/session");
       clearSessionId();
 
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(
@@ -187,7 +187,7 @@ describe("Session Management", () => {
       delete global.window;
 
       vi.resetModules();
-      const { clearSessionId } = await import("../session");
+      const { clearSessionId } = await import("@/lib/session");
 
       // Should not throw
       expect(() => clearSessionId()).not.toThrow();
@@ -202,7 +202,7 @@ describe("Session Management", () => {
 
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-      const { clearSessionId } = await import("../session");
+      const { clearSessionId } = await import("@/lib/session");
 
       // Should not throw
       expect(() => clearSessionId()).not.toThrow();
@@ -215,7 +215,7 @@ describe("Session Management", () => {
     it("should return true when session ID exists", async () => {
       mockLocalStorage.getItem.mockReturnValue("existing-session-id");
 
-      const { hasSessionId } = await import("../session");
+      const { hasSessionId } = await import("@/lib/session");
       const result = hasSessionId();
 
       expect(result).toBe(true);
@@ -227,7 +227,7 @@ describe("Session Management", () => {
     it("should return false when session ID does not exist", async () => {
       mockLocalStorage.getItem.mockReturnValue(null);
 
-      const { hasSessionId } = await import("../session");
+      const { hasSessionId } = await import("@/lib/session");
       const result = hasSessionId();
 
       expect(result).toBe(false);
@@ -239,7 +239,7 @@ describe("Session Management", () => {
       delete global.window;
 
       vi.resetModules();
-      const { hasSessionId } = await import("../session");
+      const { hasSessionId } = await import("@/lib/session");
       const result = hasSessionId();
 
       expect(result).toBe(false);
@@ -252,7 +252,7 @@ describe("Session Management", () => {
         throw new Error("localStorage not available");
       });
 
-      const { hasSessionId } = await import("../session");
+      const { hasSessionId } = await import("@/lib/session");
       const result = hasSessionId();
 
       expect(result).toBe(false);
