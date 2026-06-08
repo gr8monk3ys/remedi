@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
-import { Fraunces, IBM_Plex_Mono, Manrope } from "next/font/google";
+import localFont from "next/font/local";
 import { Providers } from "@/components/providers";
 import { PWARegister } from "@/components/PWARegister";
 import { Analytics } from "@/components/analytics";
@@ -15,23 +15,30 @@ import {
 import { getBaseUrl } from "@/lib/url";
 import "./globals.css";
 
-const manrope = Manrope({
-  subsets: ["latin"],
+// Fonts are self-hosted (app/fonts/*.woff2) rather than fetched from Google
+// Fonts at build time, so production builds are deterministic and succeed in
+// network-restricted environments. Variable/weight ranges match the previous
+// next/font/google configuration.
+const manrope = localFont({
+  src: "./fonts/Manrope-Variable.woff2",
   variable: "--font-inter",
+  weight: "200 800",
   display: "swap",
 });
 
-const ibmPlexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
+const ibmPlexMono = localFont({
+  src: [
+    { path: "./fonts/IBMPlexMono-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/IBMPlexMono-500.woff2", weight: "500", style: "normal" },
+  ],
   variable: "--font-roboto-mono",
-  weight: ["400", "500"],
   display: "swap",
 });
 
-const fraunces = Fraunces({
-  subsets: ["latin"],
+const fraunces = localFont({
+  src: "./fonts/Fraunces-Variable.woff2",
   variable: "--font-display",
-  weight: ["500", "600", "700"],
+  weight: "500 700",
   display: "swap",
 });
 
