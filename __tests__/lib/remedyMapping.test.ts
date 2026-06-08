@@ -12,8 +12,8 @@ import {
   findNaturalRemediesForDrug,
   getDetailedRemedy,
   addDetailedRemedy,
-} from "../remedyMapping";
-import type { ProcessedDrug, DetailedRemedy } from "../types";
+} from "@/lib/remedyMapping";
+import type { ProcessedDrug, DetailedRemedy } from "@/lib/types";
 
 describe("Remedy Mapping Service", () => {
   describe("findNaturalRemediesForDrug", () => {

@@ -83,8 +83,8 @@ import {
   removeFavorite,
   saveFilterPreferences,
   disconnect,
-} from "../db";
-import type { ProcessedDrug, ParsedNaturalRemedy } from "../types";
+} from "@/lib/db";
+import type { ProcessedDrug, ParsedNaturalRemedy } from "@/lib/types";
 
 describe("db module", () => {
   beforeEach(() => {

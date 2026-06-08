@@ -22,7 +22,7 @@ vi.mock("openai", () => {
 });
 
 // Mock Prisma
-vi.mock("../db", () => ({
+vi.mock("@/lib/db", () => ({
   prisma: {
     naturalRemedy: {
       findMany: vi.fn(),
@@ -46,13 +46,13 @@ describe("AI Module", () => {
   describe("isAIEnabled", () => {
     it("should return true when OPENAI_API_KEY is set", async () => {
       process.env.OPENAI_API_KEY = "sk-test-key";
-      const { isAIEnabled } = await import("../ai/client");
+      const { isAIEnabled } = await import("@/lib/ai/client");
       expect(isAIEnabled()).toBe(true);
     });
 
     it("should return false when OPENAI_API_KEY is not set", async () => {
       delete process.env.OPENAI_API_KEY;
-      const { isAIEnabled } = await import("../ai/client");
+      const { isAIEnabled } = await import("@/lib/ai/client");
       expect(isAIEnabled()).toBe(false);
     });
   });
@@ -61,7 +61,7 @@ describe("AI Module", () => {
     it("should return null when API key is not configured", async () => {
       delete process.env.OPENAI_API_KEY;
       vi.resetModules();
-      const { getOpenAIClient } = await import("../ai/client");
+      const { getOpenAIClient } = await import("@/lib/ai/client");
       const client = getOpenAIClient();
       expect(client).toBeNull();
     });
@@ -69,7 +69,7 @@ describe("AI Module", () => {
     it("should return client when API key is configured", async () => {
       process.env.OPENAI_API_KEY = "sk-test-key";
       vi.resetModules();
-      const { getOpenAIClient } = await import("../ai/client");
+      const { getOpenAIClient } = await import("@/lib/ai/client");
       const client = getOpenAIClient();
       expect(client).not.toBeNull();
     });
@@ -77,7 +77,7 @@ describe("AI Module", () => {
     it("should reuse the same client instance", async () => {
       process.env.OPENAI_API_KEY = "sk-test-key";
       vi.resetModules();
-      const { getOpenAIClient } = await import("../ai/client");
+      const { getOpenAIClient } = await import("@/lib/ai/client");
       const client1 = getOpenAIClient();
       const client2 = getOpenAIClient();
       expect(client1).toBe(client2);
@@ -89,7 +89,7 @@ describe("AI Module", () => {
       delete process.env.OPENAI_API_KEY;
       vi.resetModules();
 
-      const { enhanceRemedyMatching } = await import("../ai/matching");
+      const { enhanceRemedyMatching } = await import("@/lib/ai/matching");
       const result = await enhanceRemedyMatching({
         query: "pain relief",
       });
@@ -101,7 +101,7 @@ describe("AI Module", () => {
       process.env.OPENAI_API_KEY = "sk-test-key";
       vi.resetModules();
 
-      const { prisma } = await import("../db");
+      const { prisma } = await import("@/lib/db");
       vi.mocked(prisma.naturalRemedy.findMany).mockResolvedValue([
         {
           id: "turmeric",
@@ -144,7 +144,7 @@ describe("AI Module", () => {
         ],
       });
 
-      const { enhanceRemedyMatching } = await import("../ai/matching");
+      const { enhanceRemedyMatching } = await import("@/lib/ai/matching");
       const result = await enhanceRemedyMatching({
         query: "natural pain relief",
       });
@@ -156,12 +156,12 @@ describe("AI Module", () => {
       process.env.OPENAI_API_KEY = "sk-test-key";
       vi.resetModules();
 
-      const { prisma } = await import("../db");
+      const { prisma } = await import("@/lib/db");
       vi.mocked(prisma.naturalRemedy.findMany).mockResolvedValue([]);
 
       mockCreate.mockRejectedValue(new Error("API Error"));
 
-      const { enhanceRemedyMatching } = await import("../ai/matching");
+      const { enhanceRemedyMatching } = await import("@/lib/ai/matching");
       const result = await enhanceRemedyMatching({
         query: "test",
       });
@@ -173,14 +173,14 @@ describe("AI Module", () => {
       process.env.OPENAI_API_KEY = "sk-test-key";
       vi.resetModules();
 
-      const { prisma } = await import("../db");
+      const { prisma } = await import("@/lib/db");
       vi.mocked(prisma.naturalRemedy.findMany).mockResolvedValue([]);
 
       mockCreate.mockResolvedValue({
         choices: [{ message: { content: null } }],
       });
 
-      const { enhanceRemedyMatching } = await import("../ai/matching");
+      const { enhanceRemedyMatching } = await import("@/lib/ai/matching");
       const result = await enhanceRemedyMatching({
         query: "test",
       });
@@ -192,7 +192,7 @@ describe("AI Module", () => {
       process.env.OPENAI_API_KEY = "sk-test-key";
       vi.resetModules();
 
-      const { prisma } = await import("../db");
+      const { prisma } = await import("@/lib/db");
       vi.mocked(prisma.naturalRemedy.findMany).mockResolvedValue([
         {
           id: "test",
@@ -219,7 +219,7 @@ describe("AI Module", () => {
         choices: [{ message: { content: "not valid json" } }],
       });
 
-      const { enhanceRemedyMatching } = await import("../ai/matching");
+      const { enhanceRemedyMatching } = await import("@/lib/ai/matching");
       const result = await enhanceRemedyMatching({
         query: "test",
       });
@@ -233,7 +233,7 @@ describe("AI Module", () => {
       delete process.env.OPENAI_API_KEY;
       vi.resetModules();
 
-      const { processNaturalLanguageQuery } = await import("../ai/nlp");
+      const { processNaturalLanguageQuery } = await import("@/lib/ai/nlp");
       const result = await processNaturalLanguageQuery("find pain relief");
 
       expect(result.intent).toBe("search");
@@ -257,7 +257,7 @@ describe("AI Module", () => {
         ],
       });
 
-      const { processNaturalLanguageQuery } = await import("../ai/nlp");
+      const { processNaturalLanguageQuery } = await import("@/lib/ai/nlp");
       const result = await processNaturalLanguageQuery(
         "natural remedy for headache",
       );
@@ -272,7 +272,7 @@ describe("AI Module", () => {
 
       mockCreate.mockRejectedValue(new Error("NLP Error"));
 
-      const { processNaturalLanguageQuery } = await import("../ai/nlp");
+      const { processNaturalLanguageQuery } = await import("@/lib/ai/nlp");
       const result = await processNaturalLanguageQuery("test query");
 
       expect(result.intent).toBe("search");
@@ -286,7 +286,7 @@ describe("AI Module", () => {
         choices: [{ message: { content: null } }],
       });
 
-      const { processNaturalLanguageQuery } = await import("../ai/nlp");
+      const { processNaturalLanguageQuery } = await import("@/lib/ai/nlp");
       const result = await processNaturalLanguageQuery("test");
 
       expect(result.intent).toBe("search");
@@ -297,7 +297,7 @@ describe("AI Module", () => {
     it("should return safe result for empty medications", async () => {
       vi.resetModules();
 
-      const { checkDrugInteractions } = await import("../ai/interactions");
+      const { checkDrugInteractions } = await import("@/lib/ai/interactions");
       const result = await checkDrugInteractions("Turmeric", []);
 
       expect(result.hasInteractions).toBe(false);
@@ -309,7 +309,7 @@ describe("AI Module", () => {
       delete process.env.OPENAI_API_KEY;
       vi.resetModules();
 
-      const { checkDrugInteractions } = await import("../ai/interactions");
+      const { checkDrugInteractions } = await import("@/lib/ai/interactions");
       const result = await checkDrugInteractions("Turmeric", ["Warfarin"]);
 
       expect(result.hasInteractions).toBe(true);
@@ -338,7 +338,7 @@ describe("AI Module", () => {
         ],
       });
 
-      const { checkDrugInteractions } = await import("../ai/interactions");
+      const { checkDrugInteractions } = await import("@/lib/ai/interactions");
       const result = await checkDrugInteractions("Turmeric", ["Warfarin"]);
 
       expect(result.hasInteractions).toBe(true);
@@ -366,7 +366,7 @@ describe("AI Module", () => {
         ],
       });
 
-      const { checkDrugInteractions } = await import("../ai/interactions");
+      const { checkDrugInteractions } = await import("@/lib/ai/interactions");
       const result = await checkDrugInteractions("Turmeric", [
         "Warfarin",
         "Aspirin",
@@ -383,7 +383,7 @@ describe("AI Module", () => {
 
       mockCreate.mockRejectedValue(new Error("Interaction check failed"));
 
-      const { checkDrugInteractions } = await import("../ai/interactions");
+      const { checkDrugInteractions } = await import("@/lib/ai/interactions");
       const result = await checkDrugInteractions("Turmeric", ["Warfarin"]);
 
       expect(result.hasInteractions).toBe(true);

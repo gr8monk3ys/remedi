@@ -23,7 +23,7 @@ import {
   getFilterPreferencesSchema,
   validateQueryParams,
   getValidationErrorMessage,
-} from "../validations/api";
+} from "@/lib/validations/api";
 import { z } from "zod";
 
 describe("API Validation Schemas", () => {

@@ -30,7 +30,8 @@
 
 ## Testing Guidelines
 
-- Unit/integration: Vitest in `__tests__/` (e.g., `lib/__tests__/csrf.test.ts`).
+- Unit: Vitest in `__tests__/` mirroring the source tree (e.g., `__tests__/lib/csrf.test.ts`).
+- Integration: Vitest in `integration/`.
 - E2E: Playwright in `e2e/` (e.g., `e2e/search.spec.ts`).
 - Naming: `*.test.ts` for unit, `*.spec.ts` for E2E.
 

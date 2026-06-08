@@ -10,7 +10,7 @@ import {
   getClientIdentifier,
   rateLimitExceededResponse,
   addRateLimitHeaders,
-} from "../rate-limit";
+} from "@/lib/rate-limit";
 
 // Mock NextRequest for testing
 function createMockRequest(headers: Record<string, string> = {}): NextRequest {

@@ -10,10 +10,7 @@ export default defineConfig({
       "node_modules/**",
       "e2e/**", // Exclude Playwright E2E tests
     ],
-    include: [
-      "**/__tests__/**/*.test.{ts,tsx}",
-      "lib/__tests__/**/*.test.{ts,tsx}",
-    ],
+    include: ["**/__tests__/**/*.test.{ts,tsx}"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html", "lcov"],

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeRedirectPath } from "../e2e/clerk-nextjs-client-mock";
+import { sanitizeRedirectPath } from "@/lib/e2e/clerk-nextjs-client-mock";
 
 describe("clerk-nextjs-client-mock", () => {
   it("uses a safe default when redirect_url points off-origin", () => {

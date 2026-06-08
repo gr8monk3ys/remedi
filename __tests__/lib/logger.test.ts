@@ -13,7 +13,7 @@ import {
   logRequest,
   logResponse,
   createTimer,
-} from "../logger";
+} from "@/lib/logger";
 
 // Mock Sentry to prevent actual error reporting
 vi.mock("@sentry/nextjs", () => ({

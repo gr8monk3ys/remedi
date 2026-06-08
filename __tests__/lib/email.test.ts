@@ -112,7 +112,7 @@ describe("Email Client", () => {
   });
 
   it("should report email as configured when RESEND_API_KEY is present", async () => {
-    const { isEmailConfigured } = await import("../email/client");
+    const { isEmailConfigured } = await import("@/lib/email/client");
 
     const result = isEmailConfigured();
 
@@ -123,7 +123,7 @@ describe("Email Client", () => {
   it("should report email as not configured when RESEND_API_KEY is missing", async () => {
     mockEnv.hasResendEmail.mockReturnValue(false);
 
-    const { isEmailConfigured } = await import("../email/client");
+    const { isEmailConfigured } = await import("@/lib/email/client");
 
     const result = isEmailConfigured();
 
@@ -131,7 +131,7 @@ describe("Email Client", () => {
   });
 
   it("should return a Resend client when properly configured", async () => {
-    const { getResendClient, resetClient } = await import("../email/client");
+    const { getResendClient, resetClient } = await import("@/lib/email/client");
     resetClient();
 
     const client = getResendClient();
@@ -142,7 +142,7 @@ describe("Email Client", () => {
 
   it("should return null when email is not configured", async () => {
     mockEnv.hasResendEmail.mockReturnValue(false);
-    const { getResendClient, resetClient } = await import("../email/client");
+    const { getResendClient, resetClient } = await import("@/lib/email/client");
     resetClient();
 
     const client = getResendClient();
@@ -152,7 +152,7 @@ describe("Email Client", () => {
 
   it("should return null when API key is empty", async () => {
     mockEnv.getResendApiKey.mockReturnValue(undefined);
-    const { getResendClient, resetClient } = await import("../email/client");
+    const { getResendClient, resetClient } = await import("@/lib/email/client");
     resetClient();
     // hasResendEmail still returns true but getResendApiKey returns undefined
     const client = getResendClient();
@@ -161,7 +161,7 @@ describe("Email Client", () => {
   });
 
   it("should reuse the same client instance on subsequent calls", async () => {
-    const { getResendClient, resetClient } = await import("../email/client");
+    const { getResendClient, resetClient } = await import("@/lib/email/client");
     resetClient();
 
     const client1 = getResendClient();
@@ -171,7 +171,7 @@ describe("Email Client", () => {
   });
 
   it("should create a fresh client after resetClient is called", async () => {
-    const { getResendClient, resetClient } = await import("../email/client");
+    const { getResendClient, resetClient } = await import("@/lib/email/client");
     resetClient();
 
     const client1 = getResendClient();
@@ -185,7 +185,7 @@ describe("Email Client", () => {
   });
 
   it("should return the configured from email address", async () => {
-    const { getFromEmail } = await import("../email/client");
+    const { getFromEmail } = await import("@/lib/email/client");
 
     const from = getFromEmail();
 
@@ -199,7 +199,7 @@ describe("Email Client", () => {
 
 describe("Email Config", () => {
   it("should define rate limits with valid values", async () => {
-    const { EMAIL_RATE_LIMITS } = await import("../email/config");
+    const { EMAIL_RATE_LIMITS } = await import("@/lib/email/config");
 
     expect(EMAIL_RATE_LIMITS.perHour).toBe(10);
     expect(EMAIL_RATE_LIMITS.perDay).toBe(50);
@@ -207,7 +207,7 @@ describe("Email Config", () => {
   });
 
   it("should define brand configuration", async () => {
-    const { EMAIL_BRAND } = await import("../email/config");
+    const { EMAIL_BRAND } = await import("@/lib/email/config");
 
     expect(EMAIL_BRAND.name).toBe("Remedi");
     expect(EMAIL_BRAND.tagline).toBe("Natural Alternatives to Pharmaceuticals");
@@ -215,7 +215,7 @@ describe("Email Config", () => {
   });
 
   it("should define all required email subjects", async () => {
-    const { EMAIL_SUBJECTS } = await import("../email/config");
+    const { EMAIL_SUBJECTS } = await import("@/lib/email/config");
 
     expect(EMAIL_SUBJECTS.welcome).toContain("Welcome");
     expect(EMAIL_SUBJECTS.subscription_confirmed).toContain("Subscription");
@@ -228,7 +228,7 @@ describe("Email Config", () => {
   });
 
   it("should generate full URL from relative path", async () => {
-    const { getEmailUrl } = await import("../email/config");
+    const { getEmailUrl } = await import("@/lib/email/config");
 
     const url = getEmailUrl("/test-path");
 
@@ -236,7 +236,7 @@ describe("Email Config", () => {
   });
 
   it("should generate unsubscribe URL with userId", async () => {
-    const { getUnsubscribeUrl } = await import("../email/config");
+    const { getUnsubscribeUrl } = await import("@/lib/email/config");
 
     const url = getUnsubscribeUrl("user-123");
 
@@ -245,7 +245,7 @@ describe("Email Config", () => {
   });
 
   it("should include email type in unsubscribe URL when provided", async () => {
-    const { getUnsubscribeUrl } = await import("../email/config");
+    const { getUnsubscribeUrl } = await import("@/lib/email/config");
 
     const url = getUnsubscribeUrl("user-123", "weekly_digest");
 
@@ -254,7 +254,7 @@ describe("Email Config", () => {
   });
 
   it("should define all expected email URL paths", async () => {
-    const { EMAIL_URLS } = await import("../email/config");
+    const { EMAIL_URLS } = await import("@/lib/email/config");
 
     expect(EMAIL_URLS.home).toBe("/");
     expect(EMAIL_URLS.login).toBe("/sign-in");
@@ -270,7 +270,7 @@ describe("Email Config", () => {
 
 describe("Email Types", () => {
   it("should define default email preferences with sensible defaults", async () => {
-    const { DEFAULT_EMAIL_PREFERENCES } = await import("../email/types");
+    const { DEFAULT_EMAIL_PREFERENCES } = await import("@/lib/email/types");
 
     expect(DEFAULT_EMAIL_PREFERENCES.weeklyDigest).toBe(true);
     expect(DEFAULT_EMAIL_PREFERENCES.marketingEmails).toBe(false);
@@ -286,7 +286,7 @@ describe("Email Types", () => {
 describe("Email Templates", () => {
   describe("WelcomeEmail", () => {
     it("should render with user name", async () => {
-      const { WelcomeEmail } = await import("../email/templates/welcome");
+      const { WelcomeEmail } = await import("@/lib/email/templates/welcome");
 
       const html = await render(
         WelcomeEmail({
@@ -301,7 +301,7 @@ describe("Email Templates", () => {
     });
 
     it("should include login URL in the CTA", async () => {
-      const { WelcomeEmail } = await import("../email/templates/welcome");
+      const { WelcomeEmail } = await import("@/lib/email/templates/welcome");
 
       const html = await render(
         WelcomeEmail({
@@ -314,7 +314,7 @@ describe("Email Templates", () => {
     });
 
     it("should include medical disclaimer", async () => {
-      const { WelcomeEmail } = await import("../email/templates/welcome");
+      const { WelcomeEmail } = await import("@/lib/email/templates/welcome");
 
       const html = await render(
         WelcomeEmail({
@@ -328,7 +328,7 @@ describe("Email Templates", () => {
     });
 
     it("should include unsubscribe link when userId is provided", async () => {
-      const { WelcomeEmail } = await import("../email/templates/welcome");
+      const { WelcomeEmail } = await import("@/lib/email/templates/welcome");
 
       const html = await render(
         WelcomeEmail({
@@ -343,7 +343,7 @@ describe("Email Templates", () => {
     });
 
     it("should not include unsubscribe link when userId is omitted", async () => {
-      const { WelcomeEmail } = await import("../email/templates/welcome");
+      const { WelcomeEmail } = await import("@/lib/email/templates/welcome");
 
       const html = await render(
         WelcomeEmail({
@@ -356,7 +356,7 @@ describe("Email Templates", () => {
     });
 
     it("should fall back to config login URL when loginUrl is omitted", async () => {
-      const { WelcomeEmail } = await import("../email/templates/welcome");
+      const { WelcomeEmail } = await import("@/lib/email/templates/welcome");
 
       const html = await render(
         WelcomeEmail({
@@ -380,7 +380,7 @@ describe("Email Templates", () => {
 
     it("should render subscription details", async () => {
       const { SubscriptionConfirmedEmail } =
-        await import("../email/templates/subscription-confirmed");
+        await import("@/lib/email/templates/subscription-confirmed");
 
       const html = await render(SubscriptionConfirmedEmail(defaultProps));
 
@@ -393,7 +393,7 @@ describe("Email Templates", () => {
 
     it("should display monthly billing cycle", async () => {
       const { SubscriptionConfirmedEmail } =
-        await import("../email/templates/subscription-confirmed");
+        await import("@/lib/email/templates/subscription-confirmed");
 
       const html = await render(SubscriptionConfirmedEmail(defaultProps));
 
@@ -405,7 +405,7 @@ describe("Email Templates", () => {
 
     it("should display yearly billing cycle", async () => {
       const { SubscriptionConfirmedEmail } =
-        await import("../email/templates/subscription-confirmed");
+        await import("@/lib/email/templates/subscription-confirmed");
 
       const html = await render(
         SubscriptionConfirmedEmail({ ...defaultProps, interval: "yearly" }),
@@ -418,7 +418,7 @@ describe("Email Templates", () => {
 
     it("should include manage subscription button", async () => {
       const { SubscriptionConfirmedEmail } =
-        await import("../email/templates/subscription-confirmed");
+        await import("@/lib/email/templates/subscription-confirmed");
 
       const html = await render(SubscriptionConfirmedEmail(defaultProps));
 
@@ -437,7 +437,7 @@ describe("Email Templates", () => {
 
     it("should render cancellation details", async () => {
       const { SubscriptionCancelledEmail } =
-        await import("../email/templates/subscription-cancelled");
+        await import("@/lib/email/templates/subscription-cancelled");
 
       const html = await render(SubscriptionCancelledEmail(defaultProps));
 
@@ -449,7 +449,7 @@ describe("Email Templates", () => {
 
     it("should include resubscribe CTA", async () => {
       const { SubscriptionCancelledEmail } =
-        await import("../email/templates/subscription-cancelled");
+        await import("@/lib/email/templates/subscription-cancelled");
 
       const html = await render(SubscriptionCancelledEmail(defaultProps));
 
@@ -458,7 +458,7 @@ describe("Email Templates", () => {
 
     it("should list features the user will miss", async () => {
       const { SubscriptionCancelledEmail } =
-        await import("../email/templates/subscription-cancelled");
+        await import("@/lib/email/templates/subscription-cancelled");
 
       const html = await render(SubscriptionCancelledEmail(defaultProps));
 
@@ -478,7 +478,7 @@ describe("Email Templates", () => {
 
     it("should render expiration details", async () => {
       const { SubscriptionExpiringEmail } =
-        await import("../email/templates/subscription-expiring");
+        await import("@/lib/email/templates/subscription-expiring");
 
       const html = await render(SubscriptionExpiringEmail(defaultProps));
 
@@ -489,7 +489,7 @@ describe("Email Templates", () => {
 
     it("should show days left banner", async () => {
       const { SubscriptionExpiringEmail } =
-        await import("../email/templates/subscription-expiring");
+        await import("@/lib/email/templates/subscription-expiring");
 
       const html = await render(SubscriptionExpiringEmail(defaultProps));
 
@@ -498,7 +498,7 @@ describe("Email Templates", () => {
 
     it("should show urgent banner when expiring tomorrow", async () => {
       const { SubscriptionExpiringEmail } =
-        await import("../email/templates/subscription-expiring");
+        await import("@/lib/email/templates/subscription-expiring");
 
       const html = await render(
         SubscriptionExpiringEmail({ ...defaultProps, daysLeft: 1 }),
@@ -509,7 +509,7 @@ describe("Email Templates", () => {
 
     it("should include renew subscription button", async () => {
       const { SubscriptionExpiringEmail } =
-        await import("../email/templates/subscription-expiring");
+        await import("@/lib/email/templates/subscription-expiring");
 
       const html = await render(SubscriptionExpiringEmail(defaultProps));
 
@@ -544,7 +544,7 @@ describe("Email Templates", () => {
 
     it("should render digest with activity stats", async () => {
       const { WeeklyDigestEmail } =
-        await import("../email/templates/weekly-digest");
+        await import("@/lib/email/templates/weekly-digest");
 
       const html = await render(WeeklyDigestEmail(defaultProps));
 
@@ -558,7 +558,7 @@ describe("Email Templates", () => {
 
     it("should list new remedies", async () => {
       const { WeeklyDigestEmail } =
-        await import("../email/templates/weekly-digest");
+        await import("@/lib/email/templates/weekly-digest");
 
       const html = await render(WeeklyDigestEmail(defaultProps));
 
@@ -569,7 +569,7 @@ describe("Email Templates", () => {
 
     it("should list trending searches", async () => {
       const { WeeklyDigestEmail } =
-        await import("../email/templates/weekly-digest");
+        await import("@/lib/email/templates/weekly-digest");
 
       const html = await render(WeeklyDigestEmail(defaultProps));
 
@@ -580,7 +580,7 @@ describe("Email Templates", () => {
 
     it("should render with empty remedies and searches", async () => {
       const { WeeklyDigestEmail } =
-        await import("../email/templates/weekly-digest");
+        await import("@/lib/email/templates/weekly-digest");
 
       const html = await render(
         WeeklyDigestEmail({
@@ -597,7 +597,7 @@ describe("Email Templates", () => {
 
     it("should render AI insight section when provided", async () => {
       const { WeeklyDigestEmail } =
-        await import("../email/templates/weekly-digest");
+        await import("@/lib/email/templates/weekly-digest");
 
       const html = await render(
         WeeklyDigestEmail({
@@ -612,7 +612,7 @@ describe("Email Templates", () => {
 
     it("should not render AI insight section when omitted", async () => {
       const { WeeklyDigestEmail } =
-        await import("../email/templates/weekly-digest");
+        await import("@/lib/email/templates/weekly-digest");
 
       const html = await render(WeeklyDigestEmail(defaultProps));
 
@@ -621,7 +621,7 @@ describe("Email Templates", () => {
 
     it("should render journal summary when provided", async () => {
       const { WeeklyDigestEmail } =
-        await import("../email/templates/weekly-digest");
+        await import("@/lib/email/templates/weekly-digest");
 
       const html = await render(
         WeeklyDigestEmail({
@@ -642,7 +642,7 @@ describe("Email Templates", () => {
 
     it("should render interaction alerts when provided", async () => {
       const { WeeklyDigestEmail } =
-        await import("../email/templates/weekly-digest");
+        await import("@/lib/email/templates/weekly-digest");
 
       const html = await render(
         WeeklyDigestEmail({
@@ -666,7 +666,7 @@ describe("Email Templates", () => {
 
     it("should render personalized remedies when provided", async () => {
       const { WeeklyDigestEmail } =
-        await import("../email/templates/weekly-digest");
+        await import("@/lib/email/templates/weekly-digest");
 
       const html = await render(
         WeeklyDigestEmail({
@@ -689,7 +689,7 @@ describe("Email Templates", () => {
 
     it("should show overflow text when more than 5 new remedies", async () => {
       const { WeeklyDigestEmail } =
-        await import("../email/templates/weekly-digest");
+        await import("@/lib/email/templates/weekly-digest");
 
       const manyRemedies = Array.from({ length: 8 }, (_, i) => ({
         name: `Remedy ${i + 1}`,
@@ -710,7 +710,7 @@ describe("Email Templates", () => {
   describe("PasswordResetEmail", () => {
     it("should render with reset URL and expiry", async () => {
       const { PasswordResetEmail } =
-        await import("../email/templates/password-reset");
+        await import("@/lib/email/templates/password-reset");
 
       const html = await render(
         PasswordResetEmail({
@@ -728,7 +728,7 @@ describe("Email Templates", () => {
 
     it("should include security notice for unsolicited requests", async () => {
       const { PasswordResetEmail } =
-        await import("../email/templates/password-reset");
+        await import("@/lib/email/templates/password-reset");
 
       const html = await render(
         PasswordResetEmail({
@@ -746,7 +746,7 @@ describe("Email Templates", () => {
   describe("ContributionApprovedEmail", () => {
     it("should render with remedy name and link", async () => {
       const { ContributionApprovedEmail } =
-        await import("../email/templates/contribution-approved");
+        await import("@/lib/email/templates/contribution-approved");
 
       const html = await render(
         ContributionApprovedEmail({
@@ -765,7 +765,7 @@ describe("Email Templates", () => {
 
     it("should contain a success checkmark section", async () => {
       const { ContributionApprovedEmail } =
-        await import("../email/templates/contribution-approved");
+        await import("@/lib/email/templates/contribution-approved");
 
       const html = await render(
         ContributionApprovedEmail({
@@ -782,7 +782,7 @@ describe("Email Templates", () => {
   describe("ContributionRejectedEmail", () => {
     it("should render with remedy name and contribute link", async () => {
       const { ContributionRejectedEmail } =
-        await import("../email/templates/contribution-rejected");
+        await import("@/lib/email/templates/contribution-rejected");
 
       const html = await render(
         ContributionRejectedEmail({
@@ -800,7 +800,7 @@ describe("Email Templates", () => {
 
     it("should include moderator note when provided", async () => {
       const { ContributionRejectedEmail } =
-        await import("../email/templates/contribution-rejected");
+        await import("@/lib/email/templates/contribution-rejected");
 
       const html = await render(
         ContributionRejectedEmail({
@@ -817,7 +817,7 @@ describe("Email Templates", () => {
 
     it("should not render moderator note section when omitted", async () => {
       const { ContributionRejectedEmail } =
-        await import("../email/templates/contribution-rejected");
+        await import("@/lib/email/templates/contribution-rejected");
 
       const html = await render(
         ContributionRejectedEmail({
@@ -832,7 +832,7 @@ describe("Email Templates", () => {
 
     it("should include tips for future submissions", async () => {
       const { ContributionRejectedEmail } =
-        await import("../email/templates/contribution-rejected");
+        await import("@/lib/email/templates/contribution-rejected");
 
       const html = await render(
         ContributionRejectedEmail({
@@ -849,7 +849,7 @@ describe("Email Templates", () => {
 
   describe("BaseLayout", () => {
     it("should render with preview text and branded header", async () => {
-      const { BaseLayout } = await import("../email/templates/base-layout");
+      const { BaseLayout } = await import("@/lib/email/templates/base-layout");
       const React = await import("react");
 
       const html = await render(
@@ -866,7 +866,7 @@ describe("Email Templates", () => {
     });
 
     it("should include footer with privacy and terms links", async () => {
-      const { BaseLayout } = await import("../email/templates/base-layout");
+      const { BaseLayout } = await import("@/lib/email/templates/base-layout");
       const React = await import("react");
 
       const html = await render(
@@ -882,7 +882,7 @@ describe("Email Templates", () => {
     });
 
     it("should include unsubscribe link when URL is provided", async () => {
-      const { BaseLayout } = await import("../email/templates/base-layout");
+      const { BaseLayout } = await import("@/lib/email/templates/base-layout");
       const React = await import("react");
 
       const html = await render(
@@ -898,7 +898,7 @@ describe("Email Templates", () => {
     });
 
     it("should not include unsubscribe link when URL is omitted", async () => {
-      const { BaseLayout } = await import("../email/templates/base-layout");
+      const { BaseLayout } = await import("@/lib/email/templates/base-layout");
       const React = await import("react");
 
       const html = await render(
@@ -930,7 +930,7 @@ describe("Email Service", () => {
     mockPrisma.emailPreference.findUnique.mockResolvedValue(null);
     mockPrisma.emailLog.create.mockResolvedValue({});
     // Reset the Resend singleton so each test starts clean
-    const { resetClient } = await import("../email/client");
+    const { resetClient } = await import("@/lib/email/client");
     resetClient();
   });
 
@@ -940,7 +940,7 @@ describe("Email Service", () => {
 
   describe("sendWelcomeEmail", () => {
     it("should send a welcome email successfully", async () => {
-      const { sendWelcomeEmail } = await import("../email/index");
+      const { sendWelcomeEmail } = await import("@/lib/email/index");
 
       const result = await sendWelcomeEmail("alice@example.com", "Alice");
 
@@ -957,7 +957,7 @@ describe("Email Service", () => {
     });
 
     it("should log the send attempt to the database", async () => {
-      const { sendWelcomeEmail } = await import("../email/index");
+      const { sendWelcomeEmail } = await import("@/lib/email/index");
 
       await sendWelcomeEmail("alice@example.com", "Alice", "user-1");
 
@@ -973,7 +973,7 @@ describe("Email Service", () => {
     });
 
     it('should use "there" as fallback name when name is empty', async () => {
-      const { sendWelcomeEmail } = await import("../email/index");
+      const { sendWelcomeEmail } = await import("@/lib/email/index");
 
       const result = await sendWelcomeEmail("user@example.com", "");
 
@@ -986,7 +986,8 @@ describe("Email Service", () => {
 
   describe("sendSubscriptionConfirmation", () => {
     it("should send subscription confirmation email", async () => {
-      const { sendSubscriptionConfirmation } = await import("../email/index");
+      const { sendSubscriptionConfirmation } =
+        await import("@/lib/email/index");
 
       const result = await sendSubscriptionConfirmation(
         "bob@example.com",
@@ -1010,7 +1011,8 @@ describe("Email Service", () => {
     });
 
     it("should auto-populate manageUrl from config", async () => {
-      const { sendSubscriptionConfirmation } = await import("../email/index");
+      const { sendSubscriptionConfirmation } =
+        await import("@/lib/email/index");
 
       await sendSubscriptionConfirmation("bob@example.com", {
         name: "Bob",
@@ -1027,7 +1029,7 @@ describe("Email Service", () => {
 
   describe("sendSubscriptionCancelled", () => {
     it("should send subscription cancelled email", async () => {
-      const { sendSubscriptionCancelled } = await import("../email/index");
+      const { sendSubscriptionCancelled } = await import("@/lib/email/index");
 
       const result = await sendSubscriptionCancelled("bob@example.com", {
         name: "Bob",
@@ -1046,7 +1048,7 @@ describe("Email Service", () => {
 
   describe("sendExpirationReminder", () => {
     it("should send standard expiration reminder", async () => {
-      const { sendExpirationReminder } = await import("../email/index");
+      const { sendExpirationReminder } = await import("@/lib/email/index");
 
       const result = await sendExpirationReminder("user@example.com", {
         name: "Charlie",
@@ -1064,7 +1066,7 @@ describe("Email Service", () => {
     });
 
     it("should use urgent subject when expiring tomorrow", async () => {
-      const { sendExpirationReminder } = await import("../email/index");
+      const { sendExpirationReminder } = await import("@/lib/email/index");
 
       await sendExpirationReminder("user@example.com", {
         name: "Charlie",
@@ -1081,7 +1083,7 @@ describe("Email Service", () => {
     });
 
     it("should use days-specific subject when 3 days left", async () => {
-      const { sendExpirationReminder } = await import("../email/index");
+      const { sendExpirationReminder } = await import("@/lib/email/index");
 
       await sendExpirationReminder("user@example.com", {
         name: "Charlie",
@@ -1100,7 +1102,7 @@ describe("Email Service", () => {
 
   describe("sendWeeklyDigest", () => {
     it("should send weekly digest email with period in subject", async () => {
-      const { sendWeeklyDigest } = await import("../email/index");
+      const { sendWeeklyDigest } = await import("@/lib/email/index");
 
       const result = await sendWeeklyDigest(
         "user@example.com",
@@ -1127,7 +1129,7 @@ describe("Email Service", () => {
 
   describe("sendPasswordReset", () => {
     it("should send password reset email", async () => {
-      const { sendPasswordReset } = await import("../email/index");
+      const { sendPasswordReset } = await import("@/lib/email/index");
 
       const result = await sendPasswordReset("user@example.com", {
         name: "Eve",
@@ -1146,7 +1148,7 @@ describe("Email Service", () => {
 
   describe("sendContributionApproved", () => {
     it("should send contribution approved email", async () => {
-      const { sendContributionApproved } = await import("../email/index");
+      const { sendContributionApproved } = await import("@/lib/email/index");
 
       const result = await sendContributionApproved(
         "user@example.com",
@@ -1169,7 +1171,7 @@ describe("Email Service", () => {
 
   describe("sendContributionRejected", () => {
     it("should send contribution rejected email", async () => {
-      const { sendContributionRejected } = await import("../email/index");
+      const { sendContributionRejected } = await import("@/lib/email/index");
 
       const result = await sendContributionRejected(
         "user@example.com",
@@ -1185,7 +1187,7 @@ describe("Email Service", () => {
     });
 
     it("should auto-populate contributeUrl from config", async () => {
-      const { sendContributionRejected } = await import("../email/index");
+      const { sendContributionRejected } = await import("@/lib/email/index");
 
       await sendContributionRejected("user@example.com", {
         name: "Grace",
@@ -1201,9 +1203,9 @@ describe("Email Service", () => {
     it("should return error when email service is not configured", async () => {
       mockEnv.hasResendEmail.mockReturnValue(false);
 
-      const { sendWelcomeEmail } = await import("../email/index");
+      const { sendWelcomeEmail } = await import("@/lib/email/index");
       // Reset client so it picks up the new hasResendEmail value
-      const { resetClient } = await import("../email/client");
+      const { resetClient } = await import("@/lib/email/client");
       resetClient();
 
       const result = await sendWelcomeEmail("user@example.com", "Test");
@@ -1218,7 +1220,7 @@ describe("Email Service", () => {
         error: { message: "Invalid API key", name: "validation_error" },
       });
 
-      const { sendWelcomeEmail } = await import("../email/index");
+      const { sendWelcomeEmail } = await import("@/lib/email/index");
 
       const result = await sendWelcomeEmail("user@example.com", "Test");
 
@@ -1229,7 +1231,7 @@ describe("Email Service", () => {
     it("should handle send exceptions gracefully", async () => {
       mockEmailsSend.mockRejectedValue(new Error("Network timeout"));
 
-      const { sendWelcomeEmail } = await import("../email/index");
+      const { sendWelcomeEmail } = await import("@/lib/email/index");
 
       const result = await sendWelcomeEmail("user@example.com", "Test");
 
@@ -1240,7 +1242,7 @@ describe("Email Service", () => {
     it("should log failed send to email log", async () => {
       mockEmailsSend.mockRejectedValue(new Error("Connection refused"));
 
-      const { sendWelcomeEmail } = await import("../email/index");
+      const { sendWelcomeEmail } = await import("@/lib/email/index");
 
       await sendWelcomeEmail("user@example.com", "Test", "user-err");
 
@@ -1261,7 +1263,7 @@ describe("Email Service", () => {
         error: null,
       });
 
-      const { sendWelcomeEmail } = await import("../email/index");
+      const { sendWelcomeEmail } = await import("@/lib/email/index");
 
       // Should still return success even if log write fails
       const result = await sendWelcomeEmail("user@example.com", "Test");
@@ -1276,7 +1278,7 @@ describe("Email Service", () => {
         weeklyDigest: false,
       });
 
-      const { sendWeeklyDigest } = await import("../email/index");
+      const { sendWeeklyDigest } = await import("@/lib/email/index");
 
       const result = await sendWeeklyDigest(
         "user@example.com",
@@ -1302,7 +1304,7 @@ describe("Email Service", () => {
         subscriptionReminders: false,
       });
 
-      const { sendExpirationReminder } = await import("../email/index");
+      const { sendExpirationReminder } = await import("@/lib/email/index");
 
       const result = await sendExpirationReminder(
         "user@example.com",
@@ -1325,7 +1327,7 @@ describe("Email Service", () => {
         subscriptionReminders: false,
       });
 
-      const { sendWelcomeEmail } = await import("../email/index");
+      const { sendWelcomeEmail } = await import("@/lib/email/index");
 
       const result = await sendWelcomeEmail(
         "user@example.com",
@@ -1342,7 +1344,7 @@ describe("Email Service", () => {
         subscriptionReminders: false,
       });
 
-      const { sendPasswordReset } = await import("../email/index");
+      const { sendPasswordReset } = await import("@/lib/email/index");
 
       const result = await sendPasswordReset("user@example.com", {
         name: "Test",
@@ -1356,7 +1358,7 @@ describe("Email Service", () => {
     it("should send email when no preference record exists (defaults)", async () => {
       mockPrisma.emailPreference.findUnique.mockResolvedValue(null);
 
-      const { sendWeeklyDigest } = await import("../email/index");
+      const { sendWeeklyDigest } = await import("@/lib/email/index");
 
       const result = await sendWeeklyDigest(
         "user@example.com",
@@ -1376,7 +1378,7 @@ describe("Email Service", () => {
     });
 
     it("should send email when no userId is provided", async () => {
-      const { sendWeeklyDigest } = await import("../email/index");
+      const { sendWeeklyDigest } = await import("@/lib/email/index");
 
       const result = await sendWeeklyDigest("anon@example.com", {
         name: "Anonymous",
@@ -1397,7 +1399,7 @@ describe("Email Service", () => {
         new Error("DB timeout"),
       );
 
-      const { sendWeeklyDigest } = await import("../email/index");
+      const { sendWeeklyDigest } = await import("@/lib/email/index");
 
       const result = await sendWeeklyDigest(
         "user@example.com",
@@ -1420,7 +1422,7 @@ describe("Email Service", () => {
 
   describe("sendBatchEmails", () => {
     it("should process multiple emails and report results", async () => {
-      const { sendBatchEmails } = await import("../email/index");
+      const { sendBatchEmails } = await import("@/lib/email/index");
 
       const emails = [
         vi.fn().mockResolvedValue({ success: true, messageId: "msg-1" }),
@@ -1439,7 +1441,7 @@ describe("Email Service", () => {
     });
 
     it("should handle exceptions from individual send functions", async () => {
-      const { sendBatchEmails } = await import("../email/index");
+      const { sendBatchEmails } = await import("@/lib/email/index");
 
       const emails = [
         vi.fn().mockResolvedValue({ success: true, messageId: "msg-1" }),
@@ -1454,7 +1456,7 @@ describe("Email Service", () => {
     });
 
     it("should handle empty batch gracefully", async () => {
-      const { sendBatchEmails } = await import("../email/index");
+      const { sendBatchEmails } = await import("@/lib/email/index");
 
       const result = await sendBatchEmails([], 0);
 
@@ -1464,7 +1466,7 @@ describe("Email Service", () => {
     });
 
     it("should process emails sequentially", async () => {
-      const { sendBatchEmails } = await import("../email/index");
+      const { sendBatchEmails } = await import("@/lib/email/index");
       const callOrder: number[] = [];
 
       const emails = [
@@ -1523,7 +1525,8 @@ describe("Digest Builder", () => {
         { query: "insomnia", _count: { query: 31 } },
       ]);
 
-      const { fetchSharedDigestData } = await import("../email/digest-builder");
+      const { fetchSharedDigestData } =
+        await import("@/lib/email/digest-builder");
 
       const data = await fetchSharedDigestData();
 
@@ -1541,7 +1544,8 @@ describe("Digest Builder", () => {
       mockPrisma.naturalRemedy.findMany.mockResolvedValue([]);
       mockPrisma.searchHistory.groupBy.mockResolvedValue([]);
 
-      const { fetchSharedDigestData } = await import("../email/digest-builder");
+      const { fetchSharedDigestData } =
+        await import("@/lib/email/digest-builder");
 
       const data = await fetchSharedDigestData();
 
@@ -1554,7 +1558,7 @@ describe("Digest Builder", () => {
     it("should return null when user is not found", async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
-      const { buildDigestData } = await import("../email/digest-builder");
+      const { buildDigestData } = await import("@/lib/email/digest-builder");
 
       const result = await buildDigestData("nonexistent-user", "free");
 
@@ -1573,7 +1577,7 @@ describe("Digest Builder", () => {
         periodEnd: "Mar 12, 2026",
       };
 
-      const { buildDigestData } = await import("../email/digest-builder");
+      const { buildDigestData } = await import("@/lib/email/digest-builder");
 
       const result = await buildDigestData("user-1", "free", sharedData);
 
@@ -1605,7 +1609,7 @@ describe("Digest Builder", () => {
         periodEnd: "Mar 12, 2026",
       };
 
-      const { buildDigestData } = await import("../email/digest-builder");
+      const { buildDigestData } = await import("@/lib/email/digest-builder");
 
       const result = await buildDigestData("user-1", "free", sharedData);
 
@@ -1630,7 +1634,7 @@ describe("Digest Builder", () => {
         periodEnd: "Mar 12, 2026",
       };
 
-      const { buildDigestData } = await import("../email/digest-builder");
+      const { buildDigestData } = await import("@/lib/email/digest-builder");
 
       const result = await buildDigestData("user-1", "basic", sharedData);
 
@@ -1663,7 +1667,7 @@ describe("Digest Builder", () => {
         periodEnd: "Mar 12, 2026",
       };
 
-      const { buildDigestData } = await import("../email/digest-builder");
+      const { buildDigestData } = await import("@/lib/email/digest-builder");
 
       const result = await buildDigestData("user-1", "basic", sharedData);
 
@@ -1688,7 +1692,7 @@ describe("Digest Builder", () => {
         periodEnd: "Mar 12, 2026",
       };
 
-      const { buildDigestData } = await import("../email/digest-builder");
+      const { buildDigestData } = await import("@/lib/email/digest-builder");
 
       const result = await buildDigestData("user-1", "basic", sharedData);
 
@@ -1717,7 +1721,7 @@ describe("Digest Builder", () => {
         periodEnd: "Mar 12, 2026",
       };
 
-      const { buildDigestData } = await import("../email/digest-builder");
+      const { buildDigestData } = await import("@/lib/email/digest-builder");
 
       const result = await buildDigestData("user-1", "premium", sharedData);
 
@@ -1744,7 +1748,7 @@ describe("Digest Builder", () => {
         periodEnd: "Mar 12, 2026",
       };
 
-      const { buildDigestData } = await import("../email/digest-builder");
+      const { buildDigestData } = await import("@/lib/email/digest-builder");
 
       const result = await buildDigestData("user-1", "premium", sharedData);
 
@@ -1756,7 +1760,7 @@ describe("Digest Builder", () => {
         new Error("DB connection lost"),
       );
 
-      const { buildDigestData } = await import("../email/digest-builder");
+      const { buildDigestData } = await import("@/lib/email/digest-builder");
 
       const result = await buildDigestData("user-1", "free");
 
@@ -1767,7 +1771,7 @@ describe("Digest Builder", () => {
       mockPrisma.naturalRemedy.findMany.mockResolvedValue([]);
       mockPrisma.searchHistory.groupBy.mockResolvedValue([]);
 
-      const { buildDigestData } = await import("../email/digest-builder");
+      const { buildDigestData } = await import("@/lib/email/digest-builder");
 
       const result = await buildDigestData("user-1", "free");
 
@@ -1786,7 +1790,7 @@ describe("Digest Builder", () => {
         periodEnd: "Mar 12, 2026",
       };
 
-      const { buildDigestData } = await import("../email/digest-builder");
+      const { buildDigestData } = await import("@/lib/email/digest-builder");
 
       const result = await buildDigestData("user-1", "free", sharedData);
 
@@ -1802,7 +1806,7 @@ describe("Digest Builder", () => {
         periodEnd: "Mar 12, 2026",
       };
 
-      const { buildDigestData } = await import("../email/digest-builder");
+      const { buildDigestData } = await import("@/lib/email/digest-builder");
 
       const result = await buildDigestData("user-1", "free", sharedData);
 

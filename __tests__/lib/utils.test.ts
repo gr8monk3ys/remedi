@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { cn, isUuid } from "../utils";
+import { cn, isUuid } from "@/lib/utils";
 
 describe("cn (className utility)", () => {
   it("should merge class names", () => {
