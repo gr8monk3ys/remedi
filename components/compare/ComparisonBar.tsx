@@ -186,5 +186,3 @@ export function ComparisonBar({ className = "" }: ComparisonBarProps) {
     </AnimatePresence>
   );
 }
-
-export default ComparisonBar;

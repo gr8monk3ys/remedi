@@ -282,5 +282,3 @@ export function useComparisonHistory() {
 
   return { history, addToHistory, clearHistory };
 }
-
-export default ComparisonHistory;

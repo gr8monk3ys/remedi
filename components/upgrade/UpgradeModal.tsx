@@ -304,5 +304,3 @@ export function UpgradeModal({
     </AnimatePresence>
   );
 }
-
-export default UpgradeModal;

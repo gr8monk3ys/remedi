@@ -296,5 +296,3 @@ export function StartTrialButton({
     </button>
   );
 }
-
-export default TrialBanner;
