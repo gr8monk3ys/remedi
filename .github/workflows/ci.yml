@@ -60,6 +60,8 @@ jobs:
         run: bun run knip
       - name: Unit tests
         run: bun run test:run
+      - name: Integration tests
+        run: bun run test:integration
 
   e2e:
     timeout-minutes: 30

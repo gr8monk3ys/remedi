@@ -47,20 +47,20 @@ describe("Favorites DB Integration", () => {
       userId: testUserId,
     });
 
-    const favorites = await getFavorites(undefined, testUserId);
+    const { favorites, total } = await getFavorites(undefined, testUserId);
 
+    expect(total).toBe(1);
     expect(favorites).toHaveLength(1);
     expect(favorites[0].remedyId).toBe(remedyId);
     expect(favorites[0].userId).toBe(testUserId);
   });
 
-  it("getFavorites returns empty array when no identifier provided", async () => {
-    const favorites = await getFavorites();
-    expect(favorites).toEqual([]);
+  it("getFavorites returns empty result when no identifier provided", async () => {
+    const result = await getFavorites();
+    expect(result).toEqual({ favorites: [], total: 0 });
   });
 
-  it("getFavorites caps at 100 records", async () => {
-    // Create 5 favorites to verify the query works; full 100+ test would be slow
+  it("getFavorites returns paginated results with total count", async () => {
     const inserts = Array.from({ length: 5 }, (_, i) =>
       addFavorite({
         remedyId: crypto.randomUUID(),
@@ -70,9 +70,14 @@ describe("Favorites DB Integration", () => {
     );
     await Promise.all(inserts);
 
-    const favorites = await getFavorites(undefined, testUserId);
-    expect(favorites.length).toBeLessThanOrEqual(100);
-    expect(favorites.length).toBe(5);
+    const { favorites, total } = await getFavorites(undefined, testUserId);
+    expect(total).toBe(5);
+    expect(favorites).toHaveLength(5);
+
+    // take parameter limits the page size while total reflects all rows
+    const page = await getFavorites(undefined, testUserId, undefined, 0, 2);
+    expect(page.favorites).toHaveLength(2);
+    expect(page.total).toBe(5);
   });
 
   it("isFavorite returns true when favorited", async () => {
