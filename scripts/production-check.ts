@@ -2,16 +2,16 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-function createClient(): PrismaClient {
+function createClient(): { prisma: PrismaClient; pool: Pool } {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is required for production checks.");
   }
   const pool = new Pool({ connectionString: databaseUrl });
-  return new PrismaClient({ adapter: new PrismaPg(pool) });
+  return { prisma: new PrismaClient({ adapter: new PrismaPg(pool) }), pool };
 }
 
-const prisma = createClient();
+const { prisma, pool } = createClient();
 
 const REQUIRED_ENV = [
   "DATABASE_URL",
@@ -59,7 +59,11 @@ async function main() {
   } catch {
     dbOk = false;
   } finally {
+    // Close the underlying pg pool as well as the Prisma client: lingering
+    // pool sockets keep the runtime's event loop alive, which left the CI
+    // readiness job hanging until the runner's 6-hour kill.
     await prisma.$disconnect();
+    await pool.end();
   }
 
   if (!dbOk) {
@@ -83,6 +87,9 @@ async function main() {
   }
 
   console.log("Production readiness checks passed.");
+  // Exit explicitly so any handle left open by a dependency cannot keep the
+  // process (and the CI job) alive after checks have already passed.
+  process.exit(0);
 }
 
 main().catch((error) => {
