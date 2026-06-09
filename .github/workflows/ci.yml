@@ -2,6 +2,12 @@ permissions: read-all
 
 name: CI
 
+# Cancel superseded in-flight runs for the same ref (but never on main,
+# where every commit's run should complete).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 on:
   push:
     branches: [main]
