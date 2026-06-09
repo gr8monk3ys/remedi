@@ -100,7 +100,10 @@ function addSecurityHeaders(response: NextResponse, nonce: string): void {
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=(), browsing-topics=()",
   );
-  response.headers.set("X-XSS-Protection", "1; mode=block");
+  // "0" per current OWASP guidance: the legacy XSS auditor this header
+  // enabled was itself an XS-Leak vector and has been removed from modern
+  // browsers; the CSP set below is the actual XSS defense.
+  response.headers.set("X-XSS-Protection", "0");
   response.headers.set("X-DNS-Prefetch-Control", "on");
 
   const isProduction = process.env.NODE_ENV === "production";

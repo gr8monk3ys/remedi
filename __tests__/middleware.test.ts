@@ -147,11 +147,11 @@ describe("Middleware", () => {
       expect(permPolicy).toContain("geolocation=()");
     });
 
-    it("should include X-XSS-Protection header", async () => {
+    it("should disable the legacy XSS auditor via X-XSS-Protection: 0", async () => {
       const req = createRequest("/");
       const res = await callMiddleware(req);
 
-      expect(res.headers.get("X-XSS-Protection")).toBe("1; mode=block");
+      expect(res.headers.get("X-XSS-Protection")).toBe("0");
     });
 
     it("should include X-DNS-Prefetch-Control header", async () => {
