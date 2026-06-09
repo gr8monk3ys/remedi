@@ -78,8 +78,10 @@ const nextConfig: NextConfig = {
               "camera=(), microphone=(), geolocation=(), browsing-topics=()",
           },
           {
+            // "0" per current OWASP guidance: the legacy XSS auditor was an
+            // XS-Leak vector; the CSP set in proxy.ts is the real XSS defense.
             key: "X-XSS-Protection",
-            value: "1; mode=block",
+            value: "0",
           },
           {
             key: "X-DNS-Prefetch-Control",
