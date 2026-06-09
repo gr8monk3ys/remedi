@@ -283,10 +283,18 @@ bun run dev          # Start development server
 bun run build        # Build for production
 bun run start        # Start production server
 bun run lint         # Run ESLint
+bun run type-check   # TypeScript type checking
+bun run knip         # Dead code / unused dependency check (CI-gated)
 bun run init         # Generate Prisma client, migrate, seed
 bun run health:check # Verify database connectivity
 bun run health:check:http # Verify /api/health endpoint
 bun run predeploy    # Run pre-deploy verification suite
+
+# Testing
+bun run test         # Unit tests, watch mode (Vitest)
+bun run test:run     # Unit tests, single run
+bun run test:coverage # Unit tests with coverage report
+bun run test:e2e     # E2E tests (Playwright)
 
 # Database
 bunx prisma generate  # Generate Prisma client

@@ -17,6 +17,7 @@ bun run test:run         # Unit tests single run
 bun run test:e2e         # E2E tests (Playwright)
 bun run test:e2e:ui      # E2E tests with UI
 bun run type-check       # TypeScript type checking
+bun run knip             # Dead code / unused dependency check (CI-gated)
 ```
 
 ### Database Commands
