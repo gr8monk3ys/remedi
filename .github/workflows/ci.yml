@@ -50,6 +50,8 @@ jobs:
         run: bun run lint
       - name: Type check
         run: bun run type-check
+      - name: Dead code check
+        run: bun run knip
       - name: Unit tests
         run: bun run test:run
 
