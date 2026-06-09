@@ -210,5 +210,3 @@ export function ExportComparison({
     </div>
   );
 }
-
-export default ExportComparison;

@@ -326,5 +326,3 @@ export function useFeatureAccess(feature: FeatureKey): {
 
   return { hasAccess, isLoading, currentPlan };
 }
-
-export default FeatureGate;

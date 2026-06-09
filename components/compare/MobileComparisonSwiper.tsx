@@ -317,5 +317,3 @@ export function MobileComparisonSwiper({
     </div>
   );
 }
-
-export default MobileComparisonSwiper;

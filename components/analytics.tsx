@@ -134,5 +134,3 @@ export function trackEvent(
     );
   }
 }
-
-export default Analytics;
