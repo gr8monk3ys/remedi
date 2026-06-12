@@ -1,0 +1,26 @@
+name: security-baseline
+
+# Cancel superseded in-flight runs for the same ref (but never on main,
+# where every commit's run should complete).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+permissions: read-all
+
+jobs:
+  security-baseline:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - name: Baseline CI check
+        run: |
+          echo "Security baseline workflow is active"

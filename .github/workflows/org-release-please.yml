@@ -1,0 +1,65 @@
+name: org-release-please
+
+# Cancel superseded in-flight runs for the same ref (but never on main,
+# where every commit's run should complete).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  release-please:
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+
+      - name: Detect release strategy
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+          strategy=""
+
+          if [ -f package.json ]; then
+            strategy="node"
+          elif [ -f pyproject.toml ] || [ -f setup.py ] || [ -f setup.cfg ] || [ -f requirements.txt ]; then
+            strategy="python"
+          elif [ -f go.mod ]; then
+            strategy="go"
+          elif [ -f Cargo.toml ]; then
+            strategy="rust"
+          fi
+
+          if [ -n "$strategy" ]; then
+            echo "supported=true" >> "$GITHUB_OUTPUT"
+            echo "release_type=$strategy" >> "$GITHUB_OUTPUT"
+            echo "Using release strategy: $strategy"
+          else
+            echo "supported=false" >> "$GITHUB_OUTPUT"
+            echo "No supported release strategy detected; skipping."
+          fi
+
+      - name: Run Release Please
+        if: steps.detect.outputs.supported == 'true'
+        uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: ${{ steps.detect.outputs.release_type }}
+
+      - name: Skip release
+        if: steps.detect.outputs.supported != 'true'
+        run: 'echo "Release Please skipped: no supported strategy."'

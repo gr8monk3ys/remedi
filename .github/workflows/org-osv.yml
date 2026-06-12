@@ -1,0 +1,46 @@
+name: org-osv
+
+# Cancel superseded in-flight runs for the same ref (but never on main,
+# where every commit's run should complete).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  osv:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+
+      - name: Run OSV scan
+        uses: google/osv-scanner-action/osv-scanner-action@a30b4c310bacb7c0635e316e0720e23f0b791cf8
+        with:
+          scan-args: |-
+            --output=results.json
+            --format=json
+            --recursive
+            ./
+        continue-on-error: true
+
+      - name: Report OSV results
+        uses: google/osv-scanner-action/osv-reporter-action@a30b4c310bacb7c0635e316e0720e23f0b791cf8
+        with:
+          scan-args: |-
+            --output=results.sarif
+            --new=results.json
+            --gh-annotations=false
+            --fail-on-vuln=false
