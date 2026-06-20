@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline - Remedi</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          'Helvetica Neue', Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        text-align: center;
+        max-width: 500px;
+      }
+
+      .icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 30px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-center;
+        font-size: 60px;
+      }
+
+      h1 {
+        font-size: 36px;
+        margin-bottom: 20px;
+        font-weight: 700;
+      }
+
+      p {
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 30px;
+        opacity: 0.9;
+      }
+
+      .button {
+        display: inline-block;
+        padding: 14px 32px;
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 30px;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+      }
+
+      .button:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+      }
+
+      .offline-status {
+        margin-top: 40px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        font-size: 14px;
+      }
+
+      .status-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background: #ff6b6b;
+        border-radius: 50%;
+        margin-right: 8px;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon">📡</div>
+      <h1>You're Offline</h1>
+      <p>
+        It looks like you've lost your internet connection. Don't worry, you can
+        still browse previously visited pages.
+      </p>
+      <button class="button" onclick="window.location.reload()">
+        Try Again
+      </button>
+
+      <div class="offline-status">
+        <span class="status-dot"></span>
+        <span id="status-text">Waiting for connection...</span>
+      </div>
+    </div>
+
+    <script>
+      // Auto-reload when connection is restored
+      window.addEventListener('online', () => {
+        document.getElementById('status-text').textContent =
+          'Connection restored! Reloading...';
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      });
+
+      // Update status text
+      window.addEventListener('offline', () => {
+        document.getElementById('status-text').textContent =
+          'Waiting for connection...';
+      });
+
+      // Check connection status on load
+      if (navigator.onLine) {
+        document.getElementById('status-text').textContent =
+          'Connection available. Click "Try Again" to reload.';
+        document.querySelector('.status-dot').style.background = '#51cf66';
+      }
+    </script>
+  </body>
+</html>

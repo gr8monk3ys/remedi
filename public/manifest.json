@@ -1,0 +1,58 @@
+{
+  "name": "Remedi - Natural Health Alternatives",
+  "short_name": "Remedi",
+  "description": "Discover natural alternatives to pharmaceuticals and supplements. Find evidence-based remedies for your health needs.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e6b38",
+  "orientation": "portrait-primary",
+  "categories": ["health", "medical", "lifestyle"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Remedi home screen"
+    },
+    {
+      "src": "/screenshots/search.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Search for natural remedies"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Search Remedies",
+      "short_name": "Search",
+      "description": "Search for natural health alternatives",
+      "url": "/search"
+    },
+    {
+      "name": "Favorites",
+      "short_name": "Favorites",
+      "description": "View your saved remedies",
+      "url": "/?favorites=true"
+    }
+  ],
+  "prefer_related_applications": false,
+  "scope": "/",
+  "id": "/?source=pwa"
+}
