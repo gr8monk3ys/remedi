@@ -500,29 +500,10 @@ export async function sendBatchEmails(
 }
 
 // ============================================================================
-// Weekly Digest Cron Job Placeholder
+// Weekly Digest Cron Job
 // ============================================================================
 //
-// To send weekly digests, create a cron route at:
-//   app/api/cron/weekly-digest/route.ts
-//
-// The cron job should:
-// 1. Query all users with emailPreferences.weeklyDigest === true
-// 2. For each user, gather:
-//    - New remedies added in the past 7 days
-//    - User's search count and saved remedies count
-//    - Top trending searches across the platform
-// 3. Call sendWeeklyDigest() for each user via sendBatchEmails()
-// 4. Protect the route with a CRON_SECRET header check
-//
-// Recommended trigger: Vercel Cron or external scheduler hitting the endpoint
-// weekly (e.g., every Monday at 9:00 AM UTC).
-//
-// Example Vercel cron config in vercel.json:
-// {
-//   "crons": [{
-//     "path": "/api/cron/weekly-digest",
-//     "schedule": "0 9 * * 1"
-//   }]
-// }
+// Implemented at app/api/cron/weekly-digest/route.ts, protected by a
+// CRON_SECRET header check. Triggered by Vercel Cron (see vercel.json),
+// every Monday at 9:00 AM UTC.
 // ============================================================================
