@@ -1,3 +1,4 @@
+import { requireAdminPage } from "@/lib/auth";
 import { isConnected, prisma } from "@/lib/db";
 import { getStripe, getStripeMode } from "@/lib/stripe";
 import { isSentryConfigured } from "@/lib/observability";
@@ -46,6 +47,9 @@ function checkEnvStatus(names: string[]) {
 }
 
 export default async function ProductionReadinessPage() {
+  // Admin-only: the /admin layout also admits moderators.
+  await requireAdminPage();
+
   const required = checkEnvStatus(REQUIRED_ENV);
   const recommended = checkEnvStatus(RECOMMENDED_ENV);
   const dbOk = await isConnected();

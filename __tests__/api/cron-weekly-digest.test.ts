@@ -90,15 +90,32 @@ describe("/api/cron/weekly-digest", () => {
       expect(mockUserFindMany).not.toHaveBeenCalled();
     });
 
-    it("allows requests without CRON_SECRET outside production", async () => {
+    it("refuses to run without CRON_SECRET outside production too", async () => {
+      // This endpoint triggers a mass-email job, so an unset secret must fail
+      // closed in every environment rather than disabling the check.
       vi.stubEnv("NODE_ENV", "test");
       vi.stubEnv("CRON_SECRET", "");
       mockUserFindMany.mockResolvedValue([]);
 
       const { GET } = await import("@/app/api/cron/weekly-digest/route");
       const response = await GET(makeRequest());
+      const json = await response.json();
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(503);
+      expect(json.error).toBe("CRON_SECRET is not configured");
+      expect(mockUserFindMany).not.toHaveBeenCalled();
+    });
+
+    it("rejects an unauthenticated request outside production", async () => {
+      vi.stubEnv("NODE_ENV", "test");
+      vi.stubEnv("CRON_SECRET", "secret-123");
+      mockUserFindMany.mockResolvedValue([]);
+
+      const { GET } = await import("@/app/api/cron/weekly-digest/route");
+      const response = await GET(makeRequest());
+
+      expect(response.status).toBe(401);
+      expect(mockUserFindMany).not.toHaveBeenCalled();
     });
 
     it("returns 401 when the bearer token does not match CRON_SECRET", async () => {

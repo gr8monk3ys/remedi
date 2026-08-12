@@ -15,6 +15,8 @@ import { useDbUser } from "@/hooks/use-db-user";
 import { useSessionId } from "@/hooks/use-session-id";
 import { createLogger } from "@/lib/logger";
 import { useFeatureAccess } from "@/components/upgrade/FeatureGate";
+import { UpgradeModal } from "@/components/upgrade/UpgradeModal";
+import { usePlanQuery } from "@/hooks/queries";
 import { SearchInput } from "./SearchInput";
 import { SearchTabs } from "./SearchTabs";
 import { SearchHistory } from "./SearchHistory";
@@ -96,6 +98,14 @@ function formatRateLimitMessage(
   return `${endpointLabel} is temporarily rate-limited. Please try again in about a minute.`;
 }
 
+/**
+ * Plan limits and transient rate limits share HTTP 429 but need opposite
+ * responses: a plan limit is resolved by upgrading, a rate limit by waiting.
+ */
+function isPlanLimitCode(code?: string): boolean {
+  return code === "LIMIT_EXCEEDED";
+}
+
 interface SearchComponentProps extends React.HTMLProps<HTMLDivElement> {
   onSearch?: (results: SearchResult[]) => void;
   className?: string;
@@ -112,6 +122,8 @@ export function SearchComponent({
   const sessionId = useSessionId();
   const { hasAccess: canAccessHistory } = useFeatureAccess("canAccessHistory");
   const showHistoryTab = canAccessHistory === true;
+  const { data: planData } = usePlanQuery();
+  const currentPlan = planData?.plan ?? "free";
   const { data: favorites = [], isLoading: favoritesLoading } =
     useFavoritesQuery();
   const toggleFavoriteMutation = useToggleFavorite();
@@ -155,6 +167,11 @@ export function SearchComponent({
   const [useAiSearch, setUseAiSearch] = useState<boolean>(false);
   const [aiSearchAvailable, setAiSearchAvailable] = useState<boolean>(false);
   const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
+  // Set when the API rejects a search because the user's plan quota is spent,
+  // so we can offer an upgrade instead of a dead-end error message.
+  const [planLimitReason, setPlanLimitReason] = useState<
+    "search_limit" | "ai_search_limit" | null
+  >(null);
 
   // Refs for DOM elements (React pattern instead of document.querySelector)
   const searchResultsRef = useRef<HTMLDivElement>(null);
@@ -278,6 +295,13 @@ export function SearchComponent({
             const { code, message, retryAfter } =
               await parseApiErrorResponse(response);
 
+            if (isPlanLimitCode(code)) {
+              setPlanLimitReason("ai_search_limit");
+              throw new UserFacingSearchError(
+                message || "You've reached your AI search limit for today.",
+              );
+            }
+
             if (response.status === 429 || code === "RATE_LIMIT_EXCEEDED") {
               throw new UserFacingSearchError(
                 formatRateLimitMessage(endpointType, retryAfter),
@@ -292,7 +316,13 @@ export function SearchComponent({
           apiResponse = await response.json();
 
           if (apiResponse.success === false) {
-            if (apiResponse.error?.code === "RATE_LIMIT_EXCEEDED") {
+            if (isPlanLimitCode(apiResponse.error?.code)) {
+              setPlanLimitReason("ai_search_limit");
+              setError(
+                apiResponse.error?.message ||
+                  "You've reached your AI search limit for today.",
+              );
+            } else if (apiResponse.error?.code === "RATE_LIMIT_EXCEEDED") {
               const retryAfter =
                 typeof apiResponse.error?.retryAfter === "number"
                   ? Math.ceil(apiResponse.error.retryAfter)
@@ -334,6 +364,13 @@ export function SearchComponent({
             const { code, message, retryAfter } =
               await parseApiErrorResponse(response);
 
+            if (isPlanLimitCode(code)) {
+              setPlanLimitReason("search_limit");
+              throw new UserFacingSearchError(
+                message || "You've reached your search limit for today.",
+              );
+            }
+
             if (response.status === 429 || code === "RATE_LIMIT_EXCEEDED") {
               throw new UserFacingSearchError(
                 formatRateLimitMessage(endpointType, retryAfter),
@@ -347,7 +384,13 @@ export function SearchComponent({
           apiResponse = await response.json();
 
           if (apiResponse.success === false) {
-            if (apiResponse.error?.code === "RATE_LIMIT_EXCEEDED") {
+            if (isPlanLimitCode(apiResponse.error?.code)) {
+              setPlanLimitReason("search_limit");
+              setError(
+                apiResponse.error?.message ||
+                  "You've reached your search limit for today.",
+              );
+            } else if (apiResponse.error?.code === "RATE_LIMIT_EXCEEDED") {
               const retryAfter =
                 typeof apiResponse.error?.retryAfter === "number"
                   ? Math.ceil(apiResponse.error.retryAfter)
@@ -488,6 +531,14 @@ export function SearchComponent({
           />
         </div>
       )}
+
+      {/* Hitting a plan quota should offer a way forward, not just an error. */}
+      <UpgradeModal
+        isOpen={planLimitReason !== null}
+        onClose={() => setPlanLimitReason(null)}
+        triggerReason={planLimitReason ?? "feature"}
+        currentPlan={currentPlan}
+      />
     </div>
   );
 }

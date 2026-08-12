@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { fetchWithCSRF } from "@/lib/fetch";
 
 type Result = {
   ok: boolean;
@@ -18,7 +19,8 @@ export function ProductionCheckButton() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/production-check", {
+      // POST goes through CSRF middleware; a bare fetch is always rejected.
+      const res = await fetchWithCSRF("/api/admin/production-check", {
         method: "POST",
       });
       if (!res.ok) {

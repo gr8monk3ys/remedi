@@ -91,13 +91,12 @@ export function UpgradeModal({
 
     setLoadingCheckout(plan);
     try {
-      const planConfig = PLANS[plan];
-      if (!("monthlyPriceId" in planConfig)) return;
-
-      const priceId = planConfig.monthlyPriceId;
-
+      // Stripe price IDs are server-side only, so the client identifies the
+      // plan by name and interval and lets /api/checkout resolve the price.
       const data = await apiClient.post<{ url: string }>("/api/checkout", {
-        priceId,
+        plan,
+        interval: "month",
+        source: "upgrade_modal",
       });
 
       if (data.url) {

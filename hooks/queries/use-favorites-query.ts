@@ -75,7 +75,13 @@ export function useToggleFavorite() {
       const cached = queryClient.getQueryData<Favorite[]>(FAVORITES_KEY) ?? [];
       const fav = cached.find((f) => f.remedyId === remedyId);
       if (!fav) throw new Error("Favorite not found");
-      return apiClient.delete(`/api/favorites?id=${fav.id}`);
+      // Session-owned (anonymous) favorites can only be deleted when the
+      // request proves ownership of that session, so the id alone is not
+      // enough — without this, signed-out users can add but never remove.
+      const deleteParams = new URLSearchParams({ id: fav.id });
+      if (dbUserId) deleteParams.set("userId", dbUserId);
+      else if (sessionId) deleteParams.set("sessionId", sessionId);
+      return apiClient.delete(`/api/favorites?${deleteParams.toString()}`);
     },
     onMutate: async ({ remedyId, remedyName, action }) => {
       await queryClient.cancelQueries({ queryKey: FAVORITES_KEY });

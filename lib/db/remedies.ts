@@ -148,21 +148,66 @@ export async function generateRemedyMappingsForPharmaceutical(params: {
 }
 
 /**
- * Convert ParsedNaturalRemedy to DetailedRemedy format
+ * Resolve related-remedy names to routable remedy IDs.
+ *
+ * `NaturalRemedy.relatedRemedies` stores plain names, but the UI links to
+ * `/remedy/<id>`, which only accepts UUIDs. Names that have no matching remedy
+ * are dropped: a missing entry is better than a link that 404s.
+ */
+export async function resolveRelatedRemedies(
+  related: ParsedNaturalRemedy["relatedRemedies"],
+): Promise<Array<{ id: string; name: string }> | undefined> {
+  const entries = related ?? [];
+
+  // Some records already carry structured {id, name} entries. Those are
+  // routable as-is, so signal "no override" and let the caller keep them.
+  const names = entries.filter(
+    (entry): entry is string => typeof entry === "string",
+  );
+  if (names.length === 0) {
+    return entries.length > 0 ? undefined : [];
+  }
+
+  const matches = await prisma.naturalRemedy.findMany({
+    where: {
+      OR: names.map((name) => ({
+        name: { equals: name, mode: "insensitive" as const },
+      })),
+    },
+    select: { id: true, name: true },
+  });
+
+  const byName = new Map(
+    matches.map((match) => [match.name.toLowerCase(), match]),
+  );
+
+  return names
+    .map((name) => byName.get(name.toLowerCase()))
+    .filter((match): match is { id: string; name: string } => Boolean(match));
+}
+
+/**
+ * Convert ParsedNaturalRemedy to DetailedRemedy format.
+ *
+ * Pass `resolvedRelatedRemedies` (from `resolveRelatedRemedies`) whenever the
+ * result is rendered with links; without it the related entries carry names in
+ * place of IDs and are not routable.
  */
 export function toDetailedRemedy(
   remedy: ParsedNaturalRemedy,
   similarityScore = 1.0,
+  resolvedRelatedRemedies?: Array<{ id: string; name: string }>,
 ): DetailedRemedy {
   const references = normalizeReferences(remedy.references);
 
   const relatedRemedies =
-    typeof remedy.relatedRemedies?.[0] === "string"
+    resolvedRelatedRemedies ??
+    (typeof remedy.relatedRemedies?.[0] === "string"
       ? (remedy.relatedRemedies as string[]).map((name) => ({
           id: name,
           name,
         }))
-      : (remedy.relatedRemedies as DetailedRemedy["relatedRemedies"]);
+      : (remedy.relatedRemedies as DetailedRemedy["relatedRemedies"]));
 
   return {
     id: remedy.id,

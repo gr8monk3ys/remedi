@@ -12,6 +12,9 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { NextRequest, NextResponse } from "next/server";
 import { hasUpstashRedis, getUpstashRedisCredentials } from "@/lib/env";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("rate-limit");
 
 // Types for rate limit configuration
 export interface RateLimitConfig {
@@ -243,15 +246,35 @@ function checkInMemoryRateLimit(
  * Uses IP address, falling back to a session ID if available
  */
 export function getClientIdentifier(request: NextRequest): string {
-  // Try to get IP from various headers (works with proxies/CDNs)
-  const forwardedFor = request.headers.get("x-forwarded-for");
-  const realIp = request.headers.get("x-real-ip");
+  // Prefer headers the platform sets itself and a client cannot forge.
   const cfConnectingIp = request.headers.get("cf-connecting-ip");
+  const realIp = request.headers.get("x-real-ip");
 
-  const ip = forwardedFor?.split(",")[0]?.trim() || realIp || cfConnectingIp;
+  // x-forwarded-for is a client-controlled list that proxies APPEND to, so the
+  // right-most entry is the one added by our own edge and the left-most is
+  // whatever the caller made up. Taking [0] would let anyone mint a fresh
+  // rate-limit bucket per request just by rotating the header.
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  const trustedForwarded = forwardedFor
+    ?.split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .pop();
 
-  // Fall back to a generic identifier if no IP
-  return ip || "anonymous";
+  const ip = cfConnectingIp?.trim() || realIp?.trim() || trustedForwarded;
+
+  if (ip) {
+    return ip;
+  }
+
+  // With no trustworthy IP, fall back to the session cookie so unidentified
+  // callers get their own bucket instead of sharing one global "anonymous"
+  // bucket that any single client could exhaust for everyone.
+  const sessionId =
+    request.cookies?.get("sessionId")?.value ??
+    request.cookies?.get("__session")?.value;
+
+  return sessionId ? `session:${sessionId}` : "anonymous";
 }
 
 /**
@@ -283,18 +306,26 @@ export async function checkRateLimit(
     return checkInMemoryRateLimit(identifier, config);
   }
 
-  const result = await ratelimiter.limit(identifier);
+  try {
+    const result = await ratelimiter.limit(identifier);
 
-  return {
-    success: result.success,
-    limit: result.limit,
-    remaining: result.remaining,
-    reset: result.reset,
-    retryAfter: result.success
-      ? undefined
-      : Math.ceil((result.reset - Date.now()) / 1000),
-    source: "upstash",
-  };
+    return {
+      success: result.success,
+      limit: result.limit,
+      remaining: result.remaining,
+      reset: result.reset,
+      retryAfter: result.success
+        ? undefined
+        : Math.ceil((result.reset - Date.now()) / 1000),
+      source: "upstash",
+    };
+  } catch (error) {
+    // An Upstash outage must not turn every request into a 500. Fall back to
+    // the in-memory limiter, which still enforces the configured limits
+    // (per instance) rather than failing open entirely.
+    logger.error("Rate limiter unavailable, falling back to in-memory", error);
+    return checkInMemoryRateLimit(identifier, config);
+  }
 }
 
 function inferAIContext(identifier: string): {

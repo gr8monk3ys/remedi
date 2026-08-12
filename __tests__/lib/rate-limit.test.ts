@@ -77,11 +77,29 @@ describe("Rate Limiting Utilities", () => {
   });
 
   describe("getClientIdentifier", () => {
-    it("should extract IP from x-forwarded-for header", () => {
+    it("uses the right-most x-forwarded-for entry (the hop our edge appended)", () => {
+      // Proxies append to x-forwarded-for, so the left-most entry is supplied
+      // by the caller and must never be trusted: honouring it would let anyone
+      // rotate the header to get a fresh rate-limit bucket per request.
       const request = createMockRequest({
-        "x-forwarded-for": "192.168.1.1, 10.0.0.1",
+        "x-forwarded-for": "1.2.3.4, 10.0.0.1",
       });
-      expect(getClientIdentifier(request)).toBe("192.168.1.1");
+      expect(getClientIdentifier(request)).toBe("10.0.0.1");
+    });
+
+    it("ignores a spoofed left-most x-forwarded-for entry", () => {
+      const spoofed = createMockRequest({
+        "x-forwarded-for": "attacker-controlled, 10.0.0.1",
+      });
+      const alsoSpoofed = createMockRequest({
+        "x-forwarded-for": "something-else, 10.0.0.1",
+      });
+
+      // Both requests come from the same real client, so they must share a
+      // bucket no matter what the caller puts in front of it.
+      expect(getClientIdentifier(spoofed)).toBe(
+        getClientIdentifier(alsoSpoofed),
+      );
     });
 
     it("should extract IP from x-real-ip header", () => {
@@ -98,13 +116,15 @@ describe("Rate Limiting Utilities", () => {
       expect(getClientIdentifier(request)).toBe("192.168.1.3");
     });
 
-    it("should prefer x-forwarded-for over other headers", () => {
+    it("should prefer platform-set headers over x-forwarded-for", () => {
+      // cf-connecting-ip and x-real-ip are set by our own edge and cannot be
+      // forged by the caller, so they win over the client-supplied list.
       const request = createMockRequest({
         "x-forwarded-for": "192.168.1.1",
         "x-real-ip": "192.168.1.2",
         "cf-connecting-ip": "192.168.1.3",
       });
-      expect(getClientIdentifier(request)).toBe("192.168.1.1");
+      expect(getClientIdentifier(request)).toBe("192.168.1.3");
     });
 
     it('should return "anonymous" when no IP headers are present', () => {

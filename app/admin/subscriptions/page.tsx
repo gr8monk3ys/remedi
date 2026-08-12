@@ -1,3 +1,4 @@
+import { requireAdminPage } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { SubscriptionTable } from "@/components/admin/SubscriptionTable";
 export const dynamic = "force-dynamic";
@@ -42,6 +43,9 @@ async function getSubscriptions() {
 }
 
 export default async function SubscriptionsPage() {
+  // Admin-only: the /admin layout also admits moderators.
+  await requireAdminPage();
+
   const { subscriptions, planCounts } = await getSubscriptions();
 
   const plans = ["free", "basic", "premium", "enterprise"];

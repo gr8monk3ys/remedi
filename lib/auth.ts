@@ -13,6 +13,7 @@
 import "server-only";
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 
 const E2E_AUTH_COOKIE_NAMES = ["e2e_auth", "__session"] as const;
@@ -173,4 +174,17 @@ export async function isAdmin(): Promise<boolean> {
  */
 export async function isModerator(): Promise<boolean> {
   return checkUserRole(["moderator", "admin"]);
+}
+
+/**
+ * Guard an admin-only page.
+ *
+ * The /admin layout admits moderators too, so any segment that exposes
+ * admin-only data (user PII, billing, analytics, production config) must
+ * re-check here rather than relying on the layout.
+ */
+export async function requireAdminPage(): Promise<void> {
+  if (!(await isAdmin())) {
+    redirect("/admin/moderation");
+  }
 }
