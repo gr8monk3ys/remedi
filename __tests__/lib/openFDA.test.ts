@@ -364,7 +364,9 @@ describe("OpenFDA API Integration", () => {
       const { searchFdaDrugs } = await getModule();
 
       vi.useFakeTimers();
-      const resultPromise = searchFdaDrugs("test");
+      // Query matches the fixture drug so the relevance filter keeps it; this
+      // test is about retry behaviour, not matching.
+      const resultPromise = searchFdaDrugs("ibuprofen");
       await vi.advanceTimersByTimeAsync(5000);
       const results = await resultPromise;
       vi.useRealTimers();
@@ -385,6 +387,76 @@ describe("OpenFDA API Integration", () => {
       vi.useRealTimers();
 
       expect(results).toEqual([]);
+    });
+  });
+
+  describe("Query precision", () => {
+    it("searches drug-name fields with a quoted phrase, not the whole label", async () => {
+      mockFetch.mockResolvedValueOnce(jsonResponse(mockFdaApiResponse));
+
+      const { searchFdaDrugs } = await getModule();
+      await searchFdaDrugs("ibuprofen");
+
+      const calledUrl = String(mockFetch.mock.calls[0][0]);
+      const decoded = decodeURIComponent(calledUrl);
+      // Unqualified searches match warnings/interactions text too, which let an
+      // unrelated label become the cached answer for a drug.
+      expect(decoded).toContain('openfda.brand_name:"ibuprofen"');
+      expect(decoded).toContain('openfda.generic_name:"ibuprofen"');
+    });
+
+    it("discards results whose name does not correspond to the query", async () => {
+      mockFetch.mockResolvedValueOnce(
+        jsonResponse({
+          results: [
+            {
+              id: "unrelated-id",
+              openfda: {
+                brand_name: ["Extra Strength Gas Relief"],
+                generic_name: ["Simethicone"],
+              },
+              indications_and_usage: ["Relieves bloating"],
+            },
+          ],
+        }),
+      );
+
+      const { searchFdaDrugs } = await getModule();
+      const results = await searchFdaDrugs("tylenol extra strength");
+
+      expect(results).toHaveLength(0);
+    });
+
+    it("keeps a result whose name contains the query", async () => {
+      mockFetch.mockResolvedValueOnce(
+        jsonResponse({
+          results: [
+            {
+              id: "ibu-id",
+              openfda: {
+                brand_name: ["Ibuprofen 200mg"],
+                generic_name: ["Ibuprofen"],
+              },
+              indications_and_usage: ["Pain relief"],
+            },
+          ],
+        }),
+      );
+
+      const { searchFdaDrugs } = await getModule();
+      const results = await searchFdaDrugs("ibuprofen");
+
+      expect(results).toHaveLength(1);
+    });
+
+    it("does not let quotes in the query break out of the phrase", async () => {
+      mockFetch.mockResolvedValueOnce(jsonResponse({ results: [] }));
+
+      const { searchFdaDrugs } = await getModule();
+      await searchFdaDrugs('ibuprofen" OR x:"y');
+
+      const decoded = decodeURIComponent(String(mockFetch.mock.calls[0][0]));
+      expect(decoded).not.toContain('OR x:"y"');
     });
   });
 });

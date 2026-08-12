@@ -164,4 +164,36 @@ describe("fuzzySearch", () => {
     // Exact substring match should score higher
     expect(results[0].name).toBe("Ibuprofen Plus");
   });
+
+  it("tolerates typos against long records", () => {
+    // Regression: scoring the query against the whole concatenated record made
+    // Levenshtein similarity ~0.03 for an 8-character typo, so no misspelling
+    // could ever clear the threshold and typo tolerance was dead in practice.
+    const items = [
+      {
+        name: "Ibuprofen",
+        text: "Ibuprofen NSAID pain reliever anti-inflammatory fever reducer headache relief",
+      },
+      {
+        name: "Tylenol",
+        text: "Tylenol Acetaminophen pain reliever fever reducer analgesic",
+      },
+    ];
+
+    const results = fuzzySearch("ibuprofn", items, (i) => i.text);
+
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].name).toBe("Ibuprofen");
+  });
+
+  it("still rejects unrelated queries", () => {
+    const items = [
+      {
+        name: "Ibuprofen",
+        text: "Ibuprofen NSAID pain reliever anti-inflammatory",
+      },
+    ];
+
+    expect(fuzzySearch("xylophone", items, (i) => i.text)).toHaveLength(0);
+  });
 });

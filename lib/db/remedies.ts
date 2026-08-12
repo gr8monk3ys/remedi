@@ -15,6 +15,7 @@ import type {
 } from "../types";
 import { normalizeReferences } from "@/lib/references";
 import {
+  MIN_DISPLAY_SIMILARITY,
   rankRemedyCandidatesForDrug,
   replacementTypeForScore,
   shouldForceSupportiveReplacement,
@@ -63,7 +64,13 @@ export async function getNaturalRemediesForPharmaceutical(
   pharmaceuticalId: string,
 ): Promise<NaturalRemedy[]> {
   const mappings = await prisma.naturalRemedyMapping.findMany({
-    where: { pharmaceuticalId },
+    // Weak mappings were persisted historically at a much lower floor. Filter
+    // them on read so incidental token overlap is never presented to a user as
+    // a natural alternative to their medication.
+    where: {
+      pharmaceuticalId,
+      similarityScore: { gte: MIN_DISPLAY_SIMILARITY },
+    },
     include: {
       naturalRemedy: {
         select: {
@@ -88,6 +95,9 @@ export async function getNaturalRemediesForPharmaceutical(
     category: mapping.naturalRemedy.category,
     matchingNutrients: mapping.matchingNutrients,
     similarityScore: mapping.similarityScore,
+    // Surfaced so the UI can distinguish an alternative from a merely
+    // supportive suggestion instead of labelling everything the same.
+    replacementType: mapping.replacementType ?? undefined,
   }));
 }
 
@@ -105,7 +115,12 @@ export async function generateRemedyMappingsForPharmaceutical(params: {
   limit?: number;
   minScore?: number;
 }): Promise<NaturalRemedy[]> {
-  const { pharmaceuticalId, drug, limit = 10, minScore = 0.12 } = params;
+  const {
+    pharmaceuticalId,
+    drug,
+    limit = 10,
+    minScore = MIN_DISPLAY_SIMILARITY,
+  } = params;
 
   const candidates = (await prisma.naturalRemedy.findMany({
     select: {

@@ -64,15 +64,34 @@ export function fuzzySearch<T>(
   items: T[],
   getSearchableText: (item: T) => string,
 ): Array<T & { similarityScore: number }> {
-  const lowerQuery = query.toLowerCase();
+  const lowerQuery = query.toLowerCase().trim();
+  const queryTokens = lowerQuery.split(/\s+/).filter(Boolean);
 
   // Calculate similarity scores for all items
   const scoredItems = items.map((item) => {
     const text = getSearchableText(item).toLowerCase();
 
-    // Calculate different scoring methods
     const exactMatchScore = text.includes(lowerQuery) ? 1 : 0;
-    const similarityScore = stringSimilarity(lowerQuery, text);
+
+    // Compare the query against individual words, not the whole concatenated
+    // record. Levenshtein over an 80-character document always scores near
+    // zero, which made typo tolerance mathematically unreachable: "ibuprofn"
+    // scored 0.03 against the Ibuprofen record and was filtered out.
+    const textTokens = text.split(/[^a-z0-9]+/).filter(Boolean);
+    let bestTokenScore = 0;
+    for (const queryToken of queryTokens) {
+      let bestForToken = 0;
+      for (const textToken of textTokens) {
+        const score = stringSimilarity(queryToken, textToken);
+        if (score > bestForToken) {
+          bestForToken = score;
+          if (bestForToken === 1) break;
+        }
+      }
+      bestTokenScore += bestForToken;
+    }
+    const similarityScore =
+      queryTokens.length > 0 ? bestTokenScore / queryTokens.length : 0;
 
     // Weight exact matches higher than fuzzy matches
     const finalScore = exactMatchScore * 0.7 + similarityScore * 0.3;

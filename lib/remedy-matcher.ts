@@ -123,15 +123,38 @@ export function replacementTypeForScore(
 }
 
 /**
+ * Minimum similarity for a mapping to be shown to a user.
+ *
+ * Below this the "match" is little more than incidental token overlap, and
+ * presenting it as a natural alternative to a medication overstates it. The
+ * seeded data has a natural gap here: curated mappings sit at 0.45 and above,
+ * while generated noise falls under 0.23.
+ */
+export const MIN_DISPLAY_SIMILARITY = 0.3;
+
+/**
  * Some pharmaceuticals are not appropriate candidates for "alternative"
  * recommendations (for example, blood thinners). For these, we still allow
  * supportive lifestyle/supplement suggestions but force the label to
  * "Supportive" when persisting mappings.
  */
 export function shouldForceSupportiveReplacement(
-  drug: Pick<ProcessedDrug, "name" | "category">,
+  drug: Pick<ProcessedDrug, "name" | "category"> &
+    Partial<Pick<ProcessedDrug, "warnings" | "interactions" | "description">>,
 ): boolean {
-  const haystack = `${drug.name} ${drug.category}`.toLowerCase();
+  // FDA-derived records carry generic categories like "Oral Medication", so
+  // name and category alone never reveal that a drug is e.g. an anticoagulant
+  // — that wording lives in the label's warnings and interactions text.
+  const haystack = [
+    drug.name,
+    drug.category,
+    drug.description,
+    drug.warnings,
+    drug.interactions,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 
   // Keep this list small and conservative; expand only with clear product/legal intent.
   const highRiskKeywords = [
@@ -156,7 +179,7 @@ export function rankRemedyCandidatesForDrug(
   },
 ): NaturalRemedy[] {
   const limit = options?.limit ?? 10;
-  const minScore = options?.minScore ?? 0.12;
+  const minScore = options?.minScore ?? MIN_DISPLAY_SIMILARITY;
 
   const drugIngredientTokens = toTokenSet(drug.ingredients || []);
   const drugBenefitTokens = toTokenSet(drug.benefits || []);

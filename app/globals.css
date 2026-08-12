@@ -249,7 +249,9 @@ body {
 /* Buttons */
 .neu-btn {
   background: var(--primary);
-  color: #ffffff;
+  /* Token, not a literal: --primary flips between themes and white text on
+     the dark-mode green fails contrast. */
+  color: var(--primary-foreground);
   border: none;
   border-radius: 9999px;
   font-weight: 600;
@@ -517,7 +519,7 @@ body {
   z-index: 999;
   padding: 1em;
   background-color: var(--primary);
-  color: white;
+  color: var(--primary-foreground);
   text-decoration: none;
 }
 

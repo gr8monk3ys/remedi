@@ -97,6 +97,69 @@ function buildFdaUrl(endpoint: string): string {
 }
 
 /**
+ * Build a fielded, quoted openFDA search expression.
+ *
+ * openFDA treats space-separated clauses as OR, so each field gets the full
+ * quoted phrase. Quoting keeps a multi-word drug name together instead of
+ * matching any label containing any one of its words.
+ */
+function buildFdaSearchPhrase(query: string): string {
+  // Double quotes and backslashes would break out of the quoted phrase.
+  const sanitized = query.replace(/["\\]/g, " ").trim();
+  const quoted = `"${sanitized}"`;
+
+  const clauses = [
+    `openfda.brand_name:${quoted}`,
+    `openfda.generic_name:${quoted}`,
+    `openfda.substance_name:${quoted}`,
+  ];
+
+  return encodeURIComponent(clauses.join("+"));
+}
+
+/** Normalise for comparison: lowercase, strip punctuation, collapse spaces. */
+function normalizeForMatch(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/**
+ * Check that a returned drug plausibly *is* what was searched for, rather than
+ * a label that merely mentions the term somewhere.
+ */
+function matchesQuery(drug: ProcessedDrug, query: string): boolean {
+  const normalizedQuery = normalizeForMatch(query);
+  if (!normalizedQuery) {
+    return false;
+  }
+
+  const haystacks = [drug.name, ...(drug.ingredients ?? [])]
+    .filter(Boolean)
+    .map(normalizeForMatch);
+
+  // Accept when the name/ingredient contains the query or vice versa (covers
+  // "ibuprofen" vs "Ibuprofen 200mg" and "advil" vs "Advil").
+  if (
+    haystacks.some(
+      (value) =>
+        value.includes(normalizedQuery) || normalizedQuery.includes(value),
+    )
+  ) {
+    return true;
+  }
+
+  // Otherwise require every query token to appear, so "extra strength" alone
+  // cannot pull in an unrelated product.
+  const tokens = normalizedQuery.split(" ").filter(Boolean);
+  return haystacks.some((value) => {
+    const valueTokens = new Set(value.split(" ").filter(Boolean));
+    return tokens.every((token) => valueTokens.has(token));
+  });
+}
+
+/**
  * Search for drugs in the FDA database with retry logic and error handling
  * @param query Search term
  * @param limit Number of results to return
@@ -108,8 +171,13 @@ export async function searchFdaDrugs(
 ): Promise<ProcessedDrug[]> {
   try {
     return await fdaCircuitBreaker.call(async () => {
-      const searchQuery = encodeURIComponent(query);
-      const endpoint = `/drug/label.json?search=${searchQuery}&limit=${limit}`;
+      // Search the drug-name fields specifically, with the term quoted as a
+      // phrase. An unqualified search matches every label field (warnings,
+      // interactions, inactive ingredients), and multi-word terms are OR'd, so
+      // "tylenol extra strength" could return an unrelated product whose label
+      // merely mentions "strength" — which then gets cached as the answer.
+      const phrase = buildFdaSearchPhrase(query);
+      const endpoint = `/drug/label.json?search=${phrase}&limit=${limit}`;
       const url = buildFdaUrl(endpoint);
 
       const response = await fetchWithRetry(url);
@@ -126,8 +194,20 @@ export async function searchFdaDrugs(
 
       const data: DrugSearchResult = await response.json();
 
-      // Process the FDA API results into our application format
-      return processFdaResults(data.results);
+      const processed = processFdaResults(data.results);
+
+      // Even a fielded search can return a near miss, so keep only results
+      // whose name actually corresponds to what was searched for.
+      const relevant = processed.filter((drug) => matchesQuery(drug, query));
+
+      if (relevant.length === 0 && processed.length > 0) {
+        logger.debug("Discarded FDA results that did not match the query", {
+          query,
+          discarded: processed.length,
+        });
+      }
+
+      return relevant;
     });
   } catch (error) {
     if (error instanceof CircuitBreakerOpenError) {
