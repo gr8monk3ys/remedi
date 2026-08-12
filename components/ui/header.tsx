@@ -89,6 +89,9 @@ function AuthSection(): ReactNode {
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
+  // The interaction checker is a core safety feature but had no entry point in
+  // any nav, so it was only reachable by typing the URL.
+  { href: "/interactions", label: "Interactions" },
   { href: "/about", label: "About" },
   { href: "/faq", label: "FAQ" },
 ];

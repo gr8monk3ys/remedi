@@ -1,26 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
-const STORAGE_KEY = "cookie-consent";
+import { readCookieConsent, writeCookieConsent } from "@/lib/cookie-consent";
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === null) {
+    if (readCookieConsent() === null) {
       setVisible(true);
     }
   }, []);
 
   function handleAccept(): void {
-    localStorage.setItem(STORAGE_KEY, "accepted");
+    writeCookieConsent("accepted");
     setVisible(false);
   }
 
   function handleDecline(): void {
-    localStorage.setItem(STORAGE_KEY, "declined");
+    writeCookieConsent("declined");
     setVisible(false);
   }
 
@@ -36,8 +34,8 @@ export function CookieConsent() {
     >
       <div className="mx-auto flex max-w-4xl flex-col items-center justify-between gap-3 sm:flex-row">
         <p className="text-sm text-muted-foreground">
-          This site uses cookies for functionality and analytics. By accepting,
-          you consent to our use of cookies.
+          We use essential cookies to run the site, plus cookie-based analytics
+          only if you accept. Declining keeps analytics cookies off.
         </p>
         <div className="flex shrink-0 gap-2">
           <button

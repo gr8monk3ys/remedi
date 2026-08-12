@@ -78,7 +78,7 @@ export default async function AuthErrorPage({
           <div className="space-y-3">
             <Link
               href="/sign-in"
-              className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               Try Again

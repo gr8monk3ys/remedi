@@ -17,6 +17,8 @@ interface PricingCardsProps {
   trialEligible: boolean;
   onCheckout: (plan: PlanType) => void;
   onStartTrial: () => void;
+  /** Opens the billing portal so a paid user can move back to Free. */
+  onDowngrade: () => void;
   basicDisplayPrice: string;
   basicYearlyBilled: string;
   premiumDisplayPrice: string;
@@ -30,6 +32,7 @@ export function PricingCards({
   trialEligible,
   onCheckout,
   onStartTrial,
+  onDowngrade,
   basicDisplayPrice,
   basicYearlyBilled,
   premiumDisplayPrice,
@@ -62,7 +65,8 @@ export function PricingCards({
           </div>
 
           <button
-            disabled={currentPlan === "free"}
+            onClick={currentPlan === "free" ? undefined : onDowngrade}
+            disabled={currentPlan === "free" || loading === "free"}
             className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
               currentPlan === "free"
                 ? "bg-muted text-muted-foreground cursor-default"
@@ -211,7 +215,7 @@ export function PricingCards({
             className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
               currentPlan === "premium"
                 ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 cursor-default"
-                : "bg-primary text-white hover:bg-primary-light"
+                : "bg-primary text-primary-foreground hover:bg-primary-light"
             }`}
           >
             {loading === "premium" ? (

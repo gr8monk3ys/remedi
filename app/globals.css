@@ -22,8 +22,8 @@
   --shadow-light-strong: #f7fcf7;
   --shadow-dark-strong: #b3bab3;
 
-  /* Primary - Botanical green */
-  --primary: oklch(0.205 0 0);
+  /* Primary - Botanical green (6.0:1 against --primary-foreground) */
+  --primary: #26704a;
   --primary-light: #3da663;
   --primary-dark: #1e6b38;
   --primary-surface: #d4e8d9;
@@ -95,41 +95,48 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --surface: #2a332a;
-    --surface-alt: #243024;
-    --surface-raised: #313b31;
-    --shadow-light: #354035;
-    --shadow-dark: #1e261e;
-    --shadow-light-strong: #3d4a3d;
-    --shadow-dark-strong: #161e16;
+/*
+ * Dark theme tokens.
+ *
+ * Driven by the .dark class that next-themes sets (it mirrors the system
+ * preference when the user has not chosen explicitly). These used to live
+ * behind @media (prefers-color-scheme: dark), which ignored the in-app
+ * toggle, so a user whose choice differed from their OS got half of one
+ * theme over the other. One signal now drives every token.
+ */
+.dark {
+  --surface: #2a332a;
+  --surface-alt: #243024;
+  --surface-raised: #313b31;
+  --shadow-light: #354035;
+  --shadow-dark: #1e261e;
+  --shadow-light-strong: #3d4a3d;
+  --shadow-dark-strong: #161e16;
 
-    --primary: #4aad6a;
-    --primary-light: #5ec47d;
-    --primary-dark: #378a50;
-    --primary-surface: #2d3f30;
+  --primary: #4aad6a;
+  --primary-light: #5ec47d;
+  --primary-dark: #378a50;
+  --primary-surface: #2d3f30;
 
-    --secondary: #7fa4cc;
-    --secondary-light: #99bada;
-    --secondary-dark: #6590b8;
+  --secondary: #7fa4cc;
+  --secondary-light: #99bada;
+  --secondary-dark: #6590b8;
 
-    --accent: #daa254;
-    --accent-light: #e8b76e;
-    --accent-dark: #c4883d;
+  --accent: #daa254;
+  --accent-light: #e8b76e;
+  --accent-dark: #c4883d;
 
-    --evidence-strong: #4aad6a;
-    --evidence-moderate: #daa254;
-    --evidence-limited: #d4774e;
-    --evidence-preliminary: #a89470;
-    --foreground-muted: #a8b8a8;
-    --foreground-subtle: #788878;
+  --evidence-strong: #4aad6a;
+  --evidence-moderate: #daa254;
+  --evidence-limited: #d4774e;
+  --evidence-preliminary: #a89470;
+  --foreground-muted: #a8b8a8;
+  --foreground-subtle: #788878;
 
-    --success: #4aad6a;
-    --warning: #daa254;
-    --error: #d45a4a;
-    --info: #7fa4cc;
-  }
+  --success: #4aad6a;
+  --warning: #daa254;
+  --error: #d45a4a;
+  --info: #7fa4cc;
 }
 
 body {
@@ -668,8 +675,10 @@ body {
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  /* Keep the brand green in dark mode instead of near-white, which made every
+     bg-primary button a blank pill. Foreground is near-black: 6.6:1. */
+  --primary: #4aad6a;
+  --primary-foreground: #0f150f;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);

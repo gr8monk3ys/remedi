@@ -1,12 +1,17 @@
 import React from "react";
-import { EVIDENCE_LEVEL_CONFIG } from "./compare.types";
+import { EvidenceBadge as SharedEvidenceBadge } from "@/components/remedy/EvidenceBadge";
 
 interface EvidenceBadgeProps {
   level: string | undefined;
 }
 
 /**
- * Evidence level badge component
+ * Evidence badge for the comparison table.
+ *
+ * Delegates to the shared badge so compare, remedy pages, reports and the
+ * mobile swiper all render the same colour for the same level. The compare
+ * table shows the explanation inline, since users are weighing remedies
+ * side by side and cannot hover every badge.
  */
 export const EvidenceBadge = React.memo(function EvidenceBadge({
   level,
@@ -15,22 +20,5 @@ export const EvidenceBadge = React.memo(function EvidenceBadge({
     return <span className="text-sm text-muted-foreground">Not specified</span>;
   }
 
-  const config = EVIDENCE_LEVEL_CONFIG[level] || {
-    color: "text-muted-foreground",
-    bgColor: "bg-muted",
-    description: "Unknown evidence level",
-  };
-
-  return (
-    <div className="flex flex-col gap-1">
-      <span
-        className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium ${config.color} ${config.bgColor}`}
-      >
-        {level}
-      </span>
-      <span className="text-xs text-muted-foreground">
-        {config.description}
-      </span>
-    </div>
-  );
+  return <SharedEvidenceBadge level={level} showDescription />;
 });

@@ -153,7 +153,7 @@ export function ComparisonBar({ className = "" }: ComparisonBarProps) {
                   href={getCompareUrl()}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                     items.length >= 2
-                      ? "bg-primary text-white hover:bg-primary/90"
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
                       : "bg-muted text-muted-foreground cursor-not-allowed"
                   }`}
                   onClick={(e) => {

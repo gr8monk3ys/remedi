@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api/client";
@@ -117,6 +117,7 @@ export function SearchComponent({
   ...props
 }: SearchComponentProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { dbUserId } = useDbUser();
   const sessionId = useSessionId();
@@ -175,6 +176,29 @@ export function SearchComponent({
 
   // Refs for DOM elements (React pattern instead of document.querySelector)
   const searchResultsRef = useRef<HTMLDivElement>(null);
+
+  // Search request bookkeeping: the controller cancels the in-flight request
+  // when a newer one starts, and the id lets late handlers detect that they
+  // have been superseded before touching state.
+  const searchAbortRef = useRef<AbortController | null>(null);
+  const searchRequestIdRef = useRef(0);
+
+  // Lets the ?q= effect call the latest handleSearch without depending on it
+  // (it is defined further down and would otherwise re-run the effect).
+  const handleSearchRef = useRef<((q?: string) => Promise<void>) | null>(null);
+
+  // Run a search from ?q= on arrival, so links into the app (e.g. "search
+  // again" from history) land on results instead of an empty search box.
+  const initialQueryRef = useRef<string | null>(null);
+  useEffect(() => {
+    const initialQuery = searchParams.get("q")?.trim();
+    if (!initialQuery || initialQueryRef.current === initialQuery) {
+      return;
+    }
+    initialQueryRef.current = initialQuery;
+    setQuery(initialQuery);
+    void handleSearchRef.current?.(initialQuery);
+  }, [searchParams]);
 
   // Check AI availability on mount
   useEffect(() => {
@@ -271,6 +295,15 @@ export function SearchComponent({
         setQuery(searchQuery);
       }
 
+      // Typing (debounced), pressing Enter and clicking a suggestion can all
+      // put searches in flight at once. Cancel the previous request and stamp
+      // this one, so a slow earlier response can never overwrite newer results.
+      searchAbortRef.current?.abort();
+      const controller = new AbortController();
+      searchAbortRef.current = controller;
+      const requestId = ++searchRequestIdRef.current;
+      const isStale = (): boolean => searchRequestIdRef.current !== requestId;
+
       setIsLoading(true);
       setError(null);
       setAiInsights(null);
@@ -289,6 +322,7 @@ export function SearchComponent({
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query: queryToSearch }),
+            signal: controller.signal,
           });
 
           if (!response.ok) {
@@ -316,6 +350,7 @@ export function SearchComponent({
           apiResponse = await response.json();
 
           if (apiResponse.success === false) {
+            if (isStale()) return;
             if (isPlanLimitCode(apiResponse.error?.code)) {
               setPlanLimitReason("ai_search_limit");
               setError(
@@ -350,6 +385,7 @@ export function SearchComponent({
             similarityScore: rec.confidence,
           }));
 
+          if (isStale()) return;
           setAiInsights({ intent, extractedInfo, recommendations });
           setResults(aiResults);
           setFilteredResults(aiResults);
@@ -357,8 +393,18 @@ export function SearchComponent({
         } else {
           const endpointType: SearchEndpointType = "search";
 
+          // Pass sessionId so anonymous searches are attributed to the
+          // visitor's session instead of being saved unattributed.
+          const searchParamsForRequest = new URLSearchParams({
+            query: queryToSearch,
+          });
+          if (!dbUserId && sessionId) {
+            searchParamsForRequest.set("sessionId", sessionId);
+          }
+
           response = await fetch(
-            `/api/search?query=${encodeURIComponent(queryToSearch)}`,
+            `/api/search?${searchParamsForRequest.toString()}`,
+            { signal: controller.signal },
           );
           if (!response.ok) {
             const { code, message, retryAfter } =
@@ -384,6 +430,7 @@ export function SearchComponent({
           apiResponse = await response.json();
 
           if (apiResponse.success === false) {
+            if (isStale()) return;
             if (isPlanLimitCode(apiResponse.error?.code)) {
               setPlanLimitReason("search_limit");
               setError(
@@ -404,17 +451,25 @@ export function SearchComponent({
             return;
           }
 
+          if (isStale()) return;
           const data = apiResponse.data || apiResponse;
           setResults(data);
           setFilteredResults(data);
           if (onSearch) onSearch(data);
         }
 
+        if (isStale()) return;
         setCurrentPage(1);
         setCategoryFilters([]);
         setNutrientFilters([]);
         setActiveTab("results");
       } catch (error) {
+        // An aborted request was deliberately superseded; it is not an error
+        // and its state must not leak into the newer search.
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        if (isStale()) return;
         log.error("Error searching", error);
         if (error instanceof UserFacingSearchError) {
           setError(error.userMessage);
@@ -422,11 +477,17 @@ export function SearchComponent({
           setError("Failed to retrieve search results. Please try again.");
         }
       } finally {
-        setIsLoading(false);
+        // Only the newest request owns the spinner.
+        if (!isStale()) {
+          setIsLoading(false);
+        }
       }
     },
-    [query, useAiSearch, aiSearchAvailable, onSearch],
+    [query, useAiSearch, aiSearchAvailable, onSearch, dbUserId, sessionId],
   );
+
+  // Keep the ref pointing at the current handler for the ?q= effect above.
+  handleSearchRef.current = handleSearch;
 
   const handlePageChange = useCallback((pageNumber: number) => {
     setCurrentPage(pageNumber);

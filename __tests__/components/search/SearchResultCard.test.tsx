@@ -155,12 +155,24 @@ describe("SearchResultCard", () => {
   it("calls onViewDetails with the remedy id when the card is clicked", async () => {
     const user = userEvent.setup();
     const onViewDetails = vi.fn();
-    render(
+    const { container } = render(
       <SearchResultCard {...defaultProps} onViewDetails={onViewDetails} />,
     );
 
-    await user.click(screen.getByText("Turmeric"));
+    // Click the card body rather than the title, which is now a real link.
+    const card = container.querySelector("[data-search-result-card]");
+    expect(card).not.toBeNull();
+    await user.click(card as Element);
     expect(onViewDetails).toHaveBeenCalledWith("remedy-1");
+  });
+
+  it("exposes the remedy title as a keyboard-reachable link", () => {
+    render(<SearchResultCard {...defaultProps} />);
+
+    // Opening a result must not be mouse-only: screen reader and keyboard
+    // users need a real link, not a click handler on a div.
+    const link = screen.getByRole("link", { name: /Turmeric/ });
+    expect(link).toHaveAttribute("href", "/remedy/remedy-1");
   });
 
   it("calls onFavoriteToggle when favorite button is clicked", async () => {

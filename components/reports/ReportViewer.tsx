@@ -8,6 +8,16 @@ import {
   Printer,
   Star,
 } from "lucide-react";
+import { getEvidenceMeta, UNCLASSIFIED_EVIDENCE } from "@/lib/evidence-levels";
+
+/**
+ * Evidence colours come from the shared config so a "Moderate" remedy does not
+ * appear in one colour here and another on its detail page.
+ */
+function evidenceClasses(level?: string | null): string {
+  const meta = getEvidenceMeta(level) ?? UNCLASSIFIED_EVIDENCE;
+  return `${meta.bgClassName} ${meta.textClassName}`;
+}
 
 interface ReportContent {
   summary?: string;
@@ -49,14 +59,6 @@ const SEVERITY_COLORS: Record<string, string> = {
   moderate:
     "bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200",
   low: "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200",
-};
-
-const EVIDENCE_COLORS: Record<string, string> = {
-  strong: "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300",
-  moderate: "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300",
-  limited: "bg-muted text-muted-foreground",
-  traditional:
-    "bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300",
 };
 
 export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
@@ -155,7 +157,7 @@ export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
                   </div>
                   {rec.evidenceLevel && (
                     <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${EVIDENCE_COLORS[rec.evidenceLevel.toLowerCase()] ?? EVIDENCE_COLORS.limited}`}
+                      className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${evidenceClasses(rec.evidenceLevel)}`}
                     >
                       {rec.evidenceLevel}
                     </span>

@@ -267,7 +267,7 @@ function PlanCard({
               : disabled
                 ? "bg-muted text-muted-foreground cursor-not-allowed"
                 : highlighted
-                  ? "bg-primary text-white hover:bg-primary-light"
+                  ? "bg-primary text-primary-foreground hover:bg-primary-light"
                   : "bg-primary text-primary-foreground hover:bg-primary/90"
           }`}
         >

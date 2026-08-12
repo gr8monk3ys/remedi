@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ExternalLink, Heart, GitCompare, Check } from "lucide-react";
 import { useCompare } from "@/lib/context/CompareContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,7 +30,7 @@ export const SearchResultCard = memo(function SearchResultCard({
   onFavoriteToggle,
   onViewDetails,
 }: SearchResultCardProps) {
-  const { isInComparison, addToCompare, removeFromCompare, isFull } =
+  const { isInComparison, addToCompare, removeFromCompare, isFull, maxItems } =
     useCompare();
   const isComparing = isInComparison(result.id);
 
@@ -85,10 +86,21 @@ export const SearchResultCard = memo(function SearchResultCard({
             {/* Header */}
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 min-w-0">
-                <h3 className="truncate font-semibold text-sm">
-                  {result.name}
-                </h3>
-                <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                {/* A real link, so opening a result is reachable by keyboard
+                    and screen reader — the card's onClick is mouse-only. */}
+                <Link
+                  href={`/remedy/${result.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="truncate rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <h3 className="truncate font-semibold text-sm">
+                    {result.name}
+                  </h3>
+                </Link>
+                <ExternalLink
+                  className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
               </div>
               <div className="flex items-center gap-0.5 shrink-0">
                 <Button
@@ -105,7 +117,7 @@ export const SearchResultCard = memo(function SearchResultCard({
                     isComparing
                       ? "Remove from comparison"
                       : isFull
-                        ? "Comparison list is full (max 4)"
+                        ? `Comparison list is full (max ${maxItems})`
                         : "Add to comparison"
                   }
                 >

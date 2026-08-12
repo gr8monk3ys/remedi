@@ -151,9 +151,30 @@ export function WelcomeModal({
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
+      // Escape always closes, even from within a field.
       if (e.key === "Escape") {
         handleSkip();
-      } else if (e.key === "ArrowRight" || e.key === "Enter") {
+        return;
+      }
+
+      // Everything else must not steal keys from the control the user is
+      // actually typing in: Enter in the demo search field submitted the field
+      // *and* advanced the wizard, and arrow keys moved the caret *and*
+      // flipped steps.
+      const target = e.target as HTMLElement | null;
+      const isEditable =
+        target instanceof HTMLElement &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.tagName === "BUTTON" ||
+          target.isContentEditable);
+
+      if (isEditable) {
+        return;
+      }
+
+      if (e.key === "ArrowRight" || e.key === "Enter") {
         nextStep();
       } else if (e.key === "ArrowLeft") {
         prevStep();

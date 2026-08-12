@@ -17,4 +17,3 @@ export { AddRemedySlot } from "./AddRemedySlot";
 export { ComparisonSkeleton } from "./ComparisonSkeleton";
 export { saveComparisonToHistory } from "./saveComparisonToHistory";
 export type { CompareRemedy } from "./compare.types";
-export { EVIDENCE_LEVEL_CONFIG } from "./compare.types";
