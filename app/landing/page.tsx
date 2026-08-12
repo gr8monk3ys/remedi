@@ -67,23 +67,24 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-5xl grid md:grid-cols-2 gap-10">
           <div className="reveal-up">
             <h2 className="text-3xl font-bold text-foreground">
-              Built to increase trust and conversion
+              Built so you can judge the evidence yourself
             </h2>
             <p className="mt-4 text-muted-foreground">
-              We focus on the decisions that lead to upgrades: confidence in the
-              science, clarity of value, and a frictionless path to start.
+              Every remedy carries an evidence level and its sources, so you can
+              see how well-supported it is before you discuss it with your
+              healthcare provider.
             </p>
             <ul className="mt-6 space-y-3 text-foreground">
               <li>• Clear evidence levels on every remedy</li>
-              <li>• Trial-friendly onboarding</li>
-              <li>• Premium workflows for professionals</li>
+              <li>• Drug and supplement interaction checks</li>
+              <li>• Side-by-side comparison of your options</li>
             </ul>
           </div>
           <div className="premium-gradient-panel reveal-up reveal-delay-1 rounded-2xl p-8 text-white shadow-lg">
-            <h3 className="text-2xl font-semibold">Why users stay</h3>
+            <h3 className="text-2xl font-semibold">What you can do here</h3>
             <p className="mt-3 text-white/85">
-              Practical comparisons, decision support, and continuous updates
-              keep users coming back.
+              Compare remedies side by side, check interactions with what you
+              already take, and keep a journal of what actually works for you.
             </p>
             <div className="mt-6">
               <LandingClient trackView={false} />

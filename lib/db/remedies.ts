@@ -5,13 +5,12 @@
  */
 
 import { prisma } from "./client";
-import { parseNaturalRemedy, parseRemedyMapping } from "./parsers";
+import { parseNaturalRemedy } from "./parsers";
 import type {
   NaturalRemedy,
   DetailedRemedy,
   ProcessedDrug,
   ParsedNaturalRemedy,
-  ParsedRemedyMapping,
 } from "../types";
 import { normalizeReferences } from "@/lib/references";
 import {
@@ -241,29 +240,6 @@ export function toDetailedRemedy(
     relatedRemedies: relatedRemedies || [],
     evidenceLevel: remedy.evidenceLevel ?? null,
   };
-}
-
-/**
- * Create a mapping between pharmaceutical and natural remedy
- */
-export async function createRemedyMapping(
-  pharmaceuticalId: string,
-  naturalRemedyId: string,
-  similarityScore: number,
-  matchingNutrients: string[],
-  replacementType?: string,
-): Promise<ParsedRemedyMapping> {
-  const result = await prisma.naturalRemedyMapping.create({
-    data: {
-      pharmaceuticalId,
-      naturalRemedyId,
-      similarityScore,
-      matchingNutrients,
-      replacementType,
-    },
-  });
-
-  return parseRemedyMapping(result);
 }
 
 /**

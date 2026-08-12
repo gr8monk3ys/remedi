@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api/client";
-import { fetchWithCSRF } from "@/lib/fetch-with-csrf";
+import { fetchWithCSRF } from "@/lib/fetch";
 import {
   useFavoritesQuery,
   useToggleFavorite,

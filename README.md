@@ -108,27 +108,23 @@ Optional: visit [http://localhost:3000/landing](http://localhost:3000/landing) f
 ├── components/               # React components
 │   ├── theme-provider.tsx    # Manages theme state
 │   └── ui/                   # UI components
-│       ├── aurora-background.tsx  # Background effect
-│       ├── demo.tsx          # Demo component
 │       ├── filter.tsx        # Filter component
 │       ├── header.tsx        # Header component
 │       ├── pagination.tsx    # Pagination component
 │       ├── search.tsx        # Search component
 │       └── theme-toggle.tsx  # Theme toggle button
 ├── hooks/                    # Custom React hooks
-│   └── use-local-storage.ts  # localStorage hook
 ├── lib/                      # Utility functions
 │   ├── db.ts                 # Prisma database utilities
 │   ├── fuzzy-search.ts       # Fuzzy search implementation
 │   ├── openFDA.ts            # OpenFDA API integration
-│   ├── remedyMapping.ts      # Remedy matching algorithm
+│   ├── remedy-matcher.ts     # Remedy matching algorithm
 │   ├── types.ts              # Shared TypeScript types
 │   └── utils.ts              # General utilities
 ├── prisma/                   # Database files
 │   ├── migrations/           # Database migrations
 │   ├── schema.prisma         # Database schema
 │   ├── seed.ts               # Database seed script
-│   └── dev.db                # SQLite database (development)
 ├── public/                   # Static assets
 ├── .env.example              # Environment variables template
 ├── next.config.ts            # Next.js configuration
@@ -161,18 +157,31 @@ curl "http://localhost:3000/api/search?query=ibuprofen"
 
 **Example Response:**
 
+All API routes return the standard `ApiResponse<T>` envelope from
+`lib/api/response.ts`.
+
 ```json
-[
-  {
-    "id": "turmeric",
-    "name": "Turmeric",
-    "description": "Contains curcumin which has anti-inflammatory properties.",
-    "imageUrl": "https://images.unsplash.com/photo-1615485500704-8e990f9900f7",
-    "category": "Herbal Remedy",
-    "matchingNutrients": ["Curcumin", "Anti-inflammatory compounds"],
-    "similarityScore": 0.85
+{
+  "success": true,
+  "data": [
+    {
+      "id": "21073229-a19a-4c9a-9cf3-c7955f506034",
+      "name": "Turmeric (Curcumin)",
+      "description": "Contains curcumin, which has anti-inflammatory properties.",
+      "imageUrl": "",
+      "category": "Herbal",
+      "matchingNutrients": ["Curcumin", "Anti-inflammatory compounds"],
+      "similarityScore": 0.75,
+      "replacementType": "Complementary"
+    }
+  ],
+  "metadata": {
+    "total": 1,
+    "processingTime": 26,
+    "apiVersion": "1.0",
+    "source": "database"
   }
-]
+}
 ```
 
 ### GET /api/remedy/[id]
@@ -181,36 +190,42 @@ Get detailed information about a specific natural remedy.
 
 **Parameters:**
 
-- `id` (string): The remedy ID
+- `id` (string): The remedy UUID. Names and slugs are not accepted.
 
 **Example Request:**
 
 ```bash
-curl "http://localhost:3000/api/remedy/turmeric"
+curl "http://localhost:3000/api/remedy/21073229-a19a-4c9a-9cf3-c7955f506034"
 ```
 
 **Example Response:**
 
 ```json
 {
-  "id": "turmeric",
-  "name": "Turmeric",
-  "description": "Contains curcumin which has anti-inflammatory properties.",
-  "imageUrl": "https://images.unsplash.com/photo-1615485500704-8e990f9900f7",
-  "category": "Herbal Remedy",
-  "matchingNutrients": ["Curcumin"],
-  "similarityScore": 0.85,
-  "usage": "Can be used in cooking, taken as a supplement, or made into a paste...",
-  "dosage": "500-2,000 mg of turmeric extract per day",
-  "precautions": "May interact with blood thinners...",
-  "scientificInfo": "The active compound in turmeric, curcumin, inhibits...",
-  "references": [
-    {
-      "title": "Curcumin: A Review of Its Effects on Human Health",
-      "url": "https://www.mdpi.com/2072-6643/9/10/1047"
-    }
-  ],
-  "relatedRemedies": [{ "id": "ginger", "name": "Ginger" }]
+  "success": true,
+  "data": {
+    "id": "21073229-a19a-4c9a-9cf3-c7955f506034",
+    "name": "Turmeric (Curcumin)",
+    "description": "Contains curcumin, which has anti-inflammatory properties.",
+    "imageUrl": "",
+    "category": "Herbal",
+    "matchingNutrients": ["Curcumin"],
+    "similarityScore": 1,
+    "usage": "Can be used in cooking, taken as a supplement, or made into a paste...",
+    "dosage": "500-2,000 mg of turmeric extract per day",
+    "precautions": "May interact with blood thinners...",
+    "scientificInfo": "The active compound in turmeric, curcumin, inhibits...",
+    "references": [
+      {
+        "title": "Curcumin: A Review of Its Effects on Human Health",
+        "url": "https://www.mdpi.com/2072-6643/9/10/1047"
+      }
+    ],
+    "relatedRemedies": [
+      { "id": "94d329c2-fa52-4caa-a9e6-ef0f9d8d59ac", "name": "Ginger Root" }
+    ],
+    "evidenceLevel": "Strong"
+  }
 }
 ```
 
@@ -258,12 +273,12 @@ The app implements an intelligent three-tier search:
 - ✅ Fuzzy matching with Levenshtein distance
 - ✅ Spelling correction and query normalization
 - ✅ Relevance scoring for results
-- ✅ Search history (localStorage)
+- ✅ Search history (database-backed, per user or anonymous session)
 
 #### User Experience
 
 - ✅ Dark/Light mode with system preference detection
-- ✅ Favorites system (localStorage)
+- ✅ Favorites system (database-backed, per user or anonymous session)
 - ✅ Detailed remedy pages with scientific references
 - ✅ Responsive design for all screen sizes
 - ✅ Loading states and error handling
@@ -345,20 +360,19 @@ See [TODO.md](docs/TODO.md) for a list of planned features and improvements.
 See [TODO.md](docs/TODO.md) for the complete roadmap. Key priorities:
 
 - [ ] Expand database seed with more remedies
-- [ ] Add testing infrastructure (Vitest)
-- [ ] Implement user authentication
-- [ ] Add AI-powered remedy matching
-- [ ] Mobile app (PWA or React Native)
+- [ ] Internationalization
+- [ ] Public API for third parties
+- [ ] Native mobile app (a PWA already ships)
 
 ## Documentation
 
 - [CLAUDE.md](CLAUDE.md) - Architecture and implementation guide
 - [TODO.md](docs/TODO.md) - Task tracking and roadmap
-- [COMPLETED_TASKS.md](COMPLETED_TASKS.md) - Completed work summary
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v3.0 - see the
+[LICENSE](LICENSE) file for details.
 
 ## Disclaimer
 

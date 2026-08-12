@@ -4,6 +4,7 @@ import { Component, type ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { useUser, SignInButton, UserButton } from "@clerk/nextjs";
 import { GitCompare, Leaf, Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useCompare } from "@/lib/context/CompareContext";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -96,8 +97,24 @@ const NAV_LINKS = [
   { href: "/faq", label: "FAQ" },
 ];
 
+/**
+ * Route prefixes that render their own sidebar chrome. The marketing header is
+ * fixed-position, so leaving it mounted there overlapped the sidebar heading
+ * and put a second hamburger button on top of the dashboard's own.
+ */
+const APP_CHROME_PREFIXES = ["/dashboard", "/admin"];
+
 export function Header() {
+  const pathname = usePathname();
   const { items, getCompareUrl } = useCompare();
+
+  const hideHeader = APP_CHROME_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+
+  if (hideHeader) {
+    return null;
+  }
 
   return (
     <header className="fixed top-0 left-0 z-50 w-full border-b border-primary/10 bg-background/78 backdrop-blur-xl">

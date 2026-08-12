@@ -4,6 +4,15 @@
 **Scope:** Whole repository — core search flow, remedy detail, auth/billing/security, client↔API contracts, UI/UX, dead code / AI slop, docs vs. reality.
 **Method:** Static reading of every source module, plus a **live run** against a real seeded Postgres 16 database (migrate → seed → dev server) with smoke tests of the API and pages, plus a full production `next build`. Every headline finding below was verified by reading the code and, where possible, reproduced at runtime.
 
+> ## Status: remediated
+>
+> This document is kept as the **record of what was found**. The findings below
+> have since been fixed in this branch — see `docs/AUDIT_REMEDIATION.md` for what
+> changed, how each fix was verified, and the two judgement calls worth review.
+>
+> The severities and descriptions below describe the code **as it was audited**,
+> not as it stands now.
+
 ---
 
 ## TL;DR
