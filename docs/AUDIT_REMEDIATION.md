@@ -33,15 +33,23 @@ generated noise falls under 0.23:
 | 0.12–0.23  | 42       |
 | 0.45–0.98  | 195      |
 
-**Consequence to be aware of:** 12 seeded drugs have _only_ weak mappings, so
-they now return no remedies instead of weak ones. They are Albuterol, Atenolol,
-Doxycycline, Doxylamine, Empagliflozin, Enalapril, Hydrochlorothiazide,
-Liraglutide, Pseudoephedrine, Sitagliptin, Tramadol and Valsartan.
+**Consequence at the time:** 12 seeded drugs had _only_ weak mappings, so they
+returned no remedies instead of weak ones (Albuterol, Atenolol, Doxycycline,
+Doxylamine, Empagliflozin, Enalapril, Hydrochlorothiazide, Liraglutide,
+Pseudoephedrine, Sitagliptin, Tramadol, Valsartan).
 
-For a rescue inhaler like Albuterol, returning nothing is the safer outcome than
-suggesting a 0.15-similarity herb. If you would rather show weak matches, lower
-the constant — but then keep the `replacementType` labelling below, because the
-two changes were designed together.
+**Since resolved by curation, not by lowering the floor.** A follow-up added
+evidence-honest curated mappings for those 12 — plus 8 more seeded drugs that
+had none — mirroring each drug's same-class siblings, and left 6 drugs
+(anticoagulants/antiplatelets, an antipsychotic) _deliberately_ unmapped.
+`__tests__/seed-data/mappings.test.ts` enforces that every seeded drug either
+has a displayable mapping or appears on that deliberate list with a reason, and
+that rescue, opioid, seizure, antibiotic, incretin and contraceptive drugs
+never carry an "Alternative" label.
+
+If you would rather show weak matches, lower the constant — but keep the
+`replacementType` labelling below, because the two changes were designed
+together.
 
 ### 2. `moderator` is now a real role
 
