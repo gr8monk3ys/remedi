@@ -10,7 +10,7 @@
 import "server-only";
 
 // Client
-export { prisma, disconnect, isConnected, withTransaction } from "./client";
+export { prisma, disconnect, isConnected } from "./client";
 
 // Parsers (for internal/advanced use)
 export {
@@ -43,8 +43,8 @@ export {
   searchNaturalRemedies,
   getNaturalRemediesForPharmaceutical,
   generateRemedyMappingsForPharmaceutical,
+  resolveRelatedRemedies,
   toDetailedRemedy,
-  createRemedyMapping,
   getAllCategories,
   getAllEvidenceLevels,
 } from "./remedies";

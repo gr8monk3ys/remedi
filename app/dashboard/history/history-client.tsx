@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Trash2, AlertCircle } from "lucide-react";
 import { HistoryTable } from "@/components/dashboard/HistoryTable";
+import { fetchWithCSRF } from "@/lib/fetch";
 import type { SearchHistoryItem, HistorySortOption } from "@/types/dashboard";
 
 interface HistoryPageClientProps {
@@ -79,9 +80,12 @@ export function HistoryPageClient({
     setError(null);
 
     try {
-      const response = await fetch(`/api/search-history?userId=${userId}`, {
-        method: "DELETE",
-      });
+      // Must go through fetchWithCSRF: the middleware rejects state-changing
+      // API requests that arrive without a CSRF token.
+      const response = await fetchWithCSRF(
+        `/api/search-history?userId=${encodeURIComponent(userId)}`,
+        { method: "DELETE" },
+      );
 
       if (!response.ok) {
         throw new Error("Failed to clear history");

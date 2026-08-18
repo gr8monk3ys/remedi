@@ -1,7 +1,11 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getNaturalRemedyById, toDetailedRemedy } from "@/lib/db";
+import {
+  getNaturalRemedyById,
+  resolveRelatedRemedies,
+  toDetailedRemedy,
+} from "@/lib/db";
 import { Separator } from "@/components/ui/separator";
 import { BackButton } from "@/components/remedy/BackButton";
 import { logger } from "@/lib/logger";
@@ -54,7 +58,10 @@ async function loadRemedy(id: string): Promise<RemedyLookup | null> {
     try {
       const dbRemedy = await getNaturalRemedyById(id);
       if (dbRemedy) {
-        const remedy = toDetailedRemedy(dbRemedy);
+        // Related remedies are stored as names; resolve them to IDs so the
+        // sidebar links point at real pages instead of 404ing.
+        const related = await resolveRelatedRemedies(dbRemedy.relatedRemedies);
+        const remedy = toDetailedRemedy(dbRemedy, 1.0, related);
         return {
           remedy,
           sourceUrl:

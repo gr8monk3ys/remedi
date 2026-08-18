@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getNaturalRemedyById, toDetailedRemedy } from "@/lib/db";
+import {
+  getNaturalRemedyById,
+  resolveRelatedRemedies,
+  toDetailedRemedy,
+} from "@/lib/db";
 import { remedyIdSchema } from "@/lib/validations/api";
 import {
   successResponse,
@@ -189,7 +193,9 @@ export async function GET(
     const dbRemedy = isUuid(id) ? await getNaturalRemedyById(id) : null;
 
     if (dbRemedy) {
-      const detailedRemedy = toDetailedRemedy(dbRemedy);
+      // Resolve related-remedy names to IDs so API consumers get routable links.
+      const related = await resolveRelatedRemedies(dbRemedy.relatedRemedies);
+      const detailedRemedy = toDetailedRemedy(dbRemedy, 1.0, related);
       log.info("Returning remedy from database", { name: detailedRemedy.name });
       await trackUserEventSafe({
         request,

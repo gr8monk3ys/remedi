@@ -46,7 +46,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
         </p>
         <Link
           href="/sign-in"
-          className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
         >
           Sign In to Contribute
         </Link>
@@ -293,7 +293,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
       <button
         type="submit"
         disabled={state.isSubmitting}
-        className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {state.isSubmitting ? (
           <>

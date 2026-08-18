@@ -27,15 +27,34 @@ interface MockRemedy {
 // Mock the database functions
 vi.mock("@/lib/db", () => ({
   getNaturalRemedyById: vi.fn(),
-  toDetailedRemedy: vi.fn((remedy: MockRemedy) => ({
-    ...remedy,
-    usage: remedy.usage || "",
-    dosage: remedy.dosage || "",
-    precautions: remedy.precautions || "",
-    scientificInfo: remedy.scientificInfo || "",
-    references: remedy.references || [],
-    relatedRemedies: remedy.relatedRemedies || [],
-  })),
+  // Related remedies are stored as names and resolved to routable IDs before
+  // rendering; the mock mirrors that by echoing each name back with an id.
+  resolveRelatedRemedies: vi.fn(async (related?: unknown[]) => {
+    const entries = related ?? [];
+    const names = entries.filter(
+      (entry): entry is string => typeof entry === "string",
+    );
+    if (names.length === 0) {
+      // Already-structured entries are kept by returning no override.
+      return entries.length > 0 ? undefined : [];
+    }
+    return names.map((name) => ({ id: `id-${name}`, name }));
+  }),
+  toDetailedRemedy: vi.fn(
+    (
+      remedy: MockRemedy,
+      _score?: number,
+      resolvedRelated?: Array<{ id: string; name: string }>,
+    ) => ({
+      ...remedy,
+      usage: remedy.usage || "",
+      dosage: remedy.dosage || "",
+      precautions: remedy.precautions || "",
+      scientificInfo: remedy.scientificInfo || "",
+      references: remedy.references || [],
+      relatedRemedies: resolvedRelated ?? remedy.relatedRemedies ?? [],
+    }),
+  ),
 }));
 
 // Mock logger

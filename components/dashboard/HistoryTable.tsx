@@ -81,7 +81,7 @@ export function HistoryTable({
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Search className="h-4 w-4" />
           Start Searching

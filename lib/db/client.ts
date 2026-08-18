@@ -110,59 +110,6 @@ export async function isConnected(): Promise<boolean> {
   }
 }
 
-/**
- * Execute a transaction with automatic retry on connection errors
- *
- * PostgreSQL transactions are ACID-compliant and handle:
- * - Serializable isolation when needed
- * - Automatic rollback on errors
- * - Deadlock detection
- *
- * @param fn - Transaction function to execute
- * @param maxRetries - Maximum retry attempts (default: 3)
- */
-export async function withTransaction<T>(
-  fn: (
-    tx: Omit<
-      PrismaClient,
-      "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
-    >,
-  ) => Promise<T>,
-  maxRetries = 3,
-): Promise<T> {
-  let lastError: Error | undefined;
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await prisma.$transaction(fn, {
-        maxWait: 5000, // Maximum time to wait for transaction slot (ms)
-        timeout: 10000, // Maximum time for transaction to complete (ms)
-      });
-    } catch (error) {
-      lastError = error as Error;
-
-      // Check if it's a connection error that might be retryable
-      const isRetryable =
-        error instanceof Error &&
-        (error.message.includes("Connection") ||
-          error.message.includes("connection") ||
-          error.message.includes("timeout") ||
-          error.message.includes("deadlock"));
-
-      if (!isRetryable || attempt === maxRetries) {
-        throw error;
-      }
-
-      // Exponential backoff before retry
-      await new Promise((resolve) =>
-        setTimeout(resolve, Math.pow(2, attempt) * 100),
-      );
-    }
-  }
-
-  throw lastError;
-}
-
 // Handle process termination gracefully
 if (typeof process !== "undefined") {
   process.on("beforeExit", async () => {

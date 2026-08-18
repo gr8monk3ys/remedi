@@ -10,6 +10,12 @@ export interface SearchResult {
   matchingNutrients: string[];
   similarityScore?: number;
   category?: string;
+  /**
+   * How the remedy relates to the drug: "Alternative", "Complementary" or
+   * "Supportive". Shown so a supportive suggestion is not mistaken for a
+   * substitute for someone's medication.
+   */
+  replacementType?: string;
 }
 
 export interface AIRemedyInfo {

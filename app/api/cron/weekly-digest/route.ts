@@ -39,19 +39,40 @@ async function processBatches<T, R>(
   return results;
 }
 
+/**
+ * Constant-time string comparison, so a caller cannot learn the secret by
+ * measuring how long a rejection takes.
+ */
+function timingSafeEqual(a: string, b: string): boolean {
+  const aBytes = new TextEncoder().encode(a);
+  const bBytes = new TextEncoder().encode(b);
+
+  // Compare lengths without early-return, then fold the length check into the
+  // result so mismatched lengths still cost the same work.
+  let mismatch = aBytes.length ^ bBytes.length;
+  const max = Math.max(aBytes.length, bBytes.length);
+  for (let i = 0; i < max; i++) {
+    mismatch |= (aBytes[i] ?? 0) ^ (bBytes[i] ?? 0);
+  }
+
+  return mismatch === 0;
+}
+
 export async function GET(request: Request): Promise<NextResponse> {
-  // Verify cron secret
+  // Verify cron secret. This is the only thing standing between the public
+  // internet and a mass-email job, so it is enforced in every environment —
+  // an unset secret fails closed rather than disabling the check.
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
   if (!cronSecret) {
-    if (process.env.NODE_ENV === "production") {
-      return NextResponse.json(
-        { error: "CRON_SECRET is not configured" },
-        { status: 503 },
-      );
-    }
-  } else if (authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json(
+      { error: "CRON_SECRET is not configured" },
+      { status: 503 },
+    );
+  }
+
+  if (!authHeader || !timingSafeEqual(authHeader, `Bearer ${cronSecret}`)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

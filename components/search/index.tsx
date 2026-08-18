@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api/client";
-import { fetchWithCSRF } from "@/lib/fetch-with-csrf";
+import { fetchWithCSRF } from "@/lib/fetch";
 import {
   useFavoritesQuery,
   useToggleFavorite,
@@ -15,6 +15,8 @@ import { useDbUser } from "@/hooks/use-db-user";
 import { useSessionId } from "@/hooks/use-session-id";
 import { createLogger } from "@/lib/logger";
 import { useFeatureAccess } from "@/components/upgrade/FeatureGate";
+import { UpgradeModal } from "@/components/upgrade/UpgradeModal";
+import { usePlanQuery } from "@/hooks/queries";
 import { SearchInput } from "./SearchInput";
 import { SearchTabs } from "./SearchTabs";
 import { SearchHistory } from "./SearchHistory";
@@ -96,6 +98,14 @@ function formatRateLimitMessage(
   return `${endpointLabel} is temporarily rate-limited. Please try again in about a minute.`;
 }
 
+/**
+ * Plan limits and transient rate limits share HTTP 429 but need opposite
+ * responses: a plan limit is resolved by upgrading, a rate limit by waiting.
+ */
+function isPlanLimitCode(code?: string): boolean {
+  return code === "LIMIT_EXCEEDED";
+}
+
 interface SearchComponentProps extends React.HTMLProps<HTMLDivElement> {
   onSearch?: (results: SearchResult[]) => void;
   className?: string;
@@ -107,11 +117,14 @@ export function SearchComponent({
   ...props
 }: SearchComponentProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { dbUserId } = useDbUser();
   const sessionId = useSessionId();
   const { hasAccess: canAccessHistory } = useFeatureAccess("canAccessHistory");
   const showHistoryTab = canAccessHistory === true;
+  const { data: planData } = usePlanQuery();
+  const currentPlan = planData?.plan ?? "free";
   const { data: favorites = [], isLoading: favoritesLoading } =
     useFavoritesQuery();
   const toggleFavoriteMutation = useToggleFavorite();
@@ -155,9 +168,37 @@ export function SearchComponent({
   const [useAiSearch, setUseAiSearch] = useState<boolean>(false);
   const [aiSearchAvailable, setAiSearchAvailable] = useState<boolean>(false);
   const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
+  // Set when the API rejects a search because the user's plan quota is spent,
+  // so we can offer an upgrade instead of a dead-end error message.
+  const [planLimitReason, setPlanLimitReason] = useState<
+    "search_limit" | "ai_search_limit" | null
+  >(null);
 
   // Refs for DOM elements (React pattern instead of document.querySelector)
   const searchResultsRef = useRef<HTMLDivElement>(null);
+
+  // Search request bookkeeping: the controller cancels the in-flight request
+  // when a newer one starts, and the id lets late handlers detect that they
+  // have been superseded before touching state.
+  const searchAbortRef = useRef<AbortController | null>(null);
+  const searchRequestIdRef = useRef(0);
+
+  // Lets the ?q= effect call the latest handleSearch without depending on it
+  // (it is defined further down and would otherwise re-run the effect).
+  const handleSearchRef = useRef<((q?: string) => Promise<void>) | null>(null);
+
+  // Run a search from ?q= on arrival, so links into the app (e.g. "search
+  // again" from history) land on results instead of an empty search box.
+  const initialQueryRef = useRef<string | null>(null);
+  useEffect(() => {
+    const initialQuery = searchParams.get("q")?.trim();
+    if (!initialQuery || initialQueryRef.current === initialQuery) {
+      return;
+    }
+    initialQueryRef.current = initialQuery;
+    setQuery(initialQuery);
+    void handleSearchRef.current?.(initialQuery);
+  }, [searchParams]);
 
   // Check AI availability on mount
   useEffect(() => {
@@ -254,6 +295,15 @@ export function SearchComponent({
         setQuery(searchQuery);
       }
 
+      // Typing (debounced), pressing Enter and clicking a suggestion can all
+      // put searches in flight at once. Cancel the previous request and stamp
+      // this one, so a slow earlier response can never overwrite newer results.
+      searchAbortRef.current?.abort();
+      const controller = new AbortController();
+      searchAbortRef.current = controller;
+      const requestId = ++searchRequestIdRef.current;
+      const isStale = (): boolean => searchRequestIdRef.current !== requestId;
+
       setIsLoading(true);
       setError(null);
       setAiInsights(null);
@@ -272,11 +322,19 @@ export function SearchComponent({
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query: queryToSearch }),
+            signal: controller.signal,
           });
 
           if (!response.ok) {
             const { code, message, retryAfter } =
               await parseApiErrorResponse(response);
+
+            if (isPlanLimitCode(code)) {
+              setPlanLimitReason("ai_search_limit");
+              throw new UserFacingSearchError(
+                message || "You've reached your AI search limit for today.",
+              );
+            }
 
             if (response.status === 429 || code === "RATE_LIMIT_EXCEEDED") {
               throw new UserFacingSearchError(
@@ -292,7 +350,14 @@ export function SearchComponent({
           apiResponse = await response.json();
 
           if (apiResponse.success === false) {
-            if (apiResponse.error?.code === "RATE_LIMIT_EXCEEDED") {
+            if (isStale()) return;
+            if (isPlanLimitCode(apiResponse.error?.code)) {
+              setPlanLimitReason("ai_search_limit");
+              setError(
+                apiResponse.error?.message ||
+                  "You've reached your AI search limit for today.",
+              );
+            } else if (apiResponse.error?.code === "RATE_LIMIT_EXCEEDED") {
               const retryAfter =
                 typeof apiResponse.error?.retryAfter === "number"
                   ? Math.ceil(apiResponse.error.retryAfter)
@@ -320,6 +385,7 @@ export function SearchComponent({
             similarityScore: rec.confidence,
           }));
 
+          if (isStale()) return;
           setAiInsights({ intent, extractedInfo, recommendations });
           setResults(aiResults);
           setFilteredResults(aiResults);
@@ -327,12 +393,29 @@ export function SearchComponent({
         } else {
           const endpointType: SearchEndpointType = "search";
 
+          // Pass sessionId so anonymous searches are attributed to the
+          // visitor's session instead of being saved unattributed.
+          const searchParamsForRequest = new URLSearchParams({
+            query: queryToSearch,
+          });
+          if (!dbUserId && sessionId) {
+            searchParamsForRequest.set("sessionId", sessionId);
+          }
+
           response = await fetch(
-            `/api/search?query=${encodeURIComponent(queryToSearch)}`,
+            `/api/search?${searchParamsForRequest.toString()}`,
+            { signal: controller.signal },
           );
           if (!response.ok) {
             const { code, message, retryAfter } =
               await parseApiErrorResponse(response);
+
+            if (isPlanLimitCode(code)) {
+              setPlanLimitReason("search_limit");
+              throw new UserFacingSearchError(
+                message || "You've reached your search limit for today.",
+              );
+            }
 
             if (response.status === 429 || code === "RATE_LIMIT_EXCEEDED") {
               throw new UserFacingSearchError(
@@ -347,7 +430,14 @@ export function SearchComponent({
           apiResponse = await response.json();
 
           if (apiResponse.success === false) {
-            if (apiResponse.error?.code === "RATE_LIMIT_EXCEEDED") {
+            if (isStale()) return;
+            if (isPlanLimitCode(apiResponse.error?.code)) {
+              setPlanLimitReason("search_limit");
+              setError(
+                apiResponse.error?.message ||
+                  "You've reached your search limit for today.",
+              );
+            } else if (apiResponse.error?.code === "RATE_LIMIT_EXCEEDED") {
               const retryAfter =
                 typeof apiResponse.error?.retryAfter === "number"
                   ? Math.ceil(apiResponse.error.retryAfter)
@@ -361,17 +451,25 @@ export function SearchComponent({
             return;
           }
 
+          if (isStale()) return;
           const data = apiResponse.data || apiResponse;
           setResults(data);
           setFilteredResults(data);
           if (onSearch) onSearch(data);
         }
 
+        if (isStale()) return;
         setCurrentPage(1);
         setCategoryFilters([]);
         setNutrientFilters([]);
         setActiveTab("results");
       } catch (error) {
+        // An aborted request was deliberately superseded; it is not an error
+        // and its state must not leak into the newer search.
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        if (isStale()) return;
         log.error("Error searching", error);
         if (error instanceof UserFacingSearchError) {
           setError(error.userMessage);
@@ -379,11 +477,17 @@ export function SearchComponent({
           setError("Failed to retrieve search results. Please try again.");
         }
       } finally {
-        setIsLoading(false);
+        // Only the newest request owns the spinner.
+        if (!isStale()) {
+          setIsLoading(false);
+        }
       }
     },
-    [query, useAiSearch, aiSearchAvailable, onSearch],
+    [query, useAiSearch, aiSearchAvailable, onSearch, dbUserId, sessionId],
   );
+
+  // Keep the ref pointing at the current handler for the ?q= effect above.
+  handleSearchRef.current = handleSearch;
 
   const handlePageChange = useCallback((pageNumber: number) => {
     setCurrentPage(pageNumber);
@@ -488,6 +592,14 @@ export function SearchComponent({
           />
         </div>
       )}
+
+      {/* Hitting a plan quota should offer a way forward, not just an error. */}
+      <UpgradeModal
+        isOpen={planLimitReason !== null}
+        onClose={() => setPlanLimitReason(null)}
+        triggerReason={planLimitReason ?? "feature"}
+        currentPlan={currentPlan}
+      />
     </div>
   );
 }

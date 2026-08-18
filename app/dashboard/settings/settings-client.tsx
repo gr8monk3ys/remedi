@@ -177,13 +177,13 @@ export function SettingsClient({
             <p className="text-sm text-muted-foreground">{userEmail}</p>
           </div>
           <Separator />
-          <a
+          <Link
             href="/user-profile"
             className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             Manage Profile
             <ExternalLink className="h-4 w-4" />
-          </a>
+          </Link>
         </CardContent>
       </Card>
 
@@ -327,13 +327,13 @@ export function SettingsClient({
                 action cannot be undone.
               </p>
             </div>
-            <a
+            <Link
               href="/user-profile"
               className="inline-flex items-center gap-2 rounded-md border border-red-300 dark:border-red-700 bg-card px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 whitespace-nowrap"
             >
               Delete Account
               <ExternalLink className="h-4 w-4" />
-            </a>
+            </Link>
           </div>
         </CardContent>
       </Card>

@@ -1,3 +1,4 @@
+import { requireAdminPage } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { UserTable } from "@/components/admin/UserTable";
 export const dynamic = "force-dynamic";
@@ -40,6 +41,9 @@ export default async function UsersPage({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
+  // Admin-only: the /admin layout also admits moderators.
+  await requireAdminPage();
+
   const params = await searchParams;
   const page = parseInt(params.page || "1", 10);
   const { users, total, pages } = await getUsers(page);

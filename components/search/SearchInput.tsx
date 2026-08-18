@@ -11,7 +11,9 @@ import { cn } from "@/lib/utils";
 interface SearchInputProps {
   query: string;
   setQuery: (query: string) => void;
-  onSearch: () => void;
+  /** Runs a search; pass a query to search it directly instead of the
+   * debounced `query` state, which may not have flushed yet. */
+  onSearch: (searchQuery?: string) => void;
   useAiSearch: boolean;
   setUseAiSearch: (value: boolean) => void;
   aiSearchAvailable: boolean;
@@ -79,7 +81,10 @@ export function SearchInput({
         clearTimeout(debounceTimeoutRef.current);
       }
       setQuery(suggestion);
-      setTimeout(onSearch, 100);
+      // Search the suggestion directly. Deferring to onSearch() would run it
+      // against the *previous* query still captured in the closure, firing two
+      // racing requests for different terms.
+      onSearch(suggestion);
     },
     [setQuery, onSearch],
   );

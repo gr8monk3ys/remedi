@@ -32,7 +32,7 @@ describe("CookieConsent", () => {
     expect(
       screen.getByRole("dialog", { name: "Cookie consent" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/This site uses cookies/)).toBeInTheDocument();
+    expect(screen.getByText(/We use essential cookies/)).toBeInTheDocument();
     expect(screen.getByText("Accept")).toBeInTheDocument();
     expect(screen.getByText("Decline")).toBeInTheDocument();
   });
@@ -120,7 +120,7 @@ describe("CookieConsent", () => {
 
     expect(
       screen.getByText(
-        "This site uses cookies for functionality and analytics. By accepting, you consent to our use of cookies.",
+        "We use essential cookies to run the site, plus cookie-based analytics only if you accept. Declining keeps analytics cookies off.",
       ),
     ).toBeInTheDocument();
   });

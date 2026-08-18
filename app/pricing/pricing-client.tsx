@@ -128,6 +128,38 @@ export function PricingClient({
     }
   };
 
+  /**
+   * Downgrading means changing an existing subscription, which Stripe owns.
+   * Send the user to the billing portal rather than leaving a dead button.
+   */
+  const handleDowngrade = async () => {
+    if (!isAuthenticated) {
+      router.push(`/sign-in?redirect_url=/pricing`);
+      return;
+    }
+
+    setLoading("free");
+    try {
+      const response = await fetchWithCSRF("/api/billing-portal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+
+      if (data.success && data.data?.url) {
+        window.location.href = data.data.url;
+      } else {
+        toast.error(
+          data.error?.message || "Could not open the billing portal.",
+        );
+      }
+    } catch {
+      toast.error("Could not open the billing portal. Please try again.");
+    } finally {
+      setLoading(null);
+    }
+  };
+
   const handleCheckout = async (plan: PlanType) => {
     if (!isAuthenticated) {
       router.push(`/sign-in?redirect_url=/pricing`);
@@ -241,6 +273,7 @@ export function PricingClient({
         trialEligible={trialEligible}
         onCheckout={handleCheckout}
         onStartTrial={handleStartTrial}
+        onDowngrade={handleDowngrade}
         basicDisplayPrice={basicDisplayPrice}
         basicYearlyBilled={basicYearlyPrice.toFixed(2)}
         premiumDisplayPrice={premiumDisplayPrice}

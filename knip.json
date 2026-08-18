@@ -3,18 +3,25 @@
   "ignoreFiles": [
     "vitest.integration.config.ts",
     "vitest.setup.ts",
-    "lib/accessibility.ts",
-    "prisma/seed*.js",
     "public/sw.js",
     "scripts/create-stripe-products.ts",
     "scripts/data-quality-report.ts",
     "integration/**",
-    "lib/e2e/**",
-    "lib/analytics/index.ts"
+    "lib/e2e/**"
   ],
+  "ignore": [
+    "components/ui/**",
+    "__tests__/mocks/**",
+    "prisma/seed-data/**",
+    "prisma/seeds/**"
+  ],
+  "ignoreExportsUsedInFile": true,
   "rules": {
-    "exports": "off",
-    "types": "off",
+    "files": "error",
+    "dependencies": "error",
+    "unlisted": "error",
+    "exports": "warn",
+    "types": "warn",
     "duplicates": "off"
   }
 }

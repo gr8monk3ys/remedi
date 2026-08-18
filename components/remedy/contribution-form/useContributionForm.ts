@@ -98,7 +98,15 @@ export function useContributionForm(onSuccess?: () => void) {
 
       const filteredIngredients = state.ingredients.filter((i) => i.trim());
       const filteredBenefits = state.benefits.filter((b) => b.trim());
-      const filteredReferences = state.references.filter((r) => r.title.trim());
+      // The URL field is optional in the UI, so an untouched one must be
+      // omitted rather than sent as "" — an empty string fails url() validation
+      // and would reject the whole submission.
+      const filteredReferences = state.references
+        .filter((r) => r.title.trim())
+        .map((r) => {
+          const url = r.url?.trim();
+          return { title: r.title.trim(), ...(url ? { url } : {}) };
+        });
 
       if (filteredIngredients.length === 0) {
         dispatch({

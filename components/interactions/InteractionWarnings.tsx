@@ -175,12 +175,19 @@ export function InteractionWarnings({
         const response = await fetch(
           `/api/interactions?substance=${encodeURIComponent(remedyName)}`,
         );
-        const data = await response.json();
+        const data = await response.json().catch(() => null);
 
         if (cancelled) return;
 
-        if (data.success && data.data) {
+        // Only an explicitly successful response proves that no interactions
+        // exist. Any other outcome (rate limit, database error, auth failure,
+        // unparseable body) must surface as "could not verify" — never as a
+        // reassuring "no known interactions", which would present a system
+        // failure as a medical all-clear.
+        if (response.ok && data?.success === true && Array.isArray(data.data)) {
           setInteractions(data.data);
+        } else {
+          setError(true);
         }
       } catch {
         if (!cancelled) {
@@ -221,7 +228,24 @@ export function InteractionWarnings({
   }
 
   if (error) {
-    return null;
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            Interaction Warnings
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            We could not check for interactions with {remedyName} right now.
+            This is not a confirmation that none exist. Please try again later,
+            and talk to your healthcare provider or pharmacist before combining
+            it with any medication.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (interactions.length === 0) {

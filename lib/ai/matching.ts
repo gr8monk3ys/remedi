@@ -4,6 +4,7 @@
  * Uses OpenAI GPT-4 to provide intelligent natural remedy recommendations.
  */
 
+import { z } from "zod";
 import { prisma } from "../db";
 import { getOpenAIClient, openaiCircuitBreaker } from "./client";
 import { CircuitBreakerOpenError } from "@/lib/circuit-breaker";
@@ -18,6 +19,70 @@ import type {
   RawDatabaseRemedy,
 } from "./types";
 
+/** Maximum remedies described to the model in one prompt. */
+const CANDIDATE_LIMIT = 50;
+
+/**
+ * Shape we require back from the model. Anything that does not conform is
+ * discarded rather than trusted: this content is shown as health information,
+ * so a malformed or hallucinated field must not flow through untyped.
+ */
+const aiRecommendationSchema = z.object({
+  remedyName: z.string().min(1),
+  confidence: z.number().min(0).max(1).catch(0.5),
+  reasoning: z.string().default(""),
+  warnings: z.array(z.string()).optional(),
+  interactions: z.array(z.string()).optional(),
+});
+
+const aiResponseSchema = z.object({
+  recommendations: z.array(aiRecommendationSchema).default([]),
+});
+
+/**
+ * Choose the remedies offered to the model, ranked by textual relevance to the
+ * query so the whole catalogue is reachable.
+ */
+async function selectCandidateRemedies(
+  query: string,
+  symptoms?: string[],
+): Promise<RawDatabaseRemedy[]> {
+  const terms = [query, ...(symptoms ?? [])]
+    .join(" ")
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((term) => term.length > 2);
+
+  if (terms.length === 0) {
+    return prisma.naturalRemedy.findMany({ take: CANDIDATE_LIMIT });
+  }
+
+  const matches = await prisma.naturalRemedy.findMany({
+    where: {
+      OR: terms.flatMap((term) => [
+        { name: { contains: term, mode: "insensitive" as const } },
+        { description: { contains: term, mode: "insensitive" as const } },
+        { category: { contains: term, mode: "insensitive" as const } },
+        { benefits: { hasSome: [term] } },
+      ]),
+    },
+    take: CANDIDATE_LIMIT,
+  });
+
+  if (matches.length >= CANDIDATE_LIMIT) {
+    return matches;
+  }
+
+  // Top up with other remedies so the model still has room to suggest
+  // something the keyword filter missed.
+  const filler = await prisma.naturalRemedy.findMany({
+    where: { id: { notIn: matches.map((m) => m.id) } },
+    take: CANDIDATE_LIMIT - matches.length,
+  });
+
+  return [...matches, ...filler];
+}
+
 /**
  * Parse AI response into structured recommendations
  */
@@ -26,18 +91,31 @@ function parseAIResponse(
   allRemedies: RawDatabaseRemedy[],
 ): AIRemedyRecommendation[] {
   try {
-    const parsed = JSON.parse(response);
+    const parsedJson: unknown = JSON.parse(response);
+    const validated = aiResponseSchema.safeParse(parsedJson);
 
-    if (parsed.recommendations && Array.isArray(parsed.recommendations)) {
-      return parsed.recommendations
-        .map((rec: RawAIRecommendation) => {
-          const remedy = allRemedies.find(
-            (r) => r.name.toLowerCase() === rec.remedyName.toLowerCase(),
-          );
+    if (!validated.success) {
+      logger.warn("AI response did not match the expected shape", {
+        issues: validated.error.issues.slice(0, 3),
+      });
+      return [];
+    }
 
-          if (!remedy) return null;
+    const parsed = validated.data;
 
-          return {
+    // flatMap drops non-matches without an intermediate nullable array. A
+    // recommendation naming a remedy we don't stock is discarded, so the model
+    // cannot invent remedies that aren't in the catalogue.
+    return parsed.recommendations.flatMap(
+      (rec: RawAIRecommendation): AIRemedyRecommendation[] => {
+        const remedy = allRemedies.find(
+          (r) => r.name.toLowerCase() === rec.remedyName.toLowerCase(),
+        );
+
+        if (!remedy) return [];
+
+        return [
+          {
             remedy: {
               id: remedy.id,
               name: remedy.name,
@@ -51,13 +129,10 @@ function parseAIResponse(
             reasoning: rec.reasoning,
             warnings: rec.warnings,
             interactions: rec.interactions,
-          };
-        })
-        .filter(
-          (r: AIRemedyRecommendation | null): r is AIRemedyRecommendation =>
-            r !== null,
-        );
-    }
+          },
+        ];
+      },
+    );
   } catch (error) {
     logger.error("Failed to parse AI response", error);
   }
@@ -83,10 +158,11 @@ export async function enhanceRemedyMatching(
       return [];
     }
 
-    const allRemedies = await prisma.naturalRemedy.findMany({
-      take: 50,
-      orderBy: { createdAt: "desc" },
-    });
+    // Pick candidates by relevance to the query, not by insertion order.
+    // `orderBy: createdAt desc` meant the model only ever saw the 50 most
+    // recently seeded remedies, so most of the catalogue could never be
+    // recommended.
+    const allRemedies = await selectCandidateRemedies(query, symptoms);
 
     const remediesContext = allRemedies
       .map((r) => {
@@ -115,6 +191,9 @@ export async function enhanceRemedyMatching(
         ],
         temperature: 0.7,
         max_tokens: 1500,
+        // Without JSON mode the model often wraps output in ```json fences,
+        // which fails JSON.parse and silently produced "no results".
+        response_format: { type: "json_object" },
       }),
     );
 

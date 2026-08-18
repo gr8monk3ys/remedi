@@ -91,13 +91,12 @@ export function UpgradeModal({
 
     setLoadingCheckout(plan);
     try {
-      const planConfig = PLANS[plan];
-      if (!("monthlyPriceId" in planConfig)) return;
-
-      const priceId = planConfig.monthlyPriceId;
-
+      // Stripe price IDs are server-side only, so the client identifies the
+      // plan by name and interval and lets /api/checkout resolve the price.
       const data = await apiClient.post<{ url: string }>("/api/checkout", {
-        priceId,
+        plan,
+        interval: "month",
+        source: "upgrade_modal",
       });
 
       if (data.url) {
@@ -229,7 +228,7 @@ export function UpgradeModal({
 
                 {/* Premium Plan */}
                 <div className="relative rounded-xl border-2 border-primary p-4">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-medium text-white">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
                     Most Popular
                   </div>
                   <h4 className="font-semibold text-foreground mb-1">
@@ -257,7 +256,7 @@ export function UpgradeModal({
                     disabled={
                       loadingCheckout === "premium" || currentPlan === "premium"
                     }
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-white transition-colors hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {loadingCheckout === "premium" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

@@ -75,6 +75,8 @@ export interface NaturalRemedy {
   category: string;
   matchingNutrients: string[];
   similarityScore: number;
+  /** How the remedy relates to the drug: Alternative, Complementary or Supportive. */
+  replacementType?: string;
 }
 
 export interface DetailedRemedy extends NaturalRemedy {

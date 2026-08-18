@@ -1,3 +1,4 @@
+import { requireAdminPage } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { CONVERSION_EVENT_TYPES } from "@/lib/analytics/conversion-events";
 import type { Analytics } from "./analytics.types";
@@ -306,6 +307,9 @@ async function getAnalytics(): Promise<Analytics> {
 }
 
 export default async function AnalyticsPage() {
+  // Admin-only: the /admin layout also admits moderators.
+  await requireAdminPage();
+
   const analytics = await getAnalytics();
   const now = new Date();
   const end = now.toISOString().slice(0, 10);

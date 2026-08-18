@@ -15,7 +15,36 @@
  * @see https://plausible.io/docs
  */
 
+import { useEffect, useState } from "react";
 import Script from "next/script";
+import {
+  COOKIE_CONSENT_EVENT,
+  readCookieConsent,
+  type CookieConsent,
+} from "@/lib/cookie-consent";
+
+/**
+ * Track the visitor's stored consent choice, updating when the banner writes
+ * a new one so analytics start or stay off without a page reload.
+ */
+function useCookieConsent(): CookieConsent {
+  const [consent, setConsent] = useState<CookieConsent>(null);
+
+  useEffect(() => {
+    const sync = (): void => setConsent(readCookieConsent());
+    sync();
+
+    window.addEventListener(COOKIE_CONSENT_EVENT, sync);
+    // Keep other tabs in sync too.
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(COOKIE_CONSENT_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  return consent;
+}
 
 interface AnalyticsProps {
   /**
@@ -40,8 +69,12 @@ export function Analytics({
   googleAnalyticsId,
   nonce,
 }: AnalyticsProps) {
+  const consent = useCookieConsent();
+
   const hasPlausible = !!plausibleDomain;
-  const hasGA = !!googleAnalyticsId;
+  // Google Analytics sets cookies, so it may only load once the visitor has
+  // actively accepted. Plausible is cookieless and stays exempt.
+  const hasGA = !!googleAnalyticsId && consent === "accepted";
 
   // Don't render anything if no analytics configured
   if (!hasPlausible && !hasGA) {

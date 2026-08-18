@@ -16,7 +16,7 @@ import { createLogger } from "@/lib/logger";
 const logger = createLogger("api-admin-users");
 
 const updateUserSchema = z.object({
-  role: z.enum(["user", "admin"]).optional(),
+  role: z.enum(["user", "moderator", "admin"]).optional(),
   name: z.string().min(1).max(100).optional(),
 });
 

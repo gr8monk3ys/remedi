@@ -6,28 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { DetailedRemedy } from "@/lib/types";
-
-/**
- * Evidence level configuration
- */
-const EVIDENCE_LEVELS: Record<string, { color: string; bgColor: string }> = {
-  Strong: {
-    color: "text-green-700 dark:text-green-400",
-    bgColor: "bg-green-100 dark:bg-green-900/30",
-  },
-  Moderate: {
-    color: "text-blue-700 dark:text-blue-400",
-    bgColor: "bg-blue-100 dark:bg-blue-900/30",
-  },
-  Limited: {
-    color: "text-yellow-700 dark:text-yellow-400",
-    bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
-  },
-  Traditional: {
-    color: "text-purple-700 dark:text-purple-400",
-    bgColor: "bg-purple-100 dark:bg-purple-900/30",
-  },
-};
+import { EvidenceBadge } from "@/components/remedy/EvidenceBadge";
 
 /**
  * Extended remedy type for comparison
@@ -206,21 +185,7 @@ export function MobileComparisonSwiper({
                     <span className="text-xs font-medium text-muted-foreground block mb-1">
                       Evidence Level
                     </span>
-                    {(() => {
-                      const config = EVIDENCE_LEVELS[
-                        currentRemedy.evidenceLevel
-                      ] || {
-                        color: "text-muted-foreground",
-                        bgColor: "bg-muted",
-                      };
-                      return (
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium ${config.color} ${config.bgColor}`}
-                        >
-                          {currentRemedy.evidenceLevel}
-                        </span>
-                      );
-                    })()}
+                    <EvidenceBadge level={currentRemedy.evidenceLevel} />
                   </div>
                 )}
 

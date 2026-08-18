@@ -47,7 +47,7 @@ bun run import:fda:quick     # Import 50 items
 - **Database**: Prisma ORM + PostgreSQL
 - **Styling**: TailwindCSS 4 + shadcn/ui
 - **Auth**: Clerk
-- **AI**: OpenAI GPT-4 for remedy matching
+- **AI**: OpenAI (`gpt-4-turbo-preview`, `gpt-4o-mini`) for remedy matching
 - **Email**: Resend + React Email
 - **Payments**: Stripe
 - **Validation**: Zod schemas
@@ -87,7 +87,8 @@ Array fields use native PostgreSQL arrays (`String[]`).
 ### Key Library Modules (lib/)
 
 - **openFDA.ts**: FDA API integration with `searchFdaDrugs()` and `getFdaDrugById()`
-- **remedyMapping.ts**: Maps pharmaceuticals to remedies using `INGREDIENT_MAPPINGS` and `CATEGORY_MAPPINGS`
+- **remedy-matcher.ts**: Ranks natural remedies for a drug using token-overlap
+  similarity; `lib/db/remedies.ts` persists and reads the resulting mappings
 - **fuzzy-search.ts**: Levenshtein distance matching for typo tolerance
 - **ai-matching.ts**: GPT-4 powered matching with intent detection
 - **db/**: Prisma client, domain operations (pharmaceuticals, remedies, interactions, favorites, etc.)
@@ -176,7 +177,7 @@ bunx playwright test -g "search" # Run tests matching pattern
 
 - `app/api/search/route.ts` - Main search logic
 - `lib/openFDA.ts` - FDA API with retry/error handling
-- `lib/remedyMapping.ts` - Remedy matching algorithm
+- `lib/remedy-matcher.ts` - Remedy matching algorithm
 - `prisma/schema.prisma` - Database schema
 - `proxy.ts` - Security headers, CSP, CORS, auth protection (Next.js middleware)
 - `next.config.ts` - Turbopack configuration, image config

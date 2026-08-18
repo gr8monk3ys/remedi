@@ -21,7 +21,6 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
-  "/auth/error(.*)",
   "/about(.*)",
   "/faq(.*)",
   "/legal/(.*)",
@@ -48,7 +47,10 @@ const isPublicRoute = createRouteMatcher([
   "/api/user-events(.*)", // Anonymous event tracking
   "/api/conversion-events(.*)", // Anonymous conversion tracking
   "/api/ai-search(.*)", // AI availability check is public
-  "/api/interactions/check(.*)", // Public interaction checker
+  "/api/interactions(.*)", // Public interaction checker + substance lookup
+  // Scheduled jobs authenticate with CRON_SECRET at the route level; Clerk
+  // must not intercept them or the secret check is never reached.
+  "/api/cron/(.*)",
 ]);
 
 /**

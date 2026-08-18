@@ -4,11 +4,20 @@
  * Uses AI to analyze potential interactions between natural remedies and medications.
  */
 
+import { z } from "zod";
 import { getOpenAIClient, openaiCircuitBreaker } from "./client";
 import { CircuitBreakerOpenError } from "@/lib/circuit-breaker";
 import { buildInteractionPrompt, INTERACTION_SYSTEM_PROMPT } from "./prompts";
 import type { DrugInteractionResult } from "./types";
 import { createLogger } from "@/lib/logger";
+
+/** Expected shape of the model's interaction verdict. */
+const interactionResultSchema = z.object({
+  hasInteractions: z.boolean(),
+  warnings: z.array(z.string()).default([]),
+  severity: z.enum(["low", "moderate", "high"]).catch("moderate"),
+  recommendations: z.array(z.string()).default([]),
+});
 
 const logger = createLogger("ai-interactions");
 
@@ -54,6 +63,7 @@ export async function checkDrugInteractions(
         ],
         temperature: 0.3,
         max_tokens: 800,
+        response_format: { type: "json_object" },
       }),
     );
 
@@ -62,7 +72,15 @@ export async function checkDrugInteractions(
       throw new Error("No response from AI");
     }
 
-    return JSON.parse(response);
+    // This output is presented as drug-safety information, so an unexpected
+    // shape must fall back to the conservative "consult a professional"
+    // response rather than being rendered as a verdict.
+    const parsed = interactionResultSchema.safeParse(JSON.parse(response));
+    if (!parsed.success) {
+      logger.warn("Interaction response did not match the expected shape");
+      throw new Error("Malformed interaction response");
+    }
+    return parsed.data;
   } catch (error) {
     if (error instanceof CircuitBreakerOpenError) {
       logger.warn("OpenAI circuit breaker is open, skipping interaction check");

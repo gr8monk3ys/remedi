@@ -81,7 +81,7 @@ export function PlanCard({
     >
       {isPopular && !isCurrentPlan && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary text-white">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground">
             Most Popular
           </span>
         </div>
@@ -162,7 +162,7 @@ export function PlanCard({
             "w-full py-2.5 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
             plan === "free"
               ? "bg-muted text-foreground hover:bg-muted"
-              : "bg-primary text-white hover:bg-primary/90",
+              : "bg-primary text-primary-foreground hover:bg-primary/90",
             !onSelect && "opacity-50 cursor-not-allowed",
           )}
         >

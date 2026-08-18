@@ -11,6 +11,8 @@ import {
   Leaf,
   AlertCircle,
 } from "lucide-react";
+import { EVIDENCE_LEVELS } from "@/lib/evidence-levels";
+import { EvidenceBadge } from "@/components/remedy/EvidenceBadge";
 
 export const metadata: Metadata = {
   title: "About | Remedi",
@@ -47,36 +49,6 @@ const DATA_SOURCES = [
   { icon: FlaskConical, label: "Peer-reviewed research" },
   { icon: Leaf, label: "Traditional medicine references" },
   { icon: BookOpen, label: "Expert and community contributions" },
-] as const;
-
-const EVIDENCE_LEVELS = [
-  {
-    level: "Strong",
-    description: "Multiple clinical trials supporting efficacy",
-    badgeClasses:
-      "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-    borderClasses: "border-green-200 dark:border-green-800",
-  },
-  {
-    level: "Moderate",
-    description: "Limited clinical evidence with promising results",
-    badgeClasses:
-      "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-    borderClasses: "border-blue-200 dark:border-blue-800",
-  },
-  {
-    level: "Limited",
-    description: "Preliminary research or observational studies",
-    badgeClasses:
-      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-    borderClasses: "border-yellow-200 dark:border-yellow-800",
-  },
-  {
-    level: "Traditional",
-    description: "Historically used in traditional medicine",
-    badgeClasses: "bg-muted text-foreground",
-    borderClasses: "border-border",
-  },
 ] as const;
 
 export default function AboutPage(): React.JSX.Element {
@@ -176,21 +148,14 @@ export default function AboutPage(): React.JSX.Element {
             supporting scientific evidence.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {EVIDENCE_LEVELS.map(
-              ({ level, description, badgeClasses, borderClasses }) => (
-                <div
-                  key={level}
-                  className={`rounded-lg border p-4 ${borderClasses}`}
-                >
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-2 ${badgeClasses}`}
-                  >
-                    {level}
-                  </span>
-                  <p className="text-muted-foreground text-sm">{description}</p>
-                </div>
-              ),
-            )}
+            {Object.entries(EVIDENCE_LEVELS).map(([key, meta]) => (
+              <div key={key} className="rounded-lg border p-4">
+                <EvidenceBadge level={key} className="mb-2" />
+                <p className="text-muted-foreground text-sm">
+                  {meta.description}
+                </p>
+              </div>
+            ))}
           </div>
         </section>
 

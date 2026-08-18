@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ExternalLink, Heart, GitCompare, Check } from "lucide-react";
 import { useCompare } from "@/lib/context/CompareContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { SearchResult } from "./types";
+
+/** Plain-language meaning of each replacement type, shown on hover. */
+const REPLACEMENT_TYPE_HINTS: Record<string, string> = {
+  Alternative:
+    "May serve a similar purpose. Never stop a prescribed medication without talking to your provider.",
+  Complementary: "Sometimes used alongside conventional treatment.",
+  Supportive:
+    "General supportive use only — not a substitute for this medication.",
+};
 
 interface SearchResultCardProps {
   result: SearchResult;
@@ -29,7 +39,7 @@ export const SearchResultCard = memo(function SearchResultCard({
   onFavoriteToggle,
   onViewDetails,
 }: SearchResultCardProps) {
-  const { isInComparison, addToCompare, removeFromCompare, isFull } =
+  const { isInComparison, addToCompare, removeFromCompare, isFull, maxItems } =
     useCompare();
   const isComparing = isInComparison(result.id);
 
@@ -85,10 +95,21 @@ export const SearchResultCard = memo(function SearchResultCard({
             {/* Header */}
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 min-w-0">
-                <h3 className="truncate font-semibold text-sm">
-                  {result.name}
-                </h3>
-                <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                {/* A real link, so opening a result is reachable by keyboard
+                    and screen reader — the card's onClick is mouse-only. */}
+                <Link
+                  href={`/remedy/${result.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="truncate rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <h3 className="truncate font-semibold text-sm">
+                    {result.name}
+                  </h3>
+                </Link>
+                <ExternalLink
+                  className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
               </div>
               <div className="flex items-center gap-0.5 shrink-0">
                 <Button
@@ -105,7 +126,7 @@ export const SearchResultCard = memo(function SearchResultCard({
                     isComparing
                       ? "Remove from comparison"
                       : isFull
-                        ? "Comparison list is full (max 4)"
+                        ? `Comparison list is full (max ${maxItems})`
                         : "Add to comparison"
                   }
                 >
@@ -139,12 +160,28 @@ export const SearchResultCard = memo(function SearchResultCard({
               </div>
             </div>
 
-            {/* Category Badge */}
-            {result.category && (
-              <Badge variant="secondary" className="mt-1 text-xs">
-                {result.category}
-              </Badge>
-            )}
+            {/* Category + how this remedy relates to the drug */}
+            <div className="mt-1 flex flex-wrap items-center gap-1">
+              {result.category && (
+                <Badge variant="secondary" className="text-xs">
+                  {result.category}
+                </Badge>
+              )}
+              {/* Without this, a merely supportive suggestion looks identical
+                  to a genuine alternative to someone's medication. */}
+              {result.replacementType && (
+                <Badge
+                  variant="outline"
+                  className="text-xs"
+                  title={
+                    REPLACEMENT_TYPE_HINTS[result.replacementType] ??
+                    "How this remedy relates to the medication."
+                  }
+                >
+                  {result.replacementType}
+                </Badge>
+              )}
+            </div>
 
             {/* Description */}
             {result.description && (

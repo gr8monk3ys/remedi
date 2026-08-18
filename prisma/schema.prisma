@@ -48,6 +48,7 @@ enum SubscriptionPlan {
 
 enum UserRole {
   user
+  moderator
   admin
 }
 

@@ -7,7 +7,6 @@
 
 import { Metadata } from "next";
 import Link from "next/link";
-import { Header } from "@/components/ui/header";
 
 export const metadata: Metadata = {
   title: "Medical Disclaimer",
@@ -17,7 +16,6 @@ export const metadata: Metadata = {
 export default function DisclaimerPage() {
   return (
     <>
-      <Header />
       <div className="container mx-auto px-4 py-24 max-w-4xl">
         <h1 className="text-4xl font-bold mb-8">Medical Disclaimer</h1>
         <p className="text-muted-foreground mb-8">

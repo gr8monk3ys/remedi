@@ -5,16 +5,16 @@
  */
 
 import { prisma } from "./client";
-import { parseNaturalRemedy, parseRemedyMapping } from "./parsers";
+import { parseNaturalRemedy } from "./parsers";
 import type {
   NaturalRemedy,
   DetailedRemedy,
   ProcessedDrug,
   ParsedNaturalRemedy,
-  ParsedRemedyMapping,
 } from "../types";
 import { normalizeReferences } from "@/lib/references";
 import {
+  MIN_DISPLAY_SIMILARITY,
   rankRemedyCandidatesForDrug,
   replacementTypeForScore,
   shouldForceSupportiveReplacement,
@@ -63,7 +63,13 @@ export async function getNaturalRemediesForPharmaceutical(
   pharmaceuticalId: string,
 ): Promise<NaturalRemedy[]> {
   const mappings = await prisma.naturalRemedyMapping.findMany({
-    where: { pharmaceuticalId },
+    // Weak mappings were persisted historically at a much lower floor. Filter
+    // them on read so incidental token overlap is never presented to a user as
+    // a natural alternative to their medication.
+    where: {
+      pharmaceuticalId,
+      similarityScore: { gte: MIN_DISPLAY_SIMILARITY },
+    },
     include: {
       naturalRemedy: {
         select: {
@@ -88,6 +94,9 @@ export async function getNaturalRemediesForPharmaceutical(
     category: mapping.naturalRemedy.category,
     matchingNutrients: mapping.matchingNutrients,
     similarityScore: mapping.similarityScore,
+    // Surfaced so the UI can distinguish an alternative from a merely
+    // supportive suggestion instead of labelling everything the same.
+    replacementType: mapping.replacementType ?? undefined,
   }));
 }
 
@@ -105,7 +114,12 @@ export async function generateRemedyMappingsForPharmaceutical(params: {
   limit?: number;
   minScore?: number;
 }): Promise<NaturalRemedy[]> {
-  const { pharmaceuticalId, drug, limit = 10, minScore = 0.12 } = params;
+  const {
+    pharmaceuticalId,
+    drug,
+    limit = 10,
+    minScore = MIN_DISPLAY_SIMILARITY,
+  } = params;
 
   const candidates = (await prisma.naturalRemedy.findMany({
     select: {
@@ -148,21 +162,66 @@ export async function generateRemedyMappingsForPharmaceutical(params: {
 }
 
 /**
- * Convert ParsedNaturalRemedy to DetailedRemedy format
+ * Resolve related-remedy names to routable remedy IDs.
+ *
+ * `NaturalRemedy.relatedRemedies` stores plain names, but the UI links to
+ * `/remedy/<id>`, which only accepts UUIDs. Names that have no matching remedy
+ * are dropped: a missing entry is better than a link that 404s.
+ */
+export async function resolveRelatedRemedies(
+  related: ParsedNaturalRemedy["relatedRemedies"],
+): Promise<Array<{ id: string; name: string }> | undefined> {
+  const entries = related ?? [];
+
+  // Some records already carry structured {id, name} entries. Those are
+  // routable as-is, so signal "no override" and let the caller keep them.
+  const names = entries.filter(
+    (entry): entry is string => typeof entry === "string",
+  );
+  if (names.length === 0) {
+    return entries.length > 0 ? undefined : [];
+  }
+
+  const matches = await prisma.naturalRemedy.findMany({
+    where: {
+      OR: names.map((name) => ({
+        name: { equals: name, mode: "insensitive" as const },
+      })),
+    },
+    select: { id: true, name: true },
+  });
+
+  const byName = new Map(
+    matches.map((match) => [match.name.toLowerCase(), match]),
+  );
+
+  return names
+    .map((name) => byName.get(name.toLowerCase()))
+    .filter((match): match is { id: string; name: string } => Boolean(match));
+}
+
+/**
+ * Convert ParsedNaturalRemedy to DetailedRemedy format.
+ *
+ * Pass `resolvedRelatedRemedies` (from `resolveRelatedRemedies`) whenever the
+ * result is rendered with links; without it the related entries carry names in
+ * place of IDs and are not routable.
  */
 export function toDetailedRemedy(
   remedy: ParsedNaturalRemedy,
   similarityScore = 1.0,
+  resolvedRelatedRemedies?: Array<{ id: string; name: string }>,
 ): DetailedRemedy {
   const references = normalizeReferences(remedy.references);
 
   const relatedRemedies =
-    typeof remedy.relatedRemedies?.[0] === "string"
+    resolvedRelatedRemedies ??
+    (typeof remedy.relatedRemedies?.[0] === "string"
       ? (remedy.relatedRemedies as string[]).map((name) => ({
           id: name,
           name,
         }))
-      : (remedy.relatedRemedies as DetailedRemedy["relatedRemedies"]);
+      : (remedy.relatedRemedies as DetailedRemedy["relatedRemedies"]));
 
   return {
     id: remedy.id,
@@ -181,29 +240,6 @@ export function toDetailedRemedy(
     relatedRemedies: relatedRemedies || [],
     evidenceLevel: remedy.evidenceLevel ?? null,
   };
-}
-
-/**
- * Create a mapping between pharmaceutical and natural remedy
- */
-export async function createRemedyMapping(
-  pharmaceuticalId: string,
-  naturalRemedyId: string,
-  similarityScore: number,
-  matchingNutrients: string[],
-  replacementType?: string,
-): Promise<ParsedRemedyMapping> {
-  const result = await prisma.naturalRemedyMapping.create({
-    data: {
-      pharmaceuticalId,
-      naturalRemedyId,
-      similarityScore,
-      matchingNutrients,
-      replacementType,
-    },
-  });
-
-  return parseRemedyMapping(result);
 }
 
 /**
