@@ -248,24 +248,32 @@ async function main(): Promise<void> {
       replacementType: mapping.replacementType,
     }));
 
-  // Create mappings in batches
-  let createdMappings = 0;
-  let skippedMappings = 0;
+  // Upsert mappings in batches. Curated seed data must overwrite any existing
+  // row for the same pair: databases that ran the runtime token-overlap
+  // generator hold low-score rows (e.g. 0.13-0.19) for pairs that are now
+  // curated, and a create-and-skip-duplicates seed would leave that noise in
+  // place forever — the curated mapping would silently never appear.
+  let upsertedMappings = 0;
 
   for (let i = 0; i < validMappings.length; i += BATCH_SIZE) {
     const batch = validMappings.slice(i, i + BATCH_SIZE);
 
-    // Use individual creates to handle duplicates gracefully
     for (const mapping of batch) {
-      try {
-        await prisma.naturalRemedyMapping.create({
-          data: mapping,
-        });
-        createdMappings++;
-      } catch {
-        // Skip duplicates silently
-        skippedMappings++;
-      }
+      await prisma.naturalRemedyMapping.upsert({
+        where: {
+          pharmaceuticalId_naturalRemedyId: {
+            pharmaceuticalId: mapping.pharmaceuticalId,
+            naturalRemedyId: mapping.naturalRemedyId,
+          },
+        },
+        create: mapping,
+        update: {
+          similarityScore: mapping.similarityScore,
+          matchingNutrients: mapping.matchingNutrients,
+          replacementType: mapping.replacementType,
+        },
+      });
+      upsertedMappings++;
     }
 
     console.log(
@@ -273,9 +281,7 @@ async function main(): Promise<void> {
     );
   }
 
-  console.log(
-    `Created ${createdMappings} mappings (${skippedMappings} duplicates skipped).`,
-  );
+  console.log(`Upserted ${upsertedMappings} curated mappings.`);
 
   await ensureBaselineMappingCoverage();
 
@@ -285,7 +291,7 @@ async function main(): Promise<void> {
   console.log("========================================");
   console.log(`Pharmaceuticals: ${pharmaceuticals.length}`);
   console.log(`Natural Remedies: ${allNaturalRemedies.length}`);
-  console.log(`Mappings: ${createdMappings}`);
+  console.log(`Mappings: ${upsertedMappings}`);
   console.log("========================================");
 
   // Seed drug interactions

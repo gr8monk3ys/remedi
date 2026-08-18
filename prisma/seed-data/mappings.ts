@@ -1509,4 +1509,490 @@ export const remedyMappings = [
     matchingNutrients: JSON.stringify(["Calcium", "Bone protection"]),
     replacementType: "Supportive",
   },
+
+  // ---------------------------------------------------------------------------
+  // Curated mappings for drugs that previously had none and relied on the
+  // token-overlap generator, whose output fell below MIN_DISPLAY_SIMILARITY.
+  //
+  // Rules applied here (enforced by __tests__/seed-data/mappings.test.ts):
+  // - Scores mirror the drug's same-class siblings and stay at or below them.
+  // - Rescue/emergency (Albuterol), opioids (Tramadol), seizure meds
+  //   (Clonazepam), antibiotics and GLP-1s get NO "Alternative" label —
+  //   Supportive/Complementary only.
+  // - Anticoagulants/antiplatelets, antipsychotics and hormonal contraceptives
+  //   are deliberately left unmapped (see DELIBERATELY_UNMAPPED in the test);
+  //   for those, suggesting anything is worse than suggesting nothing.
+
+  // Atenolol (beta-blocker) — mirrors Metoprolol
+  {
+    pharmaceuticalName: "Atenolol",
+    naturalRemedyName: "Hawthorn Berry",
+    similarityScore: 0.6,
+    matchingNutrients: JSON.stringify(["Flavonoids", "Cardiovascular support"]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Atenolol",
+    naturalRemedyName: "Magnesium Glycinate",
+    similarityScore: 0.55,
+    matchingNutrients: JSON.stringify(["Magnesium", "Blood pressure support"]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Atenolol",
+    naturalRemedyName: "CoQ10 (Coenzyme Q10)",
+    similarityScore: 0.52,
+    matchingNutrients: JSON.stringify(["CoQ10", "Cardiovascular support"]),
+    replacementType: "Supportive",
+  },
+
+  // Enalapril (ACE inhibitor) — mirrors Lisinopril
+  {
+    pharmaceuticalName: "Enalapril",
+    naturalRemedyName: "Hibiscus",
+    similarityScore: 0.65,
+    matchingNutrients: JSON.stringify([
+      "Anthocyanins",
+      "ACE-inhibiting compounds",
+    ]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Enalapril",
+    naturalRemedyName: "Garlic (Allium sativum)",
+    similarityScore: 0.6,
+    matchingNutrients: JSON.stringify(["Allicin", "Blood pressure support"]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Enalapril",
+    naturalRemedyName: "Olive Leaf Extract",
+    similarityScore: 0.58,
+    matchingNutrients: JSON.stringify(["Oleuropein", "Blood pressure support"]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Enalapril",
+    naturalRemedyName: "CoQ10 (Coenzyme Q10)",
+    similarityScore: 0.52,
+    matchingNutrients: JSON.stringify(["CoQ10", "Cardiovascular support"]),
+    replacementType: "Supportive",
+  },
+
+  // Valsartan (ARB) — mirrors Losartan
+  {
+    pharmaceuticalName: "Valsartan",
+    naturalRemedyName: "Hibiscus",
+    similarityScore: 0.62,
+    matchingNutrients: JSON.stringify([
+      "Anthocyanins",
+      "Blood pressure support",
+    ]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Valsartan",
+    naturalRemedyName: "Olive Leaf Extract",
+    similarityScore: 0.58,
+    matchingNutrients: JSON.stringify(["Oleuropein", "Blood pressure support"]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Valsartan",
+    naturalRemedyName: "Magnesium Glycinate",
+    similarityScore: 0.55,
+    matchingNutrients: JSON.stringify(["Magnesium", "Blood pressure support"]),
+    replacementType: "Supportive",
+  },
+
+  // Hydrochlorothiazide (thiazide diuretic)
+  {
+    pharmaceuticalName: "Hydrochlorothiazide",
+    naturalRemedyName: "Hibiscus",
+    similarityScore: 0.6,
+    matchingNutrients: JSON.stringify(["Anthocyanins", "Mild diuretic effect"]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Hydrochlorothiazide",
+    naturalRemedyName: "Dandelion Root",
+    similarityScore: 0.55,
+    matchingNutrients: JSON.stringify(["Taraxasterol", "Herbal diuretic"]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Hydrochlorothiazide",
+    naturalRemedyName: "Magnesium Glycinate",
+    similarityScore: 0.52,
+    matchingNutrients: JSON.stringify([
+      "Magnesium",
+      "Repletes thiazide-depleted magnesium",
+    ]),
+    replacementType: "Supportive",
+  },
+
+  // Furosemide (loop diuretic, heart failure) — Supportive only; nothing
+  // herbal approaches a loop diuretic's effect in heart failure
+  {
+    pharmaceuticalName: "Furosemide",
+    naturalRemedyName: "Dandelion Root",
+    similarityScore: 0.5,
+    matchingNutrients: JSON.stringify(["Taraxasterol", "Mild herbal diuretic"]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Furosemide",
+    naturalRemedyName: "Magnesium Glycinate",
+    similarityScore: 0.48,
+    matchingNutrients: JSON.stringify([
+      "Magnesium",
+      "Repletes diuretic-depleted magnesium",
+    ]),
+    replacementType: "Supportive",
+  },
+
+  // Pravastatin (statin) — mirrors Atorvastatin/Simvastatin
+  {
+    pharmaceuticalName: "Pravastatin",
+    naturalRemedyName: "Berberine",
+    similarityScore: 0.7,
+    matchingNutrients: JSON.stringify(["Berberine", "Cholesterol modulation"]),
+    replacementType: "Alternative",
+  },
+  {
+    pharmaceuticalName: "Pravastatin",
+    naturalRemedyName: "Omega-3 Fish Oil (EPA/DHA)",
+    similarityScore: 0.58,
+    matchingNutrients: JSON.stringify(["EPA", "DHA", "Triglyceride reduction"]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Pravastatin",
+    naturalRemedyName: "CoQ10 (Coenzyme Q10)",
+    similarityScore: 0.5,
+    matchingNutrients: JSON.stringify(["CoQ10", "Statin support"]),
+    replacementType: "Supportive",
+  },
+
+  // Sitagliptin (DPP-4 inhibitor) — glycemic support, scores below the
+  // Metformin/Berberine pairing since the mechanisms differ
+  {
+    pharmaceuticalName: "Sitagliptin",
+    naturalRemedyName: "Berberine",
+    similarityScore: 0.62,
+    matchingNutrients: JSON.stringify(["Berberine", "Blood sugar regulation"]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Sitagliptin",
+    naturalRemedyName: "Cinnamon (Ceylon)",
+    similarityScore: 0.55,
+    matchingNutrients: JSON.stringify(["Cinnamaldehyde", "Glycemic support"]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Sitagliptin",
+    naturalRemedyName: "Gymnema Sylvestre",
+    similarityScore: 0.52,
+    matchingNutrients: JSON.stringify(["Gymnemic acids", "Glycemic support"]),
+    replacementType: "Supportive",
+  },
+
+  // Empagliflozin (SGLT2 inhibitor)
+  {
+    pharmaceuticalName: "Empagliflozin",
+    naturalRemedyName: "Berberine",
+    similarityScore: 0.6,
+    matchingNutrients: JSON.stringify(["Berberine", "Blood sugar regulation"]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Empagliflozin",
+    naturalRemedyName: "Alpha-Lipoic Acid",
+    similarityScore: 0.52,
+    matchingNutrients: JSON.stringify(["ALA", "Glucose metabolism"]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Empagliflozin",
+    naturalRemedyName: "Cinnamon (Ceylon)",
+    similarityScore: 0.5,
+    matchingNutrients: JSON.stringify(["Cinnamaldehyde", "Glycemic support"]),
+    replacementType: "Supportive",
+  },
+
+  // Liraglutide (GLP-1 agonist) — Supportive only; no natural product
+  // approximates incretin therapy
+  {
+    pharmaceuticalName: "Liraglutide",
+    naturalRemedyName: "Berberine",
+    similarityScore: 0.52,
+    matchingNutrients: JSON.stringify(["Berberine", "Glycemic support"]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Liraglutide",
+    naturalRemedyName: "Psyllium Husk",
+    similarityScore: 0.5,
+    matchingNutrients: JSON.stringify([
+      "Soluble fiber",
+      "Satiety and glycemic support",
+    ]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Liraglutide",
+    naturalRemedyName: "Chromium Picolinate",
+    similarityScore: 0.48,
+    matchingNutrients: JSON.stringify(["Chromium", "Glucose metabolism"]),
+    replacementType: "Supportive",
+  },
+
+  // Doxylamine (antihistamine sleep aid, also pregnancy nausea) — mirrors
+  // Diphenhydramine, plus ginger for the nausea indication
+  {
+    pharmaceuticalName: "Doxylamine",
+    naturalRemedyName: "Melatonin",
+    similarityScore: 0.75,
+    matchingNutrients: JSON.stringify(["Melatonin", "Sleep regulation"]),
+    replacementType: "Alternative",
+  },
+  {
+    pharmaceuticalName: "Doxylamine",
+    naturalRemedyName: "Valerian Root",
+    similarityScore: 0.62,
+    matchingNutrients: JSON.stringify(["Valerenic acid", "Sleep support"]),
+    replacementType: "Alternative",
+  },
+  {
+    pharmaceuticalName: "Doxylamine",
+    naturalRemedyName: "Chamomile",
+    similarityScore: 0.6,
+    matchingNutrients: JSON.stringify(["Apigenin", "Calming"]),
+    replacementType: "Alternative",
+  },
+  {
+    pharmaceuticalName: "Doxylamine",
+    naturalRemedyName: "Ginger Root",
+    similarityScore: 0.58,
+    matchingNutrients: JSON.stringify(["Gingerols", "Nausea relief"]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Doxylamine",
+    naturalRemedyName: "Magnesium Glycinate",
+    similarityScore: 0.52,
+    matchingNutrients: JSON.stringify(["Magnesium", "Sleep support"]),
+    replacementType: "Supportive",
+  },
+
+  // Clonazepam — unlike its benzodiazepine siblings this is also a seizure
+  // medication, so nothing here is labelled an Alternative
+  {
+    pharmaceuticalName: "Clonazepam",
+    naturalRemedyName: "Ashwagandha (Withania somnifera)",
+    similarityScore: 0.55,
+    matchingNutrients: JSON.stringify(["Withanolides", "Stress adaptation"]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Clonazepam",
+    naturalRemedyName: "L-Theanine",
+    similarityScore: 0.52,
+    matchingNutrients: JSON.stringify(["L-Theanine", "Calm focus"]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Clonazepam",
+    naturalRemedyName: "Magnesium Glycinate",
+    similarityScore: 0.5,
+    matchingNutrients: JSON.stringify(["Magnesium", "Nervous system support"]),
+    replacementType: "Supportive",
+  },
+
+  // Tramadol (opioid) — Supportive only; nothing here is an opioid substitute
+  {
+    pharmaceuticalName: "Tramadol",
+    naturalRemedyName: "Turmeric (Curcumin)",
+    similarityScore: 0.55,
+    matchingNutrients: JSON.stringify(["Curcumin", "Anti-inflammatory"]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Tramadol",
+    naturalRemedyName: "Boswellia (Indian Frankincense)",
+    similarityScore: 0.52,
+    matchingNutrients: JSON.stringify(["Boswellic acids", "Anti-inflammatory"]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Tramadol",
+    naturalRemedyName: "Omega-3 Fish Oil (EPA/DHA)",
+    similarityScore: 0.5,
+    matchingNutrients: JSON.stringify([
+      "EPA",
+      "DHA",
+      "Anti-inflammatory fatty acids",
+    ]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Tramadol",
+    naturalRemedyName: "Magnesium Glycinate",
+    similarityScore: 0.48,
+    matchingNutrients: JSON.stringify(["Magnesium", "Chronic pain support"]),
+    replacementType: "Supportive",
+  },
+
+  // Famotidine (H2 blocker) — mirrors the PPI sets at slightly lower scores
+  {
+    pharmaceuticalName: "Famotidine",
+    naturalRemedyName: "DGL Licorice",
+    similarityScore: 0.65,
+    matchingNutrients: JSON.stringify([
+      "Glycyrrhizin-free licorice",
+      "Mucosal protection",
+    ]),
+    replacementType: "Alternative",
+  },
+  {
+    pharmaceuticalName: "Famotidine",
+    naturalRemedyName: "Slippery Elm",
+    similarityScore: 0.6,
+    matchingNutrients: JSON.stringify(["Mucilage", "Soothing"]),
+    replacementType: "Alternative",
+  },
+  {
+    pharmaceuticalName: "Famotidine",
+    naturalRemedyName: "Zinc Carnosine",
+    similarityScore: 0.58,
+    matchingNutrients: JSON.stringify(["Zinc L-carnosine", "Mucosal healing"]),
+    replacementType: "Complementary",
+  },
+
+  // Albuterol (rescue bronchodilator) — Supportive only. These have clinical
+  // evidence as adjuncts in asthma; none is remotely a substitute for a
+  // rescue inhaler and none is labelled as one.
+  {
+    pharmaceuticalName: "Albuterol",
+    naturalRemedyName: "Boswellia (Indian Frankincense)",
+    similarityScore: 0.52,
+    matchingNutrients: JSON.stringify([
+      "Boswellic acids",
+      "Airway inflammation support",
+    ]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Albuterol",
+    naturalRemedyName: "Magnesium Glycinate",
+    similarityScore: 0.5,
+    matchingNutrients: JSON.stringify([
+      "Magnesium",
+      "Bronchial smooth muscle support",
+    ]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Albuterol",
+    naturalRemedyName: "Vitamin D3 (Cholecalciferol)",
+    similarityScore: 0.48,
+    matchingNutrients: JSON.stringify([
+      "Vitamin D",
+      "Exacerbation frequency support",
+    ]),
+    replacementType: "Supportive",
+  },
+
+  // Pseudoephedrine (decongestant)
+  {
+    pharmaceuticalName: "Pseudoephedrine",
+    naturalRemedyName: "N-Acetyl Cysteine (NAC)",
+    similarityScore: 0.55,
+    matchingNutrients: JSON.stringify(["NAC", "Mucolytic"]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Pseudoephedrine",
+    naturalRemedyName: "Stinging Nettle (Urtica dioica)",
+    similarityScore: 0.52,
+    matchingNutrients: JSON.stringify([
+      "Histamine modulation",
+      "Nasal congestion support",
+    ]),
+    replacementType: "Complementary",
+  },
+  {
+    pharmaceuticalName: "Pseudoephedrine",
+    naturalRemedyName: "Peppermint",
+    similarityScore: 0.5,
+    matchingNutrients: JSON.stringify(["Menthol", "Nasal airflow sensation"]),
+    replacementType: "Supportive",
+  },
+
+  // Antibiotics — Supportive only, and only gut-flora / condition support.
+  // There is no natural alternative to an antibiotic; an untreated infection
+  // is the dangerous outcome. Note: no magnesium for Ciprofloxacin — divalent
+  // cations chelate fluoroquinolones and block absorption.
+  {
+    pharmaceuticalName: "Doxycycline",
+    naturalRemedyName: "Multi-Strain Probiotic",
+    similarityScore: 0.55,
+    matchingNutrients: JSON.stringify([
+      "Probiotics",
+      "Gut flora restoration during antibiotics",
+    ]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Doxycycline",
+    naturalRemedyName: "Zinc Picolinate",
+    similarityScore: 0.5,
+    matchingNutrients: JSON.stringify(["Zinc", "Acne and immune support"]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Amoxicillin",
+    naturalRemedyName: "Multi-Strain Probiotic",
+    similarityScore: 0.55,
+    matchingNutrients: JSON.stringify([
+      "Probiotics",
+      "Gut flora restoration during antibiotics",
+    ]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Azithromycin",
+    naturalRemedyName: "Multi-Strain Probiotic",
+    similarityScore: 0.55,
+    matchingNutrients: JSON.stringify([
+      "Probiotics",
+      "Gut flora restoration during antibiotics",
+    ]),
+    replacementType: "Supportive",
+  },
+  {
+    pharmaceuticalName: "Ciprofloxacin",
+    naturalRemedyName: "Multi-Strain Probiotic",
+    similarityScore: 0.55,
+    matchingNutrients: JSON.stringify([
+      "Probiotics",
+      "Gut flora restoration during antibiotics",
+    ]),
+    replacementType: "Supportive",
+  },
+
+  // Oral contraceptive — nutrient repletion only; there is no natural
+  // alternative to hormonal contraception and implying one risks unintended
+  // pregnancy
+  {
+    pharmaceuticalName: "Ethinyl Estradiol/Levonorgestrel",
+    naturalRemedyName: "B-Complex",
+    similarityScore: 0.45,
+    matchingNutrients: JSON.stringify([
+      "B vitamins",
+      "Repletes contraceptive-depleted B6 and folate",
+    ]),
+    replacementType: "Supportive",
+  },
 ];
