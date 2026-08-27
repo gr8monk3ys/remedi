@@ -1,4 +1,4 @@
-name: org-release-please
+name: release-please
 
 # Cancel superseded in-flight runs for the same ref (but never on main,
 # where every commit's run should complete).

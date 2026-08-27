@@ -56,3 +56,6 @@ audit-*.png
 fixed-*.png
 homepage.png
 about-page.png
+
+# local Claude Code permissions
+.claude/settings.local.json
