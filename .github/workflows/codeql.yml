@@ -1,4 +1,4 @@
-name: org-codeql
+name: codeql
 
 # Cancel superseded in-flight runs for the same ref (but never on main,
 # where every commit's run should complete).

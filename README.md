@@ -2,378 +2,91 @@
 
 ![CI](https://github.com/gr8monk3ys/remedi/actions/workflows/ci.yml/badge.svg)
 
-A modern web application designed to help users find natural alternatives to pharmaceutical drugs and supplements. The app integrates with the OpenFDA API and uses an intelligent database-first search strategy to provide accurate, science-backed natural remedy recommendations.
+Search a pharmaceutical, get the natural remedies that are honestly related to
+it, with the relationship labelled: **Alternative**, **Complementary** or
+**Supportive**. Live at https://remedi-iota.vercel.app.
 
-## Preview
+The interesting part is not the search; it is what the data is not allowed to
+say. The seed set (85 drugs, 504 remedies, 249 mappings in
+[`prisma/seed-data/mappings.ts`](prisma/seed-data/mappings.ts)) is held to
+pharmacological invariants by
+[`__tests__/seed-data/mappings.test.ts`](__tests__/seed-data/mappings.test.ts),
+so a careless edit fails CI instead of shipping:
 
-![Remedi home page preview](docs/screenshots/home.png)
+- Rescue inhalers, opioids, seizure medication, antibiotics, GLP-1s and
+  hormonal contraceptives can never carry an "Alternative" label. Supportive
+  entries are allowed; a substitute is a test failure.
+- Anticoagulants and antiplatelets (warfarin, apixaban, rivaroxaban,
+  dabigatran, clopidogrel) and quetiapine have **zero** mappings on purpose.
+  Even a "supportive" supplement changes bleeding risk, so an empty page is the
+  curated answer. The test pins the list both ways: those drugs must stay
+  unmapped, and every other drug must have at least one displayable mapping,
+  so emptiness is always a decision and never a gap.
+- Magnesium is forbidden beside ciprofloxacin (divalent cations chelate
+  fluoroquinolones and block absorption).
 
-## Features
+The same stance applies at runtime. If the interactions API fails (rate limit,
+database blip), the remedy page renders an error. It used to fall through to
+the empty state and say "no known interactions", which is the one wrong answer
+a safety checker must never give ([#69](https://github.com/gr8monk3ys/remedi/pull/69)).
 
-- **Fast Search**: Find natural alternatives to common pharmaceuticals quickly
-- **OpenFDA Integration**: Search thousands of FDA-approved drugs and supplements
-- **Database-First Strategy**: Intelligent caching for faster subsequent searches
-- **Dark/Light Mode**: Toggle between light and dark themes for comfortable viewing
-- **Search History**: Keep track of your recent searches for easy reference
-- **Fuzzy Search**: Find results even when your spelling isn't perfect
-- **Filtering**: Filter results by category or matching nutrients
-- **Detailed Remedy Information**: Usage, dosage, precautions, and scientific references
-- **Favorites System**: Save your favorite remedies for quick access
-- **Mobile-Friendly Design**: Works on all devices
+![Remedi home page](docs/screenshots/home.png)
 
-## Tech Stack
+## Stack
 
-- **React 19**: For building the user interface
-- **Next.js 16**: For server-side rendering and API routes
-- **Bun**: Package manager and runtime
-- **TypeScript 5**: For type safety
-- **Prisma**: ORM for database operations
-- **PostgreSQL**: Primary database (local via Docker)
-- **TailwindCSS 4**: For styling
-- **Framer Motion**: For animations
-- **next-themes**: For dark/light mode
-- **OpenFDA API**: For pharmaceutical data
-- **Levenshtein Algorithm**: For fuzzy search functionality
+Next.js 16 (App Router, React 19), TypeScript, Bun, Prisma 7 + PostgreSQL,
+Tailwind 4, Clerk auth, Stripe, Resend, Sentry. OpenAI is optional and only
+powers `/api/ai-search`.
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- Bun 1.3+
-- Docker (for local PostgreSQL)
-
-### Installation
-
-1. Clone the repository
+## Run locally
 
 ```bash
-git clone https://github.com/gr8monk3ys/remedi.git
-cd remedi
-```
-
-2. Install dependencies
-
-```bash
+git clone https://github.com/gr8monk3ys/remedi.git && cd remedi
 bun install
+cp .env.example .env            # defaults work for local dev
+docker-compose up -d postgres   # Postgres on localhost:5433
+bun run init                    # prisma generate + migrate + seed
+bun run dev                     # http://localhost:3000
 ```
-
-3. Set up environment variables
-
-```bash
-cp .env.example .env
-# Edit .env with your configuration (optional for basic usage)
-```
-
-4. Start the database
-
-```bash
-docker-compose up -d postgres
-```
-
-5. Set up the database
-
-```bash
-# Generate Prisma client
-bunx prisma generate
-
-# Run database migrations
-bunx prisma migrate dev
-
-# Seed the database with initial data
-bunx prisma db seed
-```
-
-6. Run the development server
-
-```bash
-bun run dev
-```
-
-7. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-Optional: visit [http://localhost:3000/landing](http://localhost:3000/landing) for the GTM landing page.
-
-## Project Structure
-
-```
-├── app/                      # Next.js app directory
-│   ├── api/                  # API routes
-│   │   ├── remedy/[id]/      # Remedy detail API
-│   │   └── search/           # Search API
-│   ├── remedy/[id]/          # Remedy detail pages
-│   ├── layout.tsx            # Root layout with ThemeProvider
-│   ├── page.tsx              # Home page
-│   └── globals.css           # Global styles
-├── components/               # React components
-│   ├── theme-provider.tsx    # Manages theme state
-│   └── ui/                   # UI components
-│       ├── filter.tsx        # Filter component
-│       ├── header.tsx        # Header component
-│       ├── pagination.tsx    # Pagination component
-│       ├── search.tsx        # Search component
-│       └── theme-toggle.tsx  # Theme toggle button
-├── hooks/                    # Custom React hooks
-├── lib/                      # Utility functions
-│   ├── db.ts                 # Prisma database utilities
-│   ├── fuzzy-search.ts       # Fuzzy search implementation
-│   ├── openFDA.ts            # OpenFDA API integration
-│   ├── remedy-matcher.ts     # Remedy matching algorithm
-│   ├── types.ts              # Shared TypeScript types
-│   └── utils.ts              # General utilities
-├── prisma/                   # Database files
-│   ├── migrations/           # Database migrations
-│   ├── schema.prisma         # Database schema
-│   ├── seed.ts               # Database seed script
-├── public/                   # Static assets
-├── .env.example              # Environment variables template
-├── next.config.ts            # Next.js configuration
-├── package.json              # Project dependencies
-├── tailwind.config.ts        # Tailwind CSS configuration
-├── tsconfig.json             # TypeScript configuration
-├── CLAUDE.md                 # Architecture guide
-└── docs/TODO.md                   # Task tracking
-```
-
-## API Routes
-
-### GET /api/search
-
-Search for natural alternatives to a pharmaceutical using a three-tier strategy:
-
-1. Database search (fastest)
-2. OpenFDA API (cached to database)
-3. Mock data fallback
-
-**Parameters:**
-
-- `query` (string): The name of the pharmaceutical to search for
-
-**Example Request:**
 
 ```bash
 curl "http://localhost:3000/api/search?query=ibuprofen"
 ```
 
-**Example Response:**
+Search order: local database, then OpenFDA (results are cached back into the
+database), then a small in-memory fallback. `OPENFDA_API_KEY` raises the FDA
+rate limit from 40 to 240 requests/min. Set `bun run import:fda:dry` to preview
+a bulk import; see [`docs/OPENFDA_IMPORT.md`](docs/OPENFDA_IMPORT.md).
 
-All API routes return the standard `ApiResponse<T>` envelope from
-`lib/api/response.ts`.
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "21073229-a19a-4c9a-9cf3-c7955f506034",
-      "name": "Turmeric (Curcumin)",
-      "description": "Contains curcumin, which has anti-inflammatory properties.",
-      "imageUrl": "",
-      "category": "Herbal",
-      "matchingNutrients": ["Curcumin", "Anti-inflammatory compounds"],
-      "similarityScore": 0.75,
-      "replacementType": "Complementary"
-    }
-  ],
-  "metadata": {
-    "total": 1,
-    "processingTime": 26,
-    "apiVersion": "1.0",
-    "source": "database"
-  }
-}
-```
-
-### GET /api/remedy/[id]
-
-Get detailed information about a specific natural remedy.
-
-**Parameters:**
-
-- `id` (string): The remedy UUID. Names and slugs are not accepted.
-
-**Example Request:**
+## Check
 
 ```bash
-curl "http://localhost:3000/api/remedy/21073229-a19a-4c9a-9cf3-c7955f506034"
+bun run format:check && bun run lint && bun run type-check && bun run knip
+bun run test:run        # vitest unit tests (__tests__/)
+bun run test:e2e        # playwright (e2e/), needs the database
+bun run db:verify && bun run db:integrity && bun run prod:check
 ```
 
-**Example Response:**
+All of the above run in `.github/workflows/ci.yml`; `test` and `e2e` are the
+required checks on `main`.
 
-```json
-{
-  "success": true,
-  "data": {
-    "id": "21073229-a19a-4c9a-9cf3-c7955f506034",
-    "name": "Turmeric (Curcumin)",
-    "description": "Contains curcumin, which has anti-inflammatory properties.",
-    "imageUrl": "",
-    "category": "Herbal",
-    "matchingNutrients": ["Curcumin"],
-    "similarityScore": 1,
-    "usage": "Can be used in cooking, taken as a supplement, or made into a paste...",
-    "dosage": "500-2,000 mg of turmeric extract per day",
-    "precautions": "May interact with blood thinners...",
-    "scientificInfo": "The active compound in turmeric, curcumin, inhibits...",
-    "references": [
-      {
-        "title": "Curcumin: A Review of Its Effects on Human Health",
-        "url": "https://www.mdpi.com/2072-6643/9/10/1047"
-      }
-    ],
-    "relatedRemedies": [
-      { "id": "94d329c2-fa52-4caa-a9e6-ef0f9d8d59ac", "name": "Ginger Root" }
-    ],
-    "evidenceLevel": "Strong"
-  }
-}
+## Layout
+
 ```
-
-## Architecture & Database
-
-### Database Schema
-
-The application uses Prisma ORM with three main models:
-
-1. **Pharmaceutical** - Stores drug/supplement information
-   - FDA ID, name, description, category
-   - Ingredients and benefits (JSON arrays)
-   - Usage, warnings, interactions
-
-2. **NaturalRemedy** - Stores natural alternative information
-   - Name, description, category, image
-   - Ingredients, benefits, usage, dosage
-   - Precautions, scientific info, references
-   - Evidence level (Strong, Moderate, Limited, Traditional)
-
-3. **NaturalRemedyMapping** - Links pharmaceuticals to remedies
-   - Similarity score (0-1)
-   - Matching nutrients
-   - Replacement type (Alternative, Complementary, Supportive)
-
-### Search Strategy
-
-The app implements an intelligent three-tier search:
-
-1. **Database First**: Searches local database for cached pharmaceuticals and their remedy mappings (instant results)
-2. **OpenFDA API**: If not in database, queries FDA API and automatically caches results
-3. **Mock Data Fallback**: Uses in-memory data for development/testing
-
-### Key Features
-
-#### Database Integration
-
-- ✅ Prisma ORM with type-safe queries
-- ✅ Automatic caching of FDA API results
-- ✅ Efficient JSON field parsing for SQLite
-- ✅ Database-first search strategy
-
-#### Search & Discovery
-
-- ✅ Fuzzy matching with Levenshtein distance
-- ✅ Spelling correction and query normalization
-- ✅ Relevance scoring for results
-- ✅ Search history (database-backed, per user or anonymous session)
-
-#### User Experience
-
-- ✅ Dark/Light mode with system preference detection
-- ✅ Favorites system (database-backed, per user or anonymous session)
-- ✅ Detailed remedy pages with scientific references
-- ✅ Responsive design for all screen sizes
-- ✅ Loading states and error handling
-
-#### Developer Experience
-
-- ✅ Full TypeScript support with shared types
-- ✅ ESLint configuration
-- ✅ Environment variable templates
-- ✅ Comprehensive documentation (CLAUDE.md, TODO.md)
-
-## Available Scripts
-
-```bash
-# Development
-bun run dev          # Start development server
-bun run build        # Build for production
-bun run start        # Start production server
-bun run lint         # Run ESLint
-bun run type-check   # TypeScript type checking
-bun run knip         # Dead code / unused dependency check (CI-gated)
-bun run init         # Generate Prisma client, migrate, seed
-bun run health:check # Verify database connectivity
-bun run health:check:http # Verify /api/health endpoint
-bun run predeploy    # Run pre-deploy verification suite
-
-# Testing
-bun run test         # Unit tests, watch mode (Vitest)
-bun run test:run     # Unit tests, single run
-bun run test:coverage # Unit tests with coverage report
-bun run test:e2e     # E2E tests (Playwright)
-
-# Database
-bunx prisma generate  # Generate Prisma client
-bunx prisma migrate dev  # Run migrations
-bunx prisma studio    # Open Prisma Studio GUI
-bunx prisma db seed  # Seed database with data
+app/api/           search, remedy, interactions, favorites, contributions, admin, webhooks
+lib/remedy-matcher.ts   token-overlap scoring; MIN_DISPLAY_SIMILARITY hides weak mappings
+lib/openFDA.ts     FDA client with retry
+lib/db/            all Prisma access
+prisma/seed-data/  curated drugs, remedies and mappings
+proxy.ts           CSP, CORS and auth-protected routes (Next middleware)
+docs/              DEPLOYMENT.md, OPENFDA_IMPORT.md, PWA.md, SENTRY_ALERTS.md
 ```
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and configure:
-
-```env
-DATABASE_URL="postgresql://remedi:remedi_dev@localhost:5433/remedi?schema=public"
-OPENAI_API_KEY="your-key"                 # Optional: AI features
-OPENFDA_API_KEY="your-key"                # Optional: higher rate limits
-```
-
-## Runtime Notes
-
-- Pages that depend on Prisma queries are configured as dynamic to avoid build-time DB failures.
-- `sitemap.xml` is generated dynamically and revalidated daily.
-
-## Production Readiness
-
-See `docs/production-readiness.md` for the verification checklist and CI steps.
-
-## Troubleshooting
-
-- `P1001: Can't reach database server`: Verify Postgres is running and that `DATABASE_URL` points to port `5433` (local Docker mapping).
-- `listen EPERM` in Playwright: Run `bun run test:e2e` locally/CI where the runtime can bind ports.
-- Build warnings from `@prisma/instrumentation`: These come from Sentry’s Prisma integration and are expected with webpack builds.
-
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-See [TODO.md](docs/TODO.md) for a list of planned features and improvements.
-
-## Development Roadmap
-
-See [TODO.md](docs/TODO.md) for the complete roadmap. Key priorities:
-
-- [ ] Expand database seed with more remedies
-- [ ] Internationalization
-- [ ] Public API for third parties
-- [ ] Native mobile app (a PWA already ships)
-
-## Documentation
-
-- [CLAUDE.md](CLAUDE.md) - Architecture and implementation guide
-- [TODO.md](docs/TODO.md) - Task tracking and roadmap
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the
-[LICENSE](LICENSE) file for details.
+GPL-3.0, see [LICENSE](LICENSE).
 
 ## Disclaimer
 
-**Important**: This application is for informational and educational purposes only. It is not intended to be a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition or medication changes. Never disregard professional medical advice or delay seeking it because of information you have read in this application.
+Informational only, not medical advice. Talk to a physician or pharmacist before
+changing any medication.
