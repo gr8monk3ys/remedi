@@ -4,7 +4,6 @@
 
 @source "../app";
 @source "../components";
-@source "../context";
 @source "../hooks";
 @source "../lib";
 
@@ -668,6 +667,16 @@ body {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Ported from the old tailwind.config.ts, which Tailwind v4 never loaded
+     (no @config directive), so these utilities silently did not exist. */
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-surface: var(--primary-surface);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-subtle: var(--foreground-subtle);
 }
 
 .dark {
