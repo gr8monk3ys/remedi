@@ -12,12 +12,11 @@ import "server-only";
 import Stripe from "stripe";
 import {
   getStripe as getKitStripe,
+  setDefaultStripeConfig,
   stripe as kitStripe,
   createCheckoutSession as createKitCheckoutSession,
   createBillingPortalSession as createKitBillingPortalSession,
   isStripeConfigured,
-  getStripeMode,
-  type StripeMode,
 } from "@gr8monk3ys/next-kit/stripe";
 
 // Re-export client-safe config for convenience in server code
@@ -36,19 +35,26 @@ export {
 
 import { type PlanType } from "./stripe-config";
 
+// Pin the API version for EVERY client this app builds, including the ones
+// behind the `stripe` proxy below. Setting it here rather than passing it to
+// getStripe() is what keeps the proxy and the getter on one client: the kit
+// memoizes per (key, config), so a per-call pin would leave `stripe.*` running
+// unpinned on whatever version the installed SDK defaults to.
+setDefaultStripeConfig({ apiVersion: "2026-05-27.dahlia" });
+
 /**
  * Get the Stripe client (lazy initialization).
  *
- * The client itself is the kit's memoized singleton; this wrapper adds the two
- * things that are ours: the API version we are pinned to, and the requirement
- * that the key come from STRIPE_SECRET_KEY specifically (the kit also accepts
- * STRIPE_API_KEY, which this app does not set).
+ * The client is the kit's memoized singleton; this wrapper adds the one thing
+ * that is ours — the requirement that the key come from STRIPE_SECRET_KEY
+ * specifically (the kit also accepts STRIPE_API_KEY, which this app never sets,
+ * so without this check a stray STRIPE_API_KEY would silently satisfy it).
  */
 export function getStripe(): Stripe {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error("STRIPE_SECRET_KEY is not configured");
   }
-  return getKitStripe({ config: { apiVersion: "2026-05-27.dahlia" } });
+  return getKitStripe();
 }
 
 /**
@@ -57,7 +63,30 @@ export function getStripe(): Stripe {
  */
 export const stripe = kitStripe;
 
-export { isStripeConfigured, getStripeMode, type StripeMode };
+export { isStripeConfigured };
+
+export type StripeMode = "test" | "live" | "unknown";
+
+/**
+ * Infer Stripe key mode from the configured secret/publishable keys.
+ *
+ * Lives here rather than in the kit: this is the only app that asks for it, and
+ * a shared package should not carry a single caller's helper.
+ *
+ * This is safe to expose in admin tooling since it does not reveal the key.
+ */
+export function getStripeMode(): StripeMode {
+  const secret = process.env.STRIPE_SECRET_KEY || "";
+  const publishable = process.env.STRIPE_PUBLISHABLE_KEY || "";
+
+  if (secret.startsWith("sk_test_") || publishable.startsWith("pk_test_")) {
+    return "test";
+  }
+  if (secret.startsWith("sk_live_") || publishable.startsWith("pk_live_")) {
+    return "live";
+  }
+  return "unknown";
+}
 
 /**
  * Price IDs configuration (server-only)

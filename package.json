@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.3",
-    "@gr8monk3ys/next-kit": "https://github.com/gr8monk3ys/next-kit/archive/refs/tags/v0.1.0.tar.gz",
+    "@gr8monk3ys/next-kit": "https://github.com/gr8monk3ys/next-kit/archive/refs/tags/v0.1.1.tar.gz",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@radix-ui/react-dialog": "^1.1.16",
