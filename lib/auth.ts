@@ -1,7 +1,11 @@
 /**
  * Clerk Authentication Utilities
  *
- * Provides authentication helpers using Clerk.
+ * Thin app-specific layer over `@gr8monk3ys/next-kit/auth/clerk`. The kit owns
+ * the Clerk plumbing and the guard semantics; this module owns what is remedi's:
+ * which columns make up a user, the E2E local-auth bypass, and the exported
+ * function names.
+ *
  * Maintains the same exported function signatures as the previous NextAuth.js
  * implementation so all downstream imports continue to work unchanged.
  *
@@ -11,14 +15,31 @@
  */
 
 import "server-only";
+import {
+  createClerkAuth,
+  setClerkModule,
+} from "@gr8monk3ys/next-kit/auth/clerk";
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 
+// Hand Clerk to the kit rather than letting it resolve `@clerk/nextjs/server`
+// itself: this import is what next.config.ts swaps for the E2E mock, and a
+// dynamic specifier inside the package would sidestep that alias.
+setClerkModule({ auth });
+
 const E2E_AUTH_COOKIE_NAMES = ["e2e_auth", "__session"] as const;
 const E2E_LOCAL_USER_EMAIL = "e2e-user@remedi.local";
 const E2E_LOCAL_USER_NAME = "E2E Local User";
+
+const USER_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+  image: true,
+  role: true,
+} as const;
 
 function isE2ELocalAuthEnabled(): boolean {
   return process.env.E2E_LOCAL_AUTH === "true";
@@ -48,26 +69,14 @@ type AuthUser = {
 async function getOrCreateE2ELocalUser(): Promise<AuthUser> {
   const existingUser = await prisma.user.findUnique({
     where: { email: E2E_LOCAL_USER_EMAIL },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      role: true,
-    },
+    select: USER_SELECT,
   });
 
   if (existingUser) return existingUser;
 
   const firstUser = await prisma.user.findFirst({
     orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      role: true,
-    },
+    select: USER_SELECT,
   });
 
   if (firstUser) return firstUser;
@@ -79,15 +88,22 @@ async function getOrCreateE2ELocalUser(): Promise<AuthUser> {
       email: E2E_LOCAL_USER_EMAIL,
       name: E2E_LOCAL_USER_NAME,
     },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      role: true,
-    },
+    select: USER_SELECT,
   });
 }
+
+const clerkAuth = createClerkAuth<AuthUser>({
+  resolveUser: (clerkId) =>
+    prisma.user.findUnique({ where: { clerkId }, select: USER_SELECT }),
+  // Consulted before Clerk. When E2E local auth is off this is a no-op; when it
+  // is on and no cookie is present we fall through to the aliased Clerk mock,
+  // whose auth() reports no user — the same "signed out" answer.
+  fallback: {
+    enabled: isE2ELocalAuthEnabled,
+    resolve: async () =>
+      (await hasE2EAuthCookie()) ? getOrCreateE2ELocalUser() : null,
+  },
+});
 
 /**
  * Get current authenticated user from Clerk + DB.
@@ -97,34 +113,8 @@ async function getOrCreateE2ELocalUser(): Promise<AuthUser> {
  *
  * Returns null if not authenticated or if no DB user record exists.
  */
-export async function getCurrentUser(): Promise<{
-  id: string;
-  name: string | null;
-  email: string;
-  image: string | null;
-  role: string;
-} | null> {
-  if (isE2ELocalAuthEnabled()) {
-    const isAuthenticated = await hasE2EAuthCookie();
-    if (!isAuthenticated) return null;
-    return getOrCreateE2ELocalUser();
-  }
-
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return null;
-
-  const dbUser = await prisma.user.findUnique({
-    where: { clerkId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      role: true,
-    },
-  });
-
-  return dbUser || null;
+export async function getCurrentUser(): Promise<AuthUser | null> {
+  return clerkAuth.getUserOrNull();
 }
 
 /**
@@ -157,9 +147,7 @@ export async function isAuthenticated(): Promise<boolean> {
  * Reads from the database User.role field.
  */
 export async function checkUserRole(allowedRoles: string[]): Promise<boolean> {
-  const user = await getCurrentUser();
-  if (!user?.role) return false;
-  return allowedRoles.includes(user.role);
+  return clerkAuth.hasRole(allowedRoles);
 }
 
 /**
