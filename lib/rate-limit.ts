@@ -1,14 +1,25 @@
 /**
- * Rate Limiting with Upstash Redis
+ * Rate Limiting
  *
- * Provides rate limiting for API routes to prevent abuse and control costs.
- * Uses Upstash Redis for distributed rate limiting that works across serverless functions.
- * Falls back to an in-memory rate limiter when Redis is not configured.
+ * Thin app-specific layer over `@gr8monk3ys/next-kit/rate-limit`. This module
+ * owns the things that are remedi's: the per-endpoint limits, the response
+ * shape our routes already destructure, and the Sentry breadcrumb. The window
+ * accounting, the store implementations and the client-identifier rules live in
+ * the kit.
  *
- * @see https://upstash.com/docs/redis/sdks/ratelimit-ts/overview
+ * Uses Upstash Redis for distributed rate limiting that works across serverless
+ * functions. Falls back to an in-memory limiter when Redis is not configured,
+ * or when Redis is configured but unreachable.
  */
 
-import { Ratelimit } from "@upstash/ratelimit";
+import {
+  createRateLimiter,
+  getClientId,
+  MemoryStore,
+  RedisStore,
+  type RateLimiter,
+  type RateLimitStore,
+} from "@gr8monk3ys/next-kit/rate-limit";
 import { Redis } from "@upstash/redis";
 import { NextRequest, NextResponse } from "next/server";
 import { hasUpstashRedis, getUpstashRedisCredentials } from "@/lib/env";
@@ -103,178 +114,79 @@ export function isRateLimitEnabled(): boolean {
 }
 
 /**
- * Module-level singleton Redis client.
- * Created once and reused across all requests to avoid connection churn.
+ * Module-level singleton Redis store.
+ *
+ * The Upstash REST client already satisfies the kit's `RedisLike` shape
+ * (`incr` / `pexpire` / `pttl` / `del`), so no adapter is needed. Created once
+ * and reused across all requests to avoid connection churn.
  */
-let redisClient: Redis | null = null;
+let redisStore: RateLimitStore | null = null;
 
-/**
- * Get or create the singleton Redis client
- */
-function getRedisClient(): Redis | null {
-  if (redisClient) {
-    return redisClient;
-  }
-
-  if (!isRateLimitEnabled()) {
-    return null;
-  }
+function getRedisStore(): RateLimitStore | null {
+  if (redisStore) return redisStore;
+  if (!isRateLimitEnabled()) return null;
 
   const { url, token } = getUpstashRedisCredentials();
-  if (!url || !token) {
-    return null;
-  }
+  if (!url || !token) return null;
 
-  redisClient = new Redis({ url, token });
-  return redisClient;
+  redisStore = new RedisStore(new Redis({ url, token }), {
+    prefix: "remedi:ratelimit:",
+    // Surface the failure to checkRateLimit so it can fall back to the
+    // in-memory limiter, which still enforces the configured limits per
+    // instance, rather than failing open entirely.
+    onError: "closed",
+  });
+  return redisStore;
 }
 
 /**
- * Cache of Ratelimit instances keyed by identifier.
- * Avoids creating a new Ratelimit instance per request.
+ * In-memory fallback for when Redis is not configured or is unreachable.
+ * Does not persist across serverless cold starts, which is acceptable as a
+ * degraded-but-still-protective fallback.
  */
-const rateLimiterCache = new Map<string, Ratelimit>();
+const memoryStore = new MemoryStore();
 
 /**
- * Get or create a cached rate limiter for a specific endpoint
+ * Caches of limiter instances keyed by identifier + limit + window, so a new
+ * one is not built per request.
  */
-function getRateLimiter(config: RateLimitConfig): Ratelimit | null {
+const redisLimiters = new Map<string, RateLimiter>();
+const memoryLimiters = new Map<string, RateLimiter>();
+
+function getLimiter(
+  cache: Map<string, RateLimiter>,
+  store: RateLimitStore,
+  config: RateLimitConfig,
+): RateLimiter {
   const cacheKey = `${config.identifier}:${config.limit}:${config.window}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return cached;
 
-  const cached = rateLimiterCache.get(cacheKey);
-  if (cached) {
-    return cached;
-  }
-
-  const redis = getRedisClient();
-  if (!redis) {
-    return null;
-  }
-
-  const limiter = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(config.limit, `${config.window} s`),
-    analytics: true,
-    prefix: `remedi:ratelimit:${config.identifier}`,
+  const limiter = createRateLimiter({
+    store,
+    limit: config.limit,
+    windowMs: config.window * 1000,
+    prefix: config.identifier,
   });
-
-  rateLimiterCache.set(cacheKey, limiter);
+  cache.set(cacheKey, limiter);
   return limiter;
 }
 
 /**
- * In-memory rate limiter fallback for when Redis is not configured.
- * Tracks request counts per client identifier with automatic window expiry.
- * Note: This does not persist across serverless cold starts, which is acceptable
- * as a degraded-but-still-protective fallback.
- */
-interface InMemoryEntry {
-  count: number;
-  resetTime: number;
-}
-
-const inMemoryStore = new Map<string, InMemoryEntry>();
-
-/**
- * Periodically clean up expired entries to prevent memory leaks.
- * Runs at most once per 60 seconds.
- */
-let lastCleanup = 0;
-const CLEANUP_INTERVAL_MS = 60_000;
-
-function cleanupInMemoryStore(): void {
-  const now = Date.now();
-  if (now - lastCleanup < CLEANUP_INTERVAL_MS) {
-    return;
-  }
-  lastCleanup = now;
-  for (const [key, entry] of inMemoryStore) {
-    if (now >= entry.resetTime) {
-      inMemoryStore.delete(key);
-    }
-  }
-}
-
-function checkInMemoryRateLimit(
-  identifier: string,
-  config: RateLimitConfig,
-): RateLimitResult {
-  cleanupInMemoryStore();
-
-  const now = Date.now();
-  const key = `${config.identifier}:${identifier}`;
-  const entry = inMemoryStore.get(key);
-
-  // If no entry or window has expired, start a new window
-  if (!entry || now >= entry.resetTime) {
-    const resetTime = now + config.window * 1000;
-    inMemoryStore.set(key, { count: 1, resetTime });
-    return {
-      success: true,
-      limit: config.limit,
-      remaining: config.limit - 1,
-      reset: resetTime,
-      source: "in-memory",
-    };
-  }
-
-  // Increment count within current window
-  entry.count += 1;
-
-  if (entry.count > config.limit) {
-    return {
-      success: false,
-      limit: config.limit,
-      remaining: 0,
-      reset: entry.resetTime,
-      retryAfter: Math.ceil((entry.resetTime - now) / 1000),
-      source: "in-memory",
-    };
-  }
-
-  return {
-    success: true,
-    limit: config.limit,
-    remaining: config.limit - entry.count,
-    reset: entry.resetTime,
-    source: "in-memory",
-  };
-}
-
-/**
- * Get client identifier for rate limiting
- * Uses IP address, falling back to a session ID if available
+ * Get client identifier for rate limiting.
+ *
+ * Prefers headers the platform sets itself and a client cannot forge, then the
+ * RIGHT-most `x-forwarded-for` entry (the hop our own edge appended — taking
+ * `[0]` would let anyone mint a fresh bucket per request by rotating the
+ * header), then a session cookie so unidentified callers get their own bucket
+ * instead of sharing one global "anonymous" bucket that any single client could
+ * exhaust for everyone.
  */
 export function getClientIdentifier(request: NextRequest): string {
-  // Prefer headers the platform sets itself and a client cannot forge.
-  const cfConnectingIp = request.headers.get("cf-connecting-ip");
-  const realIp = request.headers.get("x-real-ip");
-
-  // x-forwarded-for is a client-controlled list that proxies APPEND to, so the
-  // right-most entry is the one added by our own edge and the left-most is
-  // whatever the caller made up. Taking [0] would let anyone mint a fresh
-  // rate-limit bucket per request just by rotating the header.
-  const forwardedFor = request.headers.get("x-forwarded-for");
-  const trustedForwarded = forwardedFor
-    ?.split(",")
-    .map((value) => value.trim())
-    .filter(Boolean)
-    .pop();
-
-  const ip = cfConnectingIp?.trim() || realIp?.trim() || trustedForwarded;
-
-  if (ip) {
-    return ip;
-  }
-
-  // With no trustworthy IP, fall back to the session cookie so unidentified
-  // callers get their own bucket instead of sharing one global "anonymous"
-  // bucket that any single client could exhaust for everyone.
-  const sessionId =
-    request.cookies?.get("sessionId")?.value ??
-    request.cookies?.get("__session")?.value;
-
-  return sessionId ? `session:${sessionId}` : "anonymous";
+  return getClientId(request, {
+    sessionCookieNames: ["sessionId", "__session"],
+    fallback: "anonymous",
+  });
 }
 
 /**
@@ -289,42 +201,49 @@ export interface RateLimitResult {
   source?: RateLimitSource;
 }
 
+async function check(
+  cache: Map<string, RateLimiter>,
+  store: RateLimitStore,
+  source: RateLimitSource,
+  identifier: string,
+  config: RateLimitConfig,
+): Promise<RateLimitResult> {
+  const result = await getLimiter(cache, store, config).check(identifier);
+
+  return {
+    success: result.ok,
+    limit: result.limit,
+    remaining: result.remaining,
+    reset: result.resetAt,
+    retryAfter: result.retryAfter,
+    source,
+  };
+}
+
 /**
  * Check rate limit for a request.
- * Uses Redis-backed Ratelimit when configured, otherwise falls back
- * to an in-memory rate limiter that enforces the same limits.
+ * Uses the Redis-backed store when configured, otherwise falls back
+ * to an in-memory store that enforces the same limits.
  */
 export async function checkRateLimit(
   request: NextRequest,
   config: RateLimitConfig = RATE_LIMITS.general,
 ): Promise<RateLimitResult> {
   const identifier = getClientIdentifier(request);
-  const ratelimiter = getRateLimiter(config);
+  const store = getRedisStore();
 
-  // Fall back to in-memory rate limiting when Redis is not configured
-  if (!ratelimiter) {
-    return checkInMemoryRateLimit(identifier, config);
+  if (!store) {
+    return check(memoryLimiters, memoryStore, "in-memory", identifier, config);
   }
 
   try {
-    const result = await ratelimiter.limit(identifier);
-
-    return {
-      success: result.success,
-      limit: result.limit,
-      remaining: result.remaining,
-      reset: result.reset,
-      retryAfter: result.success
-        ? undefined
-        : Math.ceil((result.reset - Date.now()) / 1000),
-      source: "upstash",
-    };
+    return await check(redisLimiters, store, "upstash", identifier, config);
   } catch (error) {
     // An Upstash outage must not turn every request into a 500. Fall back to
     // the in-memory limiter, which still enforces the configured limits
     // (per instance) rather than failing open entirely.
     logger.error("Rate limiter unavailable, falling back to in-memory", error);
-    return checkInMemoryRateLimit(identifier, config);
+    return check(memoryLimiters, memoryStore, "in-memory", identifier, config);
   }
 }
 

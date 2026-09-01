@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.3",
+    "@gr8monk3ys/next-kit": "https://github.com/gr8monk3ys/next-kit/archive/refs/tags/v0.1.1.tar.gz",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@radix-ui/react-dialog": "^1.1.16",
@@ -55,7 +56,6 @@
     "@react-email/components": "^1.0.12",
     "@sentry/nextjs": "^10.57.0",
     "@tanstack/react-query": "^5.101.0",
-    "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
