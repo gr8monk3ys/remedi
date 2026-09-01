@@ -35,18 +35,15 @@ export function StatsCard({
   if (isLoading) {
     return (
       <div
-        className={cn(
-          "bg-card rounded-xl shadow-sm border border-border p-6",
-          className,
-        )}
+        className={cn("rounded-lg border border-border bg-card p-5", className)}
       >
         <div className="animate-pulse">
-          <div className="flex items-center justify-between mb-4">
-            <div className="h-4 w-24 bg-muted rounded" />
-            <div className="h-10 w-10 bg-muted rounded-lg" />
+          <div className="mb-5 flex items-center justify-between">
+            <div className="h-3 w-24 rounded bg-muted" />
+            <div className="h-8 w-8 rounded-md bg-muted" />
           </div>
-          <div className="h-8 w-16 bg-muted rounded mb-2" />
-          <div className="h-3 w-20 bg-muted rounded" />
+          <div className="mb-2 h-8 w-16 rounded bg-muted" />
+          <div className="h-3 w-20 rounded bg-muted" />
         </div>
       </div>
     );
@@ -54,33 +51,30 @@ export function StatsCard({
 
   return (
     <div
-      className={cn(
-        "bg-card rounded-xl shadow-sm border border-border p-6 transition-all hover:shadow-md",
-        className,
-      )}
+      className={cn("rounded-lg border border-border bg-card p-5", className)}
     >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
+      <div className="mb-5 flex items-center justify-between">
+        <h3 className="eyebrow eyebrow-muted">{title}</h3>
+        <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background">
+          <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
         </div>
       </div>
 
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
+          <p className="tabular text-3xl font-semibold tracking-tight text-foreground">
+            {value}
+          </p>
           {subtitle && (
-            <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
           )}
         </div>
 
         {trend && (
           <div
             className={cn(
-              "flex items-center text-sm font-medium",
-              trend.isPositive
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400",
+              "tabular flex items-center font-mono text-xs font-medium",
+              trend.isPositive ? "text-success" : "text-destructive",
             )}
           >
             <span aria-hidden="true">{trend.isPositive ? "+" : ""}</span>
@@ -107,7 +101,7 @@ export function StatsCardSkeleton() {
  */
 export function StatsGridSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {Array.from({ length: count }).map((_, i) => (
         <StatsCardSkeleton key={i} />
       ))}

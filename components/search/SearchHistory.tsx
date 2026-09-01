@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { Loader2 } from "lucide-react";
 import type { SearchHistoryItem } from "./types";
 import { createLogger } from "@/lib/logger";
 
@@ -22,17 +23,12 @@ export const SearchHistory = memo(function SearchHistory({
   if (isLoading) {
     return (
       <div className="mb-6">
-        <h3
-          className="text-sm font-medium mb-2"
-          style={{ color: "var(--foreground-muted)" }}
-        >
-          Recent Searches
-        </h3>
-        <div className="flex justify-center items-center py-4">
-          <div
-            className="animate-spin rounded-full h-6 w-6 border-b-2"
-            style={{ borderColor: "var(--primary)" }}
-          ></div>
+        <h3 className="eyebrow eyebrow-muted mb-3">Recent Searches</h3>
+        <div className="flex items-center justify-center py-4">
+          <Loader2
+            className="h-5 w-5 animate-spin text-muted-foreground"
+            aria-label="Loading search history"
+          />
         </div>
       </div>
     );
@@ -44,46 +40,40 @@ export const SearchHistory = memo(function SearchHistory({
 
   return (
     <div className="mb-6">
-      <h3
-        className="text-sm font-medium mb-2"
-        style={{ color: "var(--foreground-muted)" }}
-      >
-        Recent Searches
-      </h3>
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="eyebrow eyebrow-muted">Recent Searches</h3>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await onClearHistory();
+            } catch (error) {
+              logger.error("Failed to clear history", error);
+            }
+          }}
+          disabled={isLoading}
+          className="text-xs text-muted-foreground transition-colors hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Clear History
+        </button>
+      </div>
       <div className="flex flex-wrap gap-2">
         {history.map((item) => (
           <button
             key={item.id}
+            type="button"
             onClick={() => onSelectQuery(item.query)}
-            className="neu-pill px-3 py-1 rounded-full text-sm transition-all"
-            style={{ color: "var(--foreground)" }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-foreground transition-colors hover:border-border-strong hover:bg-muted"
           >
             {item.query}
             {item.resultsCount > 0 && (
-              <span
-                className="ml-1 text-xs"
-                style={{ color: "var(--foreground-subtle)" }}
-              >
-                ({item.resultsCount})
+              <span className="font-mono text-[11px] text-muted-foreground">
+                {item.resultsCount}
               </span>
             )}
           </button>
         ))}
       </div>
-      <button
-        onClick={async () => {
-          try {
-            await onClearHistory();
-          } catch (error) {
-            logger.error("Failed to clear history", error);
-          }
-        }}
-        disabled={isLoading}
-        className="mt-2 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{ color: "var(--error)" }}
-      >
-        Clear History
-      </button>
     </div>
   );
 });

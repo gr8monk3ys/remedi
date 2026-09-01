@@ -89,37 +89,31 @@ export default async function AdminDashboard() {
       label: "Total Users",
       value: stats.userCount,
       icon: Users,
-      color: "bg-blue-500",
     },
     {
       label: "Natural Remedies",
       value: stats.remedyCount,
       icon: FileText,
-      color: "bg-green-500",
     },
     {
       label: "Total Searches",
       value: stats.searchCount,
       icon: Search,
-      color: "bg-purple-500",
     },
     {
       label: "Total Favorites",
       value: stats.favoriteCount,
       icon: Heart,
-      color: "bg-red-500",
     },
     {
       label: "Pending Reviews",
       value: stats.pendingContributions,
       icon: Clock,
-      color: "bg-yellow-500",
     },
     {
       label: "Events (24h)",
       value: stats.recentEvents,
       icon: TrendingUp,
-      color: "bg-indigo-500",
     },
   ];
 
@@ -127,8 +121,11 @@ export default async function AdminDashboard() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="eyebrow">Admin</p>
+        <h1 className="mt-2 text-2xl font-semibold text-foreground">
+          Dashboard
+        </h1>
+        <p className="mt-1 text-muted-foreground">
           Overview of your Remedi platform
         </p>
       </div>
@@ -140,19 +137,17 @@ export default async function AdminDashboard() {
           return (
             <div
               key={stat.label}
-              className="bg-card rounded-xl p-6 shadow-sm border border-border"
+              className="rounded-lg border border-border bg-card p-5"
             >
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <p className="text-3xl font-bold text-foreground mt-1">
-                    {stat.value.toLocaleString()}
-                  </p>
-                </div>
-                <div className={`${stat.color} p-3 rounded-lg`}>
-                  <Icon className="w-6 h-6 text-white" />
+                <p className="eyebrow eyebrow-muted">{stat.label}</p>
+                <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background">
+                  <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
                 </div>
               </div>
+              <p className="tabular mt-4 text-3xl font-semibold tracking-tight text-foreground">
+                {stat.value.toLocaleString()}
+              </p>
             </div>
           );
         })}
@@ -161,11 +156,9 @@ export default async function AdminDashboard() {
       {/* Activity Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Searches */}
-        <div className="bg-card rounded-xl shadow-sm border border-border">
+        <div className="rounded-lg border border-border bg-card">
           <div className="p-6 border-b border-border">
-            <h2 className="text-lg font-semibold text-foreground">
-              Recent Searches
-            </h2>
+            <h2 className="eyebrow eyebrow-muted">Recent Searches</h2>
           </div>
           <div className="p-6">
             {activity.recentSearches.length === 0 ? (
@@ -198,7 +191,7 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Pending Contributions */}
-        <div className="bg-card rounded-xl shadow-sm border border-border">
+        <div className="rounded-lg border border-border bg-card">
           <div className="p-6 border-b border-border">
             <h2 className="text-lg font-semibold text-foreground">
               Pending Contributions

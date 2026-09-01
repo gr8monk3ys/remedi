@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const SearchComponent = dynamic(
   () =>
@@ -10,11 +10,11 @@ const SearchComponent = dynamic(
     })),
   {
     loading: () => (
-      <div className="animate-pulse space-y-3">
-        <div className="h-11 w-full rounded-lg bg-primary/10" />
-        <div className="flex justify-center gap-2">
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <div className="flex flex-wrap justify-center gap-2">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-8 w-20 rounded-full bg-primary/10" />
+            <Skeleton key={i} className="h-7 w-20 rounded-full" />
           ))}
         </div>
       </div>
@@ -25,10 +25,8 @@ const SearchComponent = dynamic(
 
 export function SearchSection() {
   return (
-    <Card className="border-0 shadow-lg">
-      <CardContent className="p-6 md:p-8">
-        <SearchComponent />
-      </CardContent>
-    </Card>
+    <div className="rounded-lg border border-border bg-card p-5 md:p-6">
+      <SearchComponent />
+    </div>
   );
 }

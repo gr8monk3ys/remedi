@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
-  ChevronLeft,
   Database,
   Globe,
   Cpu,
   BookOpen,
-  Shield,
   FlaskConical,
   Leaf,
-  AlertCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { EVIDENCE_LEVELS } from "@/lib/evidence-levels";
 import { EvidenceBadge } from "@/components/remedy/EvidenceBadge";
+import { PageHeader } from "@/components/ui/page-header";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const metadata: Metadata = {
   title: "About | Remedi",
@@ -51,129 +50,130 @@ const DATA_SOURCES = [
   { icon: BookOpen, label: "Expert and community contributions" },
 ] as const;
 
+function Section({
+  index,
+  title,
+  children,
+}: {
+  index: number;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="grid gap-4 border-t border-border py-10 md:grid-cols-[220px_1fr] md:gap-10">
+      <div>
+        <p className="eyebrow eyebrow-muted">0{index}</p>
+        <h2 className="mt-2 text-lg font-semibold">{title}</h2>
+      </div>
+      <div className="min-w-0">{children}</div>
+    </section>
+  );
+}
+
 export default function AboutPage(): React.JSX.Element {
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="max-w-4xl mx-auto px-4 py-6 md:px-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
-          <h1 className="text-3xl font-bold">About Remedi</h1>
-          <p className="text-muted-foreground mt-2">
-            Discover how we help you find natural alternatives backed by
-            evidence.
-          </p>
-        </div>
-      </header>
+    <div className="px-4 pt-14 md:px-8">
+      <div className="mx-auto max-w-4xl pt-12">
+        <PageHeader
+          eyebrow="About"
+          title="About Remedi"
+          description="Remedi maps pharmaceuticals to natural remedies and shows how strong the evidence behind each one is, so you can weigh your options before talking to your provider."
+          backHref="/"
+          backLabel="Back to Home"
+        />
 
-      {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8 md:px-8 space-y-8">
-        {/* Mission */}
-        <section className="rounded-xl border bg-card p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Leaf className="w-6 h-6 text-green-600 dark:text-green-400" />
-            <h2 className="text-xl font-semibold">Our Mission</h2>
-          </div>
-          <p className="text-muted-foreground leading-relaxed">
-            Remedi helps you discover evidence-based natural alternatives to
-            pharmaceutical drugs and supplements. We believe everyone deserves
-            access to information about natural health options.
-          </p>
-        </section>
+        <main className="pb-16">
+          <Section index={1} title="Our Mission">
+            <p className="text-base leading-relaxed text-muted-foreground">
+              Remedi helps you discover evidence-based natural alternatives to
+              pharmaceutical drugs and supplements. We believe everyone deserves
+              clear, honest information about natural health options, including
+              where the evidence is thin.
+            </p>
+          </Section>
 
-        {/* How It Works */}
-        <section className="rounded-xl border bg-card p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <h2 className="text-xl font-semibold">How It Works</h2>
-          </div>
-          <p className="text-muted-foreground mb-6">
-            Remedi uses a three-tier search strategy to find the most relevant
-            natural alternatives for any pharmaceutical.
-          </p>
-          <div className="space-y-6">
-            {SEARCH_STEPS.map(({ step, icon: Icon, title, description }) => (
-              <div key={step} className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-primary" />
+          <Section index={2} title="How It Works">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Remedi uses a three-tier search strategy to find the most relevant
+              natural alternatives for any pharmaceutical.
+            </p>
+            <ol className="mt-6 divide-y divide-border border-y border-border">
+              {SEARCH_STEPS.map(({ step, icon: Icon, title, description }) => (
+                <li key={step} className="flex gap-5 py-5">
+                  <span className="pt-0.5 font-mono text-xs text-primary">
+                    0{step}
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Icon
+                        className="h-4 w-4 text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                      <h3 className="text-sm font-semibold">{title}</h3>
+                    </div>
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                      {description}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </Section>
+
+          <Section index={3} title="Data Sources">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Our recommendations are built on data from trusted, diverse
+              sources.
+            </p>
+            <ul className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {DATA_SOURCES.map(({ icon: Icon, label }) => (
+                <li
+                  key={label}
+                  className="flex items-center gap-3 rounded-md border border-border bg-card px-3.5 py-3"
+                >
+                  <Icon
+                    className="h-4 w-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
+                  <span className="text-sm">{label}</span>
+                </li>
+              ))}
+            </ul>
+          </Section>
+
+          <Section index={4} title="Evidence Levels">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Every remedy in our database is classified by the strength of its
+              supporting scientific evidence.
+            </p>
+            <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {Object.entries(EVIDENCE_LEVELS).map(([key, meta]) => (
+                <div
+                  key={key}
+                  className="rounded-md border border-border bg-card p-4"
+                >
+                  <EvidenceBadge level={key} />
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                    {meta.description}
+                  </p>
                 </div>
-                <div>
-                  <h3 className="font-medium">
-                    <span className="text-primary mr-2">Step {step}:</span>
-                    {title}
-                  </h3>
-                  <p className="text-muted-foreground mt-1">{description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </Section>
 
-        {/* Data Sources */}
-        <section className="rounded-xl border bg-card p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <BookOpen className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            <h2 className="text-xl font-semibold">Data Sources</h2>
-          </div>
-          <p className="text-muted-foreground mb-4">
-            Our recommendations are built on data from trusted, diverse sources.
-          </p>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {DATA_SOURCES.map(({ icon: Icon, label }) => (
-              <li
-                key={label}
-                className="flex items-center gap-3 p-3 rounded-lg bg-muted/50"
-              >
-                <Icon className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm">{label}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {/* Evidence Levels */}
-        <section className="rounded-xl border bg-card p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <FlaskConical className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-            <h2 className="text-xl font-semibold">Evidence Levels</h2>
-          </div>
-          <p className="text-muted-foreground mb-4">
-            Every remedy in our database is classified by the strength of its
-            supporting scientific evidence.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {Object.entries(EVIDENCE_LEVELS).map(([key, meta]) => (
-              <div key={key} className="rounded-lg border p-4">
-                <EvidenceBadge level={key} className="mb-2" />
-                <p className="text-muted-foreground text-sm">
-                  {meta.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Disclaimer */}
-        <section className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-6">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-6 h-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Disclaimer</h2>
-              <p className="text-muted-foreground leading-relaxed">
+          <Section index={5} title="Disclaimer">
+            <Alert variant="warning">
+              <AlertTriangle />
+              <AlertTitle>Not medical advice</AlertTitle>
+              <AlertDescription>
                 Remedi is for informational purposes only and should not replace
                 professional medical advice. Always consult with a healthcare
                 provider before making changes to your health regimen.
-              </p>
-            </div>
-          </div>
-        </section>
-      </main>
+              </AlertDescription>
+            </Alert>
+          </Section>
+        </main>
+      </div>
     </div>
   );
 }

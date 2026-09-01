@@ -39,7 +39,9 @@ export default async function HistoryPage({ searchParams }: PageProps) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Search History</h1>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Search History
+          </h1>
           <p className="text-muted-foreground mt-1">
             Search history is available on Basic and Premium plans.
           </p>
@@ -76,7 +78,9 @@ export default async function HistoryPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Search History</h1>
+        <h1 className="text-2xl font-semibold text-foreground">
+          Search History
+        </h1>
         <p className="text-muted-foreground mt-1">
           View and manage your past searches. Re-run searches or export your
           history.
@@ -185,7 +189,7 @@ function HistoryPageSkeleton() {
       </div>
 
       {/* Table skeleton */}
-      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
         <HistoryTableSkeleton rows={10} />
       </div>
     </div>

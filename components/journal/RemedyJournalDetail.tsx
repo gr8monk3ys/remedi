@@ -78,38 +78,38 @@ export function RemedyJournalDetail({
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Avg Rating</p>
-          <p className="text-2xl font-bold">{insights.avgRating}/5</p>
+          <p className="text-2xl font-semibold">{insights.avgRating}/5</p>
         </div>
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Trend</p>
           <div className={`flex items-center gap-1 ${trendInfo.color}`}>
             <TrendIcon className="w-5 h-5" />
-            <span className="text-lg font-bold">{trendInfo.label}</span>
+            <span className="text-lg font-semibold">{trendInfo.label}</span>
           </div>
         </div>
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Entries</p>
-          <p className="text-2xl font-bold">{insights.totalEntries}</p>
+          <p className="text-2xl font-semibold">{insights.totalEntries}</p>
         </div>
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Top Symptom</p>
-          <p className="text-lg font-bold truncate">
+          <p className="text-lg font-semibold truncate">
             {insights.topSymptoms[0]?.symptom ?? "None"}
           </p>
         </div>
       </div>
 
       {/* Chart */}
-      <div className="rounded-xl border bg-card p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         <EffectivenessChart data={insights.ratingHistory} />
       </div>
 
       {/* Symptom & Side Effect Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {insights.topSymptoms.length > 0 && (
-          <div className="rounded-xl border bg-card p-6">
+          <div className="rounded-lg border border-border bg-card p-6">
             <h3 className="text-sm font-semibold mb-3">
               Most Reported Symptoms
             </h3>
@@ -137,7 +137,7 @@ export function RemedyJournalDetail({
         )}
 
         {insights.topSideEffects.length > 0 && (
-          <div className="rounded-xl border bg-card p-6">
+          <div className="rounded-lg border border-border bg-card p-6">
             <h3 className="text-sm font-semibold mb-3">
               Most Reported Side Effects
             </h3>
@@ -166,7 +166,7 @@ export function RemedyJournalDetail({
       </div>
 
       {/* Entries List */}
-      <div className="rounded-xl border bg-card p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         <h3 className="text-lg font-semibold mb-4">All Entries</h3>
         <div className="space-y-3">
           {entries.map((entry) => (

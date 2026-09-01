@@ -4,7 +4,6 @@ import { useCallback, useRef, useEffect } from "react";
 import { Search as SearchIcon, X as XIcon, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { badgeVariants } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
@@ -90,15 +89,18 @@ export function SearchInput({
   );
 
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full space-y-4">
       {/* Search Input */}
       <div className="relative">
-        <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <SearchIcon
+          className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          aria-hidden="true"
+        />
         <Input
           type="search"
           aria-label="Search for pharmaceuticals or natural remedies"
           data-search-input
-          className="h-11 pl-10 pr-24 rounded-lg"
+          className="h-12 pl-10 pr-28 text-base md:text-[15px]"
           placeholder={
             useAiSearch
               ? "Describe your needs naturally..."
@@ -113,7 +115,7 @@ export function SearchInput({
           <button
             type="button"
             onClick={() => setQuery("")}
-            className="absolute right-[4.5rem] top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-[5.75rem] top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Clear search"
           >
             <XIcon className="h-4 w-4" />
@@ -129,54 +131,60 @@ export function SearchInput({
             }
             onSearch();
           }}
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 rounded-md"
+          className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 px-4"
         >
           Search
         </Button>
       </div>
 
-      {/* AI Search Toggle */}
-      {aiSearchAvailable && (
-        <div className="flex items-center justify-center gap-2">
-          <Switch
-            data-ai-toggle
-            checked={useAiSearch}
-            onCheckedChange={setUseAiSearch}
-            aria-label="Toggle AI search"
-          />
-          <button
-            type="button"
-            onClick={() => setUseAiSearch(!useAiSearch)}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            aria-pressed={useAiSearch}
-          >
-            <Sparkles
-              className={cn("h-3.5 w-3.5", useAiSearch && "text-primary")}
-            />
-            <span className="font-medium">
-              {useAiSearch ? "AI Search On" : "AI Search"}
-            </span>
-          </button>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Suggestions */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="eyebrow eyebrow-muted mr-1">Try</span>
+          {suggestions.map((suggestion) => {
+            const isActive = query === suggestion;
+            return (
+              <button
+                type="button"
+                key={suggestion}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  isActive
+                    ? "border-primary/40 bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-border-strong hover:text-foreground",
+                )}
+                aria-pressed={isActive}
+                onClick={() => handleSuggestionClick(suggestion)}
+              >
+                {suggestion}
+              </button>
+            );
+          })}
         </div>
-      )}
 
-      {/* Suggestions */}
-      <div className="flex flex-wrap justify-center gap-1.5">
-        {suggestions.map((suggestion) => (
-          <button
-            type="button"
-            key={suggestion}
-            className={cn(
-              badgeVariants({
-                variant: query === suggestion ? "default" : "outline",
-              }),
-              "cursor-pointer hover:bg-accent",
-            )}
-            onClick={() => handleSuggestionClick(suggestion)}
-          >
-            {suggestion}
-          </button>
-        ))}
+        {/* AI Search Toggle */}
+        {aiSearchAvailable && (
+          <div className="flex shrink-0 items-center gap-2">
+            <Switch
+              data-ai-toggle
+              checked={useAiSearch}
+              onCheckedChange={setUseAiSearch}
+              aria-label="Toggle AI search"
+            />
+            <button
+              type="button"
+              onClick={() => setUseAiSearch(!useAiSearch)}
+              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              aria-pressed={useAiSearch}
+            >
+              <Sparkles
+                className={cn("h-3.5 w-3.5", useAiSearch && "text-primary")}
+                aria-hidden="true"
+              />
+              {useAiSearch ? "AI Search On" : "AI Search"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -66,21 +66,21 @@ export function JournalOverview({
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <BookOpen className="w-4 h-4" />
             <span className="text-sm">Total Entries</span>
           </div>
-          <p className="text-2xl font-bold">{totalEntries}</p>
+          <p className="text-2xl font-semibold">{totalEntries}</p>
         </div>
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <TrendingUp className="w-4 h-4" />
             <span className="text-sm">Remedies Tracked</span>
           </div>
-          <p className="text-2xl font-bold">{trackedRemedies.length}</p>
+          <p className="text-2xl font-semibold">{trackedRemedies.length}</p>
         </div>
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <button
             type="button"
             onClick={() => setShowForm(true)}
@@ -94,7 +94,7 @@ export function JournalOverview({
 
       {/* Tracked Remedies */}
       {trackedRemedies.length > 0 && (
-        <div className="rounded-xl border bg-card p-6">
+        <div className="rounded-lg border border-border bg-card p-6">
           <h2 className="text-lg font-semibold mb-4">Tracked Remedies</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {trackedRemedies.map((remedy) => (
@@ -116,7 +116,7 @@ export function JournalOverview({
       )}
 
       {/* Recent Entries */}
-      <div className="rounded-xl border bg-card p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         <h2 className="text-lg font-semibold mb-4">Recent Entries</h2>
         {entries.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">

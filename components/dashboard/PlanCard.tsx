@@ -27,16 +27,10 @@ const planIcons: Record<PlanType, typeof Sparkles> = {
   premium: Crown,
 };
 
-const planColors: Record<PlanType, string> = {
-  free: "border-border",
-  basic: "border-primary/30 dark:border-primary/50",
-  premium: "plan-premium-border",
-};
-
-const planBgColors: Record<PlanType, string> = {
-  free: "bg-muted",
-  basic: "bg-primary/10 dark:bg-primary/20",
-  premium: "plan-premium-surface",
+const planIconColors: Record<PlanType, string> = {
+  free: "text-muted-foreground",
+  basic: "text-primary",
+  premium: "accent-text",
 };
 
 /**
@@ -68,60 +62,60 @@ export function PlanCard({
     return <PlanCardSkeleton className={className} />;
   }
 
+  const highlighted = isPopular && !isCurrentPlan;
+
   return (
     <div
       className={cn(
-        "relative rounded-xl border-2 p-6 transition-all",
-        planColors[plan],
-        isCurrentPlan &&
-          "ring-2 ring-primary ring-offset-2 dark:ring-offset-background",
-        isPopular && !isCurrentPlan && "shadow-lg",
+        "relative flex flex-col rounded-lg border bg-card p-6",
+        isCurrentPlan
+          ? "border-primary ring-1 ring-primary"
+          : highlighted
+            ? "plan-premium-border"
+            : "border-border",
         className,
       )}
     >
-      {isPopular && !isCurrentPlan && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground">
-            Most Popular
-          </span>
-        </div>
+      {highlighted && (
+        <span className="absolute -top-2.5 left-6 inline-flex items-center rounded-sm bg-primary px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-wider text-primary-foreground">
+          Most Popular
+        </span>
       )}
 
       {isCurrentPlan && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500 text-white">
-            Current Plan
-          </span>
-        </div>
+        <span className="absolute -top-2.5 left-6 inline-flex items-center rounded-sm border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-wider text-primary">
+          Current Plan
+        </span>
       )}
 
-      <div className={cn("rounded-lg p-3 w-fit mb-4", planBgColors[plan])}>
-        <Icon
-          className={cn(
-            "h-6 w-6",
-            plan === "free" && "text-muted-foreground",
-            plan === "basic" && "text-primary",
-            plan === "premium" && "accent-text",
-          )}
-        />
+      <div className="flex items-center gap-3">
+        <span className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background">
+          <Icon
+            className={cn("h-4 w-4", planIconColors[plan])}
+            aria-hidden="true"
+          />
+        </span>
+        <h3 className="text-lg font-semibold text-foreground">{name}</h3>
       </div>
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+        {description}
+      </p>
 
-      <h3 className="text-xl font-bold text-foreground">{name}</h3>
-      <p className="text-sm text-muted-foreground mt-1">{description}</p>
-
-      <div className="mt-4 mb-6">
+      <div className="mt-5 mb-6">
         {price === 0 ? (
-          <p className="text-3xl font-bold text-foreground">Free</p>
+          <p className="tabular text-3xl font-semibold tracking-tight text-foreground">
+            Free
+          </p>
         ) : (
           <>
-            <p className="text-3xl font-bold text-foreground">
+            <p className="tabular text-3xl font-semibold tracking-tight text-foreground">
               ${monthlyEquivalent.toFixed(2)}
-              <span className="text-sm font-normal text-muted-foreground">
+              <span className="ml-1 text-sm font-normal text-muted-foreground">
                 /mo
               </span>
             </p>
             {interval === "yearly" && yearlyPrice && (
-              <p className="text-sm text-muted-foreground">
+              <p className="mt-1 font-mono text-xs text-muted-foreground">
                 ${yearlyPrice.toFixed(2)} billed annually
               </p>
             )}
@@ -129,11 +123,11 @@ export function PlanCard({
         )}
       </div>
 
-      <ul className="space-y-3 mb-6" role="list">
+      <ul className="mb-6 space-y-2.5" role="list">
         {features.map((feature, index) => (
-          <li key={index} className="flex items-start gap-2">
+          <li key={index} className="flex items-start gap-2.5">
             <Check
-              className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5"
+              className="mt-0.5 h-4 w-4 shrink-0 text-primary"
               aria-hidden="true"
             />
             <span className="text-sm text-muted-foreground">{feature}</span>
@@ -141,34 +135,36 @@ export function PlanCard({
         ))}
       </ul>
 
-      {isCurrentPlan ? (
-        onManage ? (
-          <button
-            onClick={onManage}
-            className="w-full py-2.5 px-4 rounded-lg border-2 border-border text-foreground font-medium hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          >
-            Manage Subscription
-          </button>
+      <div className="mt-auto">
+        {isCurrentPlan ? (
+          onManage ? (
+            <button
+              onClick={onManage}
+              className="w-full rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-border-strong hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Manage Subscription
+            </button>
+          ) : (
+            <div className="w-full rounded-md bg-muted px-4 py-2 text-center text-sm font-medium text-muted-foreground">
+              Current Plan
+            </div>
+          )
         ) : (
-          <div className="w-full py-2.5 px-4 rounded-lg bg-muted text-muted-foreground text-center font-medium">
-            Current Plan
-          </div>
-        )
-      ) : (
-        <button
-          onClick={onSelect}
-          disabled={!onSelect}
-          className={cn(
-            "w-full py-2.5 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-            plan === "free"
-              ? "bg-muted text-foreground hover:bg-muted"
-              : "bg-primary text-primary-foreground hover:bg-primary/90",
-            !onSelect && "opacity-50 cursor-not-allowed",
-          )}
-        >
-          {actionLabel ?? (plan === "free" ? "Downgrade" : "Upgrade")}
-        </button>
-      )}
+          <button
+            onClick={onSelect}
+            disabled={!onSelect}
+            className={cn(
+              "w-full rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              plan === "free"
+                ? "border border-border bg-card text-foreground hover:bg-muted"
+                : "bg-primary text-primary-foreground hover:bg-primary/90",
+              !onSelect && "cursor-not-allowed opacity-50",
+            )}
+          >
+            {actionLabel ?? (plan === "free" ? "Downgrade" : "Upgrade")}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -180,23 +176,23 @@ export function PlanCardSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "rounded-xl border-2 border-border p-6 animate-pulse",
+        "animate-pulse rounded-lg border border-border bg-card p-6",
         className,
       )}
     >
-      <div className="h-12 w-12 bg-muted rounded-lg mb-4" />
-      <div className="h-6 w-24 bg-muted rounded mb-2" />
-      <div className="h-4 w-32 bg-muted rounded mb-4" />
-      <div className="h-8 w-20 bg-muted rounded mb-6" />
-      <div className="space-y-3 mb-6">
+      <div className="mb-4 h-8 w-8 rounded-md bg-muted" />
+      <div className="mb-2 h-6 w-24 rounded bg-muted" />
+      <div className="mb-4 h-4 w-32 rounded bg-muted" />
+      <div className="mb-6 h-8 w-20 rounded bg-muted" />
+      <div className="mb-6 space-y-3">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="flex items-center gap-2">
-            <div className="h-5 w-5 bg-muted rounded" />
-            <div className="h-4 w-full bg-muted rounded" />
+            <div className="h-4 w-4 rounded bg-muted" />
+            <div className="h-4 w-full rounded bg-muted" />
           </div>
         ))}
       </div>
-      <div className="h-10 w-full bg-muted rounded-lg" />
+      <div className="h-9 w-full rounded-md bg-muted" />
     </div>
   );
 }

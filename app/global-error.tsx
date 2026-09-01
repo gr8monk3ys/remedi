@@ -4,13 +4,15 @@
  * Global Error Handler
  *
  * This file handles errors that occur at the root layout level.
- * It wraps the entire application and provides a fallback UI.
+ * It wraps the entire application and provides a fallback UI. Because it
+ * replaces the root layout, it has to import the stylesheet itself.
  *
  * @see https://nextjs.org/docs/app/building-your-application/routing/error-handling
  */
 
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
+import "./globals.css";
 
 export default function GlobalError({
   error,
@@ -25,26 +27,26 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html>
+    <html lang="en">
       <body>
-        <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-background">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
           <div className="max-w-md text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-4">Oops!</h1>
-            <h2 className="text-xl font-semibold text-muted-foreground mb-4">
+            <p className="eyebrow eyebrow-muted">Error</p>
+            <h1 className="mt-2 text-3xl font-semibold text-foreground">
               Something went wrong
-            </h2>
-            <p className="text-muted-foreground mb-8">
+            </h1>
+            <p className="mt-3 text-muted-foreground">
               We apologize for the inconvenience. Our team has been notified and
               is working on fixing this issue.
             </p>
             <button
               onClick={reset}
-              className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+              className="mt-6 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Try Again
             </button>
             {error.digest && (
-              <p className="mt-4 text-sm text-muted-foreground">
+              <p className="mt-6 font-mono text-xs text-muted-foreground">
                 Error ID: {error.digest}
               </p>
             )}

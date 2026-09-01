@@ -94,7 +94,7 @@ export function HealthProfileForm({
   }
 
   return (
-    <div className="rounded-xl border bg-card p-6 space-y-6">
+    <div className="rounded-lg border border-border bg-card p-6 space-y-6">
       <h2 className="text-lg font-semibold">Health Interests</h2>
 
       {/* Categories */}

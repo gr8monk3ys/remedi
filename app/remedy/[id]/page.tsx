@@ -119,7 +119,7 @@ export default async function RemedyDetailPage({ params }: RemedyPageProps) {
   }
 
   return (
-    <div className="min-h-screen px-4 pt-24 pb-16 md:px-8 lg:px-16">
+    <div className="min-h-screen px-4 pt-24 pb-16 md:px-8">
       <div className="mx-auto max-w-4xl">
         {/* Navigation */}
         <div className="mb-6">

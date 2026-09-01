@@ -11,7 +11,7 @@ export function CohortRetentionSection({
       <h2 className="text-xl font-semibold text-foreground mb-4">
         Cohort Retention (Weekly)
       </h2>
-      <div className="bg-card rounded-xl shadow-sm border border-border p-6 overflow-x-auto">
+      <div className="rounded-lg border border-border bg-card p-6 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-muted-foreground border-b border-border">

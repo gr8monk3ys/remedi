@@ -6,9 +6,10 @@
  * Renders the three-column grid of Free / Basic / Premium pricing cards.
  */
 
-import { motion } from "framer-motion";
 import { Check, Loader2, Sparkles, Zap, Crown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { PLANS, type PlanType } from "@/lib/stripe-config";
+import { cn } from "@/lib/utils";
 
 interface PricingCardsProps {
   currentPlan: PlanType;
@@ -38,104 +39,55 @@ export function PricingCards({
   premiumDisplayPrice,
   premiumYearlyBilled,
 }: PricingCardsProps) {
+  const showTrial = trialEligible && currentPlan === "free";
+
   return (
-    <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+    <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
       {/* Free Plan */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="relative bg-card rounded-2xl shadow-lg overflow-hidden border border-border"
-      >
-        <div className="p-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-muted rounded-lg">
-              <Zap className="w-6 h-6 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-bold text-foreground">
-              {PLANS.free.name}
-            </h3>
-          </div>
-
-          <p className="text-muted-foreground mb-6">{PLANS.free.description}</p>
-
-          <div className="mb-6">
-            <span className="text-4xl font-bold text-foreground">$0</span>
-            <span className="text-muted-foreground">/month</span>
-          </div>
-
-          <button
+      <PlanShell
+        icon={Zap}
+        name={PLANS.free.name}
+        description={PLANS.free.description}
+        price="$0"
+        className="reveal-up"
+        features={PLANS.free.features}
+        action={
+          <Button
+            variant="outline"
+            className="w-full"
             onClick={currentPlan === "free" ? undefined : onDowngrade}
             disabled={currentPlan === "free" || loading === "free"}
-            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-              currentPlan === "free"
-                ? "bg-muted text-muted-foreground cursor-default"
-                : "bg-muted text-foreground hover:bg-muted/80"
-            }`}
           >
             {currentPlan === "free" ? "Current Plan" : "Downgrade"}
-          </button>
-
-          <FeatureList
-            features={PLANS.free.features}
-            checkClass="text-muted-foreground"
-          />
-        </div>
-      </motion.div>
+          </Button>
+        }
+      />
 
       {/* Basic Plan */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="relative bg-card rounded-2xl shadow-lg overflow-hidden border border-border"
-      >
-        <div className="p-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-lg bg-primary/10 p-2">
-              <Sparkles className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-bold text-foreground">
-              {PLANS.basic.name}
-            </h3>
-          </div>
-
-          <p className="text-muted-foreground mb-6">
-            {PLANS.basic.description}
-          </p>
-
-          <div className="mb-6">
-            <span className="text-4xl font-bold text-foreground">
-              ${basicDisplayPrice}
-            </span>
-            <span className="text-muted-foreground">/month</span>
-            {isYearly && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Billed ${basicYearlyBilled}/year
-              </p>
-            )}
-          </div>
-
-          <button
+      <PlanShell
+        icon={Sparkles}
+        name={PLANS.basic.name}
+        description={PLANS.basic.description}
+        price={`$${basicDisplayPrice}`}
+        billedNote={isYearly ? `Billed $${basicYearlyBilled}/year` : undefined}
+        className="reveal-up reveal-delay-1"
+        features={PLANS.basic.features}
+        action={
+          <Button
+            className="w-full"
+            variant={currentPlan === "basic" ? "tonal" : "default"}
             onClick={() => onCheckout("basic")}
             disabled={
               loading === "basic" ||
               currentPlan === "basic" ||
               currentPlan === "premium"
             }
-            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-              currentPlan === "basic"
-                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 cursor-default"
-                : currentPlan === "premium"
-                  ? "bg-muted text-muted-foreground cursor-not-allowed"
-                  : "bg-primary text-primary-foreground hover:bg-primary/90"
-            }`}
           >
             {loading === "basic" ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="animate-spin" />
             ) : currentPlan === "basic" ? (
               <>
-                <Check className="w-5 h-5" />
+                <Check />
                 Current Plan
               </>
             ) : currentPlan === "premium" ? (
@@ -143,123 +95,149 @@ export function PricingCards({
             ) : (
               "Get Started"
             )}
-          </button>
-
-          <FeatureList
-            features={PLANS.basic.features}
-            checkClass="text-primary"
-          />
-        </div>
-      </motion.div>
+          </Button>
+        }
+      />
 
       {/* Premium Plan */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="relative overflow-hidden rounded-2xl border-2 border-primary bg-card shadow-xl"
-      >
-        {/* Popular badge */}
-        <div className="premium-gradient-band absolute top-0 left-0 right-0 py-2 text-center text-sm font-medium text-white">
-          <Crown className="w-4 h-4 inline mr-1" />
-          Most Popular
-        </div>
-
-        <div className="p-8 pt-14">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-lg bg-accent/35 p-2">
-              <Crown className="accent-text h-6 w-6" />
-            </div>
-            <h3 className="text-xl font-bold text-foreground">
-              {PLANS.premium.name}
-            </h3>
-          </div>
-
-          <p className="text-muted-foreground mb-6">
-            {PLANS.premium.description}
-          </p>
-
-          <div className="mb-6">
-            <span className="text-4xl font-bold text-foreground">
-              ${premiumDisplayPrice}
-            </span>
-            <span className="text-muted-foreground">/month</span>
-            {isYearly && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Billed ${premiumYearlyBilled}/year
-              </p>
+      <PlanShell
+        icon={Crown}
+        name={PLANS.premium.name}
+        description={PLANS.premium.description}
+        price={`$${premiumDisplayPrice}`}
+        billedNote={
+          isYearly ? `Billed $${premiumYearlyBilled}/year` : undefined
+        }
+        className="reveal-up reveal-delay-2"
+        highlighted
+        features={PLANS.premium.features}
+        action={
+          <div className="space-y-2">
+            {showTrial && (
+              <Button
+                className="w-full"
+                onClick={onStartTrial}
+                disabled={loading === "trial"}
+              >
+                {loading === "trial" ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <>
+                    <Sparkles />
+                    Start 7-Day Free Trial
+                  </>
+                )}
+              </Button>
             )}
-          </div>
-
-          {/* Trial CTA for eligible users */}
-          {trialEligible && currentPlan === "free" && (
-            <button
-              onClick={onStartTrial}
-              disabled={loading === "trial"}
-              className="premium-gradient-band mb-3 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:opacity-95"
+            <Button
+              className="w-full"
+              variant={
+                currentPlan === "premium"
+                  ? "tonal"
+                  : showTrial
+                    ? "outline"
+                    : "default"
+              }
+              onClick={() => onCheckout("premium")}
+              disabled={loading === "premium" || currentPlan === "premium"}
             >
-              {loading === "trial" ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
+              {loading === "premium" ? (
+                <Loader2 className="animate-spin" />
+              ) : currentPlan === "premium" ? (
                 <>
-                  <Sparkles className="w-5 h-5" />
-                  Start 7-Day Free Trial
+                  <Check />
+                  Current Plan
                 </>
+              ) : showTrial ? (
+                "Subscribe Now"
+              ) : (
+                "Upgrade to Premium"
               )}
-            </button>
-          )}
-
-          <button
-            onClick={() => onCheckout("premium")}
-            disabled={loading === "premium" || currentPlan === "premium"}
-            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-              currentPlan === "premium"
-                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 cursor-default"
-                : "bg-primary text-primary-foreground hover:bg-primary-light"
-            }`}
-          >
-            {loading === "premium" ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : currentPlan === "premium" ? (
-              <>
-                <Check className="w-5 h-5" />
-                Current Plan
-              </>
-            ) : trialEligible && currentPlan === "free" ? (
-              "Subscribe Now"
-            ) : (
-              "Upgrade to Premium"
-            )}
-          </button>
-
-          <FeatureList
-            features={PLANS.premium.features}
-            checkClass="accent-text"
-          />
-        </div>
-      </motion.div>
+            </Button>
+          </div>
+        }
+      />
     </div>
   );
 }
 
-function FeatureList({
+function PlanShell({
+  icon: Icon,
+  name,
+  description,
+  price,
+  billedNote,
   features,
-  checkClass,
+  action,
+  highlighted = false,
+  className,
 }: {
+  icon: typeof Zap;
+  name: string;
+  description: string;
+  price: string;
+  billedNote?: string;
   features: readonly string[];
-  checkClass: string;
+  action: React.ReactNode;
+  highlighted?: boolean;
+  className?: string;
 }) {
   return (
-    <ul className="mt-8 space-y-4">
-      {features.map((feature) => (
-        <li
-          key={feature}
-          className="flex items-start gap-3 text-sm text-muted-foreground"
-        >
-          <Check className={`w-5 h-5 ${checkClass} flex-shrink-0 mt-0.5`} />
-          {feature}
-        </li>
-      ))}
-    </ul>
+    <div
+      className={cn(
+        "relative flex flex-col rounded-lg border bg-card p-6",
+        highlighted ? "border-primary ring-1 ring-primary" : "border-border",
+        className,
+      )}
+    >
+      {highlighted && (
+        <span className="absolute -top-2.5 left-6 inline-flex items-center gap-1 rounded-sm bg-primary px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-wider text-primary-foreground">
+          <Crown className="h-3 w-3" aria-hidden="true" />
+          Most Popular
+        </span>
+      )}
+
+      <div className="flex items-center gap-3">
+        <span className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background">
+          <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
+        </span>
+        <h3 className="text-lg font-semibold">{name}</h3>
+      </div>
+
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+
+      <div className="mt-5">
+        <div className="flex items-baseline gap-1">
+          <span className="tabular text-4xl font-semibold tracking-tight">
+            {price}
+          </span>
+          <span className="text-sm text-muted-foreground">/month</span>
+        </div>
+        {billedNote && (
+          <p className="mt-1 font-mono text-xs text-muted-foreground">
+            {billedNote}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-6">{action}</div>
+
+      <ul className="mt-6 space-y-3 border-t border-border pt-6">
+        {features.map((feature) => (
+          <li
+            key={feature}
+            className="flex items-start gap-2.5 text-sm text-muted-foreground"
+          >
+            <Check
+              className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+              aria-hidden="true"
+            />
+            {feature}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

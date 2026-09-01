@@ -30,10 +30,7 @@ export default function AdminLoading() {
       {/* Activity Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {[1, 2].map((i) => (
-          <div
-            key={i}
-            className="bg-card rounded-xl shadow-sm border border-border"
-          >
+          <div key={i} className="rounded-lg border border-border bg-card">
             <div className="p-6 border-b border-border">
               <Skeleton className="h-6 w-40" />
             </div>

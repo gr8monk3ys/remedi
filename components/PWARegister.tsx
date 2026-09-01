@@ -190,25 +190,25 @@ export function PWARegister() {
 
       {/* Update Prompt */}
       {showUpdatePrompt && (
-        <div className="fixed top-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 shadow-lg rounded-lg p-4 z-50">
+        <div className="fixed top-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 rounded-lg border border-border bg-card p-4 shadow-lg">
           <div className="flex items-start">
             <div className="flex-1">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+              <h3 className="mb-1 text-sm font-semibold text-foreground">
                 Update Available
               </h3>
-              <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+              <p className="mb-3 text-sm text-muted-foreground">
                 A new version of Remedi is available. Refresh to update.
               </p>
               <button
                 onClick={handleUpdate}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 Refresh Now
               </button>
             </div>
             <button
               onClick={() => setShowUpdatePrompt(false)}
-              className="ml-2 text-blue-400 hover:text-blue-600 dark:hover:text-blue-200"
+              className="ml-2 text-muted-foreground hover:text-foreground"
               aria-label="Close"
             >
               <svg

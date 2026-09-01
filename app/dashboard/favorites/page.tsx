@@ -44,7 +44,7 @@ export default async function FavoritesPage({
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Favorites</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Favorites</h1>
         <p className="text-muted-foreground mt-1">
           View and manage your saved natural remedies. Organize them into
           collections for quick access.

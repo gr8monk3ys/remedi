@@ -127,7 +127,7 @@ export function ComparisonHistory({
 
   return (
     <div
-      className={`bg-card rounded-xl shadow-sm border border-border overflow-hidden ${className}`}
+      className={`rounded-lg border border-border bg-card overflow-hidden ${className}`}
     >
       {/* Header */}
       <button

@@ -98,7 +98,7 @@ export function ModerationQueue({
   };
 
   return (
-    <div className="bg-card rounded-xl shadow-sm border border-border">
+    <div className="rounded-lg border border-border bg-card">
       {/* Tabs */}
       <div className="border-b border-border">
         <nav className="flex -mb-px">

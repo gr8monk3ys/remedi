@@ -54,12 +54,12 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen flex bg-muted">
+    <div className="flex min-h-screen bg-background">
       <DashboardSidebar user={user} currentPlan={currentPlan} />
 
-      <main className="flex-1 lg:ml-0 min-h-screen">
-        <div className="p-4 lg:p-8 pt-16 lg:pt-8">
-          <div className="max-w-6xl mx-auto">{children}</div>
+      <main className="min-h-screen min-w-0 flex-1">
+        <div className="p-4 pt-16 lg:p-8">
+          <div className="mx-auto max-w-6xl">{children}</div>
         </div>
       </main>
     </div>

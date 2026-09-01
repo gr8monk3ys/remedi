@@ -106,7 +106,7 @@ export default async function ProductionReadinessPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">
+        <h1 className="text-3xl font-semibold text-foreground">
           Production Readiness
         </h1>
         <p className="text-muted-foreground mt-1">
@@ -143,7 +143,7 @@ export default async function ProductionReadinessPage() {
         />
       </section>
 
-      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <section className="rounded-lg border border-border bg-card p-6">
         <h2 className="text-xl font-semibold text-foreground mb-4">
           Required Environment Variables
         </h2>
@@ -158,7 +158,7 @@ export default async function ProductionReadinessPage() {
         </div>
       </section>
 
-      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <section className="rounded-lg border border-border bg-card p-6">
         <h2 className="text-xl font-semibold text-foreground mb-4">
           Recommended Services
         </h2>
@@ -173,7 +173,7 @@ export default async function ProductionReadinessPage() {
         </div>
       </section>
 
-      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <section className="rounded-lg border border-border bg-card p-6">
         <h2 className="text-xl font-semibold text-foreground mb-4">
           Runtime Services
         </h2>
@@ -212,7 +212,7 @@ export default async function ProductionReadinessPage() {
         </div>
       </section>
 
-      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <section className="rounded-lg border border-border bg-card p-6">
         <h2 className="text-xl font-semibold text-foreground mb-4">
           Data Health
         </h2>
@@ -247,7 +247,7 @@ export default async function ProductionReadinessPage() {
         </div>
       </section>
 
-      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <section className="rounded-lg border border-border bg-card p-6">
         <h2 className="text-xl font-semibold text-foreground mb-4">
           Production Checks
         </h2>
@@ -256,7 +256,7 @@ export default async function ProductionReadinessPage() {
         </div>
       </section>
 
-      <section className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <section className="rounded-lg border border-border bg-card p-6">
         <h2 className="text-xl font-semibold text-foreground mb-4">
           Ops Links & Webhooks
         </h2>
@@ -292,7 +292,7 @@ function StatusCard({
   return (
     <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
       <p className="text-sm text-muted-foreground">{label}</p>
-      <p className={`text-2xl font-bold mt-1 ${colors[status]}`}>{value}</p>
+      <p className={`text-2xl font-semibold mt-1 ${colors[status]}`}>{value}</p>
     </div>
   );
 }

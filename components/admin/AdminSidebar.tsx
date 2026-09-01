@@ -81,18 +81,20 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     return (
       <>
         {/* Header */}
-        <div className="p-6 border-b border-border">
-          <div className="flex items-center gap-2">
-            <Shield className="w-6 h-6 text-primary" />
-            <h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1 capitalize">
+        <div className="flex h-14 items-center gap-2 border-b border-border px-5">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background">
+            <Shield className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+          </span>
+          <h1 className="text-[15px] font-semibold tracking-tight text-foreground">
+            Admin Panel
+          </h1>
+          <span className="ml-auto rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[11px] capitalize text-muted-foreground">
             {userRole}
-          </p>
+          </span>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 space-y-0.5 px-3 py-4">
           {accessibleItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -102,44 +104,45 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+                  "flex items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors",
                   isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted",
+                    ? "bg-primary/10 font-medium text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
+                aria-current={isActive ? "page" : undefined}
               >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
+                <Icon className="h-4 w-4" aria-hidden="true" />
+                <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-border">
+        <div className="border-t border-border px-3 py-3">
           <Link
             href="/"
-            className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+            className="flex items-center gap-3 rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Back to Site</span>
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            <span>Back to Site</span>
           </Link>
         </div>
 
         {/* User Info */}
-        <div className="p-4 border-t border-border">
+        <div className="border-t border-border p-4">
           <div className="flex items-center gap-3">
             {user.image ? (
               <Image
                 src={user.image}
                 alt={user.name || "User"}
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-full"
+                width={36}
+                height={36}
+                className="h-9 w-9 rounded-full border border-border"
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                <span className="text-muted-foreground font-medium">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background">
+                <span className="text-sm font-medium text-muted-foreground">
                   {user.name?.charAt(0) || user.email?.charAt(0) || "U"}
                 </span>
               </div>

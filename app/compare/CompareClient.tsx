@@ -21,6 +21,9 @@ import {
 } from "@/components/compare";
 import type { CompareRemedy } from "@/components/compare";
 import { useIsMobile } from "@/hooks/use-is-mobile";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 import { createLogger } from "@/lib/logger";
 
 const logger = createLogger("compare-page");
@@ -185,34 +188,38 @@ export function CompareClient({
         <div className="flex items-center gap-4">
           <Link
             href="/"
-            className="p-2 rounded-lg hover:bg-muted transition-colors"
+            className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
             aria-label="Go back to search"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Compare Remedies
-          </h1>
+          <div>
+            <p className="eyebrow">Compare</p>
+            <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">
+              Compare Remedies
+            </h1>
+          </div>
         </div>
 
         {remedies.length > 0 && (
           <div className="flex items-center gap-3">
             <ExportComparison remedies={remedies} />
-            <button
+            <Button
+              variant="outline"
               onClick={handleShare}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted transition-colors"
               aria-label="Share comparison"
             >
               <Share2 className="w-4 h-4" />
               Share
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
               onClick={handleClearAll}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-card border border-red-300 dark:border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              className="text-destructive hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive"
             >
               <X className="w-4 h-4" />
               Clear All
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -224,7 +231,7 @@ export function CompareClient({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-24 left-1/2 -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50"
+            className="fixed top-24 left-1/2 z-50 -translate-x-1/2 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background shadow-lg"
           >
             Link copied to clipboard!
           </motion.div>
@@ -233,37 +240,40 @@ export function CompareClient({
 
       {/* Error state */}
       {error && (
-        <div className="flex items-center gap-3 p-4 mb-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-          <p className="text-red-700 dark:text-red-300">{error}</p>
-        </div>
+        <Alert variant="destructive" className="mb-8">
+          <AlertCircle />
+          <AlertDescription className="text-destructive">
+            {error}
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Notice when a shared link exceeds plan cap (server-trimmed) */}
       {trimmedFromCount && showTrimNotice && (
-        <div className="flex items-start gap-3 p-4 mb-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-          <AlertCircle className="w-5 h-5 text-amber-700 dark:text-amber-200 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
+        <Alert variant="warning" className="mb-8">
+          <AlertCircle />
+          <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p>
               This shared comparison included {trimmedFromCount} remedies. Your
               plan supports up to {maxCompareItems} at once, so we're showing
               the first {maxCompareItems}.
             </p>
-          </div>
-          <button
-            onClick={() => setShowTrimNotice(false)}
-            className="text-sm text-amber-800 dark:text-amber-200 underline hover:no-underline"
-          >
-            Dismiss
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => setShowTrimNotice(false)}
+              className="shrink-0 text-sm font-medium text-foreground underline underline-offset-4 hover:no-underline"
+            >
+              Dismiss
+            </button>
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Empty state */}
       {remedies.length === 0 && !error && (
         <div className="text-center py-16">
-          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-            <Plus className="w-12 h-12 text-muted-foreground" />
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-lg border border-border bg-card">
+            <Plus className="h-7 w-7 text-muted-foreground" />
           </div>
           <h2 className="text-xl font-semibold text-foreground mb-2">
             No remedies to compare
@@ -272,10 +282,7 @@ export function CompareClient({
             Search for natural remedies and add them to your comparison list to
             see a detailed side-by-side analysis.
           </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors"
-          >
+          <Link href="/" className={cn(buttonVariants({ size: "lg" }))}>
             Search Remedies
           </Link>
 
@@ -300,14 +307,14 @@ export function CompareClient({
 
           {/* Desktop grid view */}
           <div
-            className={`bg-card rounded-xl shadow-sm print:shadow-none ${isMobile ? "hidden md:block" : ""}`}
+            className={`rounded-lg border border-border bg-card ${isMobile ? "hidden md:block" : ""}`}
             id="comparison-content"
           >
             <div className="overflow-x-auto">
               <div className="min-w-full w-max">
                 {/* Remedy headers */}
                 <div
-                  className="grid gap-4 p-4 border-b border-border bg-muted"
+                  className="grid gap-4 border-b border-border bg-muted/50 p-4"
                   style={{
                     gridTemplateColumns: `repeat(${headerColumnCount}, minmax(${minColumnWidthPx}px, 1fr))`,
                   }}
@@ -316,7 +323,7 @@ export function CompareClient({
                     <div key={remedy.id} className="relative">
                       <button
                         onClick={() => handleRemoveRemedy(remedy.id)}
-                        className="absolute -top-1 -right-1 p-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors z-10 print:hidden"
+                        className="absolute -top-1 -right-1 z-10 rounded-full border border-border bg-card p-1 text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive print:hidden"
                         aria-label={`Remove ${remedy.name} from comparison`}
                       >
                         <X className="w-4 h-4" />
@@ -325,7 +332,7 @@ export function CompareClient({
                         href={`/remedy/${remedy.id}`}
                         className="block group"
                       >
-                        <div className="aspect-square relative rounded-lg overflow-hidden mb-3 bg-muted">
+                        <div className="relative mb-3 aspect-square overflow-hidden rounded-md border border-border bg-muted">
                           {remedy.imageUrl ? (
                             <Image
                               src={remedy.imageUrl}
@@ -334,7 +341,7 @@ export function CompareClient({
                               className="object-cover group-hover:scale-105 transition-transform"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                            <div className="flex h-full w-full items-center justify-center font-mono text-xs text-muted-foreground">
                               No Image
                             </div>
                           )}
@@ -343,7 +350,7 @@ export function CompareClient({
                           {remedy.name}
                         </h2>
                         {remedy.category && (
-                          <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded">
+                          <span className="mt-1 inline-block rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[11px] font-medium text-muted-foreground">
                             {remedy.category}
                           </span>
                         )}
@@ -419,7 +426,7 @@ export function CompareClient({
                     remedies={remedies}
                     minColumnWidth={minColumnWidthPx}
                     renderCell={(remedy) => (
-                      <div className="text-sm text-amber-700 dark:text-amber-400">
+                      <div className="text-sm text-warning">
                         {remedy.precautions ||
                           "Precaution information not available"}
                       </div>

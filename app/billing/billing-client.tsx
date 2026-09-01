@@ -96,13 +96,13 @@ export function BillingClient({
     <div>
       {/* Billing Interval Toggle */}
       <div className="flex justify-center mb-8">
-        <div className="bg-muted p-1 rounded-lg inline-flex">
+        <div className="inline-flex rounded-md border border-border bg-card p-1">
           <button
             onClick={() => setIsYearly(false)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               !isYearly
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground"
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Monthly
@@ -111,12 +111,12 @@ export function BillingClient({
             onClick={() => setIsYearly(true)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               isYearly
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground"
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Yearly
-            <span className="ml-1 text-green-600 dark:text-green-400 text-xs">
+            <span className="ml-1 font-mono text-[11px] font-medium text-primary">
               Save 17%
             </span>
           </button>
@@ -229,10 +229,8 @@ function PlanCard({
 }: PlanCardProps) {
   return (
     <div
-      className={`relative bg-card rounded-xl shadow-md overflow-hidden ${
-        highlighted
-          ? "ring-2 ring-primary/60 dark:ring-primary/70"
-          : "border border-border"
+      className={`relative overflow-hidden rounded-lg border bg-card ${
+        highlighted ? "border-primary ring-1 ring-primary" : "border-border"
       }`}
     >
       {highlighted && (
@@ -243,11 +241,11 @@ function PlanCard({
       )}
 
       <div className={`p-6 ${highlighted ? "pt-10" : ""}`}>
-        <h3 className="text-xl font-bold text-foreground mb-2">{name}</h3>
+        <h3 className="text-xl font-semibold text-foreground mb-2">{name}</h3>
         <p className="text-muted-foreground text-sm mb-4">{description}</p>
 
         <div className="mb-6">
-          <span className="text-4xl font-bold text-foreground">
+          <span className="tabular text-4xl font-semibold tracking-tight text-foreground">
             ${price.toFixed(2)}
           </span>
           <span className="text-muted-foreground">/month</span>
@@ -263,11 +261,11 @@ function PlanCard({
           disabled={disabled || loading}
           className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
             isCurrentPlan
-              ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 cursor-default"
+              ? "cursor-default border border-primary/25 bg-primary/5 text-primary"
               : disabled
                 ? "bg-muted text-muted-foreground cursor-not-allowed"
                 : highlighted
-                  ? "bg-primary text-primary-foreground hover:bg-primary-light"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
                   : "bg-primary text-primary-foreground hover:bg-primary/90"
           }`}
         >
@@ -291,7 +289,7 @@ function PlanCard({
               key={feature}
               className="flex items-start gap-2 text-sm text-muted-foreground"
             >
-              <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               {feature}
             </li>
           ))}

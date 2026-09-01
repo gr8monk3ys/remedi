@@ -5,7 +5,6 @@ import { SlidersHorizontal } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 
 interface SearchTabsProps {
   activeTab: "results" | "history";
@@ -29,28 +28,25 @@ export const SearchTabs = memo(function SearchTabs({
   activeFiltersCount,
 }: SearchTabsProps) {
   return (
-    <div className="mt-6 mb-4 flex items-center justify-between">
+    <div className="mt-6 mb-4 flex items-end justify-between gap-4 border-b border-border">
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as "results" | "history")}
       >
-        <TabsList>
+        <TabsList className="border-b-0">
           <TabsTrigger value="results">
-            Results{" "}
+            Results
             {resultsCount > 0 && (
-              <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
+              <Badge variant="secondary" className="h-5 px-1.5">
                 {resultsCount}
               </Badge>
             )}
           </TabsTrigger>
           {showHistoryTab && (
             <TabsTrigger value="history">
-              History{" "}
+              History
               {historyCount > 0 && (
-                <Badge
-                  variant="secondary"
-                  className="ml-1.5 h-5 px-1.5 text-xs"
-                >
+                <Badge variant="secondary" className="h-5 px-1.5">
                   {historyCount}
                 </Badge>
               )}
@@ -62,15 +58,15 @@ export const SearchTabs = memo(function SearchTabs({
       {resultsCount > 0 && activeTab === "results" && (
         <Button
           data-filter-toggle
-          variant={showFilters ? "secondary" : "ghost"}
+          variant={showFilters ? "tonal" : "ghost"}
           size="sm"
           onClick={toggleFilters}
-          className={cn("gap-1.5", showFilters && "bg-secondary")}
+          className="mb-1.5 gap-1.5"
         >
           <SlidersHorizontal className="h-4 w-4" />
           Filters
           {activeFiltersCount > 0 && (
-            <Badge className="h-5 px-1.5 text-xs">{activeFiltersCount}</Badge>
+            <Badge className="h-5 px-1.5">{activeFiltersCount}</Badge>
           )}
         </Button>
       )}

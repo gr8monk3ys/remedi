@@ -46,21 +46,19 @@ const planIcons: Record<PlanType, typeof Sparkles> = {
 const statusLabels: Record<string, { text: string; className: string }> = {
   active: {
     text: "Active",
-    className:
-      "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+    className: "border-primary/20 bg-primary/10 text-primary",
   },
   cancelled: {
     text: "Cancelled",
-    className: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
+    className: "border-destructive/25 bg-destructive/10 text-destructive",
   },
   expired: {
     text: "Expired",
-    className: "bg-muted text-muted-foreground",
+    className: "border-transparent bg-muted text-muted-foreground",
   },
   suspended: {
     text: "Suspended",
-    className:
-      "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
+    className: "border-warning/30 bg-warning/10 text-warning",
   },
 };
 
@@ -231,7 +229,7 @@ export function SubscriptionClient({
   return (
     <div className="space-y-8">
       {/* Current Plan Banner */}
-      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -239,12 +237,12 @@ export function SubscriptionClient({
             </div>
             <div>
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-foreground">
+                <h2 className="text-xl font-semibold text-foreground">
                   {planConfig.name} Plan
                 </h2>
                 {status && (
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.className}`}
+                    className={`inline-flex items-center rounded-sm border px-1.5 py-0.5 font-mono text-[11px] font-medium ${status.className}`}
                   >
                     {status.text}
                   </span>
@@ -258,14 +256,14 @@ export function SubscriptionClient({
 
           <div className="flex flex-col items-start sm:items-end gap-1">
             {planConfig.price > 0 ? (
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-2xl font-semibold text-foreground">
                 ${planConfig.price.toFixed(2)}
                 <span className="text-sm font-normal text-muted-foreground">
                   /mo
                 </span>
               </p>
             ) : (
-              <p className="text-2xl font-bold text-foreground">Free</p>
+              <p className="text-2xl font-semibold text-foreground">Free</p>
             )}
             {formattedPeriodEnd && (
               <p className="text-xs text-muted-foreground">
@@ -278,8 +276,8 @@ export function SubscriptionClient({
         </div>
 
         {cancelAtPeriodEnd && (
-          <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <p className="text-sm text-yellow-700 dark:text-yellow-400">
+          <div className="mt-4 rounded-md border border-warning/30 bg-warning/5 p-3">
+            <p className="text-sm text-foreground">
               Your subscription is set to cancel at the end of the current
               billing period. You will retain access until {formattedPeriodEnd}.
             </p>
@@ -296,7 +294,7 @@ export function SubscriptionClient({
           Available Plans
         </h3>
         <div className="flex justify-center mb-6">
-          <div className="bg-muted p-1 rounded-lg inline-flex">
+          <div className="inline-flex rounded-md border border-border bg-card p-1">
             <button
               type="button"
               onClick={() => setIsYearly(false)}
@@ -318,7 +316,7 @@ export function SubscriptionClient({
               }`}
             >
               Yearly{" "}
-              <span className="ml-1 text-green-600 dark:text-green-400 text-xs font-semibold">
+              <span className="ml-1 font-mono text-[11px] font-medium text-primary">
                 Save 17%
               </span>
             </button>
@@ -365,7 +363,7 @@ export function SubscriptionClient({
 
       {/* Manage Billing Section */}
       {hasActiveSubscription && (
-        <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+        <div className="rounded-lg border border-border bg-card p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h3 className="text-lg font-semibold text-foreground">Billing</h3>
@@ -389,10 +387,8 @@ export function SubscriptionClient({
           </div>
 
           {billingError && (
-            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">
-                {billingError}
-              </p>
+            <div className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 p-3">
+              <p className="text-sm text-destructive">{billingError}</p>
             </div>
           )}
 
@@ -439,7 +435,7 @@ export function SubscriptionClient({
                         )}
                       </span>
                       {invoice.status && (
-                        <span className="text-xs font-semibold px-2 py-1 rounded-full bg-muted text-muted-foreground">
+                        <span className="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[11px] font-medium text-muted-foreground">
                           {invoice.status}
                         </span>
                       )}
@@ -474,7 +470,7 @@ export function SubscriptionClient({
 
       {/* Plan Features Summary for Free Users */}
       {currentPlan === "free" && (
-        <div className="accent-fade-surface rounded-xl border border-primary/20 p-6">
+        <div className="accent-fade-surface rounded-lg border border-primary/20 p-6">
           <div className="flex items-start gap-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
               <Crown className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -490,28 +486,28 @@ export function SubscriptionClient({
               <ul className="space-y-2" role="list">
                 <li className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Check
-                    className="h-4 w-4 text-green-500 flex-shrink-0"
+                    className="h-4 w-4 shrink-0 text-primary"
                     aria-hidden="true"
                   />
                   AI-powered natural remedy matching
                 </li>
                 <li className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Check
-                    className="h-4 w-4 text-green-500 flex-shrink-0"
+                    className="h-4 w-4 shrink-0 text-primary"
                     aria-hidden="true"
                   />
                   Unlimited favorites and full search history
                 </li>
                 <li className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Check
-                    className="h-4 w-4 text-green-500 flex-shrink-0"
+                    className="h-4 w-4 shrink-0 text-primary"
                     aria-hidden="true"
                   />
                   Compare remedies side by side
                 </li>
                 <li className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Check
-                    className="h-4 w-4 text-green-500 flex-shrink-0"
+                    className="h-4 w-4 shrink-0 text-primary"
                     aria-hidden="true"
                   />
                   Export your data in CSV or JSON

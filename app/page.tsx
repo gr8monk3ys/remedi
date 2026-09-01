@@ -1,102 +1,160 @@
-import { Leaf, Search, Shield, Sparkles } from "lucide-react";
+import {
+  Database,
+  Globe,
+  Cpu,
+  Leaf,
+  Search,
+  Shield,
+  Sparkles,
+} from "lucide-react";
 import { OnboardingWrapper } from "@/components/home/OnboardingWrapper";
 import { FavoritesSection } from "@/components/home/FavoritesSection";
 import { SearchSection } from "@/components/home/SearchSection";
+
+const FEATURES = [
+  {
+    icon: Search,
+    title: "Smart Search",
+    body: "Search by drug name, symptom, or condition. Our database maps FDA-approved drugs to natural alternatives.",
+  },
+  {
+    icon: Shield,
+    title: "Evidence-Based",
+    body: "Every remedy includes evidence levels, dosage guidance, and scientific references you can verify.",
+  },
+  {
+    icon: Sparkles,
+    title: "AI-Powered",
+    body: "Describe your needs in natural language. Our AI understands queries like “I need help sleeping.”",
+  },
+] as const;
+
+const STEPS = [
+  {
+    icon: Database,
+    title: "Curated database",
+    body: "Every search starts against a reviewed set of drug-to-remedy mappings with safety rules applied.",
+  },
+  {
+    icon: Globe,
+    title: "OpenFDA lookup",
+    body: "Drugs we have not mapped yet are resolved through the FDA's public label data.",
+  },
+  {
+    icon: Cpu,
+    title: "Ingredient matching",
+    body: "Active ingredients and properties are scored against remedies. Weak matches are hidden.",
+  },
+] as const;
 
 export default function Home() {
   return (
     <>
       <OnboardingWrapper />
 
-      <main className="relative flex min-h-screen flex-col items-center overflow-hidden px-4 pt-24 md:px-8 lg:px-16">
-        <div
-          className="pointer-events-none absolute -top-20 -left-16 h-64 w-64 rounded-full opacity-50 soft-float"
-          style={{
-            background:
-              "radial-gradient(circle, color-mix(in srgb, var(--primary) 35%, transparent), transparent 65%)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute top-36 -right-24 h-72 w-72 rounded-full opacity-40 soft-float"
-          style={{
-            animationDelay: "1.2s",
-            background:
-              "radial-gradient(circle, color-mix(in srgb, var(--accent-dark) 28%, transparent), transparent 62%)",
-          }}
-        />
+      <main className="relative overflow-hidden px-4 pt-14 md:px-8">
+        <div className="hero-glow" aria-hidden="true" />
 
-        {/* Hero Section */}
-        <section className="w-full max-w-3xl pt-8 pb-12 text-center md:pt-16 md:pb-20">
-          <div className="reveal-up mb-2 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            <Leaf className="h-3.5 w-3.5" />
-            Evidence-based natural alternatives
-          </div>
-          <h1 className="reveal-up reveal-delay-1 mt-4 text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">
-            Find natural alternatives
-            <span className="block text-muted-foreground">
-              to pharmaceuticals
-            </span>
-          </h1>
-          <p className="reveal-up reveal-delay-2 mx-auto mt-4 max-w-xl text-base text-muted-foreground md:text-lg">
-            Search any drug or supplement to discover evidence-based natural
-            remedies. Backed by research, powered by science.
-          </p>
-        </section>
+        <div className="relative mx-auto max-w-5xl">
+          {/* Hero */}
+          <section className="pt-20 pb-10 text-center md:pt-28 md:pb-14">
+            <p className="eyebrow reveal-up inline-flex items-center gap-2">
+              <Leaf className="h-3.5 w-3.5" aria-hidden="true" />
+              Evidence-based natural alternatives
+            </p>
+            <h1 className="reveal-up reveal-delay-1 mx-auto mt-5 max-w-3xl text-4xl font-semibold leading-[1.08] sm:text-5xl md:text-6xl">
+              Find natural alternatives
+              <span className="block text-muted-foreground">
+                to pharmaceuticals
+              </span>
+            </h1>
+            <p className="reveal-up reveal-delay-2 mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+              Search any drug or supplement to discover evidence-based natural
+              remedies. Each match carries an evidence rating, dosage guidance,
+              and the studies behind it.
+            </p>
+          </section>
 
-        {/* Search Section */}
-        <section className="reveal-up reveal-delay-2 w-full max-w-2xl pb-12">
-          <SearchSection />
-        </section>
+          {/* Search */}
+          <section className="reveal-up reveal-delay-2 mx-auto w-full max-w-2xl pb-8">
+            <SearchSection />
+          </section>
 
-        {/* Favorites Section */}
-        <section className="reveal-up reveal-delay-2 w-full max-w-2xl pb-12">
-          <FavoritesSection />
-        </section>
+          {/* Favorites */}
+          <section className="mx-auto w-full max-w-2xl pb-8">
+            <FavoritesSection />
+          </section>
 
-        {/* Features Grid */}
-        <section className="w-full max-w-3xl pb-20">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="reveal-up reveal-delay-1 surface-glow rounded-lg border bg-card/90 p-5 backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1">
-              <div className="mb-3 inline-flex rounded-md bg-primary/10 p-2">
-                <Search className="h-4 w-4 text-primary" />
-              </div>
-              <h3 className="text-sm font-semibold">Smart Search</h3>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Search by drug name, symptom, or condition. Our database maps
-                FDA-approved drugs to natural alternatives.
+          {/* Features */}
+          <section className="pt-12 pb-16">
+            <div className="grid overflow-hidden rounded-lg border border-border bg-card sm:grid-cols-3 sm:divide-x sm:divide-border max-sm:divide-y max-sm:divide-border">
+              {FEATURES.map(({ icon: Icon, title, body }, index) => (
+                <div key={title} className="p-6">
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background">
+                      <Icon
+                        className="h-4 w-4 text-primary"
+                        aria-hidden="true"
+                      />
+                    </span>
+                    <span className="font-mono text-xs text-muted-foreground">
+                      0{index + 1}
+                    </span>
+                  </div>
+                  <h3 className="mt-5 text-sm font-semibold">{title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    {body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* How it works */}
+          <section className="grid gap-8 border-t border-border py-16 md:grid-cols-[1fr_1.6fr] md:gap-16">
+            <div>
+              <p className="eyebrow">How a search works</p>
+              <h2 className="mt-3 text-2xl font-semibold md:text-3xl">
+                Three passes, from curated data to a scored match
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                Results are only as good as the evidence behind them. The
+                pipeline prefers reviewed mappings and falls back to public
+                data, never the other way round.
               </p>
             </div>
-            <div className="reveal-up reveal-delay-2 surface-glow rounded-lg border bg-card/90 p-5 backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1">
-              <div className="mb-3 inline-flex rounded-md bg-primary/10 p-2">
-                <Shield className="h-4 w-4 text-primary" />
-              </div>
-              <h3 className="text-sm font-semibold">Evidence-Based</h3>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Every remedy includes evidence levels, dosage guidance, and
-                scientific references you can verify.
-              </p>
-            </div>
-            <div className="reveal-up reveal-delay-3 surface-glow rounded-lg border bg-card/90 p-5 backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1">
-              <div className="mb-3 inline-flex rounded-md bg-primary/10 p-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-              </div>
-              <h3 className="text-sm font-semibold">AI-Powered</h3>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Describe your needs in natural language. Our AI understands
-                queries like &quot;I need help sleeping.&quot;
-              </p>
-            </div>
-          </div>
-        </section>
+            <ol className="divide-y divide-border border-y border-border">
+              {STEPS.map(({ icon: Icon, title, body }, index) => (
+                <li key={title} className="flex gap-5 py-5">
+                  <span className="pt-0.5 font-mono text-xs text-primary">
+                    0{index + 1}
+                  </span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Icon
+                        className="h-4 w-4 text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                      <h3 className="text-sm font-semibold">{title}</h3>
+                    </div>
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                      {body}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
 
-        {/* Disclaimer */}
-        <section className="w-full max-w-2xl pb-12">
-          <p className="text-center text-xs text-muted-foreground">
-            This application is for informational purposes only and is not a
-            substitute for professional medical advice. Always consult a
-            healthcare provider before making changes to your treatment plan.
-          </p>
-        </section>
+          {/* Disclaimer */}
+          <section className="mx-auto max-w-2xl pb-16">
+            <p className="text-center text-xs leading-relaxed text-muted-foreground">
+              This application is for informational purposes only and is not a
+              substitute for professional medical advice. Always consult a
+              healthcare provider before making changes to your treatment plan.
+            </p>
+          </section>
+        </div>
       </main>
     </>
   );

@@ -168,7 +168,7 @@ export function MobileComparisonSwiper({
               <div className="p-4">
                 <Link
                   href={`/remedy/${currentRemedy.id}`}
-                  className="text-xl font-bold text-foreground hover:text-primary transition-colors"
+                  className="text-xl font-semibold text-foreground hover:text-primary transition-colors"
                 >
                   {currentRemedy.name}
                 </Link>

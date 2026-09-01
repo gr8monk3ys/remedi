@@ -1,6 +1,7 @@
 import { Metadata } from "next";
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import { FAQAccordion } from "./FAQAccordion";
 
 export const metadata: Metadata = {
@@ -114,50 +115,48 @@ const faqSections = [
 
 export default function FAQPage() {
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="max-w-4xl mx-auto px-4 py-6 md:px-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
-          <h1 className="text-3xl font-bold">Frequently Asked Questions</h1>
-          <p className="text-muted-foreground mt-2">
-            Find answers to common questions about Remedi and natural remedies.
-          </p>
-        </div>
-      </header>
+    <div className="px-4 pt-14 md:px-8">
+      <div className="mx-auto max-w-4xl pt-12">
+        <PageHeader
+          eyebrow="Help"
+          title="Frequently Asked Questions"
+          description="Answers to common questions about Remedi, natural remedies, and how to read the evidence."
+          backHref="/"
+          backLabel="Back to Home"
+        />
 
-      {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8 md:px-8">
-        <div className="space-y-8">
-          {faqSections.map((section) => (
-            <section key={section.title}>
-              <h2 className="text-xl font-semibold mb-4">{section.title}</h2>
+        <main className="py-4">
+          {faqSections.map((section, index) => (
+            <section
+              key={section.title}
+              className="grid gap-4 py-10 md:grid-cols-[220px_1fr] md:gap-10"
+            >
+              <div>
+                <p className="eyebrow eyebrow-muted">0{index + 1}</p>
+                <h2 className="mt-2 text-lg font-semibold">{section.title}</h2>
+              </div>
               <FAQAccordion items={section.items} />
             </section>
           ))}
-        </div>
 
-        {/* Contact Section */}
-        <div className="mt-12 p-6 rounded-xl border bg-card">
-          <h2 className="text-lg font-semibold mb-2">Still have questions?</h2>
-          <p className="text-muted-foreground mb-4">
-            Can&apos;t find what you&apos;re looking for? Feel free to reach out
-            to our support team.
-          </p>
-          <a
-            href="mailto:support@remedi.app"
-            className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            Contact Support
-          </a>
-        </div>
-      </main>
+          {/* Contact Section */}
+          <div className="mt-4 mb-16 flex flex-col gap-4 rounded-lg border border-border bg-card p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-base font-semibold">Still have questions?</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Can&apos;t find what you&apos;re looking for? Reach out to our
+                support team.
+              </p>
+            </div>
+            <Button asChild>
+              <a href="mailto:support@remedi.app">
+                <Mail className="h-4 w-4" />
+                Contact Support
+              </a>
+            </Button>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

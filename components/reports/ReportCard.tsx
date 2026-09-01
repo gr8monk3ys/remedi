@@ -55,7 +55,7 @@ export function ReportCard({ report }: ReportCardProps): React.JSX.Element {
   return (
     <Link
       href={`/dashboard/reports/${report.id}`}
-      className="rounded-xl border bg-card p-5 hover:border-primary/50 transition-colors block"
+      className="rounded-lg border border-border bg-card p-5 hover:border-primary/50 transition-colors block"
     >
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">

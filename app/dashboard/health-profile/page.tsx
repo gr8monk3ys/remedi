@@ -21,7 +21,7 @@ export default async function HealthProfilePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Health Profile</h1>
+        <h1 className="text-2xl font-semibold">Health Profile</h1>
         <p className="text-muted-foreground mt-1">
           Manage your health preferences and medication cabinet
         </p>

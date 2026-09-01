@@ -18,22 +18,21 @@ const defaultActions: QuickAction[] = [
     label: "Search Remedies",
     description: "Find natural alternatives",
     icon: Search,
-    color: "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary",
+    color: "bg-primary/10 text-primary",
   },
   {
     href: "/dashboard/favorites",
     label: "View Favorites",
     description: "See saved remedies",
     icon: Heart,
-    color: "bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400",
+    color: "bg-primary/10 text-primary",
   },
   {
     href: "/contribute",
     label: "Contribute",
     description: "Submit a remedy",
     icon: FileText,
-    color:
-      "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
+    color: "bg-primary/10 text-primary",
   },
   {
     href: "/dashboard/subscription",
@@ -60,14 +59,9 @@ export function QuickActions({
 }: QuickActionsProps) {
   return (
     <div
-      className={cn(
-        "bg-card rounded-xl shadow-sm border border-border p-6",
-        className,
-      )}
+      className={cn("rounded-lg border border-border bg-card p-5", className)}
     >
-      <h3 className="text-lg font-semibold text-foreground mb-4">
-        Quick Actions
-      </h3>
+      <h3 className="eyebrow eyebrow-muted mb-4">Quick Actions</h3>
 
       <div className="grid grid-cols-2 gap-3">
         {actions.map((action) => {
@@ -77,10 +71,10 @@ export function QuickActions({
             <Link
               key={action.href}
               href={action.href}
-              className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary dark:hover:border-primary hover:shadow-sm transition-all group"
+              className="group flex items-center gap-3 rounded-md border border-border p-3 transition-colors hover:border-border-strong hover:bg-muted/60"
             >
-              <div className={cn("p-2 rounded-lg", action.color)}>
-                <Icon className="h-5 w-5" aria-hidden="true" />
+              <div className={cn("rounded-md p-2", action.color)}>
+                <Icon className="h-4 w-4" aria-hidden="true" />
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">

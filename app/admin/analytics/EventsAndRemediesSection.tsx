@@ -12,7 +12,7 @@ export function EventsAndRemediesSection({
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         <h3 className="font-semibold text-foreground mb-4">
           Events by Type (Last 7 Days)
         </h3>
@@ -51,7 +51,7 @@ export function EventsAndRemediesSection({
       </div>
 
       {/* Top Remedies */}
-      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         <h3 className="font-semibold text-foreground mb-4">
           Most Favorited Remedies
         </h3>
