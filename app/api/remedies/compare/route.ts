@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/client";
-import { parseNaturalRemedy } from "@/lib/db/parsers";
+import type { ParsedNaturalRemedy } from "@/lib/types";
 import { getCurrentUser } from "@/lib/auth";
 import { getEffectivePlanLimits } from "@/lib/trial";
 import {
@@ -218,7 +218,7 @@ const MOCK_REMEDIES: Record<string, CompareRemedy> = {
  * Convert database remedy to CompareRemedy format
  */
 function toCompareRemedy(
-  remedy: ReturnType<typeof parseNaturalRemedy>,
+  remedy: ParsedNaturalRemedy,
   pharmaceuticals: Array<{
     id: string;
     name: string;
@@ -383,7 +383,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const dbRemedyMap = new Map<string, CompareRemedy>();
 
     for (const dbRemedy of dbRemedies) {
-      const parsed = parseNaturalRemedy(dbRemedy);
+      const parsed = dbRemedy;
       const pharmaceuticals = dbRemedy.pharmaceuticals.map(
         (mapping: {
           pharmaceutical: { id: string; name: string; category: string };

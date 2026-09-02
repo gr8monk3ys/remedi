@@ -2,25 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // ============================================================================
-// MIGRATION GUIDE: SQLite to PostgreSQL
-// ============================================================================
+// This schema is PostgreSQL-only.
 //
-// This schema is configured for PostgreSQL (production-ready).
+// Array fields are native PostgreSQL String[] columns. Some queries in lib/db/
+// are raw Postgres SQL (to_tsvector, unnest, ILIKE), so the provider cannot be
+// switched to another database without rewriting them.
 //
-// To migrate from SQLite to PostgreSQL:
-// 1. Start PostgreSQL: docker-compose up -d postgres
-// 2. Update DATABASE_URL in .env to use PostgreSQL connection string
-// 3. Run: npx prisma migrate dev --name init_postgres
-// 4. Seed data: npm run prisma db seed
-//
-// Key changes from SQLite:
-// - Array fields now use native PostgreSQL String[] type instead of JSON strings
-// - Connection pooling is enabled via Prisma Data Proxy or pgbouncer
-// - Full-text search indexes can be added for better search performance
-//
-// For local development without Docker:
-// - Use Neon (neon.tech) or Supabase free tier for a hosted PostgreSQL instance
-// - Or keep using SQLite by switching provider back to "sqlite"
+// Local development: docker-compose up -d postgres
+// Hosted alternatives: Neon (neon.tech) or Supabase free tier.
 // ============================================================================
 
 generator client {

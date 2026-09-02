@@ -5,7 +5,6 @@
  */
 
 import { prisma } from "./client";
-import { parseNaturalRemedy } from "./parsers";
 import type {
   NaturalRemedy,
   DetailedRemedy,
@@ -31,12 +30,11 @@ export async function getNaturalRemedyById(
     where: { id },
   });
 
-  return result ? parseNaturalRemedy(result) : null;
+  return result;
 }
 
 /**
- * Search natural remedies by name or category
- * Note: SQLite doesn't support case-insensitive mode, so we search with lowercase
+ * Search natural remedies by name or category.
  */
 export async function searchNaturalRemedies(
   query: string,
@@ -52,7 +50,7 @@ export async function searchNaturalRemedies(
     take: 20,
   });
 
-  return results.map(parseNaturalRemedy);
+  return results;
 }
 
 /**

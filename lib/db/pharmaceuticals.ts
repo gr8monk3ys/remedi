@@ -5,7 +5,6 @@
  */
 
 import { prisma } from "./client";
-import { parsePharmaceutical, type RawPharmaceutical } from "./parsers";
 import type { ProcessedDrug, ParsedPharmaceutical } from "../types";
 import { logger } from "@/lib/logger";
 
@@ -37,7 +36,7 @@ export async function searchPharmaceuticals(
     const tsQueryStr = tsQueryTokens.join(" & ");
 
     try {
-      const ftsResults = await prisma.$queryRaw<RawPharmaceutical[]>`
+      const ftsResults = await prisma.$queryRaw<ParsedPharmaceutical[]>`
         SELECT *
         FROM "Pharmaceutical"
         WHERE to_tsvector('english', coalesce("name", '') || ' ' || coalesce("description", ''))
@@ -50,7 +49,7 @@ export async function searchPharmaceuticals(
       `;
 
       if (ftsResults.length > 0) {
-        return ftsResults.map(parsePharmaceutical);
+        return ftsResults;
       }
     } catch (error) {
       // If FTS fails (e.g. index not yet created, bad tsquery syntax)
@@ -61,7 +60,7 @@ export async function searchPharmaceuticals(
 
   // ── Tier 2: ILIKE fallback ────────────────────────────────────────────
   const like = `%${trimmed}%`;
-  const results = await prisma.$queryRaw<RawPharmaceutical[]>`
+  const results = await prisma.$queryRaw<ParsedPharmaceutical[]>`
     SELECT *
     FROM "Pharmaceutical"
     WHERE "name" ILIKE ${like}
@@ -76,7 +75,7 @@ export async function searchPharmaceuticals(
     LIMIT 10
   `;
 
-  return results.map(parsePharmaceutical);
+  return results;
 }
 
 /**
@@ -89,7 +88,7 @@ export async function getPharmaceuticalById(
     where: { id },
   });
 
-  return result ? parsePharmaceutical(result) : null;
+  return result;
 }
 
 /**
@@ -102,7 +101,7 @@ export async function getPharmaceuticalByFdaId(
     where: { fdaId },
   });
 
-  return result ? parsePharmaceutical(result) : null;
+  return result;
 }
 
 /**
@@ -136,5 +135,5 @@ export async function upsertPharmaceutical(
     },
   });
 
-  return parsePharmaceutical(result);
+  return result;
 }
