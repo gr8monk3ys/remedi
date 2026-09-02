@@ -129,7 +129,7 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
       {/* Summary */}
       <div className="flex items-center gap-4 mb-6 pb-4 border-b border-border">
         <div className="text-center">
-          <div className="text-4xl font-bold text-foreground">
+          <div className="text-4xl font-semibold text-foreground">
             {data.averageRating.toFixed(1)}
           </div>
           {renderStars(Math.round(data.averageRating))}

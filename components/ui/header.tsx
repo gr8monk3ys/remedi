@@ -18,6 +18,7 @@ import {
   SheetTrigger,
   SheetDescription,
 } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 /**
  * Error boundary for auth section -- if Clerk hooks throw,
@@ -95,6 +96,7 @@ const NAV_LINKS = [
   { href: "/interactions", label: "Interactions" },
   { href: "/about", label: "About" },
   { href: "/faq", label: "FAQ" },
+  { href: "/pricing", label: "Pricing" },
 ];
 
 /**
@@ -103,6 +105,11 @@ const NAV_LINKS = [
  * and put a second hamburger button on top of the dashboard's own.
  */
 const APP_CHROME_PREFIXES = ["/dashboard", "/admin"];
+
+function isActivePath(pathname: string, href: string): boolean {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function Header() {
   const pathname = usePathname();
@@ -117,48 +124,58 @@ export function Header() {
   }
 
   return (
-    <header className="fixed top-0 left-0 z-50 w-full border-b border-primary/10 bg-background/78 backdrop-blur-xl">
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-px opacity-60"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 50%, transparent), transparent)",
-        }}
-      />
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 md:px-8">
+    <header className="fixed top-0 left-0 z-50 w-full border-b border-border bg-background/85 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:px-8">
         {/* Logo */}
         <Link
           href="/"
-          className="group flex items-center gap-1.5 text-lg font-semibold tracking-tight"
+          className="flex items-center gap-2 text-[15px] font-semibold tracking-tight"
         >
-          <Leaf className="h-5 w-5 text-primary transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" />
-          <span className="font-[var(--font-display)]">Remedi</span>
+          <span className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card">
+            <Leaf className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+          </span>
+          Remedi
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-0.5 md:flex">
           {NAV_LINKS.map((link) => (
-            <Button key={link.href} variant="ghost" size="sm" asChild>
-              <Link href={link.href}>{link.label}</Link>
-            </Button>
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={
+                isActivePath(pathname, link.href) ? "page" : undefined
+              }
+              className={cn(
+                "rounded-md px-3 py-1.5 text-sm transition-colors hover:text-foreground",
+                isActivePath(pathname, link.href)
+                  ? "text-foreground"
+                  : "text-muted-foreground",
+              )}
+            >
+              {link.label}
+            </Link>
           ))}
 
           {/* Compare link */}
-          <Button variant="ghost" size="sm" asChild>
-            <Link
-              href={getCompareUrl()}
-              className="gap-1.5"
-              aria-label={`Compare remedies${items.length > 0 ? ` (${items.length} selected)` : ""}`}
-            >
-              <GitCompare className="h-4 w-4" />
-              Compare
-              {items.length > 0 && (
-                <Badge className="h-5 px-1.5 text-xs">{items.length}</Badge>
-              )}
-            </Link>
-          </Button>
+          <Link
+            href={getCompareUrl()}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors hover:text-foreground",
+              isActivePath(pathname, "/compare")
+                ? "text-foreground"
+                : "text-muted-foreground",
+            )}
+            aria-label={`Compare remedies${items.length > 0 ? ` (${items.length} selected)` : ""}`}
+          >
+            <GitCompare className="h-3.5 w-3.5" aria-hidden="true" />
+            Compare
+            {items.length > 0 && (
+              <Badge className="h-5 px-1.5">{items.length}</Badge>
+            )}
+          </Link>
 
-          <Separator orientation="vertical" className="mx-1 h-6" />
+          <Separator orientation="vertical" className="mx-2 h-5" />
 
           <ThemeToggle />
 
@@ -181,8 +198,8 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <SheetHeader>
-                <SheetTitle className="flex items-center gap-1.5">
-                  <Leaf className="h-5 w-5 text-primary" />
+                <SheetTitle className="flex items-center gap-2">
+                  <Leaf className="h-4 w-4 text-primary" aria-hidden="true" />
                   Remedi
                 </SheetTitle>
                 <SheetDescription className="text-sm">
@@ -210,9 +227,7 @@ export function Header() {
                     <GitCompare className="h-4 w-4" />
                     Compare
                     {items.length > 0 && (
-                      <Badge className="h-5 px-1.5 text-xs">
-                        {items.length}
-                      </Badge>
+                      <Badge className="h-5 px-1.5">{items.length}</Badge>
                     )}
                   </Link>
                 </Button>

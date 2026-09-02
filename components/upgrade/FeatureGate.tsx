@@ -217,12 +217,12 @@ export function FeatureGate({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-background/80 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-lg"
+            className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-background/85 backdrop-blur-[2px]"
           >
             <div className="text-center p-6 max-w-sm">
               {/* Lock icon */}
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-muted mb-4">
-                <Lock className="w-7 h-7 text-muted-foreground" />
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-card">
+                <Lock className="h-5 w-5 text-muted-foreground" />
               </div>
 
               {/* Message */}
@@ -232,12 +232,14 @@ export function FeatureGate({
               <p className="text-sm text-muted-foreground mb-4">
                 {featureDescriptions[feature]}
               </p>
-              <p className="text-xs text-muted-foreground mb-4">{message}</p>
+              <p className="mb-4 font-mono text-xs text-muted-foreground">
+                {message}
+              </p>
 
               {/* Upgrade button */}
               <motion.button
                 onClick={handleUpgradeClick}
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary-light"
+                className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -261,7 +263,7 @@ export function FeatureGate({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 ring-2 ring-primary/50 rounded-lg pointer-events-none"
+              className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-primary/50"
             />
           )}
         </AnimatePresence>

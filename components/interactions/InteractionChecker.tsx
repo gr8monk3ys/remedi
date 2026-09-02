@@ -4,7 +4,6 @@ import { useState, useCallback } from "react";
 import { AlertTriangle, Plus, X, Search, Shield } from "lucide-react";
 import { apiClient, ApiClientError } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -82,8 +81,8 @@ export function InteractionChecker(): React.ReactElement {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
-            Drug Interaction Checker
+            <Shield className="h-4 w-4 text-primary" aria-hidden="true" />
+            Your substances
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             Enter the medications, supplements, and natural remedies you
@@ -117,20 +116,20 @@ export function InteractionChecker(): React.ReactElement {
           {substances.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {substances.map((substance, index) => (
-                <Badge
+                <span
                   key={`${substance}-${index}`}
-                  variant="secondary"
-                  className="flex items-center gap-1 py-1 pl-2.5 pr-1"
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-background py-1 pl-3 pr-1 text-sm"
                 >
                   {substance}
                   <button
+                    type="button"
                     onClick={() => removeSubstance(index)}
-                    className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20 transition-colors"
+                    className="ml-0.5 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     aria-label={`Remove ${substance}`}
                   >
                     <X className="h-3 w-3" />
                   </button>
-                </Badge>
+                </span>
               ))}
             </div>
           )}

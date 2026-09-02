@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Cookie } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { readCookieConsent, writeCookieConsent } from "@/lib/cookie-consent";
 
 export function CookieConsent() {
@@ -30,26 +32,26 @@ export function CookieConsent() {
     <div
       role="dialog"
       aria-label="Cookie consent"
-      className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card p-4 shadow-lg"
+      className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-xl rounded-lg border border-border bg-card p-4 shadow-lg"
     >
-      <div className="mx-auto flex max-w-4xl flex-col items-center justify-between gap-3 sm:flex-row">
-        <p className="text-sm text-muted-foreground">
-          We use essential cookies to run the site, plus cookie-based analytics
-          only if you accept. Declining keeps analytics cookies off.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <Cookie
+            className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            We use essential cookies to run the site, plus cookie-based
+            analytics only if you accept. Declining keeps analytics cookies off.
+          </p>
+        </div>
         <div className="flex shrink-0 gap-2">
-          <button
-            onClick={handleDecline}
-            className="rounded-md border px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted"
-          >
+          <Button variant="outline" size="sm" onClick={handleDecline}>
             Decline
-          </button>
-          <button
-            onClick={handleAccept}
-            className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground transition-colors hover:bg-primary/90"
-          >
+          </Button>
+          <Button size="sm" onClick={handleAccept}>
             Accept
-          </button>
+          </Button>
         </div>
       </div>
     </div>

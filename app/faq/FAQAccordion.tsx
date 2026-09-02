@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface FAQItem {
   question: string;
@@ -16,33 +17,33 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <div className="space-y-3">
+    <div className="divide-y divide-border border-y border-border">
       {items.map((item, index) => {
         const isOpen = openIndex === index;
+        const panelId = `faq-panel-${index}`;
 
         return (
-          <div
-            key={index}
-            className="bg-card rounded-lg border border-border overflow-hidden"
-          >
+          <div key={index}>
             <button
+              type="button"
               onClick={() => setOpenIndex(isOpen ? null : index)}
-              className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-muted transition-colors"
+              className="flex w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:text-primary"
               aria-expanded={isOpen}
+              aria-controls={panelId}
             >
-              <span className="font-medium text-foreground pr-4">
-                {item.question}
-              </span>
-              <ChevronDown
-                className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform ${
-                  isOpen ? "rotate-180" : ""
-                }`}
+              <span className="text-[15px] font-medium">{item.question}</span>
+              <Plus
+                className={cn(
+                  "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                  isOpen && "rotate-45 text-primary",
+                )}
+                aria-hidden="true"
               />
             </button>
 
             {isOpen && (
-              <div className="px-5 pb-4">
-                <p className="text-muted-foreground leading-relaxed">
+              <div id={panelId} className="pb-5 pr-10">
+                <p className="text-sm leading-relaxed text-muted-foreground">
                   {item.answer}
                 </p>
               </div>

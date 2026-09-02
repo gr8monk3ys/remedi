@@ -12,7 +12,7 @@ export default function InteractionsLoading() {
         </div>
 
         {/* Substance Input Area */}
-        <div className="rounded-xl border bg-card p-6 shadow-sm mb-6">
+        <div className="rounded-lg border border-border bg-card p-6 shadow-sm mb-6">
           <Skeleton className="h-5 w-40 mb-4" />
           <Skeleton className="h-11 w-full rounded-lg mb-4" />
           <div className="flex gap-2">
@@ -28,7 +28,10 @@ export default function InteractionsLoading() {
         {/* Results Placeholder */}
         <div className="space-y-4">
           {[1, 2].map((i) => (
-            <div key={i} className="rounded-xl border bg-card p-6">
+            <div
+              key={i}
+              className="rounded-lg border border-border bg-card p-6"
+            >
               <Skeleton className="h-5 w-64 mb-3" />
               <Skeleton className="h-4 w-full" />
               <Skeleton className="mt-1 h-4 w-3/4" />

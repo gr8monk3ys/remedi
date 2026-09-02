@@ -51,15 +51,12 @@ export function FavoriteCard({
     return (
       <div
         className={cn(
-          "flex items-center gap-4 p-4 bg-card rounded-lg border border-border hover:border-primary dark:hover:border-primary transition-colors",
+          "flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-border-strong",
           className,
         )}
       >
-        <div className="p-2 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
-          <Heart
-            className="h-5 w-5 text-pink-600 dark:text-pink-400"
-            fill="currentColor"
-          />
+        <div className="rounded-md bg-primary/10 p-2">
+          <Heart className="h-4 w-4 text-primary" fill="currentColor" />
         </div>
 
         <div className="flex-1 min-w-0">
@@ -72,7 +69,7 @@ export function FavoriteCard({
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             {favorite.collectionName && (
               <>
-                <span className="px-2 py-0.5 bg-muted rounded text-xs">
+                <span className="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[11px]">
                   {favorite.collectionName}
                 </span>
                 <span aria-hidden="true">-</span>
@@ -120,16 +117,13 @@ export function FavoriteCard({
   return (
     <div
       className={cn(
-        "bg-card rounded-xl border border-border p-4 hover:border-primary dark:hover:border-primary hover:shadow-md transition-all",
+        "surface-hover rounded-lg border border-border bg-card p-4",
         className,
       )}
     >
       <div className="flex items-start justify-between mb-3">
-        <div className="p-2 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
-          <Heart
-            className="h-5 w-5 text-pink-600 dark:text-pink-400"
-            fill="currentColor"
-          />
+        <div className="rounded-md bg-primary/10 p-2">
+          <Heart className="h-4 w-4 text-primary" fill="currentColor" />
         </div>
 
         <div className="relative">
@@ -164,7 +158,7 @@ export function FavoriteCard({
       </Link>
 
       {favorite.collectionName && (
-        <span className="inline-block px-2 py-0.5 bg-muted rounded text-xs text-muted-foreground mb-2">
+        <span className="mb-2 inline-block rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">
           {favorite.collectionName}
         </span>
       )}
@@ -271,7 +265,7 @@ export function FavoriteCardSkeleton({
   }
 
   return (
-    <div className="bg-card rounded-xl border border-border p-4 animate-pulse">
+    <div className="rounded-lg border border-border bg-card p-4 animate-pulse">
       <div className="flex items-start justify-between mb-3">
         <div className="h-9 w-9 bg-muted rounded-lg" />
         <div className="h-6 w-6 bg-muted rounded" />

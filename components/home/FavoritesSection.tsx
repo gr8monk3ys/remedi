@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Heart, ArrowRight } from "lucide-react";
 import { useFavoritesQuery } from "@/hooks/queries";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -12,21 +11,17 @@ export function FavoritesSection() {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-5 w-5 rounded-full" />
-            <Skeleton className="h-6 w-32" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-24 rounded-lg" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="rounded-lg border border-border bg-card p-5">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-4 rounded-sm" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-16" />
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -35,38 +30,52 @@ export function FavoritesSection() {
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Heart className="h-5 w-5 text-red-500 fill-red-500" />
+    <section
+      aria-labelledby="favorites-heading"
+      className="rounded-lg border border-border bg-card p-5"
+    >
+      <div className="flex items-center justify-between">
+        <h2
+          id="favorites-heading"
+          className="flex items-center gap-2 text-sm font-semibold"
+        >
+          <Heart
+            className="h-4 w-4 fill-primary text-primary"
+            aria-hidden="true"
+          />
           Your Favorites
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {favorites.map((favorite) => (
-            <Link
-              key={favorite.id}
-              href={`/remedy/${favorite.remedyId}`}
-              className="group"
-            >
-              <div className="flex items-center justify-between rounded-lg border bg-card p-4 transition-colors hover:bg-accent/50">
-                <div className="min-w-0">
-                  <p className="font-medium truncate text-sm">
-                    {favorite.remedyName}
-                  </p>
-                  {favorite.collectionName && (
-                    <Badge variant="secondary" className="mt-1 text-xs">
-                      {favorite.collectionName}
-                    </Badge>
-                  )}
-                </div>
-                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-              </div>
-            </Link>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+        </h2>
+        <Link
+          href="/dashboard/favorites"
+          className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          View all
+        </Link>
+      </div>
+      <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+        {favorites.map((favorite) => (
+          <Link
+            key={favorite.id}
+            href={`/remedy/${favorite.remedyId}`}
+            className="group flex items-center justify-between gap-3 rounded-md border border-border px-3.5 py-3 transition-colors hover:border-border-strong hover:bg-muted/60"
+          >
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">
+                {favorite.remedyName}
+              </p>
+              {favorite.collectionName && (
+                <Badge variant="secondary" className="mt-1">
+                  {favorite.collectionName}
+                </Badge>
+              )}
+            </div>
+            <ArrowRight
+              className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }

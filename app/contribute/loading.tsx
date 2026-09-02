@@ -19,7 +19,7 @@ export default function ContributeLoading() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-card rounded-2xl shadow-lg p-6 md:p-8">
+        <div className="rounded-lg border border-border bg-card p-6 md:p-8">
           <div className="space-y-6">
             {[1, 2, 3, 4].map((i) => (
               <div key={i}>

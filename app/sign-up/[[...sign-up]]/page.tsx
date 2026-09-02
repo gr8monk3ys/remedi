@@ -9,18 +9,20 @@ export const metadata: Metadata = {
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted px-4">
+    <div className="flex min-h-screen items-center justify-center px-4 pt-14">
       <SignUp
         appearance={{
           elements: {
             rootBox: "mx-auto",
-            card: "bg-card shadow-xl rounded-2xl",
+            card: "bg-card border border-border shadow-none rounded-lg",
+            formButtonPrimary:
+              "bg-primary hover:bg-primary/90 text-primary-foreground shadow-none",
             headerTitle: "text-foreground",
             headerSubtitle: "text-muted-foreground",
             socialButtonsBlockButton: "border-border hover:bg-muted",
             formFieldLabel: "text-foreground",
             formFieldInput: "border-border bg-card text-foreground",
-            footerActionLink: "text-green-600 hover:text-green-700",
+            footerActionLink: "text-primary hover:text-primary/80",
           },
         }}
       />

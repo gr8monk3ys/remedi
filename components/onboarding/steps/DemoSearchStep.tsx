@@ -29,7 +29,7 @@ export function DemoSearchStep({
       </p>
 
       <div className="relative">
-        <div className="flex items-center gap-2 p-4 bg-muted rounded-xl">
+        <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2.5">
           <Search className="w-5 h-5 text-muted-foreground" />
           <input
             type="text"
@@ -47,19 +47,17 @@ export function DemoSearchStep({
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-medium text-foreground">
-          Popular searches:
-        </h3>
+        <h3 className="eyebrow eyebrow-muted">Popular searches</h3>
         <div className="flex flex-wrap gap-2">
           {SAMPLE_SEARCHES.map((search) => (
             <button
               key={search}
               onClick={() => handleDemoSearch(search)}
               className={cn(
-                "px-4 py-2 text-sm rounded-full transition-all",
+                "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
                 demoQuery === search
-                  ? "bg-green-500 text-white"
-                  : "bg-muted text-foreground hover:bg-muted/80",
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-border text-foreground hover:border-border-strong hover:bg-muted",
               )}
             >
               {search}
@@ -72,11 +70,11 @@ export function DemoSearchStep({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-green-50 dark:bg-green-900/30 rounded-xl border border-green-200 dark:border-green-800"
+          className="rounded-md border border-primary/30 bg-primary/5 p-4"
         >
-          <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+          <div className="flex items-center gap-2 text-primary">
             <Check className="w-5 h-5" />
-            <span className="font-medium">
+            <span className="text-sm font-medium">
               Great choice! You will see results for &quot;
               {demoQuery}&quot; after completing the setup.
             </span>

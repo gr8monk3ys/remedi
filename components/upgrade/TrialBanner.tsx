@@ -101,25 +101,34 @@ export function TrialBanner({
         className={`${className}`}
       >
         <div
-          className={`px-4 py-3 ${
+          className={`border-b px-4 py-3 ${
             isUrgent
-              ? "bg-gradient-to-r from-red-500 to-orange-500"
+              ? "border-destructive/30 bg-destructive/10"
               : isWarning
-                ? "bg-gradient-to-r from-orange-500 to-yellow-500"
-                : "premium-gradient-band"
-          } text-white`}
+                ? "border-warning/30 bg-warning/10"
+                : "border-primary/30 bg-primary/10"
+          } text-foreground`}
         >
           <div className="container mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Sparkles className="w-5 h-5 flex-shrink-0" />
+              <Sparkles
+                className={`h-4 w-4 shrink-0 ${
+                  isUrgent
+                    ? "text-destructive"
+                    : isWarning
+                      ? "text-warning"
+                      : "text-primary"
+                }`}
+                aria-hidden="true"
+              />
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                <span className="font-medium">
+                <span className="text-sm font-medium">
                   {isUrgent
                     ? "Your trial ends soon!"
                     : `${trialStatus.daysRemaining} day${trialStatus.daysRemaining !== 1 ? "s" : ""} left in your Premium trial`}
                 </span>
                 {trialStatus.endDate && (
-                  <span className="text-white/80 text-sm flex items-center gap-1">
+                  <span className="flex items-center gap-1 font-mono text-xs text-muted-foreground">
                     <Clock className="w-3.5 h-3.5" />
                     Ends {new Date(trialStatus.endDate).toLocaleDateString()}
                   </span>
@@ -130,7 +139,7 @@ export function TrialBanner({
             <div className="flex items-center gap-3">
               <button
                 onClick={handleUpgrade}
-                className="px-4 py-1.5 bg-white text-gray-900 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+                className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 Upgrade Now
               </button>
@@ -138,7 +147,7 @@ export function TrialBanner({
               {dismissable && (
                 <button
                   onClick={handleDismiss}
-                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   aria-label="Dismiss"
                 >
                   <X className="w-4 h-4" />
@@ -188,10 +197,10 @@ export function TrialBadge({ className = "" }: { className?: string }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+      className={`inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[11px] font-medium ${
         isUrgent
-          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-          : "bg-primary/15 text-primary dark:bg-primary/25 dark:text-primary"
+          ? "border-destructive/25 bg-destructive/10 text-destructive"
+          : "border-primary/20 bg-primary/10 text-primary"
       } ${className}`}
     >
       <Sparkles className="w-3 h-3" />
@@ -275,17 +284,17 @@ export function StartTrialButton({
   };
 
   const variantClasses = {
-    primary: "premium-gradient-band text-white hover:opacity-95",
-    secondary: "bg-muted text-foreground hover:bg-muted/80",
+    primary: "bg-primary text-primary-foreground hover:bg-primary/90",
+    secondary: "bg-muted text-foreground hover:bg-accent",
     outline:
-      "border-2 border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20",
+      "border border-primary/25 bg-primary/5 text-primary hover:border-primary/45 hover:bg-primary/10",
   };
 
   return (
     <button
       onClick={handleStartTrial}
       disabled={isStarting}
-      className={`inline-flex items-center gap-2 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
+      className={`inline-flex items-center gap-2 rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
     >
       {isStarting ? (
         <Loader2 className="w-4 h-4 animate-spin" />

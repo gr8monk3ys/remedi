@@ -218,9 +218,14 @@ export function PricingClient({
   return (
     <div id="pricing">
       {/* Billing Interval Toggle */}
-      <div className="flex justify-center mb-12">
-        <div className="bg-muted p-1.5 rounded-xl inline-flex items-center gap-2">
+      <div className="mb-10 flex justify-center">
+        <div
+          role="group"
+          aria-label="Billing interval"
+          className="inline-flex items-center rounded-md border border-border bg-card p-1"
+        >
           <button
+            type="button"
             onClick={() => {
               setIsYearly(false);
               void trackConversionEvent({
@@ -232,15 +237,17 @@ export function PricingClient({
                 },
               });
             }}
-            className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
+            aria-pressed={!isYearly}
+            className={`rounded-sm px-4 py-2 text-sm font-medium transition-colors ${
               !isYearly
-                ? "bg-card text-foreground shadow-sm"
+                ? "bg-muted text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Monthly
           </button>
           <button
+            type="button"
             onClick={() => {
               setIsYearly(true);
               void trackConversionEvent({
@@ -252,14 +259,15 @@ export function PricingClient({
                 },
               });
             }}
-            className={`px-6 py-3 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+            aria-pressed={isYearly}
+            className={`flex items-center gap-2 rounded-sm px-4 py-2 text-sm font-medium transition-colors ${
               isYearly
-                ? "bg-card text-foreground shadow-sm"
+                ? "bg-muted text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Yearly
-            <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
+            <span className="rounded-sm border border-primary/20 bg-primary/10 px-1.5 py-0.5 font-mono text-[11px] font-medium text-primary">
               Save {YEARLY_DISCOUNT_PERCENT}%
             </span>
           </button>

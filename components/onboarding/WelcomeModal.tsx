@@ -238,7 +238,7 @@ export function WelcomeModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="welcome-modal-title"
@@ -247,13 +247,13 @@ export function WelcomeModal({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-card rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden"
+        className="max-h-[90vh] w-full max-w-lg overflow-hidden rounded-lg border border-border bg-card shadow-xl"
       >
         {/* Header */}
         <div className="relative p-6 pb-4 border-b border-border">
           <button
             onClick={handleSkip}
-            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors"
+            className="absolute top-4 right-4 rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label="Close welcome modal"
           >
             <X className="w-5 h-5" />
@@ -271,11 +271,11 @@ export function WelcomeModal({
                 key={index}
                 onClick={() => goToStep(index)}
                 className={cn(
-                  "h-1.5 rounded-full flex-1 transition-all duration-300",
+                  "h-1 flex-1 rounded-full transition-all duration-300",
                   index === step
-                    ? "bg-green-500"
+                    ? "bg-primary"
                     : index < step
-                      ? "bg-green-500/50"
+                      ? "bg-primary/40"
                       : "bg-muted",
                 )}
                 aria-label={`Go to step ${index + 1}`}
@@ -284,17 +284,17 @@ export function WelcomeModal({
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-100 dark:bg-green-900 rounded-xl">
-              <Leaf className="w-8 h-8 text-green-600 dark:text-green-400" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-background">
+              <Leaf className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
               <h2
                 id="welcome-modal-title"
-                className="text-2xl font-bold text-foreground"
+                className="text-xl font-semibold text-foreground"
               >
                 {STEP_TITLES[step]}
               </h2>
-              <p className="text-muted-foreground text-sm">
+              <p className="font-mono text-xs text-muted-foreground">
                 Step {step + 1} of {TOTAL_STEPS}
               </p>
             </div>
@@ -325,10 +325,10 @@ export function WelcomeModal({
               onClick={prevStep}
               disabled={step === 0}
               className={cn(
-                "flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+                "flex h-9 items-center gap-1 rounded-md px-3 text-sm font-medium transition-colors",
                 step === 0
-                  ? "text-muted-foreground/40 cursor-not-allowed"
-                  : "text-muted-foreground hover:bg-muted",
+                  ? "cursor-not-allowed text-muted-foreground/40"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
               <ChevronLeft className="w-4 h-4" />
@@ -337,7 +337,7 @@ export function WelcomeModal({
 
             <button
               onClick={nextStep}
-              className="flex items-center gap-1 px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+              className="flex h-9 items-center gap-1 rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               {step === TOTAL_STEPS - 1 ? (
                 "Get Started"
@@ -355,7 +355,7 @@ export function WelcomeModal({
               type="checkbox"
               checked={dontShowAgain}
               onChange={(e) => setDontShowAgain(e.target.checked)}
-              className="w-4 h-4 rounded border-border text-green-600 focus:ring-green-500"
+              className="h-4 w-4 rounded border-border accent-primary"
             />
             Do not show this again
           </label>

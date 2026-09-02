@@ -16,7 +16,7 @@ export function GetStartedStep(_props: GetStartedStepProps): React.ReactNode {
       <div className="space-y-3">
         <Link
           href="/sign-in"
-          className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           <Leaf className="w-5 h-5" />
           Create Free Account
@@ -37,7 +37,7 @@ export function GetStartedStep(_props: GetStartedStepProps): React.ReactNode {
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirects require <a> tags */}
           <a
             href="/sign-in"
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-card border border-border rounded-lg hover:bg-muted transition-colors"
+            className="flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-card transition-colors hover:bg-muted"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -63,7 +63,7 @@ export function GetStartedStep(_props: GetStartedStepProps): React.ReactNode {
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirects require <a> tags */}
           <a
             href="/sign-in"
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors"
+            className="flex h-10 items-center justify-center gap-2 rounded-md bg-foreground text-background transition-colors hover:bg-foreground/90"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <path
@@ -77,25 +77,23 @@ export function GetStartedStep(_props: GetStartedStepProps): React.ReactNode {
         </div>
       </div>
 
-      <div className="p-4 bg-muted rounded-xl">
-        <h4 className="font-medium text-foreground mb-2">
-          Benefits of an account:
-        </h4>
+      <div className="rounded-md border border-border bg-background p-4">
+        <h4 className="eyebrow eyebrow-muted mb-3">Benefits of an account:</h4>
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-green-500" />
+            <Check className="h-4 w-4 text-primary" />
             Save favorites across devices
           </li>
           <li className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-green-500" />
+            <Check className="h-4 w-4 text-primary" />
             Track your search history
           </li>
           <li className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-green-500" />
+            <Check className="h-4 w-4 text-primary" />
             Get personalized recommendations
           </li>
           <li className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-green-500" />
+            <Check className="h-4 w-4 text-primary" />
             Access premium AI features
           </li>
         </ul>

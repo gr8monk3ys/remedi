@@ -27,12 +27,14 @@ export function RemedyHero({
     <div className="mb-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="mb-4 flex flex-wrap items-center gap-2">
             <Badge variant="secondary">{category}</Badge>
             <EvidenceBadge level={evidenceLevel} />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">{name}</h1>
-          <p className="mt-2 text-muted-foreground max-w-2xl">{description}</p>
+          <h1 className="text-3xl font-semibold sm:text-4xl">{name}</h1>
+          <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">
+            {description}
+          </p>
         </div>
         <div className="shrink-0">
           <FavoriteToggle remedyId={id} remedyName={name} />
@@ -40,28 +42,30 @@ export function RemedyHero({
       </div>
 
       {/* Relevance and Nutrients */}
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+      <div className="mt-6 flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-8">
         {similarityScore !== undefined && (
           <div
-            className="flex items-center gap-2"
+            className="flex items-center gap-3"
             title="Relevance reflects shared ingredients and properties — it is informational only and is not a measure of medical effectiveness."
           >
-            <span className="text-sm text-muted-foreground">Relevance</span>
+            <span className="eyebrow eyebrow-muted">Relevance</span>
             <div className="flex items-center gap-2">
-              <div className="h-2 w-24 rounded-full bg-secondary">
+              <div className="h-1 w-24 overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-2 rounded-full bg-primary transition-all"
+                  className="h-full rounded-full bg-primary transition-all"
                   style={{ width: `${scorePercent}%` }}
                 />
               </div>
-              <span className="text-sm font-medium">{scorePercent}%</span>
+              <span className="tabular font-mono text-xs font-medium">
+                {scorePercent}%
+              </span>
             </div>
           </div>
         )}
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-sm text-muted-foreground mr-1">Nutrients:</span>
+          <span className="eyebrow eyebrow-muted mr-1">Nutrients:</span>
           {matchingNutrients.map((nutrient) => (
-            <Badge key={nutrient} variant="outline" className="text-xs">
+            <Badge key={nutrient} variant="outline">
               {nutrient}
             </Badge>
           ))}

@@ -39,19 +39,19 @@ export default async function BillingPage({
   const planDetails = PLANS[currentPlan] || PLANS.free;
 
   return (
-    <main className="min-h-screen bg-muted py-12">
+    <main className="min-h-screen px-4 pt-24 pb-16 md:px-8">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Success/Cancel Messages */}
         {params.success === "true" && (
-          <div className="mb-8 p-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg">
-            <p className="text-green-800 dark:text-green-200 font-medium">
+          <div className="mb-8 rounded-md border border-primary/30 bg-primary/5 p-4">
+            <p className="text-sm font-medium text-foreground">
               Payment successful! Your subscription is now active.
             </p>
           </div>
         )}
         {params.canceled === "true" && (
-          <div className="mb-8 p-4 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded-lg">
-            <p className="text-yellow-800 dark:text-yellow-200 font-medium">
+          <div className="mb-8 rounded-md border border-warning/30 bg-warning/5 p-4">
+            <p className="text-sm font-medium text-foreground">
               Payment was canceled. You can try again when ready.
             </p>
           </div>
@@ -59,7 +59,7 @@ export default async function BillingPage({
 
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-foreground mb-4">
+          <h1 className="text-3xl font-semibold text-foreground mb-4">
             Choose Your Plan
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -73,7 +73,7 @@ export default async function BillingPage({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Current Plan</p>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-2xl font-semibold text-foreground">
                 {planDetails.name}
               </p>
               {subscription?.status && subscription.status !== "active" && (
@@ -108,7 +108,7 @@ export default async function BillingPage({
 
         {/* FAQ Section */}
         <div className="mt-16">
-          <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
+          <h2 className="text-2xl font-semibold text-foreground mb-6 text-center">
             Frequently Asked Questions
           </h2>
           <div className="grid md:grid-cols-2 gap-6">

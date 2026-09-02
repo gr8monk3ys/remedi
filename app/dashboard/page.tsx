@@ -37,10 +37,11 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       {/* Welcome Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">
-          Welcome back, {user.name?.split(" ")[0] || "there"}!
+        <p className="eyebrow">Overview</p>
+        <h1 className="mt-2 text-2xl font-semibold text-foreground">
+          Welcome back, {user.name?.split(" ")[0] || "there"}
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="mt-1 text-muted-foreground">
           Here is an overview of your activity and account.
         </p>
       </div>
@@ -64,7 +65,7 @@ export default async function DashboardPage() {
           {/* Usage Stats */}
           <Suspense
             fallback={
-              <div className="h-48 animate-pulse bg-muted rounded-xl" />
+              <div className="h-48 animate-pulse rounded-lg bg-muted" />
             }
           >
             <UsageStats userId={user.id} />

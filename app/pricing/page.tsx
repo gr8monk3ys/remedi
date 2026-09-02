@@ -12,6 +12,9 @@ export const dynamic = "force-dynamic";
  */
 
 import { Metadata } from "next";
+import { ArrowRight, Check, Minus, Plus, ShieldCheck } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { parsePlanType, type PlanType } from "@/lib/stripe";
@@ -50,171 +53,138 @@ export default async function PricingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-background via-surface to-background">
-      {/* Hero Section */}
-      <section className="pt-24 pb-12 px-4">
-        <div className="container mx-auto max-w-6xl text-center">
-          <h1 className="text-4xl md:text-5xl font-semibold text-foreground mb-4">
-            Simple, Transparent Pricing
+    <main className="px-4 pt-14 md:px-8">
+      <div className="mx-auto max-w-5xl">
+        {/* Hero Section */}
+        <section className="pt-20 pb-12 text-center md:pt-24">
+          <p className="eyebrow">Pricing</p>
+          <h1 className="mx-auto mt-4 max-w-2xl text-4xl font-semibold md:text-5xl">
+            Simple, transparent pricing
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            Choose the plan that fits your natural wellness journey. All plans
-            include a 14-day money-back guarantee.
+          <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground">
+            Choose the plan that fits how you use Remedi. Every paid plan
+            includes a 14-day money-back guarantee.
           </p>
 
           {/* Money-back guarantee badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-              />
-            </svg>
+          <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-muted-foreground">
+            <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
             14-Day Money-Back Guarantee
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Pricing Cards */}
-      <section className="py-12 px-4">
-        <div className="container mx-auto max-w-6xl">
+        {/* Pricing Cards */}
+        <section className="pb-16">
           <PricingClient
             currentPlan={currentPlan}
             hasActiveSubscription={hasActiveSubscription}
             trialEligible={trialEligible}
             isAuthenticated={!!user}
           />
-        </div>
-      </section>
+        </section>
 
-      {/* Feature Comparison Table */}
-      <section className="py-16 px-4 bg-card">
-        <div className="container mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-center text-foreground mb-12">
-            Compare All Features
-          </h2>
+        {/* Feature Comparison Table */}
+        <section className="border-t border-border py-16">
+          <div className="mx-auto max-w-4xl">
+            <p className="eyebrow text-center">Compare</p>
+            <h2 className="mt-3 text-center text-3xl font-semibold">
+              Everything in each plan
+            </h2>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b-2 border-border">
-                  <th className="text-left py-4 px-4 font-semibold text-foreground">
-                    Feature
-                  </th>
-                  <th className="text-center py-4 px-4 font-semibold text-foreground">
-                    Free
-                  </th>
-                  <th className="text-center py-4 px-4 font-semibold text-foreground">
-                    Basic
-                  </th>
-                  <th className="text-center py-4 px-4 rounded-t-lg bg-primary/10 font-semibold text-primary">
-                    Premium
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {featureComparison.map((feature, index) => (
-                  <tr
-                    key={feature.name}
-                    className={`border-b border-border ${
-                      index % 2 === 0 ? "bg-muted/50" : ""
-                    }`}
-                  >
-                    <td className="py-4 px-4 text-foreground">
-                      {feature.name}
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <FeatureValue value={feature.free} />
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <FeatureValue value={feature.basic} />
-                    </td>
-                    <td className="py-4 px-4 text-center bg-primary/5">
-                      <FeatureValue value={feature.premium} highlight />
-                    </td>
+            <div className="mt-10 overflow-x-auto rounded-lg border border-border bg-card">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/50">
+                    <th className="eyebrow eyebrow-muted px-4 py-3 text-left">
+                      Feature
+                    </th>
+                    <th className="eyebrow eyebrow-muted px-4 py-3 text-center">
+                      Free
+                    </th>
+                    <th className="eyebrow eyebrow-muted px-4 py-3 text-center">
+                      Basic
+                    </th>
+                    <th className="eyebrow bg-primary/5 px-4 py-3 text-center">
+                      Premium
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {featureComparison.map((feature) => (
+                    <tr key={feature.name}>
+                      <td className="px-4 py-3 text-foreground">
+                        {feature.name}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <FeatureValue value={feature.free} />
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <FeatureValue value={feature.basic} />
+                      </td>
+                      <td className="bg-primary/5 px-4 py-3 text-center">
+                        <FeatureValue value={feature.premium} highlight />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* FAQ Section */}
-      <section className="py-16 px-4 bg-card">
-        <div className="container mx-auto max-w-3xl">
-          <h2 className="text-3xl font-bold text-center text-foreground mb-12">
-            Frequently Asked Questions
-          </h2>
-
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <details key={index} className="group bg-muted rounded-lg">
-                <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                  <h3 className="font-semibold text-foreground pr-4">
+        {/* FAQ Section */}
+        <section className="border-t border-border py-16">
+          <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-[220px_1fr] md:gap-12">
+            <div>
+              <p className="eyebrow">FAQ</p>
+              <h2 className="mt-3 text-2xl font-semibold">
+                Frequently asked questions
+              </h2>
+            </div>
+            <div className="divide-y divide-border border-y border-border">
+              {faqs.map((faq) => (
+                <details key={faq.question} className="group">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] font-medium transition-colors hover:text-primary [&::-webkit-details-marker]:hidden">
                     {faq.question}
-                  </h3>
-                  <svg
-                    className="w-5 h-5 text-muted-foreground group-open:rotate-180 transition-transform"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
+                    <Plus
+                      className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-45 group-open:text-primary"
+                      aria-hidden="true"
                     />
-                  </svg>
-                </summary>
-                <div className="px-6 pb-6 pt-0">
-                  <p className="text-muted-foreground">{faq.answer}</p>
-                </div>
-              </details>
-            ))}
+                  </summary>
+                  <p className="pb-5 pr-10 text-sm leading-relaxed text-muted-foreground">
+                    {faq.answer}
+                  </p>
+                </details>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Section */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-4">
-            Ready to Start Your Natural Wellness Journey?
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            Search FDA drug data and evidence-rated natural alternatives, then
-            talk it through with your healthcare provider.
-          </p>
-          <a
-            href="#pricing"
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-lg font-semibold text-primary-foreground shadow-[0_12px_30px_color-mix(in_srgb,var(--primary)_28%,transparent)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-light"
-          >
-            Get Started Today
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+        {/* CTA Section */}
+        <section className="pb-20">
+          <div className="premium-gradient-panel flex flex-col items-start gap-6 rounded-lg p-8 text-white md:flex-row md:items-center md:justify-between md:p-10">
+            <div className="max-w-xl">
+              <h2 className="text-2xl font-semibold md:text-3xl">
+                Ready to look at your options?
+              </h2>
+              <p className="mt-2 leading-relaxed text-white/80">
+                Search FDA drug data and evidence-rated natural alternatives,
+                then talk it through with your healthcare provider.
+              </p>
+            </div>
+            <a
+              href="#pricing"
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "shrink-0 bg-white text-primary hover:bg-white/90",
+              )}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 7l5 5m0 0l-5 5m5-5H6"
-              />
-            </svg>
-          </a>
-        </div>
-      </section>
+              Get Started Today
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </div>
+        </section>
+      </div>
     </main>
   );
 }
@@ -229,28 +199,22 @@ function FeatureValue({
 }) {
   if (typeof value === "boolean") {
     return value ? (
-      <svg
-        className={`w-5 h-5 mx-auto ${highlight ? "text-primary" : "text-green-600"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M5 13l4 4L19 7"
-        />
-      </svg>
+      <Check
+        className={`mx-auto h-4 w-4 ${highlight ? "text-primary" : "text-foreground"}`}
+        aria-label="Included"
+      />
     ) : (
-      <span className="text-muted-foreground">-</span>
+      <Minus
+        className="mx-auto h-4 w-4 text-muted-foreground/40"
+        aria-label="Not included"
+      />
     );
   }
 
   return (
     <span
-      className={`${
-        highlight ? "text-primary font-medium" : "text-foreground"
+      className={`font-mono text-xs ${
+        highlight ? "font-medium text-primary" : "text-foreground"
       }`}
     >
       {value}

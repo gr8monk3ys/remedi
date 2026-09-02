@@ -54,7 +54,7 @@ export default async function SubscriptionsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">
+        <h1 className="text-3xl font-semibold text-foreground">
           Subscription Management
         </h1>
         <p className="text-muted-foreground mt-1">
@@ -83,7 +83,7 @@ export default async function SubscriptionsPage() {
                   <p className="text-sm text-muted-foreground capitalize">
                     {plan} Plan
                   </p>
-                  <p className="text-3xl font-bold text-foreground mt-1">
+                  <p className="text-3xl font-semibold text-foreground mt-1">
                     {data.active}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">

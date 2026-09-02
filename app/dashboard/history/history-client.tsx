@@ -192,7 +192,7 @@ export function HistoryPageClient({
       )}
 
       {/* History Table */}
-      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
         <HistoryTable
           history={history}
           onRerun={handleRerun}

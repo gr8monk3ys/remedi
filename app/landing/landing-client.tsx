@@ -2,10 +2,20 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 import { fetchWithCSRF } from "@/lib/fetch";
 import { getSessionId } from "@/lib/session";
+import { cn } from "@/lib/utils";
 
-export function LandingClient({ trackView = true }: { trackView?: boolean }) {
+export function LandingClient({
+  trackView = true,
+  inverted = false,
+}: {
+  trackView?: boolean;
+  /** Render on a dark brand surface. */
+  inverted?: boolean;
+}) {
   useEffect(() => {
     if (!trackView) return;
     const sessionId = getSessionId();
@@ -35,18 +45,26 @@ export function LandingClient({ trackView = true }: { trackView?: boolean }) {
   };
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-wrap gap-3">
       <Link
         href="/pricing"
         onClick={handleCtaClick("primary_pricing")}
-        className="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-[0_10px_30px_color-mix(in_srgb,var(--primary)_30%,transparent)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-light"
+        className={cn(
+          buttonVariants({ size: "lg" }),
+          inverted && "bg-white text-primary hover:bg-white/90",
+        )}
       >
         See Pricing
+        <ArrowRight className="h-4 w-4" aria-hidden="true" />
       </Link>
       <Link
         href="/"
         onClick={handleCtaClick("secondary_search")}
-        className="inline-flex items-center justify-center rounded-xl border border-primary/20 bg-card/80 px-6 py-3 font-semibold text-foreground backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-primary/5"
+        className={cn(
+          buttonVariants({ variant: "outline", size: "lg" }),
+          inverted &&
+            "border-white/25 bg-transparent text-white hover:border-white/50 hover:bg-white/10 hover:text-white",
+        )}
       >
         Try a Search
       </Link>

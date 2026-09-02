@@ -5,17 +5,17 @@ interface StatCardProps {
 }
 
 const highlightColors = {
-  green: "text-green-600 dark:text-green-400",
-  blue: "text-blue-600 dark:text-blue-400",
-  purple: "text-purple-600 dark:text-purple-400",
+  green: "text-primary",
+  blue: "text-info",
+  purple: "text-premium",
 };
 
 export function StatCard({ label, value, highlight }: StatCardProps) {
   return (
-    <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
-      <p className="text-sm text-muted-foreground">{label}</p>
+    <div className="rounded-lg border border-border bg-card p-4">
+      <p className="eyebrow eyebrow-muted">{label}</p>
       <p
-        className={`text-2xl font-bold mt-1 ${
+        className={`tabular mt-2 text-2xl font-semibold tracking-tight ${
           highlight ? highlightColors[highlight] : "text-foreground"
         }`}
       >
@@ -27,9 +27,9 @@ export function StatCard({ label, value, highlight }: StatCardProps) {
 
 export function RateCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="text-2xl font-bold mt-1 text-foreground">
+    <div className="rounded-lg border border-border bg-card p-4">
+      <p className="eyebrow eyebrow-muted">{label}</p>
+      <p className="tabular mt-2 text-2xl font-semibold tracking-tight text-foreground">
         {value.toFixed(1)}%
       </p>
     </div>

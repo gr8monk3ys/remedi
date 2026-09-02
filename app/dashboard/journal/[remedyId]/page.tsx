@@ -29,7 +29,7 @@ export default async function RemedyJournalPage({ params }: Props) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">{insights.remedyName}</h1>
+        <h1 className="text-2xl font-semibold">{insights.remedyName}</h1>
         <p className="text-muted-foreground mt-1">
           {insights.totalEntries} entries logged &middot; Average rating{" "}
           {insights.avgRating}/5

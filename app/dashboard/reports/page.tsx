@@ -17,7 +17,7 @@ export default async function ReportsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">AI Remedy Reports</h1>
+        <h1 className="text-2xl font-semibold">AI Remedy Reports</h1>
         <p className="text-muted-foreground mt-1">
           Get personalized, AI-generated remedy analyses
         </p>

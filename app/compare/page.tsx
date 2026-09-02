@@ -43,7 +43,7 @@ export default async function ComparePage({
       <div className="min-h-screen">
         <div className="pt-24 pb-12 px-4 md:px-8">
           <div className="mx-auto max-w-3xl">
-            <h1 className="text-3xl font-bold text-foreground">
+            <h1 className="text-3xl font-semibold text-foreground">
               Compare Remedies
             </h1>
             <p className="mt-2 text-muted-foreground">
@@ -77,7 +77,7 @@ export default async function ComparePage({
       <div className="min-h-screen">
         <div className="pt-24 pb-12 px-4 md:px-8">
           <div className="mx-auto max-w-3xl">
-            <h1 className="text-3xl font-bold text-foreground">
+            <h1 className="text-3xl font-semibold text-foreground">
               Compare Remedies
             </h1>
             <p className="mt-2 text-muted-foreground">

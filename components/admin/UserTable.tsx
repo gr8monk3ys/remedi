@@ -100,7 +100,7 @@ export function UserTable({ users, currentPage, totalPages }: UserTableProps) {
   };
 
   return (
-    <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+    <div className="rounded-lg border border-border bg-card overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-muted">

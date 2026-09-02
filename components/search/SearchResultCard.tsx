@@ -3,9 +3,8 @@
 import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, Heart, GitCompare, Check } from "lucide-react";
+import { ArrowUpRight, Heart, GitCompare, Check } from "lucide-react";
 import { useCompare } from "@/lib/context/CompareContext";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -58,180 +57,169 @@ export const SearchResultCard = memo(function SearchResultCard({
   };
 
   return (
-    <Card
+    <article
       data-search-result-card
       className={cn(
-        "cursor-pointer transition-all hover:shadow-md",
-        isComparing && "ring-2 ring-primary",
+        "surface-hover cursor-pointer rounded-lg border border-border bg-card p-4",
+        isComparing && "border-primary ring-1 ring-primary",
       )}
       onClick={() => onViewDetails(result.id)}
     >
-      <CardContent className="p-4">
-        <div className="flex gap-4">
-          {/* Image */}
-          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
-            {result.imageUrl ? (
-              <Image
-                src={result.imageUrl}
-                alt={result.name}
-                width={64}
-                height={64}
-                className="h-full w-full object-cover"
+      <div className="flex gap-4">
+        {/* Image */}
+        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+          {result.imageUrl ? (
+            <Image
+              src={result.imageUrl}
+              alt={result.name}
+              width={56}
+              height={56}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <span className="font-mono text-[10px] text-muted-foreground">
+                No Image
+              </span>
+            </div>
+          )}
+          {isComparing && (
+            <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+              <Check className="h-5 w-5 text-primary" aria-hidden="true" />
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-1.5">
+              {/* A real link, so opening a result is reachable by keyboard
+                  and screen reader — the card's onClick is mouse-only. */}
+              <Link
+                href={`/remedy/${result.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="group/link truncate rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <h3 className="truncate text-[15px] font-semibold tracking-tight">
+                  {result.name}
+                </h3>
+              </Link>
+              <ArrowUpRight
+                className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                aria-hidden="true"
               />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center">
-                <span className="text-xs text-muted-foreground">No Image</span>
-              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-0.5">
+              <Button
+                data-compare-button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleCompareToggle}
+                disabled={!isComparing && isFull}
+                aria-label={
+                  isComparing ? "Remove from comparison" : "Add to comparison"
+                }
+                title={
+                  isComparing
+                    ? "Remove from comparison"
+                    : isFull
+                      ? `Comparison list is full (max ${maxItems})`
+                      : "Add to comparison"
+                }
+              >
+                <GitCompare
+                  className={cn(
+                    "h-4 w-4",
+                    isComparing ? "text-primary" : "text-muted-foreground",
+                  )}
+                />
+              </Button>
+              <Button
+                data-favorite-button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={(e) => onFavoriteToggle(e, result.id, result.name)}
+                disabled={isLoading}
+                aria-label={
+                  isFavorite ? "Remove from favorites" : "Add to favorites"
+                }
+              >
+                <Heart
+                  className={cn(
+                    "h-4 w-4 transition-colors",
+                    isFavorite
+                      ? "fill-primary text-primary"
+                      : "text-muted-foreground",
+                  )}
+                />
+              </Button>
+            </div>
+          </div>
+
+          {/* Category + how this remedy relates to the drug */}
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            {result.category && (
+              <Badge variant="secondary">{result.category}</Badge>
             )}
-            {isComparing && (
-              <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
-                <Check className="h-6 w-6 text-primary" />
-              </div>
+            {/* Without this, a merely supportive suggestion looks identical
+                to a genuine alternative to someone's medication. */}
+            {result.replacementType && (
+              <Badge
+                variant="outline"
+                title={
+                  REPLACEMENT_TYPE_HINTS[result.replacementType] ??
+                  "How this remedy relates to the medication."
+                }
+              >
+                {result.replacementType}
+              </Badge>
             )}
           </div>
 
-          {/* Content */}
-          <div className="min-w-0 flex-1">
-            {/* Header */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 min-w-0">
-                {/* A real link, so opening a result is reachable by keyboard
-                    and screen reader — the card's onClick is mouse-only. */}
-                <Link
-                  href={`/remedy/${result.id}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="truncate rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <h3 className="truncate font-semibold text-sm">
-                    {result.name}
-                  </h3>
-                </Link>
-                <ExternalLink
-                  className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                  aria-hidden="true"
+          {/* Description */}
+          {result.description && (
+            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+              {result.description}
+            </p>
+          )}
+
+          {/* Matching Nutrients */}
+          {result.matchingNutrients.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">Nutrients:</span>
+              {result.matchingNutrients.map((nutrient) => (
+                <Badge key={nutrient} variant="outline">
+                  {nutrient}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {/* Relevance (ingredient/property similarity — informational only) */}
+          {result.similarityScore !== undefined && (
+            <div
+              className="mt-3 flex items-center gap-2"
+              title="Relevance reflects shared ingredients and properties — it is informational only and is not a measure of medical effectiveness."
+            >
+              <div className="h-1 w-16 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary"
+                  style={{
+                    width: `${result.similarityScore * 100}%`,
+                  }}
                 />
               </div>
-              <div className="flex items-center gap-0.5 shrink-0">
-                <Button
-                  data-compare-button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={handleCompareToggle}
-                  disabled={!isComparing && isFull}
-                  aria-label={
-                    isComparing ? "Remove from comparison" : "Add to comparison"
-                  }
-                  title={
-                    isComparing
-                      ? "Remove from comparison"
-                      : isFull
-                        ? `Comparison list is full (max ${maxItems})`
-                        : "Add to comparison"
-                  }
-                >
-                  <GitCompare
-                    className={cn(
-                      "h-4 w-4",
-                      isComparing ? "text-primary" : "text-muted-foreground",
-                    )}
-                  />
-                </Button>
-                <Button
-                  data-favorite-button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => onFavoriteToggle(e, result.id, result.name)}
-                  disabled={isLoading}
-                  aria-label={
-                    isFavorite ? "Remove from favorites" : "Add to favorites"
-                  }
-                >
-                  <Heart
-                    className={cn(
-                      "h-4 w-4 transition-colors",
-                      isFavorite
-                        ? "fill-red-500 text-red-500"
-                        : "text-muted-foreground",
-                    )}
-                  />
-                </Button>
-              </div>
+              <span className="tabular font-mono text-[11px] text-muted-foreground">
+                {(result.similarityScore * 100).toFixed(0)}% relevance
+              </span>
             </div>
-
-            {/* Category + how this remedy relates to the drug */}
-            <div className="mt-1 flex flex-wrap items-center gap-1">
-              {result.category && (
-                <Badge variant="secondary" className="text-xs">
-                  {result.category}
-                </Badge>
-              )}
-              {/* Without this, a merely supportive suggestion looks identical
-                  to a genuine alternative to someone's medication. */}
-              {result.replacementType && (
-                <Badge
-                  variant="outline"
-                  className="text-xs"
-                  title={
-                    REPLACEMENT_TYPE_HINTS[result.replacementType] ??
-                    "How this remedy relates to the medication."
-                  }
-                >
-                  {result.replacementType}
-                </Badge>
-              )}
-            </div>
-
-            {/* Description */}
-            {result.description && (
-              <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">
-                {result.description}
-              </p>
-            )}
-
-            {/* Matching Nutrients */}
-            {result.matchingNutrients.length > 0 && (
-              <div className="mt-2">
-                <span className="text-xs text-muted-foreground">
-                  Nutrients:{" "}
-                </span>
-                <div className="mt-0.5 inline-flex flex-wrap gap-1">
-                  {result.matchingNutrients.map((nutrient) => (
-                    <Badge
-                      key={nutrient}
-                      variant="outline"
-                      className="text-xs py-0"
-                    >
-                      {nutrient}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Relevance (ingredient/property similarity — informational only) */}
-            {result.similarityScore !== undefined && (
-              <div
-                className="mt-2 flex items-center gap-2"
-                title="Relevance reflects shared ingredients and properties — it is informational only and is not a measure of medical effectiveness."
-              >
-                <div className="h-1.5 w-16 rounded-full bg-secondary">
-                  <div
-                    className="h-1.5 rounded-full bg-primary"
-                    style={{
-                      width: `${result.similarityScore * 100}%`,
-                    }}
-                  />
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {(result.similarityScore * 100).toFixed(0)}% relevance
-                </span>
-              </div>
-            )}
-          </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </article>
   );
 });

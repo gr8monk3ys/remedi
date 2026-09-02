@@ -17,9 +17,9 @@ export const metadata: Metadata = {
 export default function PrivacyPolicyPage() {
   return (
     <>
-      <div className="container mx-auto px-4 py-24 max-w-4xl">
-        <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="text-muted-foreground mb-8">
+      <div className="mx-auto max-w-3xl px-4 pt-32 pb-20 md:px-8">
+        <h1 className="text-4xl font-semibold">Privacy Policy</h1>
+        <p className="mt-3 mb-12 font-mono text-xs text-muted-foreground">
           Last updated:{" "}
           {new Date().toLocaleDateString("en-US", {
             month: "long",
@@ -28,10 +28,10 @@ export default function PrivacyPolicyPage() {
           })}
         </p>
 
-        <div className="prose dark:prose-invert max-w-none">
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
-            <p className="text-foreground mb-4">
+        <div className="max-w-none">
+          <section className="mb-10 border-t border-border pt-8">
+            <h2 className="mb-3 text-xl font-semibold">1. Introduction</h2>
+            <p className="mb-4 leading-relaxed text-muted-foreground">
               Welcome to Remedi. We respect your privacy and are committed to
               protecting your personal data. This privacy policy explains how we
               collect, use, and safeguard your information when you use our
@@ -39,14 +39,14 @@ export default function PrivacyPolicyPage() {
             </p>
           </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">
+          <section className="mb-10 border-t border-border pt-8">
+            <h2 className="mb-3 text-xl font-semibold">
               2. Information We Collect
             </h2>
             <h3 className="text-xl font-medium mb-3">
               2.1 Information You Provide
             </h3>
-            <ul className="list-disc pl-6 text-foreground mb-4">
+            <ul className="mb-4 list-disc space-y-1 pl-6 leading-relaxed text-muted-foreground">
               <li>
                 Account information (email, name) when you sign in with OAuth
                 providers
@@ -59,7 +59,7 @@ export default function PrivacyPolicyPage() {
             <h3 className="text-xl font-medium mb-3">
               2.2 Information Collected Automatically
             </h3>
-            <ul className="list-disc pl-6 text-foreground mb-4">
+            <ul className="mb-4 list-disc space-y-1 pl-6 leading-relaxed text-muted-foreground">
               <li>Usage data (pages visited, search patterns)</li>
               <li>Device information (browser type, operating system)</li>
               <li>IP address and approximate location</li>
@@ -67,11 +67,11 @@ export default function PrivacyPolicyPage() {
             </ul>
           </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">
+          <section className="mb-10 border-t border-border pt-8">
+            <h2 className="mb-3 text-xl font-semibold">
               3. How We Use Your Information
             </h2>
-            <ul className="list-disc pl-6 text-foreground mb-4">
+            <ul className="mb-4 list-disc space-y-1 pl-6 leading-relaxed text-muted-foreground">
               <li>Provide and improve our services</li>
               <li>Personalize your experience and recommendations</li>
               <li>Analyze usage patterns to improve the platform</li>
@@ -80,12 +80,12 @@ export default function PrivacyPolicyPage() {
             </ul>
           </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">4. Data Sharing</h2>
-            <p className="text-foreground mb-4">
+          <section className="mb-10 border-t border-border pt-8">
+            <h2 className="mb-3 text-xl font-semibold">4. Data Sharing</h2>
+            <p className="mb-4 leading-relaxed text-muted-foreground">
               We do not sell your personal data. We may share information with:
             </p>
-            <ul className="list-disc pl-6 text-foreground mb-4">
+            <ul className="mb-4 list-disc space-y-1 pl-6 leading-relaxed text-muted-foreground">
               <li>
                 Service providers who help us operate (hosting, analytics)
               </li>
@@ -95,13 +95,13 @@ export default function PrivacyPolicyPage() {
             </ul>
           </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">5. Data Security</h2>
-            <p className="text-foreground mb-4">
+          <section className="mb-10 border-t border-border pt-8">
+            <h2 className="mb-3 text-xl font-semibold">5. Data Security</h2>
+            <p className="mb-4 leading-relaxed text-muted-foreground">
               We implement appropriate security measures to protect your data,
               including:
             </p>
-            <ul className="list-disc pl-6 text-foreground mb-4">
+            <ul className="mb-4 list-disc space-y-1 pl-6 leading-relaxed text-muted-foreground">
               <li>Encryption in transit (HTTPS)</li>
               <li>Secure authentication via OAuth</li>
               <li>Regular security audits</li>
@@ -109,12 +109,12 @@ export default function PrivacyPolicyPage() {
             </ul>
           </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">6. Your Rights</h2>
-            <p className="text-foreground mb-4">
+          <section className="mb-10 border-t border-border pt-8">
+            <h2 className="mb-3 text-xl font-semibold">6. Your Rights</h2>
+            <p className="mb-4 leading-relaxed text-muted-foreground">
               Depending on your location, you may have the right to:
             </p>
-            <ul className="list-disc pl-6 text-foreground mb-4">
+            <ul className="mb-4 list-disc space-y-1 pl-6 leading-relaxed text-muted-foreground">
               <li>Access your personal data</li>
               <li>Correct inaccurate data</li>
               <li>Delete your account and data</li>
@@ -123,9 +123,9 @@ export default function PrivacyPolicyPage() {
             </ul>
           </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">7. Cookies</h2>
-            <p className="text-foreground mb-4">
+          <section className="mb-10 border-t border-border pt-8">
+            <h2 className="mb-3 text-xl font-semibold">7. Cookies</h2>
+            <p className="mb-4 leading-relaxed text-muted-foreground">
               We use essential cookies for authentication and session
               management. We may use analytics cookies (Plausible) which are
               privacy-focused and do not require consent in most jurisdictions.
@@ -133,11 +133,11 @@ export default function PrivacyPolicyPage() {
             </p>
           </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">
+          <section className="mb-10 border-t border-border pt-8">
+            <h2 className="mb-3 text-xl font-semibold">
               8. Children&apos;s Privacy
             </h2>
-            <p className="text-foreground mb-4">
+            <p className="mb-4 leading-relaxed text-muted-foreground">
               Our service is not intended for children under 13. We do not
               knowingly collect personal information from children. If you
               believe a child has provided us with personal data, please contact
@@ -145,20 +145,20 @@ export default function PrivacyPolicyPage() {
             </p>
           </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">
+          <section className="mb-10 border-t border-border pt-8">
+            <h2 className="mb-3 text-xl font-semibold">
               9. Changes to This Policy
             </h2>
-            <p className="text-foreground mb-4">
+            <p className="mb-4 leading-relaxed text-muted-foreground">
               We may update this privacy policy from time to time. We will
               notify you of significant changes by posting the new policy on
               this page and updating the &quot;Last updated&quot; date.
             </p>
           </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">10. Contact Us</h2>
-            <p className="text-foreground mb-4">
+          <section className="mb-10 border-t border-border pt-8">
+            <h2 className="mb-3 text-xl font-semibold">10. Contact Us</h2>
+            <p className="mb-4 leading-relaxed text-muted-foreground">
               If you have questions about this privacy policy or your data,
               please contact us at:
             </p>
@@ -167,7 +167,10 @@ export default function PrivacyPolicyPage() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-border">
-          <Link href="/" className="text-blue-500 hover:underline">
+          <Link
+            href="/"
+            className="text-primary underline-offset-4 hover:underline"
+          >
             &larr; Back to Home
           </Link>
         </div>

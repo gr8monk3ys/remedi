@@ -13,11 +13,11 @@ import {
   ArrowLeft,
   Menu,
   X,
-  ChevronRight,
   User as UserIcon,
   UserCircle,
   BookOpen,
   FileText,
+  Leaf,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 interface DashboardUser {
@@ -109,82 +109,83 @@ export function DashboardSidebar({
   const NavContent = () => (
     <>
       {/* Header */}
-      <div className="p-6 border-b border-border">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold text-primary">Remedi</span>
+      <div className="flex h-14 items-center border-b border-border px-5">
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-[15px] font-semibold tracking-tight"
+        >
+          <span className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background">
+            <Leaf className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+          </span>
+          Remedi
         </Link>
-        <p className="text-sm text-muted-foreground mt-1">Your Dashboard</p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1" aria-label="Dashboard navigation">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname.startsWith(item.href);
+      <nav className="flex-1 px-3 py-4" aria-label="Dashboard navigation">
+        <p className="eyebrow eyebrow-muted px-2 pb-3">Dashboard</p>
+        <ul className="space-y-0.5">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname.startsWith(item.href);
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setIsMobileOpen(false)}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors group",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted",
-              )}
-              aria-current={isActive ? "page" : undefined}
-            >
-              <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-              <span className="font-medium">{item.label}</span>
-              <ChevronRight
-                className={cn(
-                  "w-4 h-4 ml-auto opacity-0 -translate-x-2 transition-all",
-                  "group-hover:opacity-100 group-hover:translate-x-0",
-                  isActive && "opacity-100 translate-x-0",
-                )}
-                aria-hidden="true"
-              />
-            </Link>
-          );
-        })}
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={() => setIsMobileOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors",
+                    isActive
+                      ? "bg-primary/10 font-medium text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span>{item.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
 
       {/* Back to Site */}
-      <div className="p-4 border-t border-border">
+      <div className="border-t border-border px-3 py-3">
         <Link
           href="/"
-          className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+          className="flex items-center gap-3 rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
-          <ArrowLeft className="w-5 h-5" aria-hidden="true" />
-          <span className="font-medium">Back to Site</span>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <span>Back to Site</span>
         </Link>
       </div>
 
       {/* User Info */}
-      <div className="p-4 border-t border-border">
+      <div className="border-t border-border p-4">
         <div className="flex items-center gap-3">
           {user.image ? (
             <Image
               src={user.image}
               alt=""
-              width={40}
-              height={40}
-              className="w-10 h-10 rounded-full"
+              width={36}
+              height={36}
+              className="h-9 w-9 rounded-full border border-border"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <UserIcon className="w-5 h-5 text-primary" aria-hidden="true" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background">
+              <UserIcon className="h-4 w-4 text-primary" aria-hidden="true" />
             </div>
           )}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-foreground">
               {displayName}
             </p>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="truncate font-mono text-[11px] text-muted-foreground">
               {planLabels[currentPlan]}
             </p>
           </div>
@@ -198,23 +199,23 @@ export function DashboardSidebar({
       {/* Mobile menu button */}
       <button
         type="button"
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-card shadow-md border border-border"
+        className="fixed top-3 left-3 z-50 rounded-md border border-border bg-card p-2 lg:hidden"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         aria-expanded={isMobileOpen}
         aria-controls="mobile-sidebar"
         aria-label={isMobileOpen ? "Close sidebar" : "Open sidebar"}
       >
         {isMobileOpen ? (
-          <X className="w-6 h-6 text-muted-foreground" />
+          <X className="h-5 w-5 text-muted-foreground" />
         ) : (
-          <Menu className="w-6 h-6 text-muted-foreground" />
+          <Menu className="h-5 w-5 text-muted-foreground" />
         )}
       </button>
 
       {/* Mobile overlay */}
       {isMobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/50"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={() => setIsMobileOpen(false)}
           aria-hidden="true"
         />
@@ -224,7 +225,7 @@ export function DashboardSidebar({
       <aside
         id="mobile-sidebar"
         className={cn(
-          "lg:hidden fixed inset-y-0 left-0 z-40 w-64 bg-card border-r border-border flex flex-col transition-transform duration-300",
+          "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-border bg-card transition-transform duration-300 lg:hidden",
           isMobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Mobile sidebar"
@@ -234,7 +235,7 @@ export function DashboardSidebar({
 
       {/* Desktop sidebar */}
       <aside
-        className="hidden lg:flex lg:flex-col w-64 bg-card border-r border-border"
+        className="sticky top-0 hidden h-screen w-60 flex-col border-r border-border bg-card lg:flex"
         aria-label="Desktop sidebar"
       >
         <NavContent />

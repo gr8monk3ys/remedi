@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import Link from "next/link";
 import localFont from "next/font/local";
 import { Providers } from "@/components/providers";
 import { PWARegister } from "@/components/PWARegister";
 import { Analytics } from "@/components/analytics";
 import { Header } from "@/components/ui/header";
-import { Separator } from "@/components/ui/separator";
+import { Footer } from "@/components/ui/footer";
 import { CookieConsent } from "@/components/CookieConsent";
 import {
   generateOrganizationSchema,
@@ -17,28 +16,21 @@ import "./globals.css";
 
 // Fonts are self-hosted (app/fonts/*.woff2) rather than fetched from Google
 // Fonts at build time, so production builds are deterministic and succeed in
-// network-restricted environments. Variable/weight ranges match the previous
-// next/font/google configuration.
+// network-restricted environments. Manrope carries all running text and
+// headings; IBM Plex Mono is reserved for labels, counts and code.
 const manrope = localFont({
   src: "./fonts/Manrope-Variable.woff2",
-  variable: "--font-inter",
+  variable: "--font-manrope",
   weight: "200 800",
   display: "swap",
 });
 
-const ibmPlexMono = localFont({
+const plexMono = localFont({
   src: [
     { path: "./fonts/IBMPlexMono-400.woff2", weight: "400", style: "normal" },
     { path: "./fonts/IBMPlexMono-500.woff2", weight: "500", style: "normal" },
   ],
-  variable: "--font-roboto-mono",
-  display: "swap",
-});
-
-const fraunces = localFont({
-  src: "./fonts/Fraunces-Variable.woff2",
-  variable: "--font-display",
-  weight: "500 700",
+  variable: "--font-plex-mono",
   display: "swap",
 });
 
@@ -131,7 +123,7 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${manrope.variable} ${ibmPlexMono.variable} ${fraunces.variable}`}
+      className={`${manrope.variable} ${plexMono.variable}`}
     >
       <head>
         <script
@@ -143,7 +135,7 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: webSchemaJson }}
         />
       </head>
-      <body className="font-sans antialiased min-h-screen bg-background text-foreground">
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <a href="#main-content" className="skip-to-main">
           Skip to main content
         </a>
@@ -161,52 +153,5 @@ export default async function RootLayout({
         />
       </body>
     </html>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="border-t border-primary/10 bg-card/60 backdrop-blur-sm">
-      <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-        <Separator className="mb-6" />
-        <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p className="text-sm text-muted-foreground">
-            Remedi. For informational purposes only.
-          </p>
-          <nav className="flex flex-wrap gap-4">
-            <Link
-              href="/faq"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              FAQ
-            </Link>
-            <Link
-              href="/about"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              About
-            </Link>
-            <Link
-              href="/legal/terms"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href="/legal/privacy"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              href="/legal/disclaimer"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Medical Disclaimer
-            </Link>
-          </nav>
-        </div>
-      </div>
-    </footer>
   );
 }

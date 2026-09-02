@@ -89,7 +89,7 @@ export function RemedyContent({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <AlertCircle className="h-4 w-4 text-amber-500" />
+              <AlertCircle className="h-4 w-4 text-warning" />
               Precautions
             </CardTitle>
           </CardHeader>
@@ -117,7 +117,7 @@ export function RemedyContent({
             </p>
             {sources.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium mb-2">Sources</h4>
+                <h4 className="eyebrow eyebrow-muted mb-2">Sources</h4>
                 <ul className="space-y-1.5">
                   {sources.map(
                     (ref: { title: string; url: string }, index: number) => (
@@ -141,7 +141,7 @@ export function RemedyContent({
         </Card>
 
         {/* Medical Disclaimer */}
-        <Alert>
+        <Alert variant="warning">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Medical Disclaimer</AlertTitle>
           <AlertDescription>
@@ -158,7 +158,7 @@ export function RemedyContent({
 
       {/* Sidebar */}
       <div>
-        <Card className="sticky top-24">
+        <Card className="sticky top-20">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Related Remedies</CardTitle>
           </CardHeader>
@@ -170,7 +170,7 @@ export function RemedyContent({
                     <Link
                       key={related.id}
                       href={`/remedy/${related.id}`}
-                      className="group flex items-center justify-between rounded-lg border p-3 text-sm transition-colors hover:bg-accent/50"
+                      className="group flex items-center justify-between rounded-md border border-border px-3 py-2.5 text-sm transition-colors hover:border-border-strong hover:bg-muted/60"
                     >
                       <span>{related.name}</span>
                       <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />

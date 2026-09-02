@@ -37,8 +37,8 @@ export function UsageProgress({
 
   const getBarColor = (): string => {
     if (isUnlimited) return "bg-primary";
-    if (isAtLimit) return "bg-red-500";
-    if (isNearLimit) return "bg-yellow-500";
+    if (isAtLimit) return "bg-destructive";
+    if (isNearLimit) return "bg-warning";
     return "bg-primary";
   };
 
@@ -46,7 +46,7 @@ export function UsageProgress({
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium text-foreground">{label}</span>
-        <span className="text-muted-foreground">
+        <span className="tabular font-mono text-xs text-muted-foreground">
           {isUnlimited ? (
             <span className="text-primary font-medium">Unlimited</span>
           ) : (
@@ -84,7 +84,7 @@ export function UsageProgress({
       </div>
 
       {isAtLimit && !isUnlimited && (
-        <p className="text-xs text-red-500 dark:text-red-400">
+        <p className="text-xs text-destructive">
           You have reached your limit. Upgrade to continue.
         </p>
       )}
@@ -108,14 +108,9 @@ export function UsageProgressList({
 }: UsageProgressListProps) {
   return (
     <div
-      className={cn(
-        "bg-card rounded-xl shadow-sm border border-border p-6",
-        className,
-      )}
+      className={cn("rounded-lg border border-border bg-card p-5", className)}
     >
-      {title && (
-        <h3 className="text-lg font-semibold text-foreground mb-4">{title}</h3>
-      )}
+      {title && <h3 className="eyebrow eyebrow-muted mb-4">{title}</h3>}
       <div className="space-y-4">
         {usages.map((usage, index) => (
           <UsageProgress key={index} usage={usage} />

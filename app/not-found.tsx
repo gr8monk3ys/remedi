@@ -1,25 +1,32 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
-      <div className="max-w-md text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-          <Search className="h-8 w-8 text-muted-foreground" />
+    <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 pt-14">
+      <div className="w-full max-w-md text-center">
+        <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-card">
+          <Search
+            className="h-5 w-5 text-muted-foreground"
+            aria-hidden="true"
+          />
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-4">
+        <p className="eyebrow eyebrow-muted">404</p>
+        <h2 className="mt-2 text-2xl font-semibold text-foreground">
           Page Not Found
         </h2>
-        <p className="text-muted-foreground mb-6">
+        <p className="mt-3 text-muted-foreground">
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
-        <Link
-          href="/"
-          className="inline-block px-6 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg transition-colors"
-        >
-          Go Home
-        </Link>
+        <div className="mt-6 flex justify-center gap-3">
+          <Button asChild>
+            <Link href="/">Go Home</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/faq">Visit the FAQ</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

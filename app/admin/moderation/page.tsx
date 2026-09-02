@@ -35,7 +35,7 @@ export default async function ModerationPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">
+        <h1 className="text-3xl font-semibold text-foreground">
           Content Moderation
         </h1>
         <p className="text-muted-foreground mt-1">
@@ -47,13 +47,13 @@ export default async function ModerationPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
           <p className="text-sm text-muted-foreground">Pending Contributions</p>
-          <p className="text-3xl font-bold text-foreground mt-1">
+          <p className="text-3xl font-semibold text-foreground mt-1">
             {contributions.length}
           </p>
         </div>
         <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
           <p className="text-sm text-muted-foreground">Unverified Reviews</p>
-          <p className="text-3xl font-bold text-foreground mt-1">
+          <p className="text-3xl font-semibold text-foreground mt-1">
             {reviews.length}
           </p>
         </div>

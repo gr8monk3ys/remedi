@@ -43,17 +43,17 @@ export function HealthInterestsStep({
       </p>
 
       <div className="space-y-4">
-        <h3 className="font-medium text-foreground">Health Categories</h3>
+        <h3 className="eyebrow eyebrow-muted">Health Categories</h3>
         <div className="flex flex-wrap gap-2">
           {HEALTH_CATEGORIES.map((category) => (
             <button
               key={category.id}
               onClick={() => toggleCategory(category.id)}
               className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium transition-all",
+                "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
                 selectedCategories.includes(category.id)
-                  ? "bg-green-500 text-white"
-                  : "bg-muted text-foreground hover:bg-muted/80",
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-border text-foreground hover:border-border-strong hover:bg-muted",
               )}
             >
               {selectedCategories.includes(category.id) && (
@@ -66,17 +66,17 @@ export function HealthInterestsStep({
       </div>
 
       <div className="space-y-4">
-        <h3 className="font-medium text-foreground">Your Goals</h3>
+        <h3 className="eyebrow eyebrow-muted">Your Goals</h3>
         <div className="space-y-2">
           {HEALTH_GOALS.map((goal) => (
             <button
               key={goal.id}
               onClick={() => toggleGoal(goal.id)}
               className={cn(
-                "w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-all text-left",
+                "flex w-full items-center justify-between rounded-md border px-4 py-2.5 text-left text-sm font-medium transition-colors",
                 selectedGoals.includes(goal.id)
-                  ? "bg-green-500 text-white"
-                  : "bg-muted text-foreground hover:bg-muted/80",
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-border text-foreground hover:border-border-strong hover:bg-muted",
               )}
             >
               {goal.label}

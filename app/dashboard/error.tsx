@@ -18,7 +18,7 @@ export default function DashboardError({
   return (
     <div className="flex flex-col items-center justify-center py-20 px-4">
       <div className="max-w-md text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-3">
+        <h2 className="text-2xl font-semibold text-foreground mb-3">
           Failed to load dashboard
         </h2>
         <p className="text-muted-foreground mb-6">

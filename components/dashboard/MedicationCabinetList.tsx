@@ -112,7 +112,7 @@ export function MedicationCabinetList({
   const activeMeds = medications.filter((m) => m.isActive);
 
   return (
-    <div className="rounded-xl border bg-card p-6 space-y-6">
+    <div className="rounded-lg border border-border bg-card p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Medication Cabinet</h2>
         <button

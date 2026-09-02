@@ -129,7 +129,7 @@ export function UpgradeModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -138,10 +138,10 @@ export function UpgradeModal({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-2xl md:w-full bg-card rounded-2xl shadow-xl z-50 overflow-hidden max-h-[90vh] flex flex-col"
+            className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-2xl md:w-full z-50 flex max-h-[90vh] flex-col overflow-hidden rounded-lg border border-border bg-card shadow-xl"
           >
             {/* Header */}
-            <div className="premium-gradient-band relative px-6 py-8 text-white">
+            <div className="premium-gradient-panel relative px-6 py-8 text-white">
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full transition-colors"
@@ -151,10 +151,10 @@ export function UpgradeModal({
               </button>
 
               <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-white/20 rounded-lg">
+                <div className="rounded-md border border-white/20 bg-white/10 p-2">
                   <Zap className="w-6 h-6" />
                 </div>
-                <h2 className="text-2xl font-bold">{message.title}</h2>
+                <h2 className="text-2xl font-semibold">{message.title}</h2>
               </div>
               <p className="text-white/90">{message.description}</p>
 
@@ -162,7 +162,7 @@ export function UpgradeModal({
               {currentUsage !== undefined &&
                 limit !== undefined &&
                 limit > 0 && (
-                  <div className="mt-4 bg-white/10 rounded-lg p-3">
+                  <div className="mt-4 rounded-md border border-white/15 bg-white/10 p-3">
                     <div className="flex justify-between text-sm mb-1">
                       <span>Usage today</span>
                       <span>
@@ -188,12 +188,12 @@ export function UpgradeModal({
               {/* Upgrade cards */}
               <div className="grid md:grid-cols-2 gap-4">
                 {/* Basic Plan */}
-                <div className="border border-border rounded-xl p-4">
+                <div className="rounded-lg border border-border p-4">
                   <h4 className="font-semibold text-foreground mb-1">
                     {PLANS.basic.name}
                   </h4>
                   <div className="mb-3">
-                    <span className="text-2xl font-bold text-foreground">
+                    <span className="tabular text-2xl font-semibold tracking-tight text-foreground">
                       ${PLANS.basic.price}
                     </span>
                     <span className="text-muted-foreground">/month</span>
@@ -204,7 +204,7 @@ export function UpgradeModal({
                         key={feature}
                         className="flex items-start gap-2 text-sm text-muted-foreground"
                       >
-                        <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                         {feature}
                       </li>
                     ))}
@@ -214,7 +214,7 @@ export function UpgradeModal({
                     disabled={
                       loadingCheckout === "basic" || currentPlan === "basic"
                     }
-                    className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-border bg-card text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {loadingCheckout === "basic" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -227,15 +227,15 @@ export function UpgradeModal({
                 </div>
 
                 {/* Premium Plan */}
-                <div className="relative rounded-xl border-2 border-primary p-4">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+                <div className="relative rounded-lg border border-primary p-4 ring-1 ring-primary">
+                  <div className="absolute -top-2.5 left-4 rounded-sm bg-primary px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-wider text-primary-foreground">
                     Most Popular
                   </div>
                   <h4 className="font-semibold text-foreground mb-1">
                     {PLANS.premium.name}
                   </h4>
                   <div className="mb-3">
-                    <span className="text-2xl font-bold text-foreground">
+                    <span className="tabular text-2xl font-semibold tracking-tight text-foreground">
                       ${PLANS.premium.price}
                     </span>
                     <span className="text-muted-foreground">/month</span>
@@ -246,7 +246,7 @@ export function UpgradeModal({
                         key={feature}
                         className="flex items-start gap-2 text-sm text-muted-foreground"
                       >
-                        <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                         {feature}
                       </li>
                     ))}
@@ -256,7 +256,7 @@ export function UpgradeModal({
                     disabled={
                       loadingCheckout === "premium" || currentPlan === "premium"
                     }
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex h-9 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {loadingCheckout === "premium" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -271,7 +271,7 @@ export function UpgradeModal({
             </div>
 
             {/* Footer */}
-            <div className="border-t border-border px-6 py-4 bg-muted">
+            <div className="border-t border-border bg-muted/50 px-6 py-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 {/* Trial option */}
                 {trialEligible && currentPlan === "free" && (

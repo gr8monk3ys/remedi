@@ -22,7 +22,7 @@ export function SearchMetricsSection({
       </div>
 
       {/* Top Searches */}
-      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         <h3 className="font-semibold text-foreground mb-4">
           Top Searches (Last 7 Days)
         </h3>

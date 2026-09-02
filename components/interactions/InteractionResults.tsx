@@ -13,7 +13,7 @@ export function InteractionResults({
   return (
     <div className="space-y-4">
       {/* Summary */}
-      <div className="flex items-center gap-3 rounded-lg border bg-card p-4">
+      <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-4">
         <Info className="h-5 w-5 text-muted-foreground shrink-0" />
         <div className="text-sm">
           <p className="text-muted-foreground">
@@ -55,7 +55,7 @@ export function InteractionResults({
       ) : (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-            <Shield className="h-10 w-10 text-green-500 mb-3" />
+            <Shield className="mb-3 h-10 w-10 text-primary" />
             <h3 className="text-lg font-medium">No Known Interactions Found</h3>
             <p className="text-sm text-muted-foreground mt-1 max-w-md">
               No interactions were found between the substances you listed in

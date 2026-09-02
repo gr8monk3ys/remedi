@@ -21,14 +21,11 @@ const activityIcons = {
 };
 
 const activityColors = {
-  search: "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary",
-  favorite_add:
-    "bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400",
+  search: "bg-primary/10 text-primary",
+  favorite_add: "bg-primary/10 text-primary",
   favorite_remove: "bg-muted text-muted-foreground",
-  review:
-    "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
-  contribution:
-    "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
+  review: "bg-premium-surface text-premium",
+  contribution: "bg-primary/10 text-primary",
 };
 
 /**
@@ -51,16 +48,11 @@ export function ActivityFeed({
   if (activities.length === 0) {
     return (
       <div
-        className={cn(
-          "bg-card rounded-xl shadow-sm border border-border p-6",
-          className,
-        )}
+        className={cn("rounded-lg border border-border bg-card p-5", className)}
       >
-        <h3 className="text-lg font-semibold text-foreground mb-4">
-          Recent Activity
-        </h3>
+        <h3 className="eyebrow eyebrow-muted mb-4">Recent Activity</h3>
         <div className="text-center py-8">
-          <Search className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+          <Search className="mx-auto mb-3 h-8 w-8 text-muted-foreground/60" />
           <p className="text-muted-foreground">No recent activity</p>
           <p className="text-sm text-muted-foreground mt-1">
             Start searching to see your activity here
@@ -72,16 +64,11 @@ export function ActivityFeed({
 
   return (
     <div
-      className={cn(
-        "bg-card rounded-xl shadow-sm border border-border p-6",
-        className,
-      )}
+      className={cn("rounded-lg border border-border bg-card p-5", className)}
     >
-      <h3 className="text-lg font-semibold text-foreground mb-4">
-        Recent Activity
-      </h3>
+      <h3 className="eyebrow eyebrow-muted mb-4">Recent Activity</h3>
 
-      <div className="space-y-4">
+      <div className="space-y-1">
         {displayedActivities.map((activity) => {
           const Icon = activityIcons[activity.type];
           const colorClass = activityColors[activity.type];
@@ -89,9 +76,9 @@ export function ActivityFeed({
           return (
             <div
               key={activity.id}
-              className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
+              className="flex items-start gap-3 rounded-md p-3 transition-colors hover:bg-muted/60"
             >
-              <div className={cn("p-2 rounded-lg flex-shrink-0", colorClass)}>
+              <div className={cn("shrink-0 rounded-md p-2", colorClass)}>
                 <Icon className="h-4 w-4" aria-hidden="true" />
               </div>
 
@@ -132,14 +119,11 @@ export function ActivityFeedSkeleton({
 }) {
   return (
     <div
-      className={cn(
-        "bg-card rounded-xl shadow-sm border border-border p-6",
-        className,
-      )}
+      className={cn("rounded-lg border border-border bg-card p-5", className)}
     >
-      <div className="h-6 w-32 bg-muted rounded mb-4 animate-pulse" />
+      <div className="mb-4 h-3 w-32 animate-pulse rounded bg-muted" />
 
-      <div className="space-y-4">
+      <div className="space-y-1">
         {Array.from({ length: count }).map((_, i) => (
           <div key={i} className="flex items-start gap-3 p-3 animate-pulse">
             <div className="h-8 w-8 bg-muted rounded-lg flex-shrink-0" />

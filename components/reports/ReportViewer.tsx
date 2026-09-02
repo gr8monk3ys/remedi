@@ -55,16 +55,15 @@ interface ReportViewerProps {
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
-  high: "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200",
-  moderate:
-    "bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200",
-  low: "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200",
+  high: "border-destructive/30 bg-destructive/5 text-destructive",
+  moderate: "border-warning/30 bg-warning/5 text-warning",
+  low: "border-primary/30 bg-primary/5 text-primary",
 };
 
 export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
   if (report.status === "generating") {
     return (
-      <div className="rounded-xl border bg-card p-12 text-center">
+      <div className="rounded-lg border border-border bg-card p-12 text-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">Generating Your Report</h3>
         <p className="text-sm text-muted-foreground">
@@ -76,8 +75,8 @@ export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
 
   if (report.status === "failed") {
     return (
-      <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 p-8 text-center">
-        <AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-4" />
+      <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center">
+        <AlertTriangle className="mx-auto mb-4 h-8 w-8 text-destructive" />
         <h3 className="text-lg font-semibold mb-2">Report Generation Failed</h3>
         <p className="text-sm text-muted-foreground">
           We were unable to generate this report. Please try again.
@@ -104,7 +103,7 @@ export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
 
       {/* Summary */}
       {content.summary && (
-        <div className="rounded-xl border bg-card p-6">
+        <div className="rounded-lg border border-border bg-card p-6">
           <h3 className="text-lg font-semibold mb-3">Summary</h3>
           <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
             {content.summary}
@@ -115,10 +114,10 @@ export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
       {/* Interaction Warnings */}
       {content.interactionWarnings &&
         content.interactionWarnings.length > 0 && (
-          <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 p-6">
+          <div className="rounded-lg border border-warning/30 bg-warning/5 p-6">
             <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-              <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              <h3 className="text-lg font-semibold text-foreground">
                 Interaction Warnings
               </h3>
             </div>
@@ -145,14 +144,14 @@ export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
 
       {/* Recommendations */}
       {content.recommendations && content.recommendations.length > 0 && (
-        <div className="rounded-xl border bg-card p-6">
+        <div className="rounded-lg border border-border bg-card p-6">
           <h3 className="text-lg font-semibold mb-4">Recommendations</h3>
           <div className="space-y-4">
             {content.recommendations.map((rec, i) => (
               <div key={i} className="rounded-lg border p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 shrink-0 text-primary" />
                     <h4 className="font-semibold">{rec.name}</h4>
                   </div>
                   {rec.evidenceLevel && (
@@ -189,7 +188,7 @@ export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
 
       {/* Sources */}
       {content.sources && content.sources.length > 0 && (
-        <div className="rounded-xl border bg-card p-6">
+        <div className="rounded-lg border border-border bg-card p-6">
           <h3 className="text-lg font-semibold mb-3">Sources</h3>
           <ul className="space-y-2">
             {content.sources.map((source, i) => (

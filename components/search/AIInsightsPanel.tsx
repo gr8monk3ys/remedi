@@ -10,73 +10,41 @@ interface AIInsightsPanelProps {
 export function AIInsightsPanel({ insights }: AIInsightsPanelProps) {
   if (!insights) return null;
 
+  const symptoms = insights.extractedInfo?.symptoms ?? [];
+
   return (
-    <div
-      className="neu-card-flat mb-6 p-4"
-      style={{
-        background:
-          "color-mix(in srgb, var(--primary-surface) 50%, var(--surface))",
-        border: "1px solid var(--primary-surface)",
-      }}
-    >
-      <div className="flex items-center gap-2 mb-3">
-        <Sparkles size={18} style={{ color: "var(--primary)" }} />
-        <h3 className="font-semibold" style={{ color: "var(--foreground)" }}>
-          AI Insights
-        </h3>
+    <div className="mb-6 rounded-lg border border-primary/20 bg-primary/5 p-4">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+        <h3 className="text-sm font-semibold">AI Insights</h3>
       </div>
 
-      {insights.intent && (
-        <div className="mb-2">
-          <span
-            className="text-sm font-medium"
-            style={{ color: "var(--primary-dark)" }}
-          >
-            Intent:{" "}
-          </span>
-          <span
-            className="text-sm"
-            style={{ color: "var(--foreground-muted)" }}
-          >
-            {insights.intent}
-          </span>
-        </div>
-      )}
-
-      {insights.extractedInfo?.symptoms &&
-        insights.extractedInfo.symptoms.length > 0 && (
-          <div className="mb-2">
-            <span
-              className="text-sm font-medium"
-              style={{ color: "var(--primary-dark)" }}
-            >
-              Detected Symptoms:{" "}
-            </span>
-            <span
-              className="text-sm"
-              style={{ color: "var(--foreground-muted)" }}
-            >
-              {insights.extractedInfo.symptoms.join(", ")}
-            </span>
-          </div>
+      <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[auto_1fr]">
+        {insights.intent && (
+          <>
+            <dt className="eyebrow eyebrow-muted pt-0.5">Intent:</dt>
+            <dd className="text-foreground">{insights.intent}</dd>
+          </>
         )}
 
-      {insights.extractedInfo?.pharmaceutical && (
-        <div className="mb-2">
-          <span
-            className="text-sm font-medium"
-            style={{ color: "var(--primary-dark)" }}
-          >
-            Pharmaceutical Mentioned:{" "}
-          </span>
-          <span
-            className="text-sm"
-            style={{ color: "var(--foreground-muted)" }}
-          >
-            {insights.extractedInfo.pharmaceutical}
-          </span>
-        </div>
-      )}
+        {symptoms.length > 0 && (
+          <>
+            <dt className="eyebrow eyebrow-muted pt-0.5">Detected Symptoms:</dt>
+            <dd className="text-foreground">{symptoms.join(", ")}</dd>
+          </>
+        )}
+
+        {insights.extractedInfo?.pharmaceutical && (
+          <>
+            <dt className="eyebrow eyebrow-muted pt-0.5">
+              Pharmaceutical Mentioned:
+            </dt>
+            <dd className="text-foreground">
+              {insights.extractedInfo.pharmaceutical}
+            </dd>
+          </>
+        )}
+      </dl>
     </div>
   );
 }

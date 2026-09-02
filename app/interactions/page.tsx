@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { InteractionChecker } from "@/components/interactions/InteractionChecker";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = {
   title: "Drug Interaction Checker",
@@ -14,19 +15,14 @@ export const metadata: Metadata = {
 
 export default function InteractionsPage(): React.ReactElement {
   return (
-    <div className="min-h-screen px-4 pt-24 pb-16 md:px-8">
-      <div className="mx-auto max-w-3xl">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Drug Interaction Checker
-          </h1>
-          <p className="mt-2 text-muted-foreground max-w-2xl">
-            Check for potential interactions between the medications,
-            supplements, and natural remedies you take. Add each substance below
-            and we will check all possible pairs for known interactions.
-          </p>
-        </div>
+    <div className="px-4 pt-14 md:px-8">
+      <div className="mx-auto max-w-3xl pt-12 pb-16">
+        <PageHeader
+          eyebrow="Safety"
+          title="Drug Interaction Checker"
+          description="Check for potential interactions between the medications, supplements, and natural remedies you take. Add each substance below and we will check all possible pairs for known interactions."
+          className="mb-8"
+        />
 
         {/* Interaction Checker Component */}
         <InteractionChecker />
