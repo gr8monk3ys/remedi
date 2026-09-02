@@ -8,7 +8,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
-import { successResponse, errorResponse } from "@/lib/api/response";
+import {
+  successResponse,
+  errorResponse,
+  getStatusCode,
+} from "@/lib/api/response";
 import { z } from "zod";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
@@ -36,8 +40,8 @@ export async function PATCH(
 
     if (!currentUser || !userIsAdmin) {
       return NextResponse.json(
-        errorResponse("UNAUTHORIZED", "Admin access required"),
-        { status: 403 },
+        errorResponse("FORBIDDEN", "Admin access required"),
+        { status: getStatusCode("FORBIDDEN") },
       );
     }
 
@@ -110,8 +114,8 @@ export async function DELETE(
 
     if (!currentUser || !userIsAdmin) {
       return NextResponse.json(
-        errorResponse("UNAUTHORIZED", "Admin access required"),
-        { status: 403 },
+        errorResponse("FORBIDDEN", "Admin access required"),
+        { status: getStatusCode("FORBIDDEN") },
       );
     }
 

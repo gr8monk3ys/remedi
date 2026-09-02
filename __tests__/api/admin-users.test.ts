@@ -104,7 +104,7 @@ describe("PATCH /api/admin/users/[id]", () => {
       const data = await response.json();
       expect(response.status).toBe(403);
       expect(data.success).toBe(false);
-      expect(data.error.code).toBe("UNAUTHORIZED");
+      expect(data.error.code).toBe("FORBIDDEN");
     });
 
     it("should return 403 when a non-admin user attempts to update", async () => {
@@ -118,7 +118,7 @@ describe("PATCH /api/admin/users/[id]", () => {
       const data = await response.json();
       expect(response.status).toBe(403);
       expect(data.success).toBe(false);
-      expect(data.error.code).toBe("UNAUTHORIZED");
+      expect(data.error.code).toBe("FORBIDDEN");
     });
   });
 
@@ -244,7 +244,7 @@ describe("DELETE /api/admin/users/[id]", () => {
       const data = await response.json();
       expect(response.status).toBe(403);
       expect(data.success).toBe(false);
-      expect(data.error.code).toBe("UNAUTHORIZED");
+      expect(data.error.code).toBe("FORBIDDEN");
     });
 
     it("should return 403 when a non-admin user attempts delete", async () => {
