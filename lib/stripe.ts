@@ -10,6 +10,14 @@
 
 import "server-only";
 import Stripe from "stripe";
+import {
+  getStripe as getKitStripe,
+  setDefaultStripeConfig,
+  stripe as kitStripe,
+  createCheckoutSession as createKitCheckoutSession,
+  createBillingPortalSession as createKitBillingPortalSession,
+  isStripeConfigured,
+} from "@gr8monk3ys/next-kit/stripe";
 
 // Re-export client-safe config for convenience in server code
 export {
@@ -27,43 +35,58 @@ export {
 
 import { type PlanType } from "./stripe-config";
 
-// Lazy-initialized Stripe client (avoids build-time errors)
-let stripeInstance: Stripe | null = null;
+// Pin the API version for EVERY client this app builds, including the ones
+// behind the `stripe` proxy below. Setting it here rather than passing it to
+// getStripe() is what keeps the proxy and the getter on one client: the kit
+// memoizes per (key, config), so a per-call pin would leave `stripe.*` running
+// unpinned on whatever version the installed SDK defaults to.
+setDefaultStripeConfig({ apiVersion: "2026-05-27.dahlia" });
 
 /**
- * Get the Stripe client (lazy initialization)
+ * Get the Stripe client (lazy initialization).
+ *
+ * The client is the kit's memoized singleton; this wrapper adds the one thing
+ * that is ours — the requirement that the key come from STRIPE_SECRET_KEY
+ * specifically (the kit also accepts STRIPE_API_KEY, which this app never sets,
+ * so without this check a stray STRIPE_API_KEY would silently satisfy it).
  */
 export function getStripe(): Stripe {
-  if (!stripeInstance) {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      throw new Error("STRIPE_SECRET_KEY is not configured");
-    }
-    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2026-05-27.dahlia",
-      typescript: true,
-    });
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY is not configured");
   }
-  return stripeInstance;
+  return getKitStripe();
 }
 
-// Backward compatibility - use getter
-export const stripe = {
-  get customers() {
-    return getStripe().customers;
-  },
-  get subscriptions() {
-    return getStripe().subscriptions;
-  },
-  get checkout() {
-    return getStripe().checkout;
-  },
-  get billingPortal() {
-    return getStripe().billingPortal;
-  },
-  get webhooks() {
-    return getStripe().webhooks;
-  },
-};
+/**
+ * The lazily-constructed Stripe client. Property access builds it on first use,
+ * so importing this module never touches the secret.
+ */
+export const stripe = kitStripe;
+
+export { isStripeConfigured };
+
+export type StripeMode = "test" | "live" | "unknown";
+
+/**
+ * Infer Stripe key mode from the configured secret/publishable keys.
+ *
+ * Lives here rather than in the kit: this is the only app that asks for it, and
+ * a shared package should not carry a single caller's helper.
+ *
+ * This is safe to expose in admin tooling since it does not reveal the key.
+ */
+export function getStripeMode(): StripeMode {
+  const secret = process.env.STRIPE_SECRET_KEY || "";
+  const publishable = process.env.STRIPE_PUBLISHABLE_KEY || "";
+
+  if (secret.startsWith("sk_test_") || publishable.startsWith("pk_test_")) {
+    return "test";
+  }
+  if (secret.startsWith("sk_live_") || publishable.startsWith("pk_live_")) {
+    return "live";
+  }
+  return "unknown";
+}
 
 /**
  * Price IDs configuration (server-only)
@@ -192,30 +215,14 @@ export async function createCheckoutSession({
   cancelUrl: string;
   trialPeriodDays?: number;
 }): Promise<Stripe.Checkout.Session> {
-  const subscriptionData: Stripe.Checkout.SessionCreateParams["subscription_data"] =
-    {
-      metadata: { userId },
-    };
-
-  // Add trial period if specified
-  if (trialPeriodDays && trialPeriodDays > 0) {
-    subscriptionData.trial_period_days = trialPeriodDays;
-  }
-
-  return stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: "subscription",
-    payment_method_types: ["card"],
-    line_items: [
-      {
-        price: priceId,
-        quantity: 1,
-      },
-    ],
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    subscription_data: subscriptionData,
+  return createKitCheckoutSession({
+    customerId,
+    priceId,
+    successUrl,
+    cancelUrl,
+    trialPeriodDays,
     metadata: { userId },
+    overrides: { payment_method_types: ["card"] },
   });
 }
 
@@ -226,10 +233,7 @@ export async function createBillingPortalSession(
   customerId: string,
   returnUrl: string,
 ): Promise<Stripe.BillingPortal.Session> {
-  return stripe.billingPortal.sessions.create({
-    customer: customerId,
-    return_url: returnUrl,
-  });
+  return createKitBillingPortalSession({ customerId, returnUrl });
 }
 
 /**
@@ -252,35 +256,6 @@ export async function reactivateSubscription(
   return stripe.subscriptions.update(subscriptionId, {
     cancel_at_period_end: false,
   });
-}
-
-/**
- * Check if Stripe is configured
- */
-export function isStripeConfigured(): boolean {
-  return (
-    !!process.env.STRIPE_SECRET_KEY && !!process.env.STRIPE_PUBLISHABLE_KEY
-  );
-}
-
-export type StripeMode = "test" | "live" | "unknown";
-
-/**
- * Infer Stripe key mode from the configured secret/publishable keys.
- *
- * This is safe to expose in admin tooling since it does not reveal the key.
- */
-export function getStripeMode(): StripeMode {
-  const secret = process.env.STRIPE_SECRET_KEY || "";
-  const publishable = process.env.STRIPE_PUBLISHABLE_KEY || "";
-
-  if (secret.startsWith("sk_test_") || publishable.startsWith("pk_test_")) {
-    return "test";
-  }
-  if (secret.startsWith("sk_live_") || publishable.startsWith("pk_live_")) {
-    return "live";
-  }
-  return "unknown";
 }
 
 export type StripeInvoiceSummary = {

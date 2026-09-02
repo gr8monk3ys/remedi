@@ -9,7 +9,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "bunx prisma generate && bunx prisma migrate deploy && next build",
+    "build": "bunx prisma generate && bunx prisma migrate deploy && next build && bun run check:css",
+    "check:css": "bun run scripts/check-built-css.ts",
     "start": "next start",
     "format:check": "prettier --check \"{app,components,context,hooks,lib,scripts,__tests__,e2e,prisma}/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{ts,tsx,js,jsx,json,css,md,mjs,yml,yaml}\"",
     "format:write": "prettier --write \"{app,components,context,hooks,lib,scripts,__tests__,e2e,prisma}/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{ts,tsx,js,jsx,json,css,md,mjs,yml,yaml}\"",
@@ -43,6 +44,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.3",
+    "@gr8monk3ys/next-kit": "https://github.com/gr8monk3ys/next-kit/archive/refs/tags/v0.1.2.tar.gz",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@radix-ui/react-dialog": "^1.1.16",
@@ -55,7 +57,6 @@
     "@react-email/components": "^1.0.12",
     "@sentry/nextjs": "^10.57.0",
     "@tanstack/react-query": "^5.101.0",
-    "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

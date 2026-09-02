@@ -61,6 +61,31 @@ jobs:
       - name: Unit tests
         run: bun run test:run
 
+  # Guards the exact failure that shipped an unstyled site: a production build
+  # whose only stylesheet contained custom properties and no Tailwind utilities.
+  build:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://remedi:remedi_dev@localhost:5432/remedi?schema=public
+      AUTH_SECRET: ci-auth-secret
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci
+      CLERK_SECRET_KEY: sk_test_ci
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.3.8
+      - name: Install dependencies
+        run: bun install
+      - name: Prisma generate
+        run: bunx prisma generate
+      - name: Next build
+        run: bunx next build
+      - name: Built CSS has Tailwind utilities
+        run: bun run check:css
+
   e2e:
     timeout-minutes: 30
     runs-on: ubuntu-latest

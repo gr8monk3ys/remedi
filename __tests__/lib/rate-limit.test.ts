@@ -109,22 +109,40 @@ describe("Rate Limiting Utilities", () => {
       expect(getClientIdentifier(request)).toBe("192.168.1.2");
     });
 
-    it("should extract IP from cf-connecting-ip header (Cloudflare)", () => {
-      const request = createMockRequest({
-        "cf-connecting-ip": "192.168.1.3",
+    it("ignores a spoofed cf-connecting-ip: same bucket with and without it", () => {
+      // remedi runs on Vercel, not behind Cloudflare, so nothing strips an
+      // inbound cf-connecting-ip — it is whatever the caller typed. Honouring
+      // it would be a rate-limit bypass: one new value per request, one fresh
+      // bucket per request. Both requests below are the same real client and
+      // must land in the same bucket.
+      const honest = createMockRequest({
+        "x-forwarded-for": "1.2.3.4, 10.0.0.1",
       });
-      expect(getClientIdentifier(request)).toBe("192.168.1.3");
+      const spoofed = createMockRequest({
+        "x-forwarded-for": "1.2.3.4, 10.0.0.1",
+        "cf-connecting-ip": "203.0.113.7",
+      });
+      const spoofedAgain = createMockRequest({
+        "x-forwarded-for": "1.2.3.4, 10.0.0.1",
+        "cf-connecting-ip": "203.0.113.8",
+      });
+
+      expect(getClientIdentifier(honest)).toBe("10.0.0.1");
+      expect(getClientIdentifier(spoofed)).toBe("10.0.0.1");
+      expect(getClientIdentifier(spoofedAgain)).toBe("10.0.0.1");
     });
 
     it("should prefer platform-set headers over x-forwarded-for", () => {
-      // cf-connecting-ip and x-real-ip are set by our own edge and cannot be
-      // forged by the caller, so they win over the client-supplied list.
+      // x-vercel-forwarded-for and x-real-ip are set by our own edge and cannot
+      // be forged by the caller, so they win over the client-supplied list.
+      // cf-connecting-ip is in this fixture precisely to show it does not.
       const request = createMockRequest({
         "x-forwarded-for": "192.168.1.1",
         "x-real-ip": "192.168.1.2",
+        "x-vercel-forwarded-for": "192.168.1.4",
         "cf-connecting-ip": "192.168.1.3",
       });
-      expect(getClientIdentifier(request)).toBe("192.168.1.3");
+      expect(getClientIdentifier(request)).toBe("192.168.1.4");
     });
 
     it('should return "anonymous" when no IP headers are present', () => {

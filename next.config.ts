@@ -26,6 +26,9 @@ const nextConfig: NextConfig = {
   // Vercel uses its own build output adapter; "standalone" is only for
   // self-hosted Docker/Node deployments and breaks Vercel routing.
   reactStrictMode: true,
+  // The kit's `import` condition points at its TypeScript source, so Next has
+  // to compile it like first-party code.
+  transpilePackages: ["@gr8monk3ys/next-kit"],
   images: {
     remotePatterns: [
       {
