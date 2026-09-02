@@ -6,20 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-interface Interaction {
-  id: string;
-  substanceA: string;
-  substanceAType: string;
-  substanceB: string;
-  substanceBType: string;
-  severity: string;
-  description: string;
-  mechanism: string | null;
-  recommendation: string | null;
-  evidence: string | null;
-  sources: string[];
-}
+import {
+  readInteractionsFor,
+  type InteractionOutcome,
+} from "@/lib/interactions/read";
+import type { Interaction } from "./interaction.types";
+import { InteractionUnavailable } from "./InteractionUnavailable";
 
 interface InteractionWarningsProps {
   remedyName: string;
@@ -163,52 +155,23 @@ function WarningItem({
 export function InteractionWarnings({
   remedyName,
 }: InteractionWarningsProps): React.ReactElement | null {
-  const [interactions, setInteractions] = useState<Interaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [outcome, setOutcome] = useState<InteractionOutcome<
+    Interaction[]
+  > | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchInteractions(): Promise<void> {
-      try {
-        const response = await fetch(
-          `/api/interactions?substance=${encodeURIComponent(remedyName)}`,
-        );
-        const data = await response.json().catch(() => null);
-
-        if (cancelled) return;
-
-        // Only an explicitly successful response proves that no interactions
-        // exist. Any other outcome (rate limit, database error, auth failure,
-        // unparseable body) must surface as "could not verify" — never as a
-        // reassuring "no known interactions", which would present a system
-        // failure as a medical all-clear.
-        if (response.ok && data?.success === true && Array.isArray(data.data)) {
-          setInteractions(data.data);
-        } else {
-          setError(true);
-        }
-      } catch {
-        if (!cancelled) {
-          setError(true);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void fetchInteractions();
+    void readInteractionsFor(remedyName).then((result) => {
+      if (!cancelled) setOutcome(result);
+    });
 
     return () => {
       cancelled = true;
     };
   }, [remedyName]);
 
-  // Don't render the section if loading, errored, or no interactions
-  if (loading) {
+  if (outcome === null) {
     return (
       <Card>
         <CardHeader className="pb-3">
@@ -227,26 +190,18 @@ export function InteractionWarnings({
     );
   }
 
-  if (error) {
+  if (outcome.kind === "unknown") {
     return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
-            Interaction Warnings
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            We could not check for interactions with {remedyName} right now.
-            This is not a confirmation that none exist. Please try again later,
-            and talk to your healthcare provider or pharmacist before combining
-            it with any medication.
-          </p>
-        </CardContent>
-      </Card>
+      <InteractionUnavailable
+        reason={outcome.reason}
+        message={outcome.message}
+        retryAfter={outcome.retryAfter}
+        subject={remedyName}
+      />
     );
   }
+
+  const interactions = outcome.data;
 
   if (interactions.length === 0) {
     return (

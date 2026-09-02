@@ -12,8 +12,14 @@ import { InteractionWarnings } from "@/components/interactions/InteractionWarnin
 
 const REMEDY = "St. John's Wort";
 
+// The reads now go through apiClient, which inspects content-type before
+// parsing, so a stubbed Response needs headers. The assertions below are
+// unchanged: they are the regression guard for this component.
 function mockFetchOnce(response: Partial<Response> & { json: () => unknown }) {
-  global.fetch = vi.fn().mockResolvedValue(response as unknown as Response);
+  global.fetch = vi.fn().mockResolvedValue({
+    headers: new Headers({ "content-type": "application/json" }),
+    ...response,
+  } as unknown as Response);
 }
 
 describe("InteractionWarnings", () => {
