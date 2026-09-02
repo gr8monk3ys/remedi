@@ -4,9 +4,9 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { fetchWithCSRF } from "@/lib/fetch";
 import { getSessionId } from "@/lib/session";
 import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api/client";
 
 export function LandingClient({
   trackView = true,
@@ -19,29 +19,27 @@ export function LandingClient({
   useEffect(() => {
     if (!trackView) return;
     const sessionId = getSessionId();
-    void fetchWithCSRF("/api/user-events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    // Telemetry: a failure here must never surface to the visitor, but it
+    // must not become an unhandled rejection either.
+    void apiClient
+      .post("/api/user-events", {
         eventType: "landing_view",
         sessionId,
         page: "/landing",
-      }),
-    });
+      })
+      .catch(() => {});
   }, [trackView]);
 
   const handleCtaClick = (ctaId: string) => async () => {
     const sessionId = getSessionId();
-    await fetchWithCSRF("/api/user-events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    await apiClient
+      .post("/api/user-events", {
         eventType: "landing_cta_clicked",
         sessionId,
         page: "/landing",
         eventData: { ctaId },
-      }),
-    });
+      })
+      .catch(() => {});
   };
 
   return (

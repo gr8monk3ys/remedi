@@ -6,11 +6,11 @@
  * Interactive parts of the billing page - plan selection and checkout.
  */
 
+import { apiClient, ApiClientError } from "@/lib/api/client";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Check, Loader2, CreditCard, Sparkles } from "lucide-react";
 import { PLANS, type PlanType } from "@/lib/stripe-config";
-import { fetchWithCSRF } from "@/lib/fetch";
 import { createLogger } from "@/lib/logger";
 
 const logger = createLogger("billing");
@@ -33,25 +33,18 @@ export function BillingClient({
     setLoading(plan);
     try {
       // Send plan and interval to server - server will look up the price ID
-      const response = await fetchWithCSRF("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan,
-          interval: isYearly ? "year" : "month",
-        }),
+      const { url } = await apiClient.post<{ url: string }>("/api/checkout", {
+        plan,
+        interval: isYearly ? "year" : "month",
       });
-
-      const data = await response.json();
-
-      if (data.success && data.data.url) {
-        window.location.href = data.data.url;
-      } else {
-        toast.error(data.error?.message || "Failed to start checkout");
-      }
+      window.location.href = url;
     } catch (error) {
       logger.error("Checkout error", error);
-      toast.error("Failed to start checkout. Please try again.");
+      toast.error(
+        error instanceof ApiClientError
+          ? error.message
+          : "Failed to start checkout. Please try again.",
+      );
     } finally {
       setLoading(null);
     }
@@ -73,20 +66,17 @@ export function BillingClient({
   const handleManageBilling = async () => {
     setLoading("manage");
     try {
-      const response = await fetchWithCSRF("/api/billing-portal", {
-        method: "POST",
-      });
-
-      const data = await response.json();
-
-      if (data.success && data.data.url) {
-        window.location.href = data.data.url;
-      } else {
-        toast.error(data.error?.message || "Failed to open billing portal");
-      }
+      const { url } = await apiClient.post<{ url: string }>(
+        "/api/billing-portal",
+      );
+      window.location.href = url;
     } catch (error) {
       logger.error("Billing portal error", error);
-      toast.error("Failed to open billing portal. Please try again.");
+      toast.error(
+        error instanceof ApiClientError
+          ? error.message
+          : "Failed to open billing portal. Please try again.",
+      );
     } finally {
       setLoading(null);
     }

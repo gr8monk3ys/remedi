@@ -9,13 +9,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { fetchWithCSRF } from "@/lib/fetch";
 import { createLogger } from "@/lib/logger";
 import { UserAvatar } from "./UserAvatar";
 
 const logger = createLogger("moderation-queue");
 import { ModerationActions } from "./ModerationActions";
 import type { ModerationQueueProps, ModerationItemType } from "./types";
+import { toast } from "sonner";
+import { apiClient, ApiClientError } from "@/lib/api/client";
 
 /**
  * Normalize list-like fields (string[] or JSON string)
@@ -47,22 +48,20 @@ export function ModerationQueue({
   const handleApprove = async (id: string, type: ModerationItemType) => {
     setProcessing(id);
     try {
-      const response = await fetchWithCSRF(`/api/admin/moderation/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type,
-          action: "approve",
-          note: moderatorNote || undefined,
-        }),
+      await apiClient.patch(`/api/admin/moderation/${id}`, {
+        type,
+        action: "approve",
+        note: moderatorNote || undefined,
       });
-
-      if (response.ok) {
-        router.refresh();
-        setModeratorNote("");
-      }
+      router.refresh();
+      setModeratorNote("");
     } catch (error) {
       logger.error("Failed to approve", error);
+      toast.error(
+        error instanceof ApiClientError
+          ? error.message
+          : "Could not approve that submission.",
+      );
     } finally {
       setProcessing(null);
     }
@@ -76,22 +75,22 @@ export function ModerationQueue({
 
     setProcessing(id);
     try {
-      const response = await fetchWithCSRF(`/api/admin/moderation/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type,
-          action: "reject",
-          note: moderatorNote,
-        }),
+      await apiClient.patch(`/api/admin/moderation/${id}`, {
+        type,
+        action: "reject",
+        note: moderatorNote,
       });
-
-      if (response.ok) {
-        router.refresh();
-        setModeratorNote("");
-      }
+      router.refresh();
+      // Only cleared once the rejection actually landed; the note is the
+      // moderator's reasoning and must not vanish on a failed request.
+      setModeratorNote("");
     } catch (error) {
       logger.error("Failed to reject", error);
+      toast.error(
+        error instanceof ApiClientError
+          ? error.message
+          : "Could not reject that submission.",
+      );
     } finally {
       setProcessing(null);
     }

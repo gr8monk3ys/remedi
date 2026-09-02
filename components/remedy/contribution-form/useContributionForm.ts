@@ -6,9 +6,9 @@
  * Manages form state for remedy contributions using useReducer pattern.
  */
 
+import { apiClient, ApiClientError } from "@/lib/api/client";
 import { useReducer, useCallback } from "react";
 import { toast } from "sonner";
-import { fetchWithCSRF } from "@/lib/fetch";
 import type { FormState, FormAction, Reference } from "./types";
 import { initialFormState } from "./types";
 
@@ -125,43 +125,30 @@ export function useContributionForm(onSuccess?: () => void) {
       }
 
       try {
-        const response = await fetchWithCSRF("/api/contributions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: state.name,
-            description: state.description,
-            category: state.category,
-            ingredients: filteredIngredients,
-            benefits: filteredBenefits,
-            usage: state.usage || undefined,
-            dosage: state.dosage || undefined,
-            precautions: state.precautions || undefined,
-            scientificInfo: state.scientificInfo || undefined,
-            references:
-              filteredReferences.length > 0 ? filteredReferences : undefined,
-          }),
+        await apiClient.post("/api/contributions", {
+          name: state.name,
+          description: state.description,
+          category: state.category,
+          ingredients: filteredIngredients,
+          benefits: filteredBenefits,
+          usage: state.usage || undefined,
+          dosage: state.dosage || undefined,
+          precautions: state.precautions || undefined,
+          scientificInfo: state.scientificInfo || undefined,
+          references:
+            filteredReferences.length > 0 ? filteredReferences : undefined,
         });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-          dispatch({
-            type: "SUBMIT_ERROR",
-            error: data.error?.message || "Failed to submit contribution",
-          });
-          return;
-        }
 
         dispatch({ type: "SUBMIT_SUCCESS" });
         toast.success("Contribution submitted for review");
         onSuccess?.();
-      } catch {
-        dispatch({
-          type: "SUBMIT_ERROR",
-          error: "Failed to submit contribution. Please try again.",
-        });
-        toast.error("Failed to submit contribution");
+      } catch (err) {
+        const message =
+          err instanceof ApiClientError
+            ? err.message
+            : "Failed to submit contribution. Please try again.";
+        dispatch({ type: "SUBMIT_ERROR", error: message });
+        toast.error(message);
       }
     },
     [state, onSuccess],

@@ -16,7 +16,7 @@ import {
   FavoriteCard,
   FavoriteCardSkeleton,
 } from "@/components/dashboard/FavoriteCard";
-import { fetchWithCSRF } from "@/lib/fetch";
+import { apiClient, ApiClientError } from "@/lib/api/client";
 import type {
   FavoriteItem,
   FavoritesSortOption,
@@ -103,19 +103,17 @@ export function FavoritesPageClient({
     setError(null);
 
     try {
-      const response = await fetchWithCSRF(`/api/favorites?id=${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to remove favorite");
-      }
+      await apiClient.delete(`/api/favorites?id=${id}`);
 
       router.refresh();
       toast.success("Removed from favorites");
-    } catch {
-      setError("Failed to remove favorite. Please try again.");
-      toast.error("Failed to remove favorite");
+    } catch (err) {
+      const message =
+        err instanceof ApiClientError
+          ? err.message
+          : "Failed to remove favorite. Please try again.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsRemoving(null);
     }

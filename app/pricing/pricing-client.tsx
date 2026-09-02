@@ -7,6 +7,7 @@
  * trial start, and checkout.
  */
 
+import { apiClient, ApiClientError } from "@/lib/api/client";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -16,7 +17,6 @@ import {
   YEARLY_DISCOUNT_PERCENT,
   type PlanType,
 } from "@/lib/stripe-config";
-import { fetchWithCSRF } from "@/lib/fetch";
 import { getSessionId } from "@/lib/session";
 import { getOrSetExperimentVariant } from "@/lib/experiments/client";
 import {
@@ -52,16 +52,12 @@ export function PricingClient({
     metadata?: Record<string, unknown>;
   }) => {
     try {
-      await fetchWithCSRF("/api/conversion-events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          eventType: payload.eventType,
-          eventSource: EVENT_SOURCES.PRICING_PAGE,
-          planTarget: payload.planTarget,
-          sessionId: getSessionId(),
-          metadata: payload.metadata,
-        }),
+      await apiClient.post("/api/conversion-events", {
+        eventType: payload.eventType,
+        eventSource: EVENT_SOURCES.PRICING_PAGE,
+        planTarget: payload.planTarget,
+        sessionId: getSessionId(),
+        metadata: payload.metadata,
       });
     } catch (error) {
       logger.warn("Failed to track conversion event", { error });
@@ -108,21 +104,16 @@ export function PricingClient({
 
     setLoading("trial");
     try {
-      const response = await fetchWithCSRF("/api/trial/start", {
-        method: "POST",
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        router.push("/billing?trial=true");
-        router.refresh();
-      } else {
-        toast.error(data.error?.message || "Failed to start trial");
-      }
+      await apiClient.post("/api/trial/start");
+      router.push("/billing?trial=true");
+      router.refresh();
     } catch (error) {
       logger.error("Trial start error", error);
-      toast.error("Failed to start trial. Please try again.");
+      toast.error(
+        error instanceof ApiClientError
+          ? error.message
+          : "Failed to start trial. Please try again.",
+      );
     } finally {
       setLoading(null);
     }
@@ -140,21 +131,16 @@ export function PricingClient({
 
     setLoading("free");
     try {
-      const response = await fetchWithCSRF("/api/billing-portal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await response.json();
-
-      if (data.success && data.data?.url) {
-        window.location.href = data.data.url;
-      } else {
-        toast.error(
-          data.error?.message || "Could not open the billing portal.",
-        );
-      }
-    } catch {
-      toast.error("Could not open the billing portal. Please try again.");
+      const { url } = await apiClient.post<{ url: string }>(
+        "/api/billing-portal",
+      );
+      window.location.href = url;
+    } catch (error) {
+      toast.error(
+        error instanceof ApiClientError
+          ? error.message
+          : "Could not open the billing portal. Please try again.",
+      );
     } finally {
       setLoading(null);
     }
@@ -180,25 +166,18 @@ export function PricingClient({
 
     setLoading(plan);
     try {
-      const response = await fetchWithCSRF("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan,
-          interval: isYearly ? "year" : "month",
-        }),
+      const { url } = await apiClient.post<{ url: string }>("/api/checkout", {
+        plan,
+        interval: isYearly ? "year" : "month",
       });
-
-      const data = await response.json();
-
-      if (data.success && data.data.url) {
-        window.location.href = data.data.url;
-      } else {
-        toast.error(data.error?.message || "Failed to start checkout");
-      }
+      window.location.href = url;
     } catch (error) {
       logger.error("Checkout error", error);
-      toast.error("Failed to start checkout. Please try again.");
+      toast.error(
+        error instanceof ApiClientError
+          ? error.message
+          : "Failed to start checkout. Please try again.",
+      );
     } finally {
       setLoading(null);
     }

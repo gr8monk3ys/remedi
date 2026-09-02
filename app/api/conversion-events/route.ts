@@ -8,6 +8,7 @@ import {
 } from "@/lib/analytics/conversion-events";
 import { RATE_LIMITS, withRateLimit } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
+import { successResponse } from "@/lib/api/response";
 
 const logger = createLogger("api-conversion-events");
 
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
       metadata,
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(successResponse({ recorded: true }));
   } catch (error) {
     logger.error("Error tracking event", error);
     return NextResponse.json(

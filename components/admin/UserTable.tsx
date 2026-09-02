@@ -11,8 +11,9 @@ import {
   Crown,
   Trash2,
 } from "lucide-react";
-import { fetchWithCSRF } from "@/lib/fetch";
 import { createLogger } from "@/lib/logger";
+import { toast } from "sonner";
+import { apiClient, ApiClientError } from "@/lib/api/client";
 
 const logger = createLogger("admin-users");
 
@@ -47,17 +48,15 @@ export function UserTable({ users, currentPage, totalPages }: UserTableProps) {
   const handleRoleChange = async (userId: string, newRole: string) => {
     setUpdating(userId);
     try {
-      const response = await fetchWithCSRF(`/api/admin/users/${userId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: newRole }),
-      });
-
-      if (response.ok) {
-        router.refresh();
-      }
+      await apiClient.patch(`/api/admin/users/${userId}`, { role: newRole });
+      router.refresh();
     } catch (error) {
       logger.error("Failed to update user role", error);
+      toast.error(
+        error instanceof ApiClientError
+          ? error.message
+          : "Could not update that user's role.",
+      );
     } finally {
       setUpdating(null);
       setActionMenuOpen(null);
