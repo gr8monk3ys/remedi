@@ -405,10 +405,16 @@ test.describe("Drug Interaction Checker", () => {
 
     await page.getByRole("button", { name: /Check Interactions/i }).click();
 
-    // Error alert should appear
-    await expect(page.getByText(/Failed to check interactions/i)).toBeVisible({
-      timeout: 5000,
-    });
+    // The failure must be surfaced, and must not read as an all-clear.
+    await expect(
+      page.getByRole("heading", { name: /Interaction check unavailable/i }),
+    ).toBeVisible({ timeout: 5000 });
+    await expect(
+      page.getByText(/not a confirmation that none exist/i),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /No Known Interactions Found/i }),
+    ).toBeHidden();
   });
 
   test("should display the medical disclaimer", async ({ page }) => {
