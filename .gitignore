@@ -59,3 +59,8 @@ about-page.png
 
 # local Claude Code permissions
 .claude/settings.local.json
+
+# local agent tooling (installed by `npx impeccable install`, not part of the product)
+/.github/agents/
+/.github/hooks/
+/.github/skills/
