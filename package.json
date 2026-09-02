@@ -9,7 +9,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "bunx prisma generate && bunx prisma migrate deploy && next build",
+    "build": "bunx prisma generate && bunx prisma migrate deploy && next build && bun run check:css",
+    "check:css": "bun run scripts/check-built-css.ts",
     "start": "next start",
     "format:check": "prettier --check \"{app,components,context,hooks,lib,scripts,__tests__,e2e,prisma}/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{ts,tsx,js,jsx,json,css,md,mjs,yml,yaml}\"",
     "format:write": "prettier --write \"{app,components,context,hooks,lib,scripts,__tests__,e2e,prisma}/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{ts,tsx,js,jsx,json,css,md,mjs,yml,yaml}\"",
