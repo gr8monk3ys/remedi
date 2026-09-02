@@ -19,6 +19,8 @@ export default [
       "scripts/**",
       "public/sw.js",
       "e2e/**",
+      // local agent tooling installed into .github, not product code
+      ".github/**",
     ],
   },
   // Base JS recommended
