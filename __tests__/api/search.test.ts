@@ -191,6 +191,11 @@ describe("GET /api/search", () => {
         },
       ]);
       vi.mocked(fuzzySearch).mockReturnValue([]);
+      // The cache-back must succeed: remedy mappings are keyed on the
+      // persisted row, so a failed write is a failure to answer.
+      vi.mocked(upsertPharmaceutical).mockResolvedValue({
+        id: "cached-1",
+      } as UpsertPharmaceuticalResult);
 
       const request = new NextRequest(
         "http://localhost:3000/api/search?query=aspirin",
@@ -217,9 +222,9 @@ describe("GET /api/search", () => {
           benefits: ["Sleep regulation"],
         },
       ]);
-      vi.mocked(upsertPharmaceutical).mockResolvedValue(
-        {} as UpsertPharmaceuticalResult,
-      );
+      vi.mocked(upsertPharmaceutical).mockResolvedValue({
+        id: "cached-1",
+      } as UpsertPharmaceuticalResult);
 
       const request = new NextRequest(
         "http://localhost:3000/api/search?query=melatonin",
@@ -354,11 +359,12 @@ describe("GET /api/search", () => {
   });
 
   describe("Error Handling", () => {
-    it("should gracefully fall through on database errors", async () => {
+    it("reports a database outage rather than an empty result", async () => {
       vi.mocked(searchPharmaceuticals).mockRejectedValue(
         new Error("Database error"),
       );
       vi.mocked(searchFdaDrugs).mockResolvedValue([]);
+      vi.mocked(fuzzySearch).mockReturnValue([]);
 
       const request = new NextRequest(
         "http://localhost:3000/api/search?query=test",
@@ -366,14 +372,17 @@ describe("GET /api/search", () => {
       const response = await GET(request);
       const json = await response.json();
 
-      // Database errors should fall through to FDA API / mock data, not return 500
-      expect(response.status).toBe(200);
-      expect(json.success).toBe(true);
+      // This used to return 200 with an empty list, which a user reads as
+      // "there are no natural remedies for this drug".
+      expect(response.status).toBe(503);
+      expect(json.success).toBe(false);
+      expect(json.error.code).toBe("SERVICE_UNAVAILABLE");
     });
 
-    it("should handle FDA API errors and return 500", async () => {
+    it("reports an OpenFDA outage the same way it reports a database one", async () => {
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
       vi.mocked(searchFdaDrugs).mockRejectedValue(new Error("FDA API error"));
+      vi.mocked(fuzzySearch).mockReturnValue([]);
 
       const request = new NextRequest(
         "http://localhost:3000/api/search?query=test",
@@ -381,16 +390,19 @@ describe("GET /api/search", () => {
       const response = await GET(request);
       const json = await response.json();
 
-      // FDA errors should return 500 with error structure
-      expect(response.status).toBe(500);
+      // Previously 500 — and unreachable in production, since searchFdaDrugs
+      // catches everything and returns []. Now the same 503 a DB outage gives.
+      expect(response.status).toBe(503);
       expect(json.success).toBe(false);
       expect(json).toHaveProperty("error");
     });
 
-    it("should return 500 for unexpected errors", async () => {
+    it("reports a synchronous database throw as unavailable too", async () => {
       vi.mocked(searchPharmaceuticals).mockImplementation(() => {
         throw new Error("Unexpected error");
       });
+      vi.mocked(searchFdaDrugs).mockResolvedValue([]);
+      vi.mocked(fuzzySearch).mockReturnValue([]);
 
       const request = new NextRequest(
         "http://localhost:3000/api/search?query=test",
@@ -398,7 +410,7 @@ describe("GET /api/search", () => {
       const response = await GET(request);
       const json = await response.json();
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(503);
       expect(json.success).toBe(false);
       expect(json).toHaveProperty("error");
     });

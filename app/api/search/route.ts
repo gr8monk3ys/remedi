@@ -22,14 +22,85 @@ import { trackUserEventSafe } from "@/lib/analytics/user-events";
 import { getCurrentUser } from "@/lib/auth";
 import { isDemoDataEnabled } from "@/lib/env";
 import { normalizeSearchQuery } from "@/lib/search/query-normalization";
+import { resolveSearch, type SearchPorts } from "@/lib/search/resolve";
 import type { ProcessedDrug, NaturalRemedy } from "@/lib/types";
 
 const log = createLogger("search-api");
 
+const CACHE_CONTROL = "public, s-maxage=300, stale-while-revalidate=3600";
+
+/** Convert a stored pharmaceutical row into the shape search works with. */
+function toProcessedDrug(row: {
+  id: string;
+  fdaId: string | null;
+  name: string;
+  description: string | null;
+  category: string;
+  ingredients: string[];
+  benefits: string[];
+  usage: string | null;
+  warnings: string | null;
+  interactions: string | null;
+}): ProcessedDrug {
+  return {
+    id: row.id,
+    fdaId: row.fdaId || "",
+    name: row.name,
+    description: row.description || "",
+    category: row.category,
+    ingredients: row.ingredients,
+    benefits: row.benefits,
+    usage: row.usage || undefined,
+    warnings: row.warnings || undefined,
+    interactions: row.interactions || undefined,
+  };
+}
+
+/** Demo remedies, or null when demo data is disabled. */
+function findDemoRemedies(query: string): NaturalRemedy[] | null {
+  if (!isDemoDataEnabled()) return null;
+
+  const searchable = MOCK_PHARMACEUTICALS.map((p) => ({
+    ...p,
+    searchText: `${p.name} ${p.category} ${p.ingredients.join(" ")} ${p.benefits.join(" ")}`,
+  }));
+
+  const matched = fuzzySearch(query, searchable, (item) => item.searchText);
+  const drug = matched[0];
+  if (!drug) return [];
+
+  const remedies = MOCK_REMEDY_MAPPINGS[drug.id] || [];
+
+  return remedies
+    .map((remedy) => {
+      const matchScore =
+        remedy.matchingNutrients.length /
+        Math.max(drug.ingredients?.length ?? 0, 1);
+      return {
+        ...remedy,
+        similarityScore: Number(
+          (matchScore * (drug.similarityScore || 1.0)).toFixed(2),
+        ),
+      };
+    })
+    .sort((a, b) => b.similarityScore - a.similarityScore);
+}
+
+const productionPorts: SearchPorts = {
+  async findPharmaceuticals(query) {
+    const rows = await searchPharmaceuticals(query);
+    return rows.map(toProcessedDrug);
+  },
+  findRemediesFor: getNaturalRemediesForPharmaceutical,
+  generateMappingsFor: generateRemedyMappingsForPharmaceutical,
+  searchFda: searchFdaDrugs,
+  cachePharmaceutical: upsertPharmaceutical,
+  findDemoRemedies,
+};
+
 export async function GET(req: NextRequest) {
   const startTime = Date.now();
 
-  // Check rate limit
   const { allowed, response: rateLimitResponse } = await withRateLimit(
     req,
     RATE_LIMITS.search,
@@ -45,14 +116,10 @@ export async function GET(req: NextRequest) {
     const currentUser = await getCurrentUser();
     const userId = currentUser?.id;
 
-    log.info("Search query received", { query: queryParam });
-
-    // Validate input
     const validation = searchQuerySchema.safeParse({ query: queryParam });
     if (!validation.success) {
       const errorMessage =
-        validation.error.issues[0]?.message || "Invalid query parameter";
-      log.debug("Validation failed", { error: errorMessage });
+        validation.error.issues[0]?.message || "Invalid search query";
       return NextResponse.json(
         errorResponse("INVALID_INPUT", errorMessage, {
           issues: validation.error.issues,
@@ -62,309 +129,61 @@ export async function GET(req: NextRequest) {
     }
 
     const query = validation.data.query;
-
-    // Helper function to save search history
-    const saveHistory = async (resultsCount: number) => {
-      try {
-        await saveSearchHistory(query, resultsCount, sessionId, userId);
-      } catch (error) {
-        // Log error but don't fail the request
-        log.error("Failed to save search history", error);
-      }
-    };
-
-    const trackSearchEvent = async (resultsCount: number, source: string) => {
-      await trackUserEventSafe({
-        request: req,
-        userId,
-        sessionId,
-        eventType: "search",
-        eventData: {
-          query,
-          resultsCount,
-          source,
-          processingTimeMs: Date.now() - startTime,
-        },
-      });
-    };
-
-    // Process query - remove common suffixes and extra words
     const processedQuery = normalizeSearchQuery(query);
-    log.debug("Query processed", {
-      original: query,
-      processed: processedQuery,
-    });
 
-    // Strategy: Database first -> FDA API -> Mock data
-    let pharmaceutical: ProcessedDrug | undefined;
-    let remedies: NaturalRemedy[] = [];
-
-    // Step 1: Try to find pharmaceutical in database
-    try {
-      log.debug("Searching database for pharmaceutical");
-      const dbPharmaceuticals = await searchPharmaceuticals(processedQuery);
-
-      if (dbPharmaceuticals.length > 0) {
-        // Found in database - get remedies from database
-        const dbPharma = dbPharmaceuticals[0];
-        if (!dbPharma) {
-          throw new Error("Unexpected: pharmaceutical at index 0 is undefined");
-        }
-
-        pharmaceutical = {
-          id: dbPharma.id,
-          fdaId: dbPharma.fdaId || "",
-          name: dbPharma.name,
-          description: dbPharma.description || "",
-          category: dbPharma.category,
-          ingredients: dbPharma.ingredients,
-          benefits: dbPharma.benefits,
-          usage: dbPharma.usage || undefined,
-          warnings: dbPharma.warnings || undefined,
-          interactions: dbPharma.interactions || undefined,
-        };
-
-        log.info("Found pharmaceutical in database", {
-          name: pharmaceutical.name,
-        });
-        remedies = await getNaturalRemediesForPharmaceutical(pharmaceutical.id);
-
-        if (remedies.length > 0) {
-          log.info("Found remedies from database", { count: remedies.length });
-          void Promise.allSettled([
-            saveHistory(remedies.length),
-            trackSearchEvent(remedies.length, "database"),
-          ]);
-          const processingTime = Date.now() - startTime;
-          return NextResponse.json(
-            successResponse(remedies, {
-              total: remedies.length,
-              processingTime,
-              apiVersion: "1.0",
-              source: "database" as const,
-            }),
-            {
-              status: 200,
-              headers: {
-                "Cache-Control":
-                  "public, s-maxage=300, stale-while-revalidate=3600",
-              },
-            },
-          );
-        }
-
-        // No explicit mappings yet; generate deterministic DB-backed mappings.
-        try {
-          remedies = await generateRemedyMappingsForPharmaceutical({
-            pharmaceuticalId: pharmaceutical.id,
-            drug: pharmaceutical,
-          });
-        } catch (matchError) {
-          log.warn("Failed to generate remedy mappings from database", {
-            error: String(matchError),
-          });
-        }
-
-        if (remedies.length > 0) {
-          log.info("Generated remedies from database", {
-            count: remedies.length,
-          });
-          void Promise.allSettled([
-            saveHistory(remedies.length),
-            trackSearchEvent(remedies.length, "database_generated"),
-          ]);
-          const processingTime = Date.now() - startTime;
-          return NextResponse.json(
-            successResponse(remedies, {
-              total: remedies.length,
-              processingTime,
-              apiVersion: "1.0",
-              source: "database" as const,
-            }),
-            {
-              status: 200,
-              headers: {
-                "Cache-Control":
-                  "public, s-maxage=300, stale-while-revalidate=3600",
-              },
-            },
-          );
-        }
-      }
-    } catch (dbError) {
-      // Database unavailable - gracefully fall through to FDA API and mock data
-      log.warn("Database search failed, falling through to FDA API", {
-        error: String(dbError),
-      });
-    }
-
-    // Step 2: If not in database, try OpenFDA API
-    log.debug("Searching OpenFDA API");
-    const drugResults: ProcessedDrug[] = await searchFdaDrugs(processedQuery);
-
-    if (drugResults.length > 0) {
-      pharmaceutical = drugResults[0];
-      log.info("Found pharmaceutical from FDA API", {
-        name: pharmaceutical.name,
-      });
-
-      // Save to database for future use
-      let persistedPharmaceuticalId: string | null = null;
-      try {
-        const saved = await upsertPharmaceutical(pharmaceutical);
-        persistedPharmaceuticalId = saved.id;
-        log.debug("Saved pharmaceutical to database");
-      } catch (error) {
-        log.error("Failed to save pharmaceutical to database", error);
-      }
-
-      // Generate remedy mappings using our DB-backed deterministic matcher.
-      if (persistedPharmaceuticalId) {
-        try {
-          remedies = await generateRemedyMappingsForPharmaceutical({
-            pharmaceuticalId: persistedPharmaceuticalId,
-            drug: pharmaceutical,
-          });
-        } catch (matchError) {
-          log.warn("Failed to generate remedy mappings for OpenFDA drug", {
-            error: String(matchError),
-          });
-        }
-      }
-
-      if (remedies.length > 0) {
-        log.info("Found remedies using database matcher", {
-          count: remedies.length,
-        });
-        void Promise.allSettled([
-          saveHistory(remedies.length),
-          trackSearchEvent(remedies.length, "openfda"),
-        ]);
-        const processingTime = Date.now() - startTime;
-        return NextResponse.json(
-          successResponse(remedies, {
-            total: remedies.length,
-            processingTime,
-            apiVersion: "1.0",
-            source: "openfda" as const,
-          }),
-          {
-            status: 200,
-            headers: {
-              "Cache-Control":
-                "public, s-maxage=300, stale-while-revalidate=3600",
-            },
-          },
-        );
-      }
-    }
-
-    // Step 3: Fall back to mock data — only when demo data is enabled. In
-    // production this is off by default so we never present fabricated remedy
-    // matches as real results; an empty result is returned instead.
-    if (!isDemoDataEnabled()) {
-      log.info("No data from database or OpenFDA; demo fallback disabled", {
-        query,
-      });
-      void Promise.allSettled([saveHistory(0), trackSearchEvent(0, "none")]);
-      const processingTime = Date.now() - startTime;
-      return NextResponse.json(
-        successResponse([], {
-          total: 0,
-          processingTime,
-          apiVersion: "1.0",
-          source: "none" as const,
-        }),
-        {
-          status: 200,
-          headers: {
-            "Cache-Control":
-              "public, s-maxage=300, stale-while-revalidate=3600",
-          },
-        },
-      );
-    }
-
-    log.debug("Falling back to mock data");
-    const searchablePharmaceuticals = MOCK_PHARMACEUTICALS.map((p) => ({
-      ...p,
-      searchText: `${p.name} ${p.category} ${p.ingredients.join(" ")} ${p.benefits.join(" ")}`,
-    }));
-
-    const matchedPharmaceuticals = fuzzySearch(
-      processedQuery,
-      searchablePharmaceuticals,
-      (item) => item.searchText,
-    );
-
-    if (matchedPharmaceuticals.length === 0) {
-      log.info("No pharmaceutical found", { query });
+    const record = (resultsCount: number, source: string) => {
       void Promise.allSettled([
-        saveHistory(0),
-        trackSearchEvent(0, "fallback"),
-      ]);
-      const processingTime = Date.now() - startTime;
-      return NextResponse.json(
-        successResponse([], {
-          total: 0,
-          processingTime,
-          apiVersion: "1.0",
-          source: "fallback" as const,
-        }),
-        {
-          status: 200,
-          headers: {
-            "Cache-Control":
-              "public, s-maxage=300, stale-while-revalidate=3600",
+        (async () => {
+          try {
+            await saveSearchHistory(query, resultsCount, sessionId, userId);
+          } catch (error) {
+            log.error("Failed to save search history", error);
+          }
+        })(),
+        trackUserEventSafe({
+          request: req,
+          userId,
+          sessionId,
+          eventType: "search",
+          eventData: {
+            query,
+            resultsCount,
+            source,
+            processingTimeMs: Date.now() - startTime,
           },
-        },
+        }),
+      ]);
+    };
+
+    const outcome = await resolveSearch(processedQuery, productionPorts);
+
+    // A tier we depend on could not be reached. Saying "no remedies found"
+    // here would present an outage as a medical answer.
+    if (outcome.kind === "unavailable") {
+      log.warn("Search could not complete", { which: outcome.which });
+      record(0, `unavailable:${outcome.which}`);
+      return NextResponse.json(
+        errorResponse(
+          "SERVICE_UNAVAILABLE",
+          "We could not complete your search just now. This is not a result — please try again shortly.",
+        ),
+        { status: getStatusCode("SERVICE_UNAVAILABLE") },
       );
     }
 
-    pharmaceutical = matchedPharmaceuticals[0];
-    log.info("Best match from mock data", { name: pharmaceutical.name });
+    const remedies = outcome.kind === "found" ? outcome.remedies : [];
+    const source = outcome.kind === "found" ? outcome.source : "none";
 
-    // Find natural remedies for the pharmaceutical from mock data
-    const mockRemedies = MOCK_REMEDY_MAPPINGS[pharmaceutical.id] || [];
+    record(remedies.length, source);
 
-    // Add similarity score to remedies based on matching nutrients
-    const scoredRemedies = mockRemedies.map((remedy) => {
-      const matchScore =
-        remedy.matchingNutrients.length /
-        Math.max(pharmaceutical?.ingredients?.length ?? 0, 1);
-
-      return {
-        ...remedy,
-        similarityScore: Number(
-          (matchScore * (pharmaceutical?.similarityScore || 1.0)).toFixed(2),
-        ),
-      };
-    });
-
-    // Sort by similarity score (highest first)
-    const sortedRemedies = scoredRemedies.sort(
-      (a, b) => b.similarityScore - a.similarityScore,
-    );
-
-    log.info("Found remedies from mock data", { count: sortedRemedies.length });
-    void Promise.allSettled([
-      saveHistory(sortedRemedies.length),
-      trackSearchEvent(sortedRemedies.length, "fallback"),
-    ]);
-    const processingTime = Date.now() - startTime;
     return NextResponse.json(
-      successResponse(sortedRemedies, {
-        total: sortedRemedies.length,
-        processingTime,
+      successResponse(remedies, {
+        total: remedies.length,
+        processingTime: Date.now() - startTime,
         apiVersion: "1.0",
-        source: "fallback" as const,
+        source: source === "demo" ? ("fallback" as const) : source,
       }),
-      {
-        status: 200,
-        headers: {
-          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
-        },
-      },
+      { status: 200, headers: { "Cache-Control": CACHE_CONTROL } },
     );
   } catch (error) {
     log.error("Error in search API", error);
