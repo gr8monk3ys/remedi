@@ -51,6 +51,7 @@ export async function createJournalEntry(
  */
 export async function updateJournalEntry(
   id: string,
+  userId: string,
   data: Partial<JournalEntryInput>,
 ) {
   const updateData: Record<string, unknown> = {};
@@ -65,24 +66,33 @@ export async function updateJournalEntry(
     updateData.sleepQuality = data.sleepQuality;
   if (data.date !== undefined) updateData.date = new Date(data.date);
 
-  return prisma.remedyJournal.update({
-    where: { id },
+  const { count } = await prisma.remedyJournal.updateMany({
+    where: { id, userId },
     data: updateData,
   });
+  if (count === 0) return null;
+
+  return prisma.remedyJournal.findUnique({ where: { id } });
 }
 
 /**
  * Delete a journal entry
  */
-export async function deleteJournalEntry(id: string) {
-  return prisma.remedyJournal.delete({ where: { id } });
+export async function deleteJournalEntry(
+  id: string,
+  userId: string,
+): Promise<boolean> {
+  const { count } = await prisma.remedyJournal.deleteMany({
+    where: { id, userId },
+  });
+  return count > 0;
 }
 
 /**
  * Get a single journal entry by ID
  */
-export async function getJournalEntryById(id: string) {
-  return prisma.remedyJournal.findUnique({ where: { id } });
+export async function getJournalEntryById(id: string, userId: string) {
+  return prisma.remedyJournal.findFirst({ where: { id, userId } });
 }
 
 /**

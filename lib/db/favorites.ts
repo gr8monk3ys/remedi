@@ -5,6 +5,7 @@
  */
 
 import { prisma } from "./client";
+import { ownerConditions } from "./owner";
 
 export interface FavoriteInput {
   remedyId: string;
@@ -49,15 +50,10 @@ export async function getFavorites(
   skip = 0,
   take = 20,
 ): Promise<{ favorites: FavoriteOutput[]; total: number }> {
-  // Security: require at least one identifier to prevent returning all records
-  if (!sessionId && !userId) {
+  const orConditions = ownerConditions(userId, sessionId);
+  if (!orConditions) {
     return { favorites: [], total: 0 };
   }
-
-  // Build OR conditions only for provided identifiers
-  const orConditions = [];
-  if (sessionId) orConditions.push({ sessionId });
-  if (userId) orConditions.push({ userId });
 
   const where = {
     OR: orConditions,
@@ -97,15 +93,10 @@ export async function isFavorite(
   sessionId?: string,
   userId?: string,
 ): Promise<boolean> {
-  // Security: require at least one identifier to prevent matching unrelated records
-  if (!sessionId && !userId) {
+  const orConditions = ownerConditions(userId, sessionId);
+  if (!orConditions) {
     return false;
   }
-
-  // Build OR conditions only for provided identifiers
-  const orConditions = [];
-  if (sessionId) orConditions.push({ sessionId });
-  if (userId) orConditions.push({ userId });
 
   const favorite = await prisma.favorite.findFirst({
     where: {
@@ -147,15 +138,10 @@ export async function getCollectionNames(
   sessionId?: string,
   userId?: string,
 ): Promise<string[]> {
-  // Security: require at least one identifier to prevent returning all records
-  if (!sessionId && !userId) {
+  const orConditions = ownerConditions(userId, sessionId);
+  if (!orConditions) {
     return [];
   }
-
-  // Build OR conditions only for provided identifiers
-  const orConditions = [];
-  if (sessionId) orConditions.push({ sessionId });
-  if (userId) orConditions.push({ userId });
 
   const collections = await prisma.favorite.findMany({
     where: {

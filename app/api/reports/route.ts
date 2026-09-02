@@ -116,11 +116,14 @@ export async function POST(request: Request) {
       includeCabinetInteractions: validation.data.includeCabinetInteractions,
       includeJournalData: validation.data.includeJournalData,
     })
-      .then((content) => updateReportContent(report.id, content, "complete"))
+      .then((content) =>
+        updateReportContent(report.id, user.id, content, "complete"),
+      )
       .catch((error) => {
         logger.error("Report generation failed:", error);
         updateReportContent(
           report.id,
+          user.id,
           { error: "Report generation failed" },
           "failed",
         );

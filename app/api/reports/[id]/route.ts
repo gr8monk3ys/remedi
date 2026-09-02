@@ -29,8 +29,8 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
     const { id } = await params;
 
-    const report = await getReportById(id);
-    if (!report || report.userId !== user.id) {
+    const report = await getReportById(id, user.id);
+    if (!report) {
       return NextResponse.json(
         errorResponse("RESOURCE_NOT_FOUND", "Report not found"),
         { status: 404 },
@@ -59,15 +59,13 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 
     const { id } = await params;
 
-    const report = await getReportById(id);
-    if (!report || report.userId !== user.id) {
+    const deleted = await deleteReport(id, user.id);
+    if (!deleted) {
       return NextResponse.json(
         errorResponse("RESOURCE_NOT_FOUND", "Report not found"),
         { status: 404 },
       );
     }
-
-    await deleteReport(id);
 
     return NextResponse.json(successResponse({ message: "Report deleted" }));
   } catch (error) {

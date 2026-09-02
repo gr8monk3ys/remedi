@@ -75,10 +75,9 @@ describe("/api/reports/[id]", () => {
     });
 
     it("should return 404 when report belongs to another user", async () => {
-      mockGetReportById.mockResolvedValue({
-        id: "report-1",
-        userId: "user-other",
-      });
+      // getReportById is owner-scoped now: another user's report is simply
+      // not found.
+      mockGetReportById.mockResolvedValue(null);
 
       const response = await GET(new Request("http://localhost:3000"), {
         params: params("report-1"),
@@ -155,7 +154,7 @@ describe("/api/reports/[id]", () => {
         id: "report-1",
         userId: "user-123",
       });
-      mockDeleteReport.mockResolvedValue(undefined);
+      mockDeleteReport.mockResolvedValue(true);
 
       const response = await DELETE(new Request("http://localhost:3000"), {
         params: params("report-1"),
@@ -165,7 +164,7 @@ describe("/api/reports/[id]", () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.data.message).toBe("Report deleted");
-      expect(mockDeleteReport).toHaveBeenCalledWith("report-1");
+      expect(mockDeleteReport).toHaveBeenCalledWith("report-1", "user-123");
     });
 
     it("should return 500 on delete failure", async () => {

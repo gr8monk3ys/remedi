@@ -11,7 +11,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import {
   getMedications,
-  getMedicationById,
   addMedication,
   updateMedication,
   removeMedication,
@@ -145,16 +144,13 @@ export async function PUT(request: Request) {
 
     const { id, ...updates } = validation.data;
 
-    // Verify ownership
-    const existing = await getMedicationById(id);
-    if (!existing || existing.userId !== user.id) {
+    const medication = await updateMedication(id, user.id, updates);
+    if (!medication) {
       return NextResponse.json(
         errorResponse("RESOURCE_NOT_FOUND", "Medication not found"),
         { status: 404 },
       );
     }
-
-    const medication = await updateMedication(id, updates);
 
     return NextResponse.json(
       successResponse({
@@ -189,16 +185,13 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Verify ownership
-    const existing = await getMedicationById(id);
-    if (!existing || existing.userId !== user.id) {
+    const removed = await removeMedication(id, user.id);
+    if (!removed) {
       return NextResponse.json(
         errorResponse("RESOURCE_NOT_FOUND", "Medication not found"),
         { status: 404 },
       );
     }
-
-    await removeMedication(id);
 
     return NextResponse.json(
       successResponse({ message: "Medication removed" }),

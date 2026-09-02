@@ -351,7 +351,8 @@ describe("/api/journal", () => {
     });
 
     it("should return 404 when entry not found", async () => {
-      mockGetJournalEntryById.mockResolvedValue(null);
+      mockUpdateJournalEntry.mockResolvedValue(null);
+      mockDeleteJournalEntry.mockResolvedValue(false);
       const { PUT } = await import("@/app/api/journal/route");
       const request = new Request("http://localhost:3000/api/journal", {
         method: "PUT",
@@ -367,10 +368,10 @@ describe("/api/journal", () => {
     });
 
     it("should return 404 when entry belongs to another user", async () => {
-      mockGetJournalEntryById.mockResolvedValue({
-        ...mockJournalEntry,
-        userId: "other-user",
-      });
+      // The helper scopes by owner, so a non-owner sees the same result as
+      // a missing row.
+      mockUpdateJournalEntry.mockResolvedValue(null);
+      mockDeleteJournalEntry.mockResolvedValue(false);
       const { PUT } = await import("@/app/api/journal/route");
       const request = new Request("http://localhost:3000/api/journal", {
         method: "PUT",
@@ -446,7 +447,7 @@ describe("/api/journal", () => {
 
     it("should delete a journal entry successfully", async () => {
       mockGetJournalEntryById.mockResolvedValue(mockJournalEntry);
-      mockDeleteJournalEntry.mockResolvedValue(undefined);
+      mockDeleteJournalEntry.mockResolvedValue(true);
       const { DELETE } = await import("@/app/api/journal/route");
       const request = new NextRequest(
         `http://localhost:3000/api/journal?id=${mockJournalEntry.id}`,
@@ -457,11 +458,16 @@ describe("/api/journal", () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.data.message).toContain("Journal entry deleted");
-      expect(mockDeleteJournalEntry).toHaveBeenCalledWith(mockJournalEntry.id);
+      // The owner must be passed through: the helper is what enforces it.
+      expect(mockDeleteJournalEntry).toHaveBeenCalledWith(
+        mockJournalEntry.id,
+        "user-123",
+      );
     });
 
     it("should return 404 when entry not found", async () => {
-      mockGetJournalEntryById.mockResolvedValue(null);
+      mockUpdateJournalEntry.mockResolvedValue(null);
+      mockDeleteJournalEntry.mockResolvedValue(false);
       const { DELETE } = await import("@/app/api/journal/route");
       const request = new NextRequest(
         `http://localhost:3000/api/journal?id=${mockJournalEntry.id}`,
@@ -475,10 +481,10 @@ describe("/api/journal", () => {
     });
 
     it("should return 404 when entry belongs to another user", async () => {
-      mockGetJournalEntryById.mockResolvedValue({
-        ...mockJournalEntry,
-        userId: "other-user",
-      });
+      // The helper scopes by owner, so a non-owner sees the same result as
+      // a missing row.
+      mockUpdateJournalEntry.mockResolvedValue(null);
+      mockDeleteJournalEntry.mockResolvedValue(false);
       const { DELETE } = await import("@/app/api/journal/route");
       const request = new NextRequest(
         `http://localhost:3000/api/journal?id=${mockJournalEntry.id}`,

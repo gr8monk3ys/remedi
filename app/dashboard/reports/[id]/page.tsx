@@ -17,8 +17,8 @@ export default async function ReportDetailPage({ params }: Props) {
 
   const { id } = await params;
 
-  const report = await getReportById(id);
-  if (!report || report.userId !== user.id) {
+  const report = await getReportById(id, user.id);
+  if (!report) {
     redirect("/dashboard/reports");
   }
 
