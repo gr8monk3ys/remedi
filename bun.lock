@@ -6,7 +6,7 @@
       "name": "remedi",
       "dependencies": {
         "@clerk/nextjs": "^7.4.3",
-        "@gr8monk3ys/next-kit": "https://github.com/gr8monk3ys/next-kit/archive/refs/tags/v0.1.1.tar.gz",
+        "@gr8monk3ys/next-kit": "https://github.com/gr8monk3ys/next-kit/archive/refs/tags/v0.1.2.tar.gz",
         "@prisma/adapter-pg": "^7.8.0",
         "@prisma/client": "^7.8.0",
         "@radix-ui/react-dialog": "^1.1.16",
@@ -234,7 +234,7 @@
 
     "@exodus/bytes": ["@exodus/bytes@1.15.1", "", { "peerDependencies": { "@noble/hashes": "^1.8.0 || ^2.0.0" }, "optionalPeers": ["@noble/hashes"] }, "sha512-S6mL0yNB/Abt9Ei4tq8gDhcczc4S3+vQ4ra7vxnAf+YHC02srtqxKKZghx2Dq6p0e66THKwR6r8N6P95wEty7Q=="],
 
-    "@gr8monk3ys/next-kit": ["@gr8monk3ys/next-kit@https://github.com/gr8monk3ys/next-kit/archive/refs/tags/v0.1.1.tar.gz", { "peerDependencies": { "@clerk/nextjs": ">=6", "next": ">=14", "stripe": ">=17" }, "optionalPeers": ["@clerk/nextjs", "next", "stripe"] }, "sha512-Tr5W5HNdYl7l38ndlKIGz5VSFsPr363kj9KQYcqlx0jI0CAhL3bCrPDNvGe1RBsma7hwWQ2XNxmROuixHUx5LQ=="],
+    "@gr8monk3ys/next-kit": ["@gr8monk3ys/next-kit@https://github.com/gr8monk3ys/next-kit/archive/refs/tags/v0.1.2.tar.gz", { "peerDependencies": { "@clerk/nextjs": ">=6", "next": ">=14", "stripe": ">=17" }, "optionalPeers": ["@clerk/nextjs", "next", "stripe"] }, "sha512-dyQ+X74eWAdGiw8uXzzbvnan0DCFUwhG6EZKSq+GRMxuwn6gnbc+oaeXrz3NziZChAvaZLzle1qUKEtcNo5wqg=="],
 
     "@hono/node-server": ["@hono/node-server@1.19.11", "", { "peerDependencies": { "hono": "^4" } }, "sha512-dr8/3zEaB+p0D2n/IUrlPF1HZm586qgJNXK1a9fhg/PzdtkK7Ksd5l312tJX2yBuALqDYBlG20QEbayqPyxn+g=="],
 

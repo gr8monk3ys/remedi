@@ -175,15 +175,24 @@ function getLimiter(
 /**
  * Get client identifier for rate limiting.
  *
- * Prefers headers the platform sets itself and a client cannot forge, then the
- * RIGHT-most `x-forwarded-for` entry (the hop our own edge appended — taking
- * `[0]` would let anyone mint a fresh bucket per request by rotating the
- * header), then a session cookie so unidentified callers get their own bucket
- * instead of sharing one global "anonymous" bucket that any single client could
- * exhaust for everyone.
+ * `platform: "vercel"` is the security-relevant argument. remedi is deployed on
+ * Vercel (see `vercel.json`), so `x-vercel-forwarded-for` is written by our own
+ * edge and cannot be forged — but `cf-connecting-ip` is NOT, because there is no
+ * Cloudflare in front of this app to overwrite an inbound copy of it. next-kit
+ * <= 0.1.1 trusted `cf-connecting-ip` unconditionally, which let any caller mint
+ * a fresh rate-limit bucket per request by sending a new value for it. From
+ * 0.1.2 a platform header is read only when that platform is declared, and
+ * declaring "vercel" keeps `cf-connecting-ip` out of the trusted set.
+ *
+ * After the platform header: the RIGHT-most `x-forwarded-for` entry (the hop our
+ * own edge appended — taking `[0]` would let anyone mint a fresh bucket per
+ * request by rotating the header), then a session cookie so unidentified callers
+ * get their own bucket instead of sharing one global "anonymous" bucket that any
+ * single client could exhaust for everyone.
  */
 export function getClientIdentifier(request: NextRequest): string {
   return getClientId(request, {
+    platform: "vercel",
     sessionCookieNames: ["sessionId", "__session"],
     fallback: "anonymous",
   });
