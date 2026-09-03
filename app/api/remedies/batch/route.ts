@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/client";
-import { parseNaturalRemedy } from "@/lib/db/parsers";
 import { toDetailedRemedy } from "@/lib/db/remedies";
 import type { ParsedNaturalRemedy } from "@/lib/types";
 import {
@@ -180,7 +179,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         : [];
 
     // Parse database results
-    const parsedDbRemedies = dbRemedies.map(parseNaturalRemedy);
+    const parsedDbRemedies = dbRemedies;
     const dbRemedyMap = new Map<string, DetailedRemedy>(
       parsedDbRemedies.map(
         (r: ParsedNaturalRemedy) => [r.id, toDetailedRemedy(r)] as const,

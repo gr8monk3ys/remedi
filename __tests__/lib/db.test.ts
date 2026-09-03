@@ -100,8 +100,8 @@ describe("db module", () => {
           name: "ibuprofen",
           description: "Pain reliever",
           category: "analgesic",
-          ingredients: '["ibuprofen"]',
-          benefits: '["pain relief"]',
+          ingredients: ["ibuprofen"],
+          benefits: ["pain relief"],
           usage: "Take with food",
           warnings: null,
           interactions: null,
@@ -130,15 +130,15 @@ describe("db module", () => {
   });
 
   describe("getPharmaceuticalById", () => {
-    it("should return pharmaceutical with parsed JSON fields", async () => {
+    it("should return pharmaceutical with its native array fields", async () => {
       const mockResult = {
         id: "1",
         fdaId: "fda-1",
         name: "aspirin",
         description: "Blood thinner",
         category: "cardiovascular",
-        ingredients: '["aspirin", "caffeine"]',
-        benefits: '["pain relief", "anti-inflammatory"]',
+        ingredients: ["aspirin", "caffeine"],
+        benefits: ["pain relief", "anti-inflammatory"],
         usage: null,
         warnings: "May cause bleeding",
         interactions: null,
@@ -218,8 +218,8 @@ describe("db module", () => {
         usage: drug.usage,
         warnings: null,
         interactions: null,
-        ingredients: JSON.stringify(drug.ingredients),
-        benefits: JSON.stringify(drug.benefits),
+        ingredients: drug.ingredients,
+        benefits: drug.benefits,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -234,21 +234,21 @@ describe("db module", () => {
   });
 
   describe("getNaturalRemedyById", () => {
-    it("should return remedy with parsed JSON fields", async () => {
+    it("should return remedy with its native array fields", async () => {
       const mockResult = {
         id: "1",
         name: "Turmeric",
         description: "Anti-inflammatory",
         category: "herb",
-        ingredients: '["curcumin"]',
-        benefits: '["reduces inflammation"]',
+        ingredients: ["curcumin"],
+        benefits: ["reduces inflammation"],
         imageUrl: null,
         usage: "Add to food",
         dosage: "500mg daily",
         precautions: "May interact with blood thinners",
         scientificInfo: null,
-        references: '["https://example.com"]',
-        relatedRemedies: '["ginger"]',
+        references: ["https://example.com"],
+        relatedRemedies: ["ginger"],
         sourceUrl: null,
         evidenceLevel: "moderate",
         createdAt: new Date(),
@@ -263,37 +263,6 @@ describe("db module", () => {
       expect(result?.benefits).toEqual(["reduces inflammation"]);
       expect(result?.references).toEqual(["https://example.com"]);
       expect(result?.relatedRemedies).toEqual(["ginger"]);
-    });
-
-    it("should handle invalid JSON gracefully", async () => {
-      const mockResult = {
-        id: "1",
-        name: "Test",
-        description: null,
-        category: "test",
-        ingredients: "invalid-json",
-        benefits: "{bad}",
-        imageUrl: null,
-        usage: null,
-        dosage: null,
-        precautions: null,
-        scientificInfo: null,
-        references: "not-an-array",
-        relatedRemedies: null,
-        sourceUrl: null,
-        evidenceLevel: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      (mockNaturalRemedy.findUnique as Mock).mockResolvedValue(mockResult);
-
-      const result = await getNaturalRemedyById("1");
-
-      // parseJsonArray treats invalid JSON as a single-item array with the string value
-      expect(result?.ingredients).toEqual(["invalid-json"]);
-      expect(result?.benefits).toEqual(["{bad}"]);
-      expect(result?.references).toEqual(["not-an-array"]);
     });
   });
 

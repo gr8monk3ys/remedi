@@ -12,23 +12,6 @@ import "server-only";
 // Client
 export { prisma, disconnect, isConnected } from "./client";
 
-// Parsers (for internal/advanced use)
-export {
-  parseJsonArray,
-  parseJsonObject,
-  parsePharmaceutical,
-  parseNaturalRemedy,
-  parseRemedyMapping,
-  serializeArray,
-  isPostgres,
-  isSqlite,
-} from "./parsers";
-export type {
-  RawPharmaceutical,
-  RawNaturalRemedy,
-  RawRemedyMapping,
-} from "./parsers";
-
 // Pharmaceutical operations
 export {
   searchPharmaceuticals,
