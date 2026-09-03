@@ -52,7 +52,23 @@ export interface FdaDrugResult {
 export interface ProcessedDrug {
   id: string;
   fdaId: string;
+  /**
+   * Display name. FDA labels are brand-first, so this is "COUMADIN" as often
+   * as it is "Warfarin" — which is why it is not a safety signal on its own.
+   */
   name: string;
+  /**
+   * The substance's generic name, when the source knows it.
+   *
+   * Safety policy is keyed on generic names, so this is the field that decides
+   * whether a drug is recognised as e.g. an anticoagulant. OpenFDA supplies it
+   * on nearly every label; it used to be read and thrown away.
+   */
+  genericName?: string;
+  /** RxNorm concept ids, when the source supplies them. */
+  rxcui?: string[];
+  /** FDA unique ingredient identifiers, when the source supplies them. */
+  unii?: string[];
   description: string;
   category: string;
   ingredients: string[];

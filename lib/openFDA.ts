@@ -274,7 +274,9 @@ export async function getFdaDrugById(
  */
 function processFdaResults(results: FdaDrugResult[]): ProcessedDrug[] {
   return results.map((result) => {
-    // Extract the brand name or generic name
+    // A label is brand-first: "COUMADIN", not "Warfarin". The generic name is
+    // the one the safety policy recognises, so it is carried alongside the
+    // display name rather than discarded once a brand exists.
     const brandName = result.openfda?.brand_name?.[0] || "";
     const genericName = result.openfda?.generic_name?.[0] || "";
     const name = brandName || genericName || "Unknown Drug";
@@ -297,6 +299,9 @@ function processFdaResults(results: FdaDrugResult[]): ProcessedDrug[] {
       id: generateInternalId(result.id),
       fdaId: result.id,
       name,
+      genericName: genericName || undefined,
+      rxcui: result.openfda?.rxcui ?? [],
+      unii: result.openfda?.unii ?? [],
       description: truncateText(description, 200),
       category,
       ingredients: activeIngredients,

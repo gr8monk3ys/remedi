@@ -34,6 +34,7 @@ function toProcessedDrug(row: {
   id: string;
   fdaId: string | null;
   name: string;
+  genericName?: string | null;
   description: string | null;
   category: string;
   ingredients: string[];
@@ -46,6 +47,7 @@ function toProcessedDrug(row: {
     id: row.id,
     fdaId: row.fdaId || "",
     name: row.name,
+    genericName: row.genericName || undefined,
     description: row.description || "",
     category: row.category,
     ingredients: row.ingredients,

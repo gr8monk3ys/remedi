@@ -22,6 +22,15 @@ _Avoid_: supplement, alternative, natural alternative
 Either a Pharmaceutical or a Natural Remedy, when the distinction does not
 matter. The unit an interaction is recorded against.
 
+**Substance Identity**:
+What a Pharmaceutical record _is_, as opposed to what it is called. A record's
+name is brand-first when it comes from an FDA label — the same molecule arrives
+as "COUMADIN" from OpenFDA and "Warfarin" from the curated seed — so identity
+is carried by the generic name, the active ingredients, and where available the
+RxNorm and UNII identifiers. Safety rules are matched against identity; matching
+them against the display name alone lets a brand name evade them.
+_Avoid_: drug name, generic (when you mean the identity rather than the string)
+
 ### Matching
 
 **Remedy Mapping**:

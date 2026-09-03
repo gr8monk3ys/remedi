@@ -114,6 +114,9 @@ export async function upsertPharmaceutical(
     where: { name: drug.name },
     update: {
       fdaId: drug.fdaId,
+      genericName: drug.genericName,
+      rxcui: drug.rxcui ?? [],
+      unii: drug.unii ?? [],
       description: drug.description,
       category: drug.category,
       ingredients: drug.ingredients,
@@ -125,6 +128,9 @@ export async function upsertPharmaceutical(
     create: {
       fdaId: drug.fdaId,
       name: drug.name,
+      genericName: drug.genericName,
+      rxcui: drug.rxcui ?? [],
+      unii: drug.unii ?? [],
       description: drug.description,
       category: drug.category,
       ingredients: drug.ingredients,
