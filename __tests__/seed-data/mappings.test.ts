@@ -4,7 +4,12 @@ import {
   pharmaceuticals,
   remedyMappings,
 } from "@/prisma/seed-data";
-import { MIN_DISPLAY_SIMILARITY } from "@/lib/remedy-matcher";
+import {
+  MIN_DISPLAY_SIMILARITY,
+  NEVER_ALTERNATIVE,
+  NEVER_MAPPED,
+  isNeverMapped,
+} from "@/lib/remedy-matcher";
 
 /**
  * Drugs deliberately seeded with NO remedy mappings. For these classes,
@@ -13,34 +18,16 @@ import { MIN_DISPLAY_SIMILARITY } from "@/lib/remedy-matcher";
  * adding honest mappings will fail the coverage test below, which is the
  * point: emptiness must be a decision, never an accident.
  */
-const DELIBERATELY_UNMAPPED: Record<string, string> = {
-  Warfarin: "anticoagulant — even 'supportive' additions alter bleeding risk",
-  Apixaban: "anticoagulant — even 'supportive' additions alter bleeding risk",
-  Rivaroxaban:
-    "anticoagulant — even 'supportive' additions alter bleeding risk",
-  Dabigatran: "anticoagulant — even 'supportive' additions alter bleeding risk",
-  Clopidogrel: "antiplatelet — even 'supportive' additions alter bleeding risk",
-  Quetiapine:
-    "antipsychotic — discontinuation or substitution suggestions are unsafe",
-};
-
 /**
- * Drugs whose class rules out labelling any remedy an "Alternative":
- * emergency/rescue medication, opioids, seizure medication, antibiotics,
- * incretin therapy, and hormonal contraception. Supportive/Complementary
- * entries are allowed; an "Alternative" label is a test failure.
+ * The safety policy now lives in lib/remedy-matcher.ts, where both write paths
+ * enforce it. These tests assert the curated seed data agrees with it, so the
+ * data and the code can never drift apart.
  */
-const NO_ALTERNATIVE_ALLOWED = [
-  "Albuterol",
-  "Tramadol",
-  "Clonazepam",
-  "Doxycycline",
-  "Amoxicillin",
-  "Azithromycin",
-  "Ciprofloxacin",
-  "Liraglutide",
-  "Ethinyl Estradiol/Levonorgestrel",
-];
+const isUnmappedDrug = (name: string): boolean =>
+  isNeverMapped({ name, category: "" });
+
+const isNoAlternativeDrug = (name: string): boolean =>
+  NEVER_ALTERNATIVE.some((entry) => name.toLowerCase().includes(entry));
 
 const VALID_REPLACEMENT_TYPES = ["Alternative", "Complementary", "Supportive"];
 
@@ -89,18 +76,18 @@ describe("seed remedy mappings", () => {
     );
     const orphans = pharmaceuticals
       .map((p) => p.name)
-      .filter(
-        (name) => !displayable.has(name) && !(name in DELIBERATELY_UNMAPPED),
-      );
+      .filter((name) => !displayable.has(name) && !isUnmappedDrug(name));
     // A drug listed here would render an empty result page by accident.
-    // Either curate honest mappings for it or add it to DELIBERATELY_UNMAPPED
-    // with a reason.
+    // Either curate honest mappings for it or add it to NEVER_MAPPED in
+    // lib/remedy-matcher.ts with a reason.
     expect(orphans).toEqual([]);
   });
 
   it("keeps deliberately unmapped drugs actually unmapped", () => {
-    const mapped = Object.keys(DELIBERATELY_UNMAPPED).filter((name) =>
-      remedyMappings.some((m) => m.pharmaceuticalName === name),
+    const mapped = Object.keys(NEVER_MAPPED).filter((entry) =>
+      remedyMappings.some((m) =>
+        m.pharmaceuticalName.toLowerCase().includes(entry),
+      ),
     );
     expect(mapped).toEqual([]);
   });
@@ -109,7 +96,7 @@ describe("seed remedy mappings", () => {
     const violations = remedyMappings
       .filter(
         (m) =>
-          NO_ALTERNATIVE_ALLOWED.includes(m.pharmaceuticalName) &&
+          isNoAlternativeDrug(m.pharmaceuticalName) &&
           m.replacementType === "Alternative",
       )
       .map((m) => `${m.pharmaceuticalName} -> ${m.naturalRemedyName}`);

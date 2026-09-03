@@ -114,7 +114,7 @@ function evidenceBoost(level: string | null | undefined): number {
   return 0;
 }
 
-export function replacementTypeForScore(
+function replacementTypeForScore(
   score: number,
 ): "Alternative" | "Complementary" | "Supportive" {
   if (score >= 0.75) return "Alternative";
@@ -138,7 +138,7 @@ export const MIN_DISPLAY_SIMILARITY = 0.3;
  * supportive lifestyle/supplement suggestions but force the label to
  * "Supportive" when persisting mappings.
  */
-export function shouldForceSupportiveReplacement(
+function shouldForceSupportiveReplacement(
   drug: Pick<ProcessedDrug, "name" | "category"> &
     Partial<Pick<ProcessedDrug, "warnings" | "interactions" | "description">>,
 ): boolean {
@@ -170,7 +170,7 @@ export function shouldForceSupportiveReplacement(
   return highRiskKeywords.some((keyword) => haystack.includes(keyword));
 }
 
-export function rankRemedyCandidatesForDrug(
+function rankRemedyCandidatesForDrug(
   drug: ProcessedDrug,
   candidates: RemedyMatchCandidate[],
   options?: {
@@ -237,4 +237,103 @@ export function rankRemedyCandidatesForDrug(
 
   results.sort((a, b) => b.similarityScore - a.similarityScore);
   return results.slice(0, limit);
+}
+
+/**
+ * Drugs that must never be given a generated Remedy Mapping at all.
+ *
+ * For these, an empty result is the correct answer: even a "Supportive"
+ * suggestion changes bleeding risk or implies a substitution that is unsafe.
+ * Emptiness here is a decision, not an accident — which is why it is a rule in
+ * code rather than a property the scorer happens to have.
+ *
+ * Matched as a substring of the drug's name and category, so FDA-sourced
+ * variants ("Warfarin Sodium") are covered too.
+ */
+export const NEVER_MAPPED: Readonly<Record<string, string>> = {
+  warfarin: "anticoagulant — even 'supportive' additions alter bleeding risk",
+  apixaban: "anticoagulant — even 'supportive' additions alter bleeding risk",
+  rivaroxaban:
+    "anticoagulant — even 'supportive' additions alter bleeding risk",
+  dabigatran: "anticoagulant — even 'supportive' additions alter bleeding risk",
+  clopidogrel: "antiplatelet — even 'supportive' additions alter bleeding risk",
+  quetiapine:
+    "antipsychotic — discontinuation or substitution suggestions are unsafe",
+};
+
+/**
+ * Drugs whose class rules out labelling any remedy an "Alternative":
+ * emergency/rescue medication, opioids, seizure medication, antibiotics,
+ * incretin therapy, and hormonal contraception. Complementary and Supportive
+ * remain available; "Alternative" does not.
+ */
+export const NEVER_ALTERNATIVE: readonly string[] = [
+  "albuterol",
+  "tramadol",
+  "clonazepam",
+  "doxycycline",
+  "amoxicillin",
+  "azithromycin",
+  "ciprofloxacin",
+  "liraglutide",
+  "ethinyl estradiol",
+  "levonorgestrel",
+];
+
+function policyHaystack(
+  drug: Pick<ProcessedDrug, "name" | "category">,
+): string {
+  return [drug.name, drug.category].filter(Boolean).join(" ").toLowerCase();
+}
+
+/** Whether this drug may carry any generated Remedy Mapping. */
+export function isNeverMapped(
+  drug: Pick<ProcessedDrug, "name" | "category">,
+): boolean {
+  const haystack = policyHaystack(drug);
+  return Object.keys(NEVER_MAPPED).some((name) => haystack.includes(name));
+}
+
+function isNeverAlternative(
+  drug: Pick<ProcessedDrug, "name" | "category">,
+): boolean {
+  const haystack = policyHaystack(drug);
+  return NEVER_ALTERNATIVE.some((name) => haystack.includes(name));
+}
+
+/**
+ * Build the Remedy Mappings a drug may carry.
+ *
+ * This is the only interface either write path crosses. Scoring, the
+ * score-to-label thresholds, the high-risk downgrade and the never-map and
+ * never-alternative rules are all applied here, so a caller cannot assemble
+ * the policy differently — or forget half of it. Every returned remedy has a
+ * `replacementType`.
+ *
+ * Returns an empty array for a drug the policy forbids mapping.
+ */
+export function buildRemedyMappingsFor(
+  drug: ProcessedDrug,
+  candidates: RemedyMatchCandidate[],
+  options?: { limit?: number; minScore?: number },
+): NaturalRemedy[] {
+  if (isNeverMapped(drug)) {
+    return [];
+  }
+
+  const matches = rankRemedyCandidatesForDrug(drug, candidates, options);
+  const forceSupportive = shouldForceSupportiveReplacement(drug);
+  const noAlternative = isNeverAlternative(drug);
+
+  return matches.map((match) => {
+    let replacementType = forceSupportive
+      ? "Supportive"
+      : replacementTypeForScore(match.similarityScore);
+
+    if (noAlternative && replacementType === "Alternative") {
+      replacementType = "Complementary";
+    }
+
+    return { ...match, replacementType };
+  });
 }

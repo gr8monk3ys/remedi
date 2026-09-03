@@ -9,9 +9,7 @@ import {
 import { seedInteractions } from "./seeds/interactions.ts";
 import type { ProcessedDrug } from "../lib/types.ts";
 import {
-  rankRemedyCandidatesForDrug,
-  replacementTypeForScore,
-  shouldForceSupportiveReplacement,
+  buildRemedyMappingsFor,
   type RemedyMatchCandidate,
 } from "../lib/remedy-matcher.ts";
 
@@ -381,11 +379,9 @@ async function ensureBaselineMappingCoverage(): Promise<void> {
       interactions: pharma.interactions || undefined,
     };
 
-    const matches = rankRemedyCandidatesForDrug(drug, candidates, {
+    const matches = buildRemedyMappingsFor(drug, candidates, {
       limit: MAX_CANDIDATES_PER_PHARMA,
     });
-
-    const forceSupportive = shouldForceSupportiveReplacement(drug);
 
     const needed = Math.max(MIN_MAPPINGS_PER_PHARMA - mapped.size, 0);
     if (needed === 0) continue;
@@ -402,9 +398,7 @@ async function ensureBaselineMappingCoverage(): Promise<void> {
         naturalRemedyId: match.id,
         similarityScore: match.similarityScore,
         matchingNutrients: match.matchingNutrients,
-        replacementType: forceSupportive
-          ? "Supportive"
-          : replacementTypeForScore(match.similarityScore),
+        replacementType: match.replacementType as string,
       })),
       skipDuplicates: true,
     });

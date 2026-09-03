@@ -15,9 +15,7 @@ import type {
 import { normalizeReferences } from "@/lib/references";
 import {
   MIN_DISPLAY_SIMILARITY,
-  rankRemedyCandidatesForDrug,
-  replacementTypeForScore,
-  shouldForceSupportiveReplacement,
+  buildRemedyMappingsFor,
   type RemedyMatchCandidate,
 } from "../remedy-matcher";
 
@@ -134,7 +132,7 @@ export async function generateRemedyMappingsForPharmaceutical(params: {
     },
   })) as RemedyMatchCandidate[];
 
-  const matches = rankRemedyCandidatesForDrug(drug, candidates, {
+  const matches = buildRemedyMappingsFor(drug, candidates, {
     limit,
     minScore,
   });
@@ -143,17 +141,15 @@ export async function generateRemedyMappingsForPharmaceutical(params: {
     return [];
   }
 
-  const forceSupportive = shouldForceSupportiveReplacement(drug);
-
+  // skipDuplicates keeps curated mappings authoritative: a generated row never
+  // overwrites one that was seeded by hand.
   await prisma.naturalRemedyMapping.createMany({
     data: matches.map((match) => ({
       pharmaceuticalId,
       naturalRemedyId: match.id,
       similarityScore: match.similarityScore,
       matchingNutrients: match.matchingNutrients,
-      replacementType: forceSupportive
-        ? "Supportive"
-        : replacementTypeForScore(match.similarityScore),
+      replacementType: match.replacementType as string,
     })),
     skipDuplicates: true,
   });
