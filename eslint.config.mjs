@@ -21,6 +21,9 @@ export default [
       "e2e/**",
       // local agent tooling installed into .github, not product code
       ".github/**",
+      // scratch files written by the local Remember plugin; git-ignores them
+      // but eslint and knip do not, so a stray one fails the repo's own gates
+      ".remember/**",
     ],
   },
   // Base JS recommended
