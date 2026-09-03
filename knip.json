@@ -7,7 +7,8 @@
     "scripts/create-stripe-products.ts",
     "scripts/data-quality-report.ts",
     "integration/**",
-    "lib/e2e/**"
+    "lib/e2e/**",
+    ".remember/**"
   ],
   "ignore": [
     "components/ui/**",
