@@ -247,8 +247,9 @@ function rankRemedyCandidatesForDrug(
  * Emptiness here is a decision, not an accident — which is why it is a rule in
  * code rather than a property the scorer happens to have.
  *
- * Matched as a substring of the drug's name and category, so FDA-sourced
- * variants ("Warfarin Sodium") are covered too.
+ * Matched against the drug's substance identity — see policyHaystack — so
+ * FDA-sourced variants ("Warfarin Sodium") and brand names ("COUMADIN") are
+ * covered as well as the curated generic name.
  */
 export const NEVER_MAPPED: Readonly<Record<string, string>> = {
   warfarin: "anticoagulant — even 'supportive' additions alter bleeding risk",
@@ -280,23 +281,40 @@ export const NEVER_ALTERNATIVE: readonly string[] = [
   "levonorgestrel",
 ];
 
-function policyHaystack(
-  drug: Pick<ProcessedDrug, "name" | "category">,
-): string {
-  return [drug.name, drug.category].filter(Boolean).join(" ").toLowerCase();
+/** The fields that can identify which substance a drug record is. */
+export type PolicyIdentity = Pick<
+  ProcessedDrug,
+  "name" | "genericName" | "category" | "ingredients"
+>;
+
+/**
+ * The text the safety rules are matched against.
+ *
+ * `name` alone is not identity. An FDA label is brand-first, so a warfarin
+ * record arrives named "COUMADIN" with the category "HUMAN PRESCRIPTION DRUG
+ * LABEL" — and every rule below is keyed on generic names, so both halves of
+ * the old haystack could miss. `genericName` and `ingredients` carry the
+ * substance regardless of which name the source chose to lead with.
+ */
+function policyHaystack(drug: PolicyIdentity): string {
+  return [
+    drug.name,
+    drug.genericName,
+    drug.category,
+    ...(drug.ingredients ?? []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 }
 
 /** Whether this drug may carry any generated Remedy Mapping. */
-export function isNeverMapped(
-  drug: Pick<ProcessedDrug, "name" | "category">,
-): boolean {
+export function isNeverMapped(drug: PolicyIdentity): boolean {
   const haystack = policyHaystack(drug);
   return Object.keys(NEVER_MAPPED).some((name) => haystack.includes(name));
 }
 
-function isNeverAlternative(
-  drug: Pick<ProcessedDrug, "name" | "category">,
-): boolean {
+function isNeverAlternative(drug: PolicyIdentity): boolean {
   const haystack = policyHaystack(drug);
   return NEVER_ALTERNATIVE.some((name) => haystack.includes(name));
 }

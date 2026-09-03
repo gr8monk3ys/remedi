@@ -460,3 +460,69 @@ describe("OpenFDA API Integration", () => {
     });
   });
 });
+
+describe("substance identity survives label processing", () => {
+  /** A label shaped the way OpenFDA returns a branded anticoagulant. */
+  const brandedLabel = {
+    meta: { results: { total: 1 } },
+    results: [
+      {
+        id: "fda-coumadin-1",
+        openfda: {
+          brand_name: ["COUMADIN"],
+          generic_name: ["WARFARIN SODIUM"],
+          product_type: ["HUMAN PRESCRIPTION DRUG LABEL"],
+          substance_name: ["WARFARIN SODIUM"],
+          rxcui: ["855288", "855296"],
+          unii: ["6153CWM0CL"],
+        },
+        active_ingredient: ["WARFARIN SODIUM 5 mg"],
+        indications_and_usage: ["Prophylaxis and treatment of thrombosis."],
+      },
+    ],
+  };
+
+  it("keeps the generic name even though the brand name wins the display slot", async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse(brandedLabel));
+    const { searchFdaDrugs } = await import("@/lib/openFDA");
+
+    const [drug] = await searchFdaDrugs("coumadin");
+
+    // The brand still leads, because that is what a person searched for.
+    expect(drug.name).toBe("COUMADIN");
+    // ...but the substance is no longer thrown away.
+    expect(drug.genericName).toBe("WARFARIN SODIUM");
+  });
+
+  it("captures the RxNorm and UNII identifiers", async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse(brandedLabel));
+    const { searchFdaDrugs } = await import("@/lib/openFDA");
+
+    const [drug] = await searchFdaDrugs("coumadin");
+
+    expect(drug.rxcui).toEqual(["855288", "855296"]);
+    expect(drug.unii).toEqual(["6153CWM0CL"]);
+  });
+
+  it("leaves identity absent rather than guessing when the label omits it", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        meta: { results: { total: 1 } },
+        results: [
+          {
+            id: "fda-sparse-1",
+            openfda: { brand_name: ["MYSTERY"] },
+            indications_and_usage: ["Unknown."],
+          },
+        ],
+      }),
+    );
+    const { searchFdaDrugs } = await import("@/lib/openFDA");
+
+    const [drug] = await searchFdaDrugs("mystery");
+
+    expect(drug.genericName).toBeUndefined();
+    expect(drug.rxcui).toEqual([]);
+    expect(drug.unii).toEqual([]);
+  });
+});

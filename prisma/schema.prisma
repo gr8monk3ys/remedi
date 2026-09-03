@@ -49,7 +49,10 @@ datasource db {
 model Pharmaceutical {
   id          String   @id @default(uuid()) @db.Uuid
   fdaId       String?  @unique // ID from the FDA database
-  name        String   @unique
+  name        String   @unique // Brand-first when FDA-sourced; not a safety signal
+  genericName String?  // Substance name the safety policy is keyed on
+  rxcui       String[] // RxNorm concept ids, when the source supplies them
+  unii        String[] // FDA unique ingredient identifiers
   description String?  @db.Text
   category    String
   ingredients String[] // Native PostgreSQL array
@@ -63,6 +66,7 @@ model Pharmaceutical {
 
   // Indexes for performance
   @@index([name])
+  @@index([genericName])
   @@index([category])
   @@index([fdaId])
   // GIN index for array containment queries
