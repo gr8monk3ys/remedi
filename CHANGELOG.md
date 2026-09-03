@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.1.0](https://github.com/gr8monk3ys/remedi/compare/v1.0.0...v1.1.0) (2026-09-03)
+
+
+### Features
+
+* **ui:** redesign the interface around hairlines, mono labels and one accent ([#81](https://github.com/gr8monk3ys/remedi/issues/81)) ([9d05558](https://github.com/gr8monk3ys/remedi/commit/9d05558f7b24957fdbd1ca4c09a7ba020b0b2406))
+
+
+### Bug Fixes
+
+* **api:** surface the kit's auth primitives and stop the 401/403 contradiction ([#92](https://github.com/gr8monk3ys/remedi/issues/92)) ([772a4ce](https://github.com/gr8monk3ys/remedi/commit/772a4ce197ff8260bc482b35348c3eced10cb722))
+* **db:** scope per-user reads and writes by owner in the query layer ([#90](https://github.com/gr8monk3ys/remedi/issues/90)) ([2b4469f](https://github.com/gr8monk3ys/remedi/commit/2b4469fd277ec74f07a0731d4ec64bbd0ba77a8a))
+* **interactions:** make a failed interaction check impossible to read as an all-clear ([#86](https://github.com/gr8monk3ys/remedi/issues/86)) ([add6c26](https://github.com/gr8monk3ys/remedi/commit/add6c26041217df17dc131ba64fd71a43756daa6))
+* **remedies:** make the mapping safety rules a rule, not a coincidence ([#87](https://github.com/gr8monk3ys/remedi/issues/87)) ([0abdfcc](https://github.com/gr8monk3ys/remedi/commit/0abdfcc2e503de7e9a492f4fe401f4a2b6a6bb80))
+* **search:** stop reporting an outage as "no remedies found" ([#89](https://github.com/gr8monk3ys/remedi/issues/89)) ([6ac75d1](https://github.com/gr8monk3ys/remedi/commit/6ac75d13802ee60cb6ffc7e44065637ffd78dde8))
+* **security:** stop trusting a client-supplied cf-connecting-ip for rate limiting ([#82](https://github.com/gr8monk3ys/remedi/issues/82)) ([32a8d47](https://github.com/gr8monk3ys/remedi/commit/32a8d47c4de8f5ff01238ab4f428c7f7ea127956))
+* **ui:** load the Tailwind theme for real, and guard the built CSS ([#79](https://github.com/gr8monk3ys/remedi/issues/79)) ([e0c75d3](https://github.com/gr8monk3ys/remedi/commit/e0c75d37db1a04acd36ac0227a154c72686667b0))
+* **ui:** make the Tailwind theme actually load and guard the built CSS ([e0c75d3](https://github.com/gr8monk3ys/remedi/commit/e0c75d37db1a04acd36ac0227a154c72686667b0))
+
 ## 1.0.0 (2026-08-19)
 
 ### Features
