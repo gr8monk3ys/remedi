@@ -63,6 +63,35 @@ function requiresCSRF(method: string): boolean {
 
 // ---------- Internal request helper ----------
 
+/**
+ * Seconds to wait before retrying, from whichever source actually carries it.
+ *
+ * `rateLimitExceededResponse` may leave `error.retryAfter` undefined while the
+ * `Retry-After` header still falls back to 60, so the header is real
+ * information rather than a redundant copy of the body. Older nested
+ * `details.retryAfter` payloads are honoured too.
+ */
+function resolveRetryAfter(
+  response: Response,
+  err: { retryAfter?: number; details?: unknown } | undefined,
+): number | undefined {
+  const candidates: unknown[] = [
+    err?.retryAfter,
+    err?.details && typeof err.details === "object"
+      ? (err.details as { retryAfter?: unknown }).retryAfter
+      : undefined,
+    response.headers.get("Retry-After") ?? undefined,
+  ];
+
+  for (const candidate of candidates) {
+    const seconds = Number(candidate);
+    if (candidate !== undefined && Number.isFinite(seconds) && seconds > 0) {
+      return Math.ceil(seconds);
+    }
+  }
+  return undefined;
+}
+
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   const method = (options.method ?? "GET").toUpperCase();
 
@@ -125,7 +154,7 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
       err?.code || "INTERNAL_ERROR",
       err?.statusCode ?? response.status,
       err?.details,
-      err?.retryAfter,
+      resolveRetryAfter(response, err),
     );
   }
 

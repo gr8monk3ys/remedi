@@ -12,7 +12,12 @@ import { apiClient, ApiClientError } from "@/lib/api/client";
 
 function respond(
   body: unknown,
-  init: { status?: number; ok?: boolean; contentType?: string } = {},
+  init: {
+    status?: number;
+    ok?: boolean;
+    contentType?: string;
+    headers?: Record<string, string>;
+  } = {},
 ) {
   const status = init.status ?? 200;
   global.fetch = vi.fn().mockResolvedValue({
@@ -20,6 +25,7 @@ function respond(
     status,
     headers: new Headers({
       "content-type": init.contentType ?? "application/json",
+      ...init.headers,
     }),
     json: async () => body,
   } as unknown as Response);
@@ -136,5 +142,74 @@ describe("error detail", () => {
       statusCode: 429,
       retryAfter: 30,
     });
+  });
+
+  it("falls back to the Retry-After header when the envelope omits it", async () => {
+    // `rateLimitExceededResponse` sends `retryAfter: undefined` in the body
+    // whenever the limiter could not compute one, but still emits a header.
+    // Reading only the body turns a specific "wait 12s" into a vague message.
+    respond(
+      {
+        success: false,
+        error: {
+          code: "RATE_LIMIT_EXCEEDED",
+          message: "Too many requests.",
+          statusCode: 429,
+        },
+      },
+      { status: 429, headers: { "Retry-After": "12" } },
+    );
+
+    const error = await apiClient.get("/api/x").catch((e) => e);
+    expect(error.retryAfter).toBe(12);
+  });
+
+  it("prefers the envelope's retryAfter over the header", async () => {
+    respond(
+      {
+        success: false,
+        error: {
+          code: "RATE_LIMIT_EXCEEDED",
+          message: "Too many requests.",
+          statusCode: 429,
+          retryAfter: 30,
+        },
+      },
+      { status: 429, headers: { "Retry-After": "12" } },
+    );
+
+    const error = await apiClient.get("/api/x").catch((e) => e);
+    expect(error.retryAfter).toBe(30);
+  });
+
+  it("reads a nested details.retryAfter when that is the only source", async () => {
+    respond(
+      {
+        success: false,
+        error: {
+          code: "RATE_LIMIT_EXCEEDED",
+          message: "Too many requests.",
+          statusCode: 429,
+          details: { retryAfter: 45 },
+        },
+      },
+      { status: 429 },
+    );
+
+    const error = await apiClient.get("/api/x").catch((e) => e);
+    expect(error.retryAfter).toBe(45);
+  });
+
+  it("leaves retryAfter undefined when no source carries a usable value", async () => {
+    respond(
+      {
+        success: false,
+        error: { code: "INTERNAL_ERROR", message: "Boom", statusCode: 500 },
+      },
+      { status: 500, headers: { "Retry-After": "not-a-number" } },
+    );
+
+    const error = await apiClient.get("/api/x").catch((e) => e);
+    expect(error.retryAfter).toBeUndefined();
   });
 });
