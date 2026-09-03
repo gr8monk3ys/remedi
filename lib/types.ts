@@ -170,7 +170,8 @@ export interface NaturalRemedyMapping {
   naturalRemedyId: string;
   similarityScore: number;
   matchingNutrients: string[];
-  replacementType: string | null;
+  /** Always present since the column was made non-null; see remedy-matcher. */
+  replacementType: string;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -381,14 +381,18 @@ async function ensureBaselineMappingCoverage(): Promise<void> {
       interactions: pharma.interactions || undefined,
     };
 
-    const matches = buildRemedyMappingsFor(drug, candidates, {
+    const outcome = buildRemedyMappingsFor(drug, candidates, {
       limit: MAX_CANDIDATES_PER_PHARMA,
     });
+
+    // The policy refuses this drug outright. Topping it up to a minimum count
+    // would be the coverage target overruling a safety rule, so it is skipped.
+    if (outcome.kind === "unknown") continue;
 
     const needed = Math.max(MIN_MAPPINGS_PER_PHARMA - mapped.size, 0);
     if (needed === 0) continue;
 
-    const toCreate = matches
+    const toCreate = outcome.data
       .filter((match) => !mapped.has(match.id))
       .slice(0, needed);
 
@@ -400,7 +404,7 @@ async function ensureBaselineMappingCoverage(): Promise<void> {
         naturalRemedyId: match.id,
         similarityScore: match.similarityScore,
         matchingNutrients: match.matchingNutrients,
-        replacementType: match.replacementType as string,
+        replacementType: match.replacementType,
       })),
       skipDuplicates: true,
     });

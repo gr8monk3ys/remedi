@@ -108,14 +108,16 @@ describe("a refused drug carries no generated Remedy Mapping", () => {
   ];
 
   it.each(BRANDS)(
-    "%s produces no mapping even with the score floor removed",
+    "%s is refused outright, even with the score floor removed",
     (brand, generic) => {
-      const mappings = buildRemedyMappingsFor(
+      const outcome = buildRemedyMappingsFor(
         fromOpenFda(brand, generic),
         candidates,
         { minScore: 0 },
       );
-      expect(mappings).toEqual([]);
+      expect(outcome.kind).toBe("unknown");
+      if (outcome.kind !== "unknown") throw new Error("unreachable");
+      expect(outcome.reason).toBe("never-mapped");
     },
   );
 });
@@ -140,8 +142,10 @@ describe("NEVER_ALTERNATIVE recognises brand names too", () => {
       benefits: ["antibacterial", "infection"],
     };
 
-    const mappings = buildRemedyMappingsFor(cipro, candidates, { minScore: 0 });
-    expect(mappings.every((m) => m.replacementType !== "Alternative")).toBe(
+    const outcome = buildRemedyMappingsFor(cipro, candidates, { minScore: 0 });
+    expect(outcome.kind).toBe("known");
+    if (outcome.kind !== "known") throw new Error("unreachable");
+    expect(outcome.data.every((m) => m.replacementType !== "Alternative")).toBe(
       true,
     );
   });

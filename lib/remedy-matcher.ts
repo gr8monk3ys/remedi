@@ -7,6 +7,7 @@
  */
 
 import type { ProcessedDrug, NaturalRemedy } from "./types";
+import { known, unknown, type Outcome } from "./outcome";
 
 export type RemedyMatchCandidate = {
   id: string;
@@ -114,9 +115,56 @@ function evidenceBoost(level: string | null | undefined): number {
   return 0;
 }
 
-function replacementTypeForScore(
-  score: number,
-): "Alternative" | "Complementary" | "Supportive" {
+/**
+ * What a Remedy Mapping is allowed to claim.
+ *
+ * Three values, no more. This used to be a bare `string` at every boundary,
+ * which is how a mapping could round-trip through the database and come back
+ * carrying anything at all — including nothing.
+ */
+export type ReplacementType = "Alternative" | "Complementary" | "Supportive";
+
+/**
+ * Present only on a mapping the policy itself produced.
+ *
+ * The symbol has no runtime value and is not exported, so a plain object
+ * literal is not assignable to `RemedyMapping`. Writing one by hand takes a
+ * deliberate `as RemedyMapping` — which is greppable, and which review can ask
+ * about. That is the honest strength of this guard: it does not make an
+ * unchecked mapping impossible, it makes one impossible to write *by accident*.
+ */
+declare const POLICY_CHECKED: unique symbol;
+
+/**
+ * A Natural Remedy paired with a drug, carrying a Replacement Type the policy
+ * decided — never one a caller chose.
+ */
+export type RemedyMapping = Omit<NaturalRemedy, "replacementType"> & {
+  readonly replacementType: ReplacementType;
+  readonly [POLICY_CHECKED]: true;
+};
+
+/**
+ * Coerce a persisted value back into a Replacement Type.
+ *
+ * The database column is the widest possible type and predates this union, so
+ * a row can hold a legacy label, or none. An unrecognised value degrades to
+ * `Supportive` — the weakest claim this vocabulary can make — rather than
+ * throwing, because failing a whole page over one stale row is a worse outcome
+ * for a reader than showing an over-cautious label.
+ */
+export function parseReplacementType(value: unknown): ReplacementType {
+  if (
+    value === "Alternative" ||
+    value === "Complementary" ||
+    value === "Supportive"
+  ) {
+    return value;
+  }
+  return "Supportive";
+}
+
+function replacementTypeForScore(score: number): ReplacementType {
   if (score >= 0.75) return "Alternative";
   if (score >= 0.55) return "Complementary";
   return "Supportive";
@@ -308,10 +356,24 @@ function policyHaystack(drug: PolicyIdentity): string {
     .toLowerCase();
 }
 
+/**
+ * The reason this drug may carry no generated Remedy Mapping, or null.
+ *
+ * NEVER_MAPPED has always recorded *why* each drug is refused; until now that
+ * reason went no further than the source file. Returning it lets a refusal say
+ * something to a reader instead of looking like an empty result.
+ */
+export function neverMappedReason(drug: PolicyIdentity): string | null {
+  const haystack = policyHaystack(drug);
+  const match = Object.entries(NEVER_MAPPED).find(([name]) =>
+    haystack.includes(name),
+  );
+  return match ? match[1] : null;
+}
+
 /** Whether this drug may carry any generated Remedy Mapping. */
 export function isNeverMapped(drug: PolicyIdentity): boolean {
-  const haystack = policyHaystack(drug);
-  return Object.keys(NEVER_MAPPED).some((name) => haystack.includes(name));
+  return neverMappedReason(drug) !== null;
 }
 
 function isNeverAlternative(drug: PolicyIdentity): boolean {
@@ -319,39 +381,60 @@ function isNeverAlternative(drug: PolicyIdentity): boolean {
   return NEVER_ALTERNATIVE.some((name) => haystack.includes(name));
 }
 
+/** Why the policy declined to produce any Remedy Mapping for a drug. */
+export type MappingRefusal = "never-mapped";
+
+/**
+ * The policy's answer for one drug: mappings, or a stated refusal.
+ *
+ * A refusal is not an empty result. For an anticoagulant the policy withholds
+ * deliberately, and a reader who sees an empty list cannot tell that from "we
+ * found nothing that matched" — so the two are different arms rather than the
+ * same empty array.
+ */
+export type MappingOutcome = Outcome<RemedyMapping[], MappingRefusal>;
+
 /**
  * Build the Remedy Mappings a drug may carry.
  *
  * This is the only interface either write path crosses. Scoring, the
  * score-to-label thresholds, the high-risk downgrade and the never-map and
  * never-alternative rules are all applied here, so a caller cannot assemble
- * the policy differently — or forget half of it. Every returned remedy has a
- * `replacementType`.
+ * the policy differently — or forget half of it. Every returned mapping
+ * carries a Replacement Type this function chose.
  *
- * Returns an empty array for a drug the policy forbids mapping.
+ * `known` with an empty array means nothing scored high enough. `unknown`
+ * means the policy refuses to map this drug at all; those are not the same
+ * answer and must not render the same way.
  */
 export function buildRemedyMappingsFor(
   drug: ProcessedDrug,
   candidates: RemedyMatchCandidate[],
   options?: { limit?: number; minScore?: number },
-): NaturalRemedy[] {
-  if (isNeverMapped(drug)) {
-    return [];
+): MappingOutcome {
+  const refusal = neverMappedReason(drug);
+  if (refusal) {
+    return unknown("never-mapped", refusal);
   }
 
   const matches = rankRemedyCandidatesForDrug(drug, candidates, options);
   const forceSupportive = shouldForceSupportiveReplacement(drug);
   const noAlternative = isNeverAlternative(drug);
 
-  return matches.map((match) => {
-    let replacementType = forceSupportive
-      ? "Supportive"
-      : replacementTypeForScore(match.similarityScore);
+  return known(
+    matches.map((match) => {
+      let replacementType: ReplacementType = forceSupportive
+        ? "Supportive"
+        : replacementTypeForScore(match.similarityScore);
 
-    if (noAlternative && replacementType === "Alternative") {
-      replacementType = "Complementary";
-    }
+      if (noAlternative && replacementType === "Alternative") {
+        replacementType = "Complementary";
+      }
 
-    return { ...match, replacementType };
-  });
+      // The one place a RemedyMapping is minted. Everything the brand
+      // promises — that a Replacement Type was decided by the rules above and
+      // not by a caller — is true exactly here.
+      return { ...match, replacementType } as RemedyMapping;
+    }),
+  );
 }

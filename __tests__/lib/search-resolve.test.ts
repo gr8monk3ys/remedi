@@ -11,6 +11,7 @@
 
 import { describe, it, expect, vi } from "vitest";
 import { resolveSearch, type SearchPorts } from "@/lib/search/resolve";
+import { known } from "@/lib/outcome";
 import type { NaturalRemedy, ProcessedDrug } from "@/lib/types";
 
 const DRUG: ProcessedDrug = {
@@ -38,7 +39,7 @@ function ports(overrides: Partial<SearchPorts> = {}): SearchPorts {
   return {
     findPharmaceuticals: async () => [],
     findRemediesFor: async () => [],
-    generateMappingsFor: async () => [],
+    generateMappingsFor: async () => known([]),
     searchFda: async () => [],
     cachePharmaceutical: async () => ({ id: "p1" }),
     findDemoRemedies: () => null,
@@ -64,7 +65,7 @@ describe("found", () => {
   });
 
   it("generates mappings when the drug is known but unmapped", async () => {
-    const generate = vi.fn().mockResolvedValue([REMEDY]);
+    const generate = vi.fn().mockResolvedValue(known([REMEDY]));
 
     const outcome = await resolveSearch(
       "ibuprofen",
@@ -90,7 +91,7 @@ describe("found", () => {
       ports({
         searchFda: async () => [DRUG],
         cachePharmaceutical: cache,
-        generateMappingsFor: async () => [REMEDY],
+        generateMappingsFor: async () => known([REMEDY]),
       }),
     );
 
