@@ -30,6 +30,8 @@ export interface ApiError {
   details?: unknown;
   /** HTTP status code */
   statusCode: number;
+  /** Seconds to wait before retrying; sent by the rate limiter on 429 */
+  retryAfter?: number;
 }
 
 /**

@@ -21,18 +21,22 @@ export class ApiClientError extends Error {
   readonly statusCode: number;
   /** Additional error context */
   readonly details?: unknown;
+  /** Seconds to wait before retrying; present on rate-limit rejections */
+  readonly retryAfter?: number;
 
   constructor(
     message: string,
     code: ErrorCode | string,
     statusCode: number,
     details?: unknown,
+    retryAfter?: number,
   ) {
     super(message);
     this.name = "ApiClientError";
     this.code = code;
     this.statusCode = statusCode;
     this.details = details;
+    this.retryAfter = retryAfter;
   }
 }
 
@@ -72,6 +76,7 @@ interface ApiErrorResponse {
     message: string;
     statusCode: number;
     details?: unknown;
+    retryAfter?: number;
   };
 }
 
@@ -110,6 +115,7 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
       err.code,
       err.statusCode,
       err.details,
+      err.retryAfter,
     );
   }
 

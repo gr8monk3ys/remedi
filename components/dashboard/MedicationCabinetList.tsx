@@ -10,7 +10,14 @@ import {
   FlaskConical,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { apiClient } from "@/lib/api/client";
+import {
+  readCabinetInteractions,
+  type InteractionOutcome,
+} from "@/lib/interactions/read";
+import type { Interaction } from "@/components/interactions/interaction.types";
+import { InteractionUnavailable } from "@/components/interactions/InteractionUnavailable";
 import { cn } from "@/lib/utils";
 import { MedicationForm } from "./MedicationForm";
 
@@ -54,14 +61,8 @@ export function MedicationCabinetList({
   const [medications, setMedications] =
     useState<Medication[]>(initialMedications);
   const [showForm, setShowForm] = useState(false);
-  const [interactions, setInteractions] = useState<
-    Array<{
-      substanceA: string;
-      substanceB: string;
-      severity: string;
-      description: string;
-    }>
-  >([]);
+  const [interactionOutcome, setInteractionOutcome] =
+    useState<InteractionOutcome<Interaction[]> | null>(null);
   const [loadingInteractions, setLoadingInteractions] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -74,7 +75,7 @@ export function MedicationCabinetList({
       setMedications([...medications, result.medication]);
       setShowForm(false);
     } catch {
-      // Silently fail to match previous behavior
+      toast.error("Could not add that medication. Please try again.");
     }
   }
 
@@ -84,7 +85,7 @@ export function MedicationCabinetList({
       await apiClient.delete(`/api/medication-cabinet?id=${id}`);
       setMedications(medications.filter((m) => m.id !== id));
     } catch {
-      // Silently fail to match previous behavior
+      toast.error("Could not remove that medication. Please try again.");
     } finally {
       setDeletingId(null);
     }
@@ -92,21 +93,8 @@ export function MedicationCabinetList({
 
   async function checkInteractions(): Promise<void> {
     setLoadingInteractions(true);
-    try {
-      const data = await apiClient.get<{
-        interactions: Array<{
-          substanceA: string;
-          substanceB: string;
-          severity: string;
-          description: string;
-        }>;
-      }>("/api/medication-cabinet/interactions");
-      setInteractions(data.interactions);
-    } catch {
-      // Silently fail to match previous behavior
-    } finally {
-      setLoadingInteractions(false);
-    }
+    setInteractionOutcome(await readCabinetInteractions());
+    setLoadingInteractions(false);
   }
 
   const activeMeds = medications.filter((m) => m.isActive);
@@ -126,25 +114,44 @@ export function MedicationCabinetList({
       </div>
 
       {/* Interaction Alerts */}
-      {interactions.length > 0 && (
-        <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 space-y-3">
-          <div className="flex items-center gap-2 text-red-800 dark:text-red-300">
-            <AlertTriangle className="w-5 h-5" />
-            <span className="font-semibold">Interaction Alerts</span>
-          </div>
-          {interactions.map((interaction, i) => (
-            <div
-              key={i}
-              className="text-sm text-red-700 dark:text-red-400 pl-7"
-            >
-              <span className="font-medium">
-                {interaction.substanceA} + {interaction.substanceB}
-              </span>{" "}
-              ({interaction.severity}): {interaction.description}
-            </div>
-          ))}
-        </div>
+      {interactionOutcome?.kind === "unknown" && (
+        <InteractionUnavailable
+          reason={interactionOutcome.reason}
+          message={interactionOutcome.message}
+          retryAfter={interactionOutcome.retryAfter}
+          subject="your medication cabinet"
+        />
       )}
+
+      {interactionOutcome?.kind === "known" &&
+        interactionOutcome.data.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            No known interactions were found between your active medications in
+            our database. This does not guarantee there are none -- always
+            consult your healthcare provider.
+          </p>
+        )}
+
+      {interactionOutcome?.kind === "known" &&
+        interactionOutcome.data.length > 0 && (
+          <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-red-800 dark:text-red-300">
+              <AlertTriangle className="w-5 h-5" />
+              <span className="font-semibold">Interaction Alerts</span>
+            </div>
+            {interactionOutcome.data.map((interaction) => (
+              <div
+                key={interaction.id}
+                className="text-sm text-red-700 dark:text-red-400 pl-7"
+              >
+                <span className="font-medium">
+                  {interaction.substanceA} + {interaction.substanceB}
+                </span>{" "}
+                ({interaction.severity}): {interaction.description}
+              </div>
+            ))}
+          </div>
+        )}
 
       {/* Check Interactions Button */}
       {activeMeds.length >= 2 && (

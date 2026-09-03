@@ -2,7 +2,10 @@
 
 import { useState, useCallback } from "react";
 import { AlertTriangle, Plus, X, Search, Shield } from "lucide-react";
-import { apiClient, ApiClientError } from "@/lib/api/client";
+import {
+  checkInteractionsBetween,
+  type InteractionOutcome,
+} from "@/lib/interactions/read";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,8 +16,11 @@ import { InteractionResults } from "./InteractionResults";
 export function InteractionChecker(): React.ReactElement {
   const [substances, setSubstances] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [results, setResults] = useState<CheckResponse | null>(null);
+  const [outcome, setOutcome] =
+    useState<InteractionOutcome<CheckResponse> | null>(null);
   const [loading, setLoading] = useState(false);
+  // Client-side input problems only. Anything the server says — including a
+  // failed check — arrives as an outcome and is rendered by InteractionResults.
   const [error, setError] = useState<string | null>(null);
 
   const addSubstance = useCallback(() => {
@@ -35,7 +41,7 @@ export function InteractionChecker(): React.ReactElement {
 
   const removeSubstance = useCallback((index: number) => {
     setSubstances((prev) => prev.filter((_, i) => i !== index));
-    setResults(null);
+    setOutcome(null);
   }, []);
 
   const handleKeyDown = useCallback(
@@ -56,23 +62,10 @@ export function InteractionChecker(): React.ReactElement {
 
     setLoading(true);
     setError(null);
-    setResults(null);
+    setOutcome(null);
 
-    try {
-      const data = await apiClient.post<CheckResponse>(
-        "/api/interactions/check",
-        { substances },
-      );
-      setResults(data);
-    } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : "Failed to check interactions. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
+    setOutcome(await checkInteractionsBetween(substances));
+    setLoading(false);
   }, [substances]);
 
   return (
@@ -155,7 +148,7 @@ export function InteractionChecker(): React.ReactElement {
       </Card>
 
       {/* Results Section */}
-      {results && <InteractionResults results={results} />}
+      {outcome && <InteractionResults outcome={outcome} />}
 
       {/* Disclaimer */}
       <Alert>

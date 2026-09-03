@@ -2,14 +2,35 @@
 
 import { Info, Shield } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import type { InteractionOutcome } from "@/lib/interactions/read";
 import type { CheckResponse } from "./interaction.types";
 import { InteractionCard } from "./InteractionCard";
+import { InteractionUnavailable } from "./InteractionUnavailable";
 
+/**
+ * Renders the result of an interaction check.
+ *
+ * Takes the outcome rather than a payload: the green all-clear below is
+ * reachable only from the `known` arm, so a failed check cannot be rendered
+ * as a clean one no matter how the caller is written.
+ */
 export function InteractionResults({
-  results,
+  outcome,
 }: {
-  results: CheckResponse;
+  outcome: InteractionOutcome<CheckResponse>;
 }): React.ReactElement {
+  if (outcome.kind === "unknown") {
+    return (
+      <InteractionUnavailable
+        reason={outcome.reason}
+        message={outcome.message}
+        retryAfter={outcome.retryAfter}
+      />
+    );
+  }
+
+  const results = outcome.data;
+
   return (
     <div className="space-y-4">
       {/* Summary */}
