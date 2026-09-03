@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { apiClient } from "@/lib/api/client";
-import { fetchWithCSRF } from "@/lib/fetch";
+import { apiClient, ApiClientError } from "@/lib/api/client";
 import {
   useFavoritesQuery,
   useToggleFavorite,
@@ -27,65 +26,7 @@ const log = createLogger("search-component");
 
 type SearchEndpointType = "search" | "ai-search";
 
-type APIErrorResponse = {
-  success?: boolean;
-  error?: {
-    code?: string;
-    message?: string;
-    retryAfter?: number;
-    details?: unknown;
-  };
-};
-
-class UserFacingSearchError extends Error {
-  readonly userMessage: string;
-
-  constructor(userMessage: string) {
-    super(userMessage);
-    this.name = "UserFacingSearchError";
-    this.userMessage = userMessage;
-  }
-}
-
-function parseRetryAfterHeader(value: string | null): number | null {
-  if (!value) return null;
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) return null;
-  return Math.ceil(parsed);
-}
-
-function parseRetryAfterFromDetails(details: unknown): number | null {
-  if (!details || typeof details !== "object") return null;
-  const retryAfter = (details as { retryAfter?: unknown }).retryAfter;
-  if (typeof retryAfter !== "number" || retryAfter <= 0) return null;
-  return Math.ceil(retryAfter);
-}
-
-async function parseApiErrorResponse(response: Response): Promise<{
-  code?: string;
-  message?: string;
-  retryAfter: number | null;
-}> {
-  const parsedBody = await response
-    .json()
-    .then((body) => body as APIErrorResponse)
-    .catch(() => null);
-
-  const headerRetryAfter = parseRetryAfterHeader(
-    response.headers.get("Retry-After"),
-  );
-  const bodyRetryAfter =
-    typeof parsedBody?.error?.retryAfter === "number" &&
-    parsedBody.error.retryAfter > 0
-      ? Math.ceil(parsedBody.error.retryAfter)
-      : parseRetryAfterFromDetails(parsedBody?.error?.details);
-
-  return {
-    code: parsedBody?.error?.code,
-    message: parsedBody?.error?.message,
-    retryAfter: bodyRetryAfter ?? headerRetryAfter,
-  };
-}
+type PlanLimitReason = "search_limit" | "ai_search_limit";
 
 function formatRateLimitMessage(
   endpoint: SearchEndpointType,
@@ -99,11 +40,43 @@ function formatRateLimitMessage(
 }
 
 /**
+ * Turn a failed search into something to show the user.
+ *
  * Plan limits and transient rate limits share HTTP 429 but need opposite
  * responses: a plan limit is resolved by upgrading, a rate limit by waiting.
+ * Both endpoints fail the same way, so this is written once for both.
  */
-function isPlanLimitCode(code?: string): boolean {
-  return code === "LIMIT_EXCEEDED";
+function describeSearchFailure(
+  error: unknown,
+  endpoint: SearchEndpointType,
+): { message: string; planLimit: PlanLimitReason | null } {
+  const label = endpoint === "ai-search" ? "AI search" : "Search";
+
+  if (error instanceof ApiClientError) {
+    if (error.code === "LIMIT_EXCEEDED") {
+      return {
+        message:
+          error.message || `You've reached your ${label} limit for today.`,
+        planLimit:
+          endpoint === "ai-search" ? "ai_search_limit" : "search_limit",
+      };
+    }
+    if (error.code === "RATE_LIMIT_EXCEEDED" || error.statusCode === 429) {
+      return {
+        message: formatRateLimitMessage(endpoint, error.retryAfter ?? null),
+        planLimit: null,
+      };
+    }
+    return {
+      message: error.message || `${label} failed. Please try again.`,
+      planLimit: null,
+    };
+  }
+
+  return {
+    message: "Failed to retrieve search results. Please try again.",
+    planLimit: null,
+  };
 }
 
 interface SearchComponentProps extends React.HTMLProps<HTMLDivElement> {
@@ -311,71 +284,19 @@ export function SearchComponent({
       try {
         log.info("Searching", { query: queryToSearch, aiPowered: useAiSearch });
 
-        let response;
-        let apiResponse;
-
         if (useAiSearch && aiSearchAvailable) {
-          const endpointType: SearchEndpointType = "ai-search";
-
-          // Use fetchWithCSRF for POST requests to include CSRF token
-          response = await fetchWithCSRF("/api/ai-search", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: queryToSearch }),
-            signal: controller.signal,
-          });
-
-          if (!response.ok) {
-            const { code, message, retryAfter } =
-              await parseApiErrorResponse(response);
-
-            if (isPlanLimitCode(code)) {
-              setPlanLimitReason("ai_search_limit");
-              throw new UserFacingSearchError(
-                message || "You've reached your AI search limit for today.",
-              );
-            }
-
-            if (response.status === 429 || code === "RATE_LIMIT_EXCEEDED") {
-              throw new UserFacingSearchError(
-                formatRateLimitMessage(endpointType, retryAfter),
-              );
-            }
-
-            throw new UserFacingSearchError(
-              message || "AI search failed. Please try again.",
+          const { recommendations, intent, extractedInfo } =
+            await apiClient.post<{
+              recommendations: AIRecommendation[];
+              intent: AIInsights["intent"];
+              extractedInfo: AIInsights["extractedInfo"];
+            }>(
+              "/api/ai-search",
+              { query: queryToSearch },
+              { signal: controller.signal },
             );
-          }
 
-          apiResponse = await response.json();
-
-          if (apiResponse.success === false) {
-            if (isStale()) return;
-            if (isPlanLimitCode(apiResponse.error?.code)) {
-              setPlanLimitReason("ai_search_limit");
-              setError(
-                apiResponse.error?.message ||
-                  "You've reached your AI search limit for today.",
-              );
-            } else if (apiResponse.error?.code === "RATE_LIMIT_EXCEEDED") {
-              const retryAfter =
-                typeof apiResponse.error?.retryAfter === "number"
-                  ? Math.ceil(apiResponse.error.retryAfter)
-                  : null;
-              setError(formatRateLimitMessage(endpointType, retryAfter));
-            } else {
-              setError(apiResponse.error?.message || "AI search failed");
-            }
-            setResults([]);
-            setFilteredResults([]);
-            return;
-          }
-
-          const { recommendations, intent, extractedInfo } = apiResponse.data;
-
-          const aiResults: SearchResult[] = (
-            recommendations as AIRecommendation[]
-          ).map((rec) => ({
+          const aiResults: SearchResult[] = recommendations.map((rec) => ({
             id: rec.remedy.id,
             name: rec.remedy.name,
             description: rec.remedy.description || rec.reasoning,
@@ -391,8 +312,6 @@ export function SearchComponent({
           setFilteredResults(aiResults);
           if (onSearch) onSearch(aiResults);
         } else {
-          const endpointType: SearchEndpointType = "search";
-
           // Pass sessionId so anonymous searches are attributed to the
           // visitor's session instead of being saved unattributed.
           const searchParamsForRequest = new URLSearchParams({
@@ -402,57 +321,12 @@ export function SearchComponent({
             searchParamsForRequest.set("sessionId", sessionId);
           }
 
-          response = await fetch(
+          const data = await apiClient.get<SearchResult[]>(
             `/api/search?${searchParamsForRequest.toString()}`,
             { signal: controller.signal },
           );
-          if (!response.ok) {
-            const { code, message, retryAfter } =
-              await parseApiErrorResponse(response);
-
-            if (isPlanLimitCode(code)) {
-              setPlanLimitReason("search_limit");
-              throw new UserFacingSearchError(
-                message || "You've reached your search limit for today.",
-              );
-            }
-
-            if (response.status === 429 || code === "RATE_LIMIT_EXCEEDED") {
-              throw new UserFacingSearchError(
-                formatRateLimitMessage(endpointType, retryAfter),
-              );
-            }
-
-            throw new UserFacingSearchError(
-              message || "Search failed. Please try again.",
-            );
-          }
-          apiResponse = await response.json();
-
-          if (apiResponse.success === false) {
-            if (isStale()) return;
-            if (isPlanLimitCode(apiResponse.error?.code)) {
-              setPlanLimitReason("search_limit");
-              setError(
-                apiResponse.error?.message ||
-                  "You've reached your search limit for today.",
-              );
-            } else if (apiResponse.error?.code === "RATE_LIMIT_EXCEEDED") {
-              const retryAfter =
-                typeof apiResponse.error?.retryAfter === "number"
-                  ? Math.ceil(apiResponse.error.retryAfter)
-                  : null;
-              setError(formatRateLimitMessage(endpointType, retryAfter));
-            } else {
-              setError(apiResponse.error?.message || "Search failed");
-            }
-            setResults([]);
-            setFilteredResults([]);
-            return;
-          }
 
           if (isStale()) return;
-          const data = apiResponse.data || apiResponse;
           setResults(data);
           setFilteredResults(data);
           if (onSearch) onSearch(data);
@@ -471,11 +345,15 @@ export function SearchComponent({
         }
         if (isStale()) return;
         log.error("Error searching", error);
-        if (error instanceof UserFacingSearchError) {
-          setError(error.userMessage);
-        } else {
-          setError("Failed to retrieve search results. Please try again.");
-        }
+
+        const { message, planLimit } = describeSearchFailure(
+          error,
+          useAiSearch && aiSearchAvailable ? "ai-search" : "search",
+        );
+        if (planLimit) setPlanLimitReason(planLimit);
+        setError(message);
+        setResults([]);
+        setFilteredResults([]);
       } finally {
         // Only the newest request owns the spinner.
         if (!isStale()) {

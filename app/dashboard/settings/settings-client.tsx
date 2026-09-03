@@ -22,7 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { fetchWithCSRF } from "@/lib/fetch";
+import { apiClient } from "@/lib/api/client";
 
 interface SettingsClientProps {
   userName: string | null;
@@ -94,15 +94,7 @@ export function SettingsClient({
       setSaveStatus("idle");
 
       try {
-        const response = await fetchWithCSRF("/api/email-preferences", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ [key]: checked }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to update preference");
-        }
+        await apiClient.patch("/api/email-preferences", { [key]: checked });
 
         setSaveStatus("saved");
         toast.success("Preferences saved");

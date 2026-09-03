@@ -1,10 +1,10 @@
 "use client";
 
+import { apiClient, ApiClientError } from "@/lib/api/client";
 import { useState } from "react";
 import { Star, Send, X } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { fetchWithCSRF } from "@/lib/fetch";
 
 interface ReviewFormProps {
   remedyId: string;
@@ -42,32 +42,25 @@ export function ReviewForm({
     setError(null);
 
     try {
-      const response = await fetchWithCSRF("/api/reviews", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          remedyId,
-          remedyName,
-          rating,
-          title: title || undefined,
-          comment,
-        }),
+      await apiClient.post("/api/reviews", {
+        remedyId,
+        remedyName,
+        rating,
+        title: title || undefined,
+        comment,
       });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        setError(data.error?.message || "Failed to submit review");
-        return;
-      }
 
       // Reset form
       setRating(0);
       setTitle("");
       setComment("");
       onReviewSubmitted?.();
-    } catch {
-      setError("Failed to submit review. Please try again.");
+    } catch (err) {
+      setError(
+        err instanceof ApiClientError
+          ? err.message
+          : "Failed to submit review. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }

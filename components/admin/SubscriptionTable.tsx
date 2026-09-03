@@ -4,8 +4,9 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { MoreVertical, RefreshCw, XCircle, ArrowUp } from "lucide-react";
-import { fetchWithCSRF } from "@/lib/fetch";
 import { createLogger } from "@/lib/logger";
+import { toast } from "sonner";
+import { apiClient, ApiClientError } from "@/lib/api/client";
 
 const logger = createLogger("admin-subscriptions");
 
@@ -40,17 +41,18 @@ export function SubscriptionTable({ subscriptions }: SubscriptionTableProps) {
   const handleAction = async (id: string, action: string, data?: object) => {
     setProcessing(id);
     try {
-      const response = await fetchWithCSRF(`/api/admin/subscriptions/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, ...data }),
+      await apiClient.patch(`/api/admin/subscriptions/${id}`, {
+        action,
+        ...data,
       });
-
-      if (response.ok) {
-        router.refresh();
-      }
+      router.refresh();
     } catch (error) {
       logger.error("Failed to update subscription", error);
+      toast.error(
+        error instanceof ApiClientError
+          ? error.message
+          : "Could not update that subscription.",
+      );
     } finally {
       setProcessing(null);
       setActionMenuOpen(null);

@@ -8,7 +8,7 @@
  * Automatically includes CSRF tokens for state-changing requests (POST, PUT, DELETE, PATCH).
  */
 
-import type { ErrorCode } from "./response";
+import type { ApiResponse, ErrorCode } from "./response";
 
 /**
  * Typed error class for API failures.
@@ -63,24 +63,34 @@ function requiresCSRF(method: string): boolean {
 
 // ---------- Internal request helper ----------
 
-interface ApiSuccessResponse<T> {
-  success: true;
-  data: T;
-  metadata?: Record<string, unknown>;
-}
+/**
+ * Seconds to wait before retrying, from whichever source actually carries it.
+ *
+ * `rateLimitExceededResponse` may leave `error.retryAfter` undefined while the
+ * `Retry-After` header still falls back to 60, so the header is real
+ * information rather than a redundant copy of the body. Older nested
+ * `details.retryAfter` payloads are honoured too.
+ */
+function resolveRetryAfter(
+  response: Response,
+  err: { retryAfter?: number; details?: unknown } | undefined,
+): number | undefined {
+  const candidates: unknown[] = [
+    err?.retryAfter,
+    err?.details && typeof err.details === "object"
+      ? (err.details as { retryAfter?: unknown }).retryAfter
+      : undefined,
+    response.headers.get("Retry-After") ?? undefined,
+  ];
 
-interface ApiErrorResponse {
-  success: false;
-  error: {
-    code: string;
-    message: string;
-    statusCode: number;
-    details?: unknown;
-    retryAfter?: number;
-  };
+  for (const candidate of candidates) {
+    const seconds = Number(candidate);
+    if (candidate !== undefined && Number.isFinite(seconds) && seconds > 0) {
+      return Math.ceil(seconds);
+    }
+  }
+  return undefined;
 }
-
-type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   const method = (options.method ?? "GET").toUpperCase();
@@ -94,28 +104,57 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
     }
   }
 
-  const response = await fetch(url, { ...options, headers });
+  let response: Response;
+  try {
+    response = await fetch(url, { ...options, headers });
+  } catch (error) {
+    // An aborted request was deliberately superseded by its caller. It must
+    // stay a DOMException so callers can tell it apart from a real failure.
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw error;
+    }
+    // A transport failure — offline, DNS, CORS. Surface it
+    // as an ApiClientError so callers have one error type to discriminate on
+    // rather than a bare TypeError that every `instanceof` check misses.
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "Network request failed",
+      "SERVICE_UNAVAILABLE",
+      0,
+    );
+  }
 
-  // Handle non-JSON responses (network errors, 500 HTML pages, etc.)
+  // Non-JSON body: an HTML error page, a gateway timeout, an empty response.
   const contentType = response.headers.get("content-type");
   if (!contentType?.includes("application/json")) {
     throw new ApiClientError(
       `Request failed with status ${response.status}`,
+      response.ok ? "INTERNAL_ERROR" : "SERVICE_UNAVAILABLE",
+      response.status,
+    );
+  }
+
+  let json: ApiResponse<T>;
+  try {
+    json = (await response.json()) as ApiResponse<T>;
+  } catch {
+    throw new ApiClientError(
+      `Malformed response body (status ${response.status})`,
       "INTERNAL_ERROR",
       response.status,
     );
   }
 
-  const json = (await response.json()) as ApiResponse<T>;
-
-  if (!json.success) {
-    const err = json.error;
+  // The transport and the body must agree. A 500 carrying success:true is not
+  // a success, and a body claiming success on a failed request is not one
+  // either — trusting the body alone is how an error becomes a silent value.
+  if (!response.ok || !json?.success) {
+    const err = json && !json.success ? json.error : undefined;
     throw new ApiClientError(
-      err.message,
-      err.code,
-      err.statusCode,
-      err.details,
-      err.retryAfter,
+      err?.message || `Request failed with status ${response.status}`,
+      err?.code || "INTERNAL_ERROR",
+      err?.statusCode ?? response.status,
+      err?.details,
+      resolveRetryAfter(response, err),
     );
   }
 
@@ -194,6 +233,24 @@ export const apiClient = {
     return request<T>(url, {
       ...options,
       method: "PUT",
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  },
+
+  /** PATCH with a JSON body. */
+  async patch<T>(
+    url: string,
+    body?: unknown,
+    options?: RequestInit,
+  ): Promise<T> {
+    const headers = new Headers(options?.headers);
+    if (body !== undefined && !headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+    return request<T>(url, {
+      ...options,
+      method: "PATCH",
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });

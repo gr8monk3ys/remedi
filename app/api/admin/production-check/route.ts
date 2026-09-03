@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { runProductionChecks } from "@/lib/production-readiness";
+import {
+  successResponse,
+  errorResponse,
+  getStatusCode,
+} from "@/lib/api/response";
 
 export async function POST(_request: NextRequest) {
   const currentUser = await getCurrentUser();
@@ -8,18 +13,18 @@ export async function POST(_request: NextRequest) {
 
   if (!currentUser || !userIsAdmin) {
     return NextResponse.json(
-      { ok: false, message: "Admin access required" },
-      { status: 403 },
+      errorResponse("FORBIDDEN", "Admin access required"),
+      { status: getStatusCode("FORBIDDEN") },
     );
   }
 
   try {
     const result = await runProductionChecks();
-    return NextResponse.json(result);
+    return NextResponse.json(successResponse(result));
   } catch {
     return NextResponse.json(
-      { ok: false, message: "Production checks failed" },
-      { status: 500 },
+      errorResponse("INTERNAL_ERROR", "Production checks failed"),
+      { status: getStatusCode("INTERNAL_ERROR") },
     );
   }
 }

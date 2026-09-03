@@ -1,11 +1,11 @@
 "use client";
 
+import { apiClient, ApiClientError } from "@/lib/api/client";
 import { useState } from "react";
 import { CreditCard, Loader2, Crown, Zap, Sparkles, Check } from "lucide-react";
 import { PLANS } from "@/lib/stripe-config";
 import { UsageProgressList } from "@/components/dashboard/UsageProgress";
 import { PlanCard } from "@/components/dashboard/PlanCard";
-import { fetchWithCSRF } from "@/lib/fetch";
 import type { PlanType } from "@/lib/stripe-config";
 import type { UsageData } from "@/types/dashboard";
 
@@ -151,32 +151,16 @@ export function SubscriptionClient({
     setBillingError(null);
 
     try {
-      const response = await fetchWithCSRF("/api/billing-portal", {
-        method: "POST",
-      });
-
-      const data = (await response.json()) as
-        | {
-            success: true;
-            data: { url: string };
-          }
-        | {
-            success: false;
-            error?: { message?: string };
-          };
-
-      if (response.ok && data.success && data.data.url) {
-        window.location.href = data.data.url;
-        return;
-      }
-
-      setBillingError(
-        (!data.success && data.error?.message) ||
-          "Unable to open the billing portal. Please try again later.",
+      const { url } = await apiClient.post<{ url: string }>(
+        "/api/billing-portal",
       );
-    } catch {
+      window.location.href = url;
+      return;
+    } catch (error) {
       setBillingError(
-        "Unable to open the billing portal. Please try again later.",
+        error instanceof ApiClientError
+          ? error.message
+          : "Unable to open the billing portal. Please try again later.",
       );
     } finally {
       setLoadingAction(null);
@@ -190,37 +174,19 @@ export function SubscriptionClient({
     setBillingError(null);
 
     try {
-      const response = await fetchWithCSRF("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan,
-          interval: isYearly ? "year" : "month",
-          source: "dashboard_subscription",
-        }),
+      const { url } = await apiClient.post<{ url: string }>("/api/checkout", {
+        plan,
+        interval: isYearly ? "year" : "month",
+        source: "dashboard_subscription",
       });
-
-      const data = (await response.json()) as
-        | {
-            success: true;
-            data: { url: string };
-          }
-        | {
-            success: false;
-            error?: { message?: string };
-          };
-
-      if (response.ok && data.success && data.data.url) {
-        window.location.href = data.data.url;
-        return;
-      }
-
+      window.location.href = url;
+      return;
+    } catch (error) {
       setBillingError(
-        (!data.success && data.error?.message) ||
-          "Failed to start checkout. Please try again later.",
+        error instanceof ApiClientError
+          ? error.message
+          : "Failed to start checkout. Please try again later.",
       );
-    } catch {
-      setBillingError("Failed to start checkout. Please try again later.");
     } finally {
       setLoadingAction(null);
     }
