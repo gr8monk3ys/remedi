@@ -135,7 +135,7 @@ describe("PATCH /api/admin/moderation/[id]", () => {
 
       expect(response.status).toBe(403);
       expect(data.success).toBe(false);
-      expect(data.error.code).toBe("UNAUTHORIZED");
+      expect(data.error.code).toBe("FORBIDDEN");
     });
 
     it("should return 403 when user is not admin or moderator", async () => {

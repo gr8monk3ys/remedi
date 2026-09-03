@@ -16,6 +16,9 @@
 
 import "server-only";
 import {
+  ForbiddenError,
+  UnauthorizedError,
+  authErrorResponse,
   createClerkAuth,
   setClerkModule,
 } from "@gr8monk3ys/next-kit/auth/clerk";
@@ -176,3 +179,22 @@ export async function requireAdminPage(): Promise<void> {
     redirect("/admin/moderation");
   }
 }
+
+/**
+ * Require an authenticated user, or throw.
+ *
+ * The kit builds these alongside getUserOrNull, and this module previously
+ * surfaced only the nullable variant — so all 33 route handlers hand-wrote
+ * `if (!user) return 401` instead. Pair them with {@link authErrorResponse},
+ * which maps UnauthorizedError to 401 and ForbiddenError to 403.
+ */
+export async function requireUser(): Promise<AuthUser> {
+  return clerkAuth.requireUser();
+}
+
+/** Require one of these roles, or throw ForbiddenError. See {@link requireUser}. */
+export async function requireRole(roles: string | string[]): Promise<AuthUser> {
+  return clerkAuth.requireRole(roles);
+}
+
+export { authErrorResponse, ForbiddenError, UnauthorizedError };

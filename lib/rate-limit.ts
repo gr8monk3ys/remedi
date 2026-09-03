@@ -367,6 +367,19 @@ export function addRateLimitHeaders(
  *   // ... handle request
  * }
  */
+/**
+ * Check a request against a rate limit.
+ *
+ * NOTE: this shadows `withRateLimit` from @gr8monk3ys/next-kit/rate-limit,
+ * which is a higher-order function — `withRateLimit(handler, opts)` returning
+ * a handler — while this one is an imperative checker the caller must act on.
+ * The names collide, which is why every route writes the same three-line
+ * `if (!allowed && response) return response;` by hand, in three different
+ * syntaxes across 29 call sites.
+ *
+ * Reconciling the two is deliberately not done here: it touches every route
+ * file, and several of those are being changed by other work in flight.
+ */
 export async function withRateLimit(
   request: NextRequest,
   config: RateLimitConfig = RATE_LIMITS.general,
