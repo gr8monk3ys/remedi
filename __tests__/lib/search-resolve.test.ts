@@ -195,7 +195,11 @@ describe("unavailable", () => {
     expect(outcome).toEqual({ kind: "unavailable", which: "database" });
   });
 
-  it("prefers demo data over reporting an outage, when demo is enabled", async () => {
+  it("reports the outage rather than answering it with demo data", async () => {
+    // This previously preferred demo data, which reported a database outage as
+    // a successful result. Demo data stands in for an empty catalogue; it must
+    // never stand in for a tier that failed, because the caller cannot tell
+    // the difference and neither can the person reading the page.
     const outcome = await resolveSearch(
       "ibuprofen",
       ports({
@@ -204,6 +208,15 @@ describe("unavailable", () => {
         },
         findDemoRemedies: () => [REMEDY],
       }),
+    );
+
+    expect(outcome).toEqual({ kind: "unavailable", which: "database" });
+  });
+
+  it("still uses demo data when both tiers answered and found nothing", async () => {
+    const outcome = await resolveSearch(
+      "nothing here",
+      ports({ findDemoRemedies: () => [REMEDY] }),
     );
 
     expect(outcome).toMatchObject({ kind: "found", source: "demo" });

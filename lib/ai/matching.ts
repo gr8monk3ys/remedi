@@ -10,6 +10,11 @@ import { getOpenAIClient, openaiCircuitBreaker } from "./client";
 import { CircuitBreakerOpenError } from "@/lib/circuit-breaker";
 import { buildMatchingPrompt, SYSTEM_PROMPT } from "./prompts";
 import { createLogger } from "@/lib/logger";
+import {
+  MIN_DISPLAY_SIMILARITY,
+  certifyReplacementType,
+  type PolicyIdentity,
+} from "@/lib/remedy-matcher";
 
 const logger = createLogger("ai-matching");
 import type {
@@ -84,11 +89,31 @@ async function selectCandidateRemedies(
 }
 
 /**
+ * What the request is about, as far as the safety policy is concerned.
+ *
+ * The AI path has no Pharmaceutical record to reason from — the person typed a
+ * question and possibly listed what they take. Both are folded into an identity
+ * so the same rules that govern a generated Remedy Mapping can be applied here.
+ * A question about warfarin, or a Medication Cabinet containing it, refuses.
+ */
+function policySubjectFor(options: AIMatchingOptions): PolicyIdentity {
+  return {
+    name: options.query,
+    category: "",
+    ingredients: [
+      ...(options.currentMedications ?? []),
+      ...(options.symptoms ?? []),
+    ],
+  };
+}
+
+/**
  * Parse AI response into structured recommendations
  */
 function parseAIResponse(
   response: string,
   allRemedies: RawDatabaseRemedy[],
+  subject: PolicyIdentity,
 ): AIRemedyRecommendation[] {
   try {
     const parsedJson: unknown = JSON.parse(response);
@@ -114,6 +139,25 @@ function parseAIResponse(
 
         if (!remedy) return [];
 
+        // The model's confidence is scored on the same scale as a Similarity
+        // Score and rendered in the same place, so it answers to the same
+        // display floor. Zod defaults an unparseable confidence to 0.5, which
+        // is how a model returning nothing useful could still clear the bar.
+        if (rec.confidence < MIN_DISPLAY_SIMILARITY) return [];
+
+        // A recommendation the policy refuses is dropped whatever the model
+        // said about it.
+        const certified = certifyReplacementType(
+          subject,
+          rec.confidence >= 0.75
+            ? "Alternative"
+            : rec.confidence >= 0.55
+              ? "Complementary"
+              : "Supportive",
+        );
+
+        if (certified.kind === "unknown") return [];
+
         return [
           {
             remedy: {
@@ -124,6 +168,7 @@ function parseAIResponse(
               matchingNutrients: remedy.ingredients,
               similarityScore: rec.confidence,
               imageUrl: remedy.imageUrl || "",
+              replacementType: certified.data,
             },
             confidence: rec.confidence,
             reasoning: rec.reasoning,
@@ -202,7 +247,7 @@ export async function enhanceRemedyMatching(
       throw new Error("No response from AI");
     }
 
-    return parseAIResponse(response, allRemedies);
+    return parseAIResponse(response, allRemedies, policySubjectFor(options));
   } catch (error) {
     if (error instanceof CircuitBreakerOpenError) {
       logger.warn("OpenAI circuit breaker is open, skipping AI matching");

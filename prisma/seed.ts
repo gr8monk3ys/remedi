@@ -10,6 +10,7 @@ import { seedInteractions } from "./seeds/interactions.ts";
 import type { ProcessedDrug } from "../lib/types.ts";
 import {
   buildRemedyMappingsFor,
+  certifyReplacementType,
   type RemedyMatchCandidate,
 } from "../lib/remedy-matcher.ts";
 
@@ -209,14 +210,20 @@ async function main(): Promise<void> {
 
   // First, fetch all pharmaceuticals and remedies for lookup
   const allPharms = await prisma.pharmaceutical.findMany({
-    select: { id: true, name: true },
+    select: {
+      id: true,
+      name: true,
+      genericName: true,
+      category: true,
+      ingredients: true,
+    },
   });
   const allRemedies = await prisma.naturalRemedy.findMany({
     select: { id: true, name: true },
   });
 
   // Create lookup maps
-  const pharmMap = new Map(allPharms.map((p) => [p.name, p.id]));
+  const pharmMap = new Map(allPharms.map((p) => [p.name, p]));
   const remedyMap = new Map(allRemedies.map((r) => [r.name, r.id]));
 
   // Filter valid mappings and prepare data
@@ -238,13 +245,46 @@ async function main(): Promise<void> {
       }
       return true;
     })
-    .map((mapping) => ({
-      pharmaceuticalId: pharmMap.get(mapping.pharmaceuticalName)!,
-      naturalRemedyId: remedyMap.get(mapping.naturalRemedyName)!,
-      similarityScore: mapping.similarityScore,
-      matchingNutrients: parseSeedArray(mapping.matchingNutrients),
-      replacementType: mapping.replacementType,
-    }));
+    .flatMap((mapping) => {
+      const pharma = pharmMap.get(mapping.pharmaceuticalName)!;
+
+      // A curated row is typed by a person and was previously written straight
+      // through. The same rules that govern generated mappings apply here.
+      const certified = certifyReplacementType(
+        {
+          name: pharma.name,
+          genericName: pharma.genericName ?? undefined,
+          category: pharma.category,
+          ingredients: pharma.ingredients,
+        },
+        mapping.replacementType,
+      );
+
+      if (certified.kind === "unknown") {
+        console.warn(
+          `  Policy refused a curated mapping: ${mapping.pharmaceuticalName} -> ` +
+            `${mapping.naturalRemedyName} (${certified.message})`,
+        );
+        return [];
+      }
+
+      if (certified.data !== mapping.replacementType) {
+        console.warn(
+          `  Policy demoted a curated mapping: ${mapping.pharmaceuticalName} -> ` +
+            `${mapping.naturalRemedyName} (${mapping.replacementType} -> ${certified.data})`,
+        );
+      }
+
+      return [
+        {
+          pharmaceuticalId: pharma.id,
+          naturalRemedyId: remedyMap.get(mapping.naturalRemedyName)!,
+          similarityScore: mapping.similarityScore,
+          matchingNutrients: parseSeedArray(mapping.matchingNutrients),
+          replacementType: certified.data,
+        },
+      ];
+    });
 
   // Upsert mappings in batches. Curated seed data must overwrite any existing
   // row for the same pair: databases that ran the runtime token-overlap
