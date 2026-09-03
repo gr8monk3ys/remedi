@@ -13,7 +13,6 @@ import {
   createJournalEntry,
   updateJournalEntry,
   deleteJournalEntry,
-  getJournalEntryById,
   getJournalEntries,
   getTrackedRemedies,
 } from "@/lib/db";
@@ -185,16 +184,13 @@ export async function PUT(request: Request) {
 
     const { id, ...updates } = validation.data;
 
-    // Verify ownership
-    const existing = await getJournalEntryById(id);
-    if (!existing || existing.userId !== user.id) {
+    const entry = await updateJournalEntry(id, user.id, updates);
+    if (!entry) {
       return NextResponse.json(
         errorResponse("RESOURCE_NOT_FOUND", "Journal entry not found"),
         { status: 404 },
       );
     }
-
-    const entry = await updateJournalEntry(id, updates);
 
     return NextResponse.json(
       successResponse({ entry, message: "Journal entry updated" }),
@@ -226,16 +222,13 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Verify ownership
-    const existing = await getJournalEntryById(id);
-    if (!existing || existing.userId !== user.id) {
+    const deleted = await deleteJournalEntry(id, user.id);
+    if (!deleted) {
       return NextResponse.json(
         errorResponse("RESOURCE_NOT_FOUND", "Journal entry not found"),
         { status: 404 },
       );
     }
-
-    await deleteJournalEntry(id);
 
     return NextResponse.json(
       successResponse({ message: "Journal entry deleted" }),

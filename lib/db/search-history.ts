@@ -5,6 +5,7 @@
  */
 
 import { prisma } from "./client";
+import { ownerConditions } from "./owner";
 
 /**
  * Save search query to history
@@ -36,15 +37,10 @@ export async function getSearchHistory(
 ): Promise<
   Array<{ id: string; query: string; resultsCount: number; createdAt: Date }>
 > {
-  // Security: require at least one identifier to prevent returning all records
-  if (!sessionId && !userId) {
+  const orConditions = ownerConditions(userId, sessionId);
+  if (!orConditions) {
     return [];
   }
-
-  // Build OR conditions only for provided identifiers
-  const orConditions = [];
-  if (sessionId) orConditions.push({ sessionId });
-  if (userId) orConditions.push({ userId });
 
   return prisma.searchHistory.findMany({
     where: {
@@ -94,15 +90,10 @@ export async function clearSearchHistory(
   sessionId?: string,
   userId?: string,
 ): Promise<number> {
-  // Security: require at least one identifier to prevent deleting all records
-  if (!sessionId && !userId) {
+  const orConditions = ownerConditions(userId, sessionId);
+  if (!orConditions) {
     return 0;
   }
-
-  // Build OR conditions only for provided identifiers
-  const orConditions = [];
-  if (sessionId) orConditions.push({ sessionId });
-  if (userId) orConditions.push({ userId });
 
   const result = await prisma.searchHistory.deleteMany({
     where: {

@@ -34,8 +34,8 @@ export async function getMedications(userId: string, activeOnly = false) {
 /**
  * Get a single medication by ID
  */
-export async function getMedicationById(id: string) {
-  return prisma.medicationCabinet.findUnique({ where: { id } });
+export async function getMedicationById(id: string, userId: string) {
+  return prisma.medicationCabinet.findFirst({ where: { id, userId } });
 }
 
 /**
@@ -61,6 +61,7 @@ export async function addMedication(userId: string, data: MedicationInput) {
  */
 export async function updateMedication(
   id: string,
+  userId: string,
   data: Partial<MedicationInput>,
 ) {
   const updateData: Record<string, unknown> = {};
@@ -73,17 +74,26 @@ export async function updateMedication(
   if (data.notes !== undefined) updateData.notes = data.notes;
   if (data.isActive !== undefined) updateData.isActive = data.isActive;
 
-  return prisma.medicationCabinet.update({
-    where: { id },
+  const { count } = await prisma.medicationCabinet.updateMany({
+    where: { id, userId },
     data: updateData,
   });
+  if (count === 0) return null;
+
+  return prisma.medicationCabinet.findUnique({ where: { id } });
 }
 
 /**
  * Remove a medication from the cabinet
  */
-export async function removeMedication(id: string) {
-  return prisma.medicationCabinet.delete({ where: { id } });
+export async function removeMedication(
+  id: string,
+  userId: string,
+): Promise<boolean> {
+  const { count } = await prisma.medicationCabinet.deleteMany({
+    where: { id, userId },
+  });
+  return count > 0;
 }
 
 /**

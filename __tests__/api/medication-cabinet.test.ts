@@ -345,7 +345,8 @@ describe("/api/medication-cabinet", () => {
     });
 
     it("should return 404 when medication not found", async () => {
-      mockGetMedicationById.mockResolvedValue(null);
+      mockUpdateMedication.mockResolvedValue(null);
+      mockRemoveMedication.mockResolvedValue(false);
       const { PUT } = await import("@/app/api/medication-cabinet/route");
       const request = new Request(
         "http://localhost:3000/api/medication-cabinet",
@@ -364,10 +365,8 @@ describe("/api/medication-cabinet", () => {
     });
 
     it("should return 404 when medication belongs to another user", async () => {
-      mockGetMedicationById.mockResolvedValue({
-        ...mockMedication,
-        userId: "other-user",
-      });
+      mockUpdateMedication.mockResolvedValue(null);
+      mockRemoveMedication.mockResolvedValue(false);
       const { PUT } = await import("@/app/api/medication-cabinet/route");
       const request = new Request(
         "http://localhost:3000/api/medication-cabinet",
@@ -454,7 +453,7 @@ describe("/api/medication-cabinet", () => {
 
     it("should delete medication successfully", async () => {
       mockGetMedicationById.mockResolvedValue(mockMedication);
-      mockRemoveMedication.mockResolvedValue(undefined);
+      mockRemoveMedication.mockResolvedValue(true);
       const { DELETE } = await import("@/app/api/medication-cabinet/route");
       const request = new NextRequest(
         `http://localhost:3000/api/medication-cabinet?id=${mockMedication.id}`,
@@ -465,11 +464,15 @@ describe("/api/medication-cabinet", () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.data.message).toContain("Medication removed");
-      expect(mockRemoveMedication).toHaveBeenCalledWith(mockMedication.id);
+      expect(mockRemoveMedication).toHaveBeenCalledWith(
+        mockMedication.id,
+        "user-123",
+      );
     });
 
     it("should return 404 when medication not found", async () => {
-      mockGetMedicationById.mockResolvedValue(null);
+      mockUpdateMedication.mockResolvedValue(null);
+      mockRemoveMedication.mockResolvedValue(false);
       const { DELETE } = await import("@/app/api/medication-cabinet/route");
       const request = new NextRequest(
         `http://localhost:3000/api/medication-cabinet?id=${mockMedication.id}`,
@@ -483,10 +486,8 @@ describe("/api/medication-cabinet", () => {
     });
 
     it("should return 404 when medication belongs to another user", async () => {
-      mockGetMedicationById.mockResolvedValue({
-        ...mockMedication,
-        userId: "other-user",
-      });
+      mockUpdateMedication.mockResolvedValue(null);
+      mockRemoveMedication.mockResolvedValue(false);
       const { DELETE } = await import("@/app/api/medication-cabinet/route");
       const request = new NextRequest(
         `http://localhost:3000/api/medication-cabinet?id=${mockMedication.id}`,

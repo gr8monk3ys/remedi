@@ -35,20 +35,24 @@ export async function createReport(
  */
 export async function updateReportContent(
   id: string,
+  userId: string,
   content: object,
   status: "complete" | "failed",
 ) {
-  return prisma.remedyReport.update({
-    where: { id },
+  const { count } = await prisma.remedyReport.updateMany({
+    where: { id, userId },
     data: { content, status },
   });
+  if (count === 0) return null;
+
+  return prisma.remedyReport.findUnique({ where: { id } });
 }
 
 /**
  * Get a single report by ID
  */
-export async function getReportById(id: string) {
-  return prisma.remedyReport.findUnique({ where: { id } });
+export async function getReportById(id: string, userId: string) {
+  return prisma.remedyReport.findFirst({ where: { id, userId } });
 }
 
 /**
@@ -71,8 +75,14 @@ export async function getUserReports(userId: string, page = 1, pageSize = 10) {
 /**
  * Delete a report
  */
-export async function deleteReport(id: string) {
-  return prisma.remedyReport.delete({ where: { id } });
+export async function deleteReport(
+  id: string,
+  userId: string,
+): Promise<boolean> {
+  const { count } = await prisma.remedyReport.deleteMany({
+    where: { id, userId },
+  });
+  return count > 0;
 }
 
 /**

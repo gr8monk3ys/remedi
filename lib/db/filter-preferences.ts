@@ -5,6 +5,7 @@
  */
 
 import { prisma } from "./client";
+import { ownerConditions } from "./owner";
 
 export interface FilterPreferenceInput {
   sessionId?: string;
@@ -108,15 +109,10 @@ export async function getFilterPreferences(
   sessionId?: string,
   userId?: string,
 ): Promise<FilterPreferenceOutput | null> {
-  // Security: require at least one identifier to prevent returning unrelated records
-  if (!sessionId && !userId) {
+  const orConditions = ownerConditions(userId, sessionId);
+  if (!orConditions) {
     return null;
   }
-
-  // Build OR conditions only for provided identifiers
-  const orConditions = [];
-  if (sessionId) orConditions.push({ sessionId });
-  if (userId) orConditions.push({ userId });
 
   const result = await prisma.filterPreference.findFirst({
     where: {
@@ -135,15 +131,10 @@ export async function clearFilterPreferences(
   sessionId?: string,
   userId?: string,
 ): Promise<void> {
-  // Security: require at least one identifier to prevent deleting all records
-  if (!sessionId && !userId) {
+  const orConditions = ownerConditions(userId, sessionId);
+  if (!orConditions) {
     return;
   }
-
-  // Build OR conditions only for provided identifiers
-  const orConditions = [];
-  if (sessionId) orConditions.push({ sessionId });
-  if (userId) orConditions.push({ userId });
 
   await prisma.filterPreference.deleteMany({
     where: {
