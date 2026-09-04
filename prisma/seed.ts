@@ -11,6 +11,8 @@ import type { ProcessedDrug } from "../lib/types.ts";
 import {
   buildRemedyMappingsFor,
   certifyReplacementType,
+  interactionTerms,
+  isRemedyForbidden,
   type RemedyMatchCandidate,
 } from "../lib/remedy-matcher.ts";
 
@@ -226,6 +228,12 @@ async function main(): Promise<void> {
   const pharmMap = new Map(allPharms.map((p) => [p.name, p]));
   const remedyMap = new Map(allRemedies.map((r) => [r.name, r.id]));
 
+  // The pairs we have recorded as interacting. A curated mapping naming one is
+  // dropped: this is where "no magnesium beside ciprofloxacin" actually lives
+  // now, sourced from the curated DrugInteraction table at class level rather
+  // than from a comment and a test doing exact string equality on one name.
+  const curatedForbidden = await resolveForbiddenTerms(allPharms);
+
   // Filter valid mappings and prepare data
   const validMappings = remedyMappings
     .filter((mapping) => {
@@ -264,6 +272,15 @@ async function main(): Promise<void> {
         console.warn(
           `  Policy refused a curated mapping: ${mapping.pharmaceuticalName} -> ` +
             `${mapping.naturalRemedyName} (${certified.message})`,
+        );
+        return [];
+      }
+
+      const forbidden = curatedForbidden.get(pharma.id) ?? [];
+      if (isRemedyForbidden(mapping.naturalRemedyName, forbidden)) {
+        console.warn(
+          `  Recorded interaction forbids a curated mapping: ` +
+            `${mapping.pharmaceuticalName} -> ${mapping.naturalRemedyName}`,
         );
         return [];
       }
@@ -353,6 +370,53 @@ async function main(): Promise<void> {
     });
 }
 
+type PharmaIdentity = {
+  id: string;
+  name: string;
+  genericName: string | null;
+  category: string;
+  ingredients: string[];
+};
+
+/**
+ * Remedy-side words of the Drug Interactions recorded against each drug.
+ *
+ * Resolved once for the whole seed: the table is small and both the curated
+ * and generated mapping paths need the same answer.
+ */
+async function resolveForbiddenTerms(
+  pharmas: PharmaIdentity[],
+): Promise<Map<string, string[]>> {
+  const rows = await prisma.drugInteraction.findMany({
+    where: { severity: { in: ["moderate", "severe", "contraindicated"] } },
+    select: { substanceA: true, substanceB: true },
+  });
+
+  const byPharma = new Map<string, string[]>();
+  for (const pharma of pharmas) {
+    const haystack = [
+      pharma.name,
+      pharma.genericName,
+      pharma.category,
+      ...pharma.ingredients,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    const terms = new Set<string>();
+    for (const row of rows) {
+      if (
+        interactionTerms(row.substanceB).some((term) => haystack.includes(term))
+      ) {
+        for (const term of interactionTerms(row.substanceA)) terms.add(term);
+      }
+    }
+    if (terms.size > 0) byPharma.set(pharma.id, [...terms]);
+  }
+  return byPharma;
+}
+
 async function ensureBaselineMappingCoverage(): Promise<void> {
   console.log("\nEnsuring baseline remedy mapping coverage...");
 
@@ -401,6 +465,9 @@ async function ensureBaselineMappingCoverage(): Promise<void> {
   }
 
   const candidates = allRemedies as RemedyMatchCandidate[];
+
+  const forbiddenTermsByPharma = await resolveForbiddenTerms(allPharmas);
+
   let created = 0;
 
   for (const pharma of allPharmas) {
@@ -423,6 +490,7 @@ async function ensureBaselineMappingCoverage(): Promise<void> {
 
     const outcome = buildRemedyMappingsFor(drug, candidates, {
       limit: MAX_CANDIDATES_PER_PHARMA,
+      forbiddenRemedies: forbiddenTermsByPharma.get(pharma.id) ?? [],
     });
 
     // The policy refuses this drug outright. Topping it up to a minimum count

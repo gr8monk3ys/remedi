@@ -8,6 +8,7 @@
 
 import "server-only";
 import { prisma } from "./client";
+import { interactionTerms, type PolicyIdentity } from "@/lib/remedy-matcher";
 
 /** Severity ranking for sorting (most severe first) */
 const SEVERITY_ORDER: Record<string, number> = {
@@ -155,3 +156,48 @@ export type InteractionResult = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+/**
+ * The remedy-side words of Drug Interactions recorded against a drug.
+ *
+ * The magnesium/ciprofloxacin rule lived in a seed comment and a test doing
+ * exact string equality on "Ciprofloxacin" — so "Cipro", "Levofloxacin" and
+ * every other fluoroquinolone escaped it, despite the test being titled after
+ * the class. The DrugInteraction table already records the pair at class
+ * level, curated, and until now the mapping path had never once consulted it.
+ *
+ * Mild interactions are not included: they inform, they do not forbid.
+ */
+export async function forbiddenRemedyTermsForDrug(
+  drug: PolicyIdentity,
+): Promise<string[]> {
+  const rows = await prisma.drugInteraction.findMany({
+    where: { severity: { in: ["moderate", "severe", "contraindicated"] } },
+    select: { substanceA: true, substanceB: true },
+  });
+
+  const haystack = [
+    drug.name,
+    drug.genericName,
+    drug.category,
+    ...(drug.ingredients ?? []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  const terms = new Set<string>();
+  for (const row of rows) {
+    // Every row is natural_remedy x pharmaceutical: substanceB names the drug.
+    const namesThisDrug = interactionTerms(row.substanceB).some((term) =>
+      haystack.includes(term),
+    );
+    if (!namesThisDrug) continue;
+
+    for (const term of interactionTerms(row.substanceA)) {
+      terms.add(term);
+    }
+  }
+
+  return [...terms];
+}

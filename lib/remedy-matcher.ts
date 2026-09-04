@@ -336,6 +336,60 @@ export const NEVER_ALTERNATIVE: readonly string[] = [
   "levonorgestrel",
 ];
 
+/**
+ * Words that appear in a recorded Drug Interaction's substance names but
+ * identify no substance: pharmacological categories and dosage-form nouns.
+ * Matching on them would forbid pairs that have nothing in common.
+ */
+const INTERACTION_STOPWORDS: ReadonlySet<string> = new Set([
+  "supplement",
+  "supplements",
+  "medication",
+  "medications",
+  "antibiotic",
+  "antibiotics",
+  "inhibitor",
+  "inhibitors",
+  "extract",
+  "disease",
+  "control",
+  "pills",
+  "and",
+  "oral",
+]);
+
+/**
+ * The identifying words in a Drug Interaction's substance name.
+ *
+ * Rows name a class and then list its members in parentheses —
+ * "Fluoroquinolone Antibiotics (Ciprofloxacin, Levofloxacin)" — so splitting on
+ * punctuation yields both the class and the drugs it covers. Short and generic
+ * words are dropped, because a rule that fires on "oral" or "and" would forbid
+ * everything.
+ */
+export function interactionTerms(substance: string): string[] {
+  return substance
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((term) => term.length >= 5 && !INTERACTION_STOPWORDS.has(term));
+}
+
+/**
+ * Whether a recorded Drug Interaction forbids pairing this remedy with a drug.
+ *
+ * `terms` are the remedy-side words of interactions recorded against the drug,
+ * already resolved by the caller — the policy stays a pure function, and the
+ * database access stays in the data layer where it can be tested against a
+ * real table.
+ */
+export function isRemedyForbidden(
+  remedyName: string,
+  terms: readonly string[],
+): boolean {
+  const remedy = remedyName.toLowerCase();
+  return terms.some((term) => remedy.includes(term));
+}
+
 /** The fields that can identify which substance a drug record is. */
 export type PolicyIdentity = Pick<
   ProcessedDrug,
@@ -458,14 +512,31 @@ export type MappingOutcome = Outcome<RemedyMapping[], MappingRefusal>;
 export function buildRemedyMappingsFor(
   drug: ProcessedDrug,
   candidates: RemedyMatchCandidate[],
-  options?: { limit?: number; minScore?: number },
+  options?: {
+    limit?: number;
+    minScore?: number;
+    /**
+     * Remedy-side words of Drug Interactions recorded against this drug.
+     * Candidates matching one are dropped: a pair we have already recorded as
+     * interacting must not also be offered as a remedy for it.
+     */
+    forbiddenRemedies?: readonly string[];
+  },
 ): MappingOutcome {
   const refusal = neverMappedReason(drug);
   if (refusal) {
     return unknown("never-mapped", refusal);
   }
 
-  const matches = rankRemedyCandidatesForDrug(drug, candidates, options);
+  const forbidden = options?.forbiddenRemedies ?? [];
+  const permitted =
+    forbidden.length === 0
+      ? candidates
+      : candidates.filter(
+          (candidate) => !isRemedyForbidden(candidate.name, forbidden),
+        );
+
+  const matches = rankRemedyCandidatesForDrug(drug, permitted, options);
   const forceSupportive = shouldForceSupportiveReplacement(drug);
   const noAlternative = isNeverAlternative(drug);
 
