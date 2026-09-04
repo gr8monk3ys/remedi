@@ -8,6 +8,11 @@
 
 import "server-only";
 import { prisma } from "./client";
+import {
+  FORBIDDING_SEVERITIES,
+  forbiddenRemedyGroupsFor,
+  type PolicyIdentity,
+} from "@/lib/remedy-matcher";
 
 /** Severity ranking for sorting (most severe first) */
 const SEVERITY_ORDER: Record<string, number> = {
@@ -155,3 +160,25 @@ export type InteractionResult = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+/**
+ * The remedy-side words of Drug Interactions recorded against a drug.
+ *
+ * The magnesium/ciprofloxacin rule lived in a seed comment and a test doing
+ * exact string equality on "Ciprofloxacin" — so "Cipro", "Levofloxacin" and
+ * every other fluoroquinolone escaped it, despite the test being titled after
+ * the class. The DrugInteraction table already records the pair at class
+ * level, curated, and until now the mapping path had never once consulted it.
+ *
+ * Mild interactions are not included: they inform, they do not forbid.
+ */
+export async function forbiddenRemedyTermsForDrug(
+  drug: PolicyIdentity,
+): Promise<string[][]> {
+  const rows = await prisma.drugInteraction.findMany({
+    where: { severity: { in: [...FORBIDDING_SEVERITIES] } },
+    select: { substanceA: true, substanceB: true },
+  });
+
+  return forbiddenRemedyGroupsFor(drug, rows);
+}

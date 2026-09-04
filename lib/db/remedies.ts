@@ -20,6 +20,7 @@ import {
   type RemedyMatchCandidate,
 } from "../remedy-matcher";
 import { known } from "../outcome";
+import { forbiddenRemedyTermsForDrug } from "./interactions";
 
 /**
  * Get natural remedy by ID
@@ -138,9 +139,15 @@ export async function generateRemedyMappingsForPharmaceutical(params: {
     },
   })) as RemedyMatchCandidate[];
 
+  // Pairs we have already recorded as interacting must not also be offered as
+  // remedies for each other. The DrugInteraction table is curated and
+  // class-level; until now the mapping path had never consulted it.
+  const forbiddenRemedies = await forbiddenRemedyTermsForDrug(drug);
+
   const outcome = buildRemedyMappingsFor(drug, candidates, {
     limit,
     minScore,
+    forbiddenRemedies,
   });
 
   // A refusal is passed through untouched. Persisting nothing is right, but so

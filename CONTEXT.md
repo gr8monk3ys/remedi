@@ -73,6 +73,14 @@ A recorded interaction between two Substances, with a severity and a
 description. Records are directionless: the pair is the unit, not the order.
 _Avoid_: conflict, contraindication (which is one severity, not the concept)
 
+**Forbidden Pair**:
+A Pharmaceutical and a Natural Remedy that must never be joined by a Remedy
+Mapping, because a Drug Interaction is already recorded between them. Sourced
+from the recorded interactions rather than from a separate list, so the two
+subsystems cannot disagree — and it covers only what is recorded, which means a
+plausible interaction nobody has curated is not forbidden.
+_Avoid_: banned pair, blacklist, exclusion
+
 **Medication Cabinet**:
 The set of Substances a signed-in person has told us they currently take.
 _Avoid_: medication list, profile, stack
