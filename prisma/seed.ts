@@ -11,9 +11,11 @@ import type { ProcessedDrug } from "../lib/types.ts";
 import {
   buildRemedyMappingsFor,
   certifyReplacementType,
-  FORBIDDING_SEVERITIES,
+  FORBIDDING_INTERACTIONS_QUERY,
   forbiddenRemedyGroupsFor,
   isRemedyForbidden,
+  MIN_DISPLAY_SIMILARITY,
+  toPolicyIdentity,
   type RemedyMatchCandidate,
 } from "../lib/remedy-matcher.ts";
 
@@ -286,6 +288,18 @@ async function main(): Promise<void> {
         return [];
       }
 
+      // The generated path filters on the display floor via `minScore`; the
+      // curated path wrote its hand-typed score straight through, so a row
+      // under the floor would be persisted and then never shown.
+      if (mapping.similarityScore < MIN_DISPLAY_SIMILARITY) {
+        console.warn(
+          `  Policy dropped a curated mapping under the display floor: ` +
+            `${mapping.pharmaceuticalName} -> ${mapping.naturalRemedyName} ` +
+            `(${mapping.similarityScore} < ${MIN_DISPLAY_SIMILARITY})`,
+        );
+        return [];
+      }
+
       if (certified.data !== mapping.replacementType) {
         console.warn(
           `  Policy demoted a curated mapping: ${mapping.pharmaceuticalName} -> ` +
@@ -388,22 +402,13 @@ type PharmaIdentity = {
 async function resolveForbiddenTerms(
   pharmas: PharmaIdentity[],
 ): Promise<Map<string, string[][]>> {
-  const rows = await prisma.drugInteraction.findMany({
-    where: { severity: { in: [...FORBIDDING_SEVERITIES] } },
-    select: { substanceA: true, substanceB: true },
-  });
+  const rows = await prisma.drugInteraction.findMany(
+    FORBIDDING_INTERACTIONS_QUERY,
+  );
 
   const byPharma = new Map<string, string[][]>();
   for (const pharma of pharmas) {
-    const groups = forbiddenRemedyGroupsFor(
-      {
-        name: pharma.name,
-        genericName: pharma.genericName ?? undefined,
-        category: pharma.category,
-        ingredients: pharma.ingredients,
-      },
-      rows,
-    );
+    const groups = forbiddenRemedyGroupsFor(toPolicyIdentity(pharma), rows);
     if (groups.length > 0) byPharma.set(pharma.id, groups);
   }
   return byPharma;

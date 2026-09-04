@@ -247,6 +247,37 @@ describe("the policy drops a forbidden pair before scoring it", () => {
     ).toBe(true);
   });
 
+  it("reads which side is the remedy from the row, not from its order", () => {
+    // CONTEXT.md: "Records are directionless: the pair is the unit, not the
+    // order." Reading substanceA as the remedy regardless happened to work
+    // only because all 43 seeded rows are written that way.
+    const swapped = forbiddenRemedyGroupsFor(cipro, [
+      {
+        substanceA: "Fluoroquinolone Antibiotics (Ciprofloxacin, Levofloxacin)",
+        substanceAType: "pharmaceutical",
+        substanceB: "Magnesium Supplements",
+        substanceBType: "natural_remedy",
+      },
+    ]);
+
+    expect(isRemedyForbidden("Magnesium Glycinate", swapped)).toBe(true);
+  });
+
+  it("ignores a row that names no remedy at all", () => {
+    // A drug-drug interaction cannot forbid a Remedy Mapping, and read in the
+    // fixed order its drug name would be treated as the remedy.
+    const drugToDrug = forbiddenRemedyGroupsFor(cipro, [
+      {
+        substanceA: "Warfarin",
+        substanceAType: "pharmaceutical",
+        substanceB: "Fluoroquinolone Antibiotics (Ciprofloxacin)",
+        substanceBType: "pharmaceutical",
+      },
+    ]);
+
+    expect(drugToDrug).toEqual([]);
+  });
+
   it("does not read a remedy record as the drug its own row names", () => {
     // "Melatonin interacts with sedatives and sleep medications" matched a
     // melatonin record on the word "sleep" in its category, and so forbade

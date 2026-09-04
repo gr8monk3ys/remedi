@@ -9,7 +9,7 @@
 import "server-only";
 import { prisma } from "./client";
 import {
-  FORBIDDING_SEVERITIES,
+  FORBIDDING_INTERACTIONS_QUERY,
   forbiddenRemedyGroupsFor,
   type PolicyIdentity,
 } from "@/lib/remedy-matcher";
@@ -175,10 +175,9 @@ export type InteractionResult = {
 export async function forbiddenRemedyTermsForDrug(
   drug: PolicyIdentity,
 ): Promise<string[][]> {
-  const rows = await prisma.drugInteraction.findMany({
-    where: { severity: { in: [...FORBIDDING_SEVERITIES] } },
-    select: { substanceA: true, substanceB: true },
-  });
+  const rows = await prisma.drugInteraction.findMany(
+    FORBIDDING_INTERACTIONS_QUERY,
+  );
 
   return forbiddenRemedyGroupsFor(drug, rows);
 }
