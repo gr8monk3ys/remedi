@@ -21,7 +21,7 @@ export function InteractionCard({
   const config = SEVERITY_CONFIG[interaction.severity] || SEVERITY_CONFIG.mild!;
 
   return (
-    <Card className={`${config.borderColor} border-l-4`}>
+    <Card className={config.borderColor}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1">

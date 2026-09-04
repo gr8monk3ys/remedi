@@ -44,7 +44,7 @@ test.describe("Authentication", () => {
     await expect(
       page.getByRole("heading", {
         level: 1,
-        name: /find natural alternatives to pharmaceuticals/i,
+        name: /search a drug/i,
       }),
     ).toBeVisible({ timeout: 10000 });
 
@@ -116,7 +116,7 @@ test.describe("Authentication", () => {
     await expect(
       page.getByRole("heading", {
         level: 1,
-        name: /find natural alternatives to pharmaceuticals/i,
+        name: /search a drug/i,
       }),
     ).toBeVisible({ timeout: 10000 });
 

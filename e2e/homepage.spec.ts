@@ -31,20 +31,23 @@ test.describe("Homepage", () => {
   test("should display the main heading", async ({ page }) => {
     const heading = page.getByRole("heading", { level: 1 });
     await expect(heading).toBeVisible();
-    await expect(heading).toContainText("Find natural alternatives");
+    await expect(heading).toContainText("Search a drug");
   });
 
   test("should display the hero subtitle", async ({ page }) => {
     await expect(
       page.getByText(
-        "Search any drug or supplement to discover evidence-based natural remedies",
+        /Every match is labelled Alternative, Complementary or Supportive/i,
       ),
     ).toBeVisible();
   });
 
-  test("should display the evidence-based badge", async ({ page }) => {
+  test("states plainly that an empty result is a decision", async ({
+    page,
+  }) => {
+    // The product's whole thesis: emptiness is curated, not missing data.
     await expect(
-      page.getByText("Evidence-based natural alternatives"),
+      page.getByText(/that is a decision, not a gap/i),
     ).toBeVisible();
   });
 
@@ -60,7 +63,7 @@ test.describe("Homepage", () => {
     await expect(searchInput).toBeVisible({ timeout: 10000 });
     await expect(searchInput).toHaveAttribute(
       "placeholder",
-      /Search a drug or supplement/i,
+      /Search a drug or remedy/i,
     );
   });
 
@@ -76,16 +79,17 @@ test.describe("Homepage", () => {
     await expect(page.getByText("Tylenol")).toBeVisible();
   });
 
-  test("should display features grid", async ({ page }) => {
+  test("explains what each Replacement Type is allowed to claim", async ({
+    page,
+  }) => {
     await expect(
-      page.getByRole("heading", { name: "Smart Search" }),
+      page.getByText("What a label is allowed to claim"),
     ).toBeVisible();
+    await expect(page.getByText("May stand in for the drug")).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Evidence-Based" }),
+      page.getByText("May be taken alongside the drug"),
     ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "AI-Powered" }),
-    ).toBeVisible();
+    await expect(page.getByText("Offers general support only")).toBeVisible();
   });
 
   test("should display the medical disclaimer", async ({ page }) => {

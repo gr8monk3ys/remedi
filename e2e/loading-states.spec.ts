@@ -156,13 +156,13 @@ test.describe("Loading States", () => {
     await expect(
       page.getByRole("heading", {
         level: 1,
-        name: /find natural alternatives to pharmaceuticals/i,
+        name: /search a drug/i,
       }),
     ).toBeVisible({ timeout: 10000 });
 
     // Features grid should be rendered
     await expect(
-      page.getByRole("heading", { name: "Smart Search" }),
+      page.getByText("What a label is allowed to claim"),
     ).toBeVisible();
   });
 });
