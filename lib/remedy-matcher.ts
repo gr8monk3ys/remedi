@@ -164,7 +164,14 @@ export function parseReplacementType(value: unknown): ReplacementType {
   return "Supportive";
 }
 
-function replacementTypeForScore(score: number): ReplacementType {
+/**
+ * The Replacement Type a score alone would justify, before any demotion.
+ *
+ * Exported so the AI path uses these thresholds rather than re-typing them:
+ * a model's confidence is rendered on the same scale, in the same place, and
+ * two copies of 0.75 and 0.55 would drift.
+ */
+export function replacementTypeForScore(score: number): ReplacementType {
   if (score >= 0.75) return "Alternative";
   if (score >= 0.55) return "Complementary";
   return "Supportive";

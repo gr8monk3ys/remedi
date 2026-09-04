@@ -151,7 +151,12 @@ describe("/api/ai-search", () => {
       isNowWithinLimit: true,
     });
     mockProcessNaturalLanguageQuery.mockResolvedValue(mockNlpResult);
-    mockEnhanceRemedyMatching.mockResolvedValue([mockRecommendation]);
+    // enhanceRemedyMatching returns a Mapping Outcome now: a refusal for a
+    // never-mapped substance is a different arm from an empty result.
+    mockEnhanceRemedyMatching.mockResolvedValue({
+      kind: "known",
+      data: [mockRecommendation],
+    });
     mockCheckDrugInteractions.mockResolvedValue(mockInteractionResult);
   });
 

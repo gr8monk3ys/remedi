@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
     const nlpResult = await processNaturalLanguageQuery(query);
 
     // Get AI-enhanced recommendations
-    const recommendations = await enhanceRemedyMatching({
+    const outcome = await enhanceRemedyMatching({
       query,
       userHistory,
       currentMedications:
@@ -144,6 +144,29 @@ export async function POST(request: NextRequest) {
         category: preferences?.category || nlpResult.preferredCategories,
       },
     });
+
+    // A refusal is reported as a refusal. Returning an empty recommendation
+    // list would make "we do not suggest remedies alongside this drug" look
+    // identical to "the model found nothing", which is the one confusion this
+    // policy exists to prevent.
+    if (outcome.kind === "unknown") {
+      return NextResponse.json(
+        successResponse({
+          intent: nlpResult.intent,
+          recommendations: [],
+          refused: { reason: outcome.reason, message: outcome.message },
+          interactions: null,
+          extractedInfo: {
+            pharmaceutical: nlpResult.pharmaceuticalMentioned,
+            symptoms: nlpResult.symptomsMentioned,
+            categories: nlpResult.preferredCategories,
+            concerns: nlpResult.concerns,
+          },
+        }),
+      );
+    }
+
+    const recommendations = outcome.data;
 
     // Check for drug interactions if requested
     let interactionResults = null;
