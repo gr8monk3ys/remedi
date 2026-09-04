@@ -9,8 +9,8 @@
 import "server-only";
 import { prisma } from "./client";
 import {
-  interactionDrugTerms,
-  interactionRemedyTerms,
+  FORBIDDING_SEVERITIES,
+  forbiddenRemedyGroupsFor,
   type PolicyIdentity,
 } from "@/lib/remedy-matcher";
 
@@ -176,33 +176,9 @@ export async function forbiddenRemedyTermsForDrug(
   drug: PolicyIdentity,
 ): Promise<string[][]> {
   const rows = await prisma.drugInteraction.findMany({
-    where: { severity: { in: ["moderate", "severe", "contraindicated"] } },
+    where: { severity: { in: [...FORBIDDING_SEVERITIES] } },
     select: { substanceA: true, substanceB: true },
   });
 
-  const haystack = [
-    drug.name,
-    drug.genericName,
-    drug.category,
-    ...(drug.ingredients ?? []),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  const groups = new Map<string, string[]>();
-  for (const row of rows) {
-    // Every row is natural_remedy x pharmaceutical: substanceB names the drug.
-    const namesThisDrug = interactionDrugTerms(row.substanceB).some((term) =>
-      haystack.includes(term),
-    );
-    if (!namesThisDrug) continue;
-
-    for (const group of interactionRemedyTerms(row.substanceA)) {
-      // Keyed on the joined words so the same alias from two rows collapses.
-      groups.set(group.join(" "), group);
-    }
-  }
-
-  return [...groups.values()];
+  return forbiddenRemedyGroupsFor(drug, rows);
 }

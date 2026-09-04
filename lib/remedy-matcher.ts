@@ -475,6 +475,59 @@ export function neverMappedReason(drug: PolicyIdentity): string | null {
   return match ? match[1] : null;
 }
 
+/**
+ * The severities that forbid a pair. Mild interactions inform; they do not
+ * forbid. Shared so every caller filters identically.
+ */
+export const FORBIDDING_SEVERITIES = [
+  "moderate",
+  "severe",
+  "contraindicated",
+] as const;
+
+/** A recorded Drug Interaction, reduced to the two names that matter. */
+export type InteractionRow = {
+  readonly substanceA: string;
+  readonly substanceB: string;
+};
+
+/**
+ * The remedy-side alternatives forbidden for a drug, given recorded interactions.
+ *
+ * Pure, and given its rows rather than fetching them, so the policy still needs
+ * no database. Every caller — the runtime generator, the seed, and the
+ * remediation script — resolves the same answer here instead of writing this
+ * loop again; three copies of a safety rule is three chances for it to drift.
+ */
+export function forbiddenRemedyGroupsFor(
+  drug: PolicyIdentity,
+  rows: readonly InteractionRow[],
+): string[][] {
+  const haystack = [
+    drug.name,
+    drug.genericName,
+    drug.category,
+    ...(drug.ingredients ?? []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  // Keyed on the joined words so the same alias from two rows collapses.
+  const groups = new Map<string, string[]>();
+  for (const row of rows) {
+    const namesThisDrug = interactionDrugTerms(row.substanceB).some((term) =>
+      haystack.includes(term),
+    );
+    if (!namesThisDrug) continue;
+
+    for (const group of interactionRemedyTerms(row.substanceA)) {
+      groups.set(group.join(" "), group);
+    }
+  }
+  return [...groups.values()];
+}
+
 /** Whether this drug may carry any generated Remedy Mapping. */
 export function isNeverMapped(drug: PolicyIdentity): boolean {
   return neverMappedReason(drug) !== null;
