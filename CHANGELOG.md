@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/gr8monk3ys/remedi/compare/v1.1.0...v1.2.0) (2026-09-04)
+
+
+### Features
+
+* **safety:** make a Replacement Type unforgeable and a refusal explicit ([#96](https://github.com/gr8monk3ys/remedi/issues/96)) ([e5f61f0](https://github.com/gr8monk3ys/remedi/commit/e5f61f0f40b09a29e29b2043800598cbe4a6def5))
+
+
+### Bug Fixes
+
+* **safety:** key the remedy policy on substance identity, not the label's name ([#94](https://github.com/gr8monk3ys/remedi/issues/94)) ([7d9e79b](https://github.com/gr8monk3ys/remedi/commit/7d9e79b097ab61347f27b90f527f83d2c9f43f2b))
+
 ## [1.1.0](https://github.com/gr8monk3ys/remedi/compare/v1.0.0...v1.1.0) (2026-09-03)
 
 ### Features
