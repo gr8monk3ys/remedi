@@ -147,100 +147,6 @@ export const remedyMappings = [
   },
 
   // SSRI antidepressant alternatives
-  {
-    pharmaceuticalName: "Sertraline",
-    naturalRemedyName: "St. Johns Wort (Hypericum perforatum)",
-    similarityScore: 0.7,
-    matchingNutrients: JSON.stringify([
-      "Hypericin",
-      "Hyperforin",
-      "Serotonin modulation",
-    ]),
-    replacementType: "Alternative",
-  },
-  {
-    pharmaceuticalName: "Sertraline",
-    naturalRemedyName: "SAMe (S-Adenosyl-L-Methionine)",
-    similarityScore: 0.68,
-    matchingNutrients: JSON.stringify(["SAMe", "Neurotransmitter support"]),
-    replacementType: "Alternative",
-  },
-  {
-    pharmaceuticalName: "Sertraline",
-    naturalRemedyName: "Saffron (Crocus sativus)",
-    similarityScore: 0.62,
-    matchingNutrients: JSON.stringify(["Crocin", "Safranal", "Mood support"]),
-    replacementType: "Complementary",
-  },
-  {
-    pharmaceuticalName: "Sertraline",
-    naturalRemedyName: "Omega-3 Fish Oil (EPA/DHA)",
-    similarityScore: 0.55,
-    matchingNutrients: JSON.stringify(["EPA", "DHA", "Brain health"]),
-    replacementType: "Supportive",
-  },
-  {
-    pharmaceuticalName: "Sertraline",
-    naturalRemedyName: "Rhodiola Rosea",
-    similarityScore: 0.58,
-    matchingNutrients: JSON.stringify([
-      "Rosavins",
-      "Salidroside",
-      "Mood support",
-    ]),
-    replacementType: "Supportive",
-  },
-  {
-    pharmaceuticalName: "Sertraline",
-    naturalRemedyName: "5-HTP (5-Hydroxytryptophan)",
-    similarityScore: 0.65,
-    matchingNutrients: JSON.stringify(["5-HTP", "Serotonin precursor"]),
-    replacementType: "Complementary",
-  },
-
-  {
-    pharmaceuticalName: "Fluoxetine",
-    naturalRemedyName: "St. Johns Wort (Hypericum perforatum)",
-    similarityScore: 0.7,
-    matchingNutrients: JSON.stringify(["Hypericin", "Hyperforin"]),
-    replacementType: "Alternative",
-  },
-  {
-    pharmaceuticalName: "Fluoxetine",
-    naturalRemedyName: "SAMe (S-Adenosyl-L-Methionine)",
-    similarityScore: 0.65,
-    matchingNutrients: JSON.stringify(["SAMe"]),
-    replacementType: "Alternative",
-  },
-  {
-    pharmaceuticalName: "Fluoxetine",
-    naturalRemedyName: "Saffron (Crocus sativus)",
-    similarityScore: 0.6,
-    matchingNutrients: JSON.stringify(["Crocin"]),
-    replacementType: "Complementary",
-  },
-
-  {
-    pharmaceuticalName: "Escitalopram",
-    naturalRemedyName: "St. Johns Wort (Hypericum perforatum)",
-    similarityScore: 0.68,
-    matchingNutrients: JSON.stringify(["Hypericin"]),
-    replacementType: "Alternative",
-  },
-  {
-    pharmaceuticalName: "Escitalopram",
-    naturalRemedyName: "SAMe (S-Adenosyl-L-Methionine)",
-    similarityScore: 0.65,
-    matchingNutrients: JSON.stringify(["SAMe"]),
-    replacementType: "Alternative",
-  },
-  {
-    pharmaceuticalName: "Escitalopram",
-    naturalRemedyName: "Ashwagandha (Withania somnifera)",
-    similarityScore: 0.55,
-    matchingNutrients: JSON.stringify(["Withanolides", "Stress adaptation"]),
-    replacementType: "Supportive",
-  },
 
   // Benzodiazepine anxiolytic alternatives
   {
@@ -1390,20 +1296,6 @@ export const remedyMappings = [
   },
 
   // Additional antidepressant support
-  {
-    pharmaceuticalName: "Paroxetine",
-    naturalRemedyName: "St. Johns Wort (Hypericum perforatum)",
-    similarityScore: 0.68,
-    matchingNutrients: JSON.stringify(["Hypericin"]),
-    replacementType: "Alternative",
-  },
-  {
-    pharmaceuticalName: "Citalopram",
-    naturalRemedyName: "St. Johns Wort (Hypericum perforatum)",
-    similarityScore: 0.68,
-    matchingNutrients: JSON.stringify(["Hypericin"]),
-    replacementType: "Alternative",
-  },
 
   {
     pharmaceuticalName: "Venlafaxine",

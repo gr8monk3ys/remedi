@@ -315,6 +315,16 @@ export const NEVER_MAPPED: Readonly<Record<string, string>> = {
   clopidogrel: "antiplatelet — even 'supportive' additions alter bleeding risk",
   quetiapine:
     "antipsychotic — discontinuation or substitution suggestions are unsafe",
+  // Every plausible "natural antidepressant" raises serotonergic tone — St.
+  // John's Wort, SAMe, 5-HTP, saffron, rhodiola — so beside an SSRI each
+  // carries the same serotonin-syndrome mechanism. The recorded interaction
+  // covers only St. John's Wort; the rest are unrecorded and no gate can catch
+  // them. The class is the unsafe unit, not the pair.
+  sertraline: "SSRI — serotonergic additions risk serotonin syndrome",
+  fluoxetine: "SSRI — serotonergic additions risk serotonin syndrome",
+  paroxetine: "SSRI — serotonergic additions risk serotonin syndrome",
+  citalopram: "SSRI — serotonergic additions risk serotonin syndrome",
+  escitalopram: "SSRI — serotonergic additions risk serotonin syndrome",
 };
 
 /**
