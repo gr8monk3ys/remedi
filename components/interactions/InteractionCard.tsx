@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Shield } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,10 @@ export function InteractionCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Shield className={`h-4 w-4 shrink-0 ${config.color}`} />
+              <config.icon
+                aria-hidden="true"
+                className={`h-4 w-4 shrink-0 ${config.color}`}
+              />
               <span>
                 {interaction.substanceA} + {interaction.substanceB}
               </span>
