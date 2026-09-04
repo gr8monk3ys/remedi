@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.1](https://github.com/gr8monk3ys/remedi/compare/v1.2.0...v1.2.1) (2026-09-04)
+
+
+### Bug Fixes
+
+* **safety:** match a recorded interaction by phrase, not by loose words ([#106](https://github.com/gr8monk3ys/remedi/issues/106)) ([3a98471](https://github.com/gr8monk3ys/remedi/commit/3a984715e22fd0ef740e14aa4b4bda3a16cdb83e))
+* **safety:** route every write path through the policy gate ([#99](https://github.com/gr8monk3ys/remedi/issues/99)) ([785be9f](https://github.com/gr8monk3ys/remedi/commit/785be9f6ffa53fb403c3764a0ed7bb53276c3a69))
+* **safety:** source forbidden pairs from the recorded Drug Interactions ([#98](https://github.com/gr8monk3ys/remedi/issues/98)) ([06c2975](https://github.com/gr8monk3ys/remedi/commit/06c2975caaa5702f1b6e58c35d408474698305fb))
+* **safety:** unmap the SSRI class, not just the one pair we recorded ([#110](https://github.com/gr8monk3ys/remedi/issues/110)) ([97dd647](https://github.com/gr8monk3ys/remedi/commit/97dd64743734b910918586e23aa05e2998de2f3e))
+
 ## [1.2.0](https://github.com/gr8monk3ys/remedi/compare/v1.1.0...v1.2.0) (2026-09-04)
 
 ### Features
