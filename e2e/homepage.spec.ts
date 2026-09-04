@@ -37,7 +37,7 @@ test.describe("Homepage", () => {
   test("should display the hero subtitle", async ({ page }) => {
     await expect(
       page.getByText(
-        /Every match is labelled Alternative, Complementary or Supportive/i,
+        /Every mapping is labelled Alternative, Complementary or Supportive/i,
       ),
     ).toBeVisible();
   });

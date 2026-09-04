@@ -40,17 +40,16 @@ export const metadata: Metadata = {
     template: "%s | Remedi",
   },
   description:
-    "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements. Find safe, effective herbal and nutritional options backed by scientific research.",
+    "Search a drug and see the Natural Remedies that honestly relate to it. Every mapping is labelled Alternative, Complementary or Supportive, and some drugs carry none at all.",
   keywords: [
     "natural remedies",
     "herbal medicine",
-    "pharmaceutical alternatives",
-    "natural supplements",
-    "holistic health",
-    "alternative medicine",
-    "herbal supplements",
+    "natural remedy",
+    "remedy mapping",
+    "drug interactions",
+    "evidence-based remedies",
+    "herbal remedies",
     "natural health",
-    "wellness",
     "nutrition",
   ],
   authors: [{ name: "Remedi Team" }],
@@ -72,13 +71,13 @@ export const metadata: Metadata = {
     siteName: "Remedi",
     title: "Remedi - What honestly relates to your medication",
     description:
-      "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.",
+      "Search a drug and see the Natural Remedies that honestly relate to it. Every mapping is labelled Alternative, Complementary or Supportive, and some drugs carry none at all.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Remedi - What honestly relates to your medication",
     description:
-      "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.",
+      "Search a drug and see the Natural Remedies that honestly relate to it. Every mapping is labelled Alternative, Complementary or Supportive, and some drugs carry none at all.",
     creator: "@remedi",
   },
   robots: {
