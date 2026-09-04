@@ -49,3 +49,15 @@ https://remedi-iota.vercel.app.
   formatting fix. `format:check` globs root `*.md`, so the regenerated file
   fails main's own gate and blocks every PR behind it. Fixed three times now: #76,
   then twice for 1.2.0.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live as GitHub issues in `gr8monk3ys/remedi`, driven by the `gh` CLI.
+See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` at the repo root, ADRs in `docs/adr/`.
+See `docs/agents/domain.md`.
