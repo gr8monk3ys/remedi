@@ -94,7 +94,7 @@ describe("AI Module", () => {
         query: "pain relief",
       });
 
-      expect(result).toEqual([]);
+      expect(result).toEqual({ kind: "known", data: [] });
     });
 
     it("should return recommendations when AI is enabled", async () => {
@@ -149,7 +149,9 @@ describe("AI Module", () => {
         query: "natural pain relief",
       });
 
-      expect(result.length).toBeGreaterThanOrEqual(0);
+      expect(result.kind).toBe("known");
+      if (result.kind !== "known") throw new Error("unreachable");
+      expect(result.data.length).toBeGreaterThanOrEqual(0);
     });
 
     it("should handle AI errors gracefully", async () => {
@@ -166,7 +168,7 @@ describe("AI Module", () => {
         query: "test",
       });
 
-      expect(result).toEqual([]);
+      expect(result).toEqual({ kind: "known", data: [] });
     });
 
     it("should handle empty AI response", async () => {
@@ -185,7 +187,7 @@ describe("AI Module", () => {
         query: "test",
       });
 
-      expect(result).toEqual([]);
+      expect(result).toEqual({ kind: "known", data: [] });
     });
 
     it("should handle malformed JSON response", async () => {
@@ -224,7 +226,7 @@ describe("AI Module", () => {
         query: "test",
       });
 
-      expect(result).toEqual([]);
+      expect(result).toEqual({ kind: "known", data: [] });
     });
   });
 

@@ -10,6 +10,15 @@ import { getOpenAIClient, openaiCircuitBreaker } from "./client";
 import { CircuitBreakerOpenError } from "@/lib/circuit-breaker";
 import { buildMatchingPrompt, SYSTEM_PROMPT } from "./prompts";
 import { createLogger } from "@/lib/logger";
+import {
+  MIN_DISPLAY_SIMILARITY,
+  certifyReplacementType,
+  neverMappedReason,
+  replacementTypeForScore,
+  type MappingRefusal,
+  type PolicyIdentity,
+} from "@/lib/remedy-matcher";
+import { known, unknown, type Outcome } from "@/lib/outcome";
 
 const logger = createLogger("ai-matching");
 import type {
@@ -84,11 +93,44 @@ async function selectCandidateRemedies(
 }
 
 /**
+ * What an AI matching request produced: recommendations, or a refusal.
+ *
+ * `known` with an empty array means the model had nothing to offer. `unknown`
+ * means the policy declined to answer at all. They are different facts and a
+ * caller must not render them the same way.
+ */
+export type AIMatchingOutcome = Outcome<
+  AIRemedyRecommendation[],
+  MappingRefusal
+>;
+
+/**
+ * The Substance Identity a request is about, as far as the policy is concerned.
+ *
+ * The AI path has no Pharmaceutical record to reason from — the person typed a
+ * question and may have listed a Medication Cabinet. Both name substances, so
+ * both feed identity, and the same rules that govern a generated Remedy Mapping
+ * apply here.
+ *
+ * Symptoms are deliberately excluded. They describe how someone feels, not what
+ * they take, and folding them in meant a symptom whose text happened to contain
+ * a refused substance emptied the whole result set.
+ */
+function substanceIdentityFor(options: AIMatchingOptions): PolicyIdentity {
+  return {
+    name: options.query,
+    category: "",
+    ingredients: [...(options.currentMedications ?? [])],
+  };
+}
+
+/**
  * Parse AI response into structured recommendations
  */
 function parseAIResponse(
   response: string,
   allRemedies: RawDatabaseRemedy[],
+  identity: PolicyIdentity,
 ): AIRemedyRecommendation[] {
   try {
     const parsedJson: unknown = JSON.parse(response);
@@ -114,6 +156,21 @@ function parseAIResponse(
 
         if (!remedy) return [];
 
+        // The model's confidence is scored on the same scale as a Similarity
+        // Score and rendered in the same place, so it answers to the same
+        // display floor. Zod defaults an unparseable confidence to 0.5, which
+        // is how a model returning nothing useful could still clear the bar.
+        if (rec.confidence < MIN_DISPLAY_SIMILARITY) return [];
+
+        // Whether the drug is mappable at all was settled before the model
+        // was called; what is left is the demotion this mapping may need.
+        const certified = certifyReplacementType(
+          identity,
+          replacementTypeForScore(rec.confidence),
+        );
+
+        if (certified.kind === "unknown") return [];
+
         return [
           {
             remedy: {
@@ -124,6 +181,7 @@ function parseAIResponse(
               matchingNutrients: remedy.ingredients,
               similarityScore: rec.confidence,
               imageUrl: remedy.imageUrl || "",
+              replacementType: certified.data,
             },
             confidence: rec.confidence,
             reasoning: rec.reasoning,
@@ -148,14 +206,26 @@ function parseAIResponse(
  */
 export async function enhanceRemedyMatching(
   options: AIMatchingOptions,
-): Promise<AIRemedyRecommendation[]> {
+): Promise<AIMatchingOutcome> {
   const { query, userHistory, currentMedications, symptoms, preferences } =
     options;
+
+  const identity = substanceIdentityFor(options);
+
+  // Refuse before the model is called, not after. Whether a drug may carry a
+  // Remedy Mapping at all is a property of the request, so filtering the
+  // model's output would have left a refusal looking exactly like a search
+  // that happened to return nothing — the collapse this policy exists to
+  // prevent. It also means we do not pay to ask a question we will discard.
+  const refusal = neverMappedReason(identity);
+  if (refusal) {
+    return unknown("never-mapped", refusal);
+  }
 
   try {
     const client = getOpenAIClient();
     if (!client) {
-      return [];
+      return known([]);
     }
 
     // Pick candidates by relevance to the query, not by insertion order.
@@ -202,13 +272,13 @@ export async function enhanceRemedyMatching(
       throw new Error("No response from AI");
     }
 
-    return parseAIResponse(response, allRemedies);
+    return known(parseAIResponse(response, allRemedies, identity));
   } catch (error) {
     if (error instanceof CircuitBreakerOpenError) {
       logger.warn("OpenAI circuit breaker is open, skipping AI matching");
     } else {
       logger.error("AI matching error", error);
     }
-    return [];
+    return known([]);
   }
 }

@@ -164,7 +164,14 @@ export function parseReplacementType(value: unknown): ReplacementType {
   return "Supportive";
 }
 
-function replacementTypeForScore(score: number): ReplacementType {
+/**
+ * The Replacement Type a score alone would justify, before any demotion.
+ *
+ * Exported so the AI path uses these thresholds rather than re-typing them:
+ * a model's confidence is rendered on the same scale, in the same place, and
+ * two copies of 0.75 and 0.55 would drift.
+ */
+export function replacementTypeForScore(score: number): ReplacementType {
   if (score >= 0.75) return "Alternative";
   if (score >= 0.55) return "Complementary";
   return "Supportive";
@@ -379,6 +386,47 @@ export function isNeverMapped(drug: PolicyIdentity): boolean {
 function isNeverAlternative(drug: PolicyIdentity): boolean {
   const haystack = policyHaystack(drug);
   return NEVER_ALTERNATIVE.some((name) => haystack.includes(name));
+}
+
+/**
+ * The Replacement Type a hand-authored Remedy Mapping is actually allowed to
+ * claim, or a refusal to carry it at all.
+ *
+ * Curated seed rows are typed by a person and written to the database verbatim.
+ * The safety rules were therefore enforced on them only by a test over the
+ * static array — which cannot see the database, and which no write path
+ * consults. This routes the curated path through the same rules as the
+ * generated ones, so a hand-typed "Alternative" on an anticoagulant is demoted
+ * or dropped rather than shipped.
+ *
+ * It never *raises* a claim: a curator may always be more cautious than the
+ * policy, never less.
+ *
+ * Only the two identity-keyed rules apply here. The high-risk downgrade is
+ * deliberately not one of them: it is a free-text scan of a label's warnings
+ * and interactions, and it exists to compensate for FDA-derived records whose
+ * category identifies nothing. Run against curated prose it fires on any drug
+ * whose label merely *mentions* anticoagulants — measured on this seed data it
+ * demoted most of the Ibuprofen mappings, which are not high-risk. A curated
+ * row already carries a category a person chose, so the compensating heuristic
+ * has nothing to compensate for and only destroys accurate curation.
+ */
+export function certifyReplacementType(
+  drug: PolicyIdentity,
+  claimed: unknown,
+): Outcome<ReplacementType, MappingRefusal> {
+  const refusal = neverMappedReason(drug);
+  if (refusal) {
+    return unknown("never-mapped", refusal);
+  }
+
+  let type = parseReplacementType(claimed);
+
+  if (type === "Alternative" && isNeverAlternative(drug)) {
+    type = "Complementary";
+  }
+
+  return known(type);
 }
 
 /** Why the policy declined to produce any Remedy Mapping for a drug. */

@@ -149,15 +149,19 @@ export async function resolveSearch(
     }
   } catch (error) {
     if (error instanceof TierUnavailable) {
-      const demo = ports.findDemoRemedies(query);
-      if (demo && demo.length > 0) {
-        return { kind: "found", remedies: demo, source: "demo" };
-      }
+      // Deliberately no demo fallback here. A tier that threw is an outage,
+      // and answering an outage with demo data reports a failure as a result —
+      // the same collapse this module exists to prevent, dressed as a
+      // convenience. Demo data stands in for an empty catalogue, never for a
+      // database that is down.
       return { kind: "unavailable", which: error.which };
     }
     throw error;
   }
 
+  // Both tiers answered, and neither had anything. Demo data is a reasonable
+  // stand-in for that in development, because "we looked and found none" is
+  // what actually happened.
   const demo = ports.findDemoRemedies(query);
   if (demo && demo.length > 0) {
     return { kind: "found", remedies: demo, source: "demo" };
