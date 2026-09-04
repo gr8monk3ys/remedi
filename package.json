@@ -33,6 +33,7 @@
     "init": "bunx prisma generate && bunx prisma migrate dev && bunx prisma db seed",
     "db:verify": "bun run scripts/verify-db.ts",
     "db:integrity": "bun run scripts/check-data-integrity.ts",
+    "db:remediate": "bun run scripts/remediate-mappings.ts",
     "db:baseline": "bunx prisma migrate resolve --applied 20260205094500_baseline_postgres",
     "db:repair:clerk-migration": "bunx prisma migrate resolve --rolled-back 20250207_clerk_migration",
     "health:check": "bun run scripts/health-check.ts",
