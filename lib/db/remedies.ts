@@ -15,8 +15,11 @@ import { normalizeReferences } from "@/lib/references";
 import {
   MIN_DISPLAY_SIMILARITY,
   buildRemedyMappingsFor,
+  parseReplacementType,
+  type MappingOutcome,
   type RemedyMatchCandidate,
 } from "../remedy-matcher";
+import { known } from "../outcome";
 
 /**
  * Get natural remedy by ID
@@ -92,7 +95,12 @@ export async function getNaturalRemediesForPharmaceutical(
     similarityScore: mapping.similarityScore,
     // Surfaced so the UI can distinguish an alternative from a merely
     // supportive suggestion instead of labelling everything the same.
-    replacementType: mapping.replacementType ?? undefined,
+    //
+    // The column is wider than the union and predates it, so a legacy or
+    // absent value is coerced to the weakest claim rather than trusted or
+    // thrown on. A missing label used to render as no badge at all — the
+    // least cautious presentation, from the least governed rows.
+    replacementType: parseReplacementType(mapping.replacementType),
   }));
 }
 
@@ -109,7 +117,7 @@ export async function generateRemedyMappingsForPharmaceutical(params: {
   drug: ProcessedDrug;
   limit?: number;
   minScore?: number;
-}): Promise<NaturalRemedy[]> {
+}): Promise<MappingOutcome> {
   const {
     pharmaceuticalId,
     drug,
@@ -130,13 +138,21 @@ export async function generateRemedyMappingsForPharmaceutical(params: {
     },
   })) as RemedyMatchCandidate[];
 
-  const matches = buildRemedyMappingsFor(drug, candidates, {
+  const outcome = buildRemedyMappingsFor(drug, candidates, {
     limit,
     minScore,
   });
 
+  // A refusal is passed through untouched. Persisting nothing is right, but so
+  // is telling the caller *why* nothing was persisted — an anticoagulant with
+  // no mappings is a decision, and it must not read as "none matched".
+  if (outcome.kind === "unknown") {
+    return outcome;
+  }
+
+  const matches = outcome.data;
   if (matches.length === 0) {
-    return [];
+    return known([]);
   }
 
   // skipDuplicates keeps curated mappings authoritative: a generated row never
@@ -147,12 +163,12 @@ export async function generateRemedyMappingsForPharmaceutical(params: {
       naturalRemedyId: match.id,
       similarityScore: match.similarityScore,
       matchingNutrients: match.matchingNutrients,
-      replacementType: match.replacementType as string,
+      replacementType: match.replacementType,
     })),
     skipDuplicates: true,
   });
 
-  return matches;
+  return known(matches);
 }
 
 /**

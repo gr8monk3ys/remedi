@@ -53,6 +53,15 @@ A Remedy Mapping demoted to Supportive regardless of its Similarity Score,
 because the Pharmaceutical is one where suggesting a substitute is unsafe —
 anticoagulants, chemotherapy, antiretrovirals, immunosuppressants.
 
+**Mapping Outcome**:
+The result of asking which Natural Remedies a Pharmaceutical may be mapped to.
+An [[Outcome]]: **known** carries the Remedy Mappings, and a known-but-empty one
+means nothing scored above the display floor. **unknown** means the policy
+refuses to map this drug at all — anticoagulants, where even a Supportive
+suggestion alters bleeding risk. The two are not the same answer and must not
+render the same way.
+_Avoid_: no results, empty mapping
+
 **Evidence Level**:
 How well-supported a Natural Remedy's claimed benefits are. Feeds the
 Similarity Score.
@@ -67,6 +76,15 @@ _Avoid_: conflict, contraindication (which is one severity, not the concept)
 **Medication Cabinet**:
 The set of Substances a signed-in person has told us they currently take.
 _Avoid_: medication list, profile, stack
+
+**Outcome**:
+An answer, or a stated reason there isn't one. Every Outcome is either **known**
+— we established the answer, and a known-but-empty answer genuinely means "none"
+— or **unknown**, meaning we could not establish it. Only a known, empty Outcome
+may be presented to someone as "there are none"; every unknown must be presented
+as a failure to establish. Interaction Outcome and Mapping Outcome are the two
+domains that speak it today.
+_Avoid_: result, response, status
 
 **Interaction Outcome**:
 The result of asking about interactions. Either **known** — we got an answer,

@@ -113,7 +113,10 @@ model NaturalRemedyMapping {
   naturalRemedyId  String         @db.Uuid
   similarityScore  Float          // Similarity score between the pharmaceutical and remedy (0-1)
   matchingNutrients String[]      // Native PostgreSQL array
-  replacementType  String?        // Type of replacement: Alternative, Complementary, Supportive
+  // Alternative | Complementary | Supportive. Non-null: a mapping with no
+  // claim-limiting label used to render as no badge at all, which is the
+  // least cautious presentation available. Decided by lib/remedy-matcher.
+  replacementType  String
   createdAt        DateTime       @default(now()) @db.Timestamptz
   updatedAt        DateTime       @updatedAt @db.Timestamptz
 

@@ -14,6 +14,8 @@
  */
 
 import type { NaturalRemedy, ProcessedDrug } from "@/lib/types";
+import type { MappingOutcome } from "@/lib/remedy-matcher";
+import { dataOr } from "@/lib/outcome";
 
 export type SearchSource = "database" | "openfda" | "demo";
 
@@ -37,11 +39,26 @@ export interface SearchPorts {
   generateMappingsFor(args: {
     pharmaceuticalId: string;
     drug: ProcessedDrug;
-  }): Promise<NaturalRemedy[]>;
+  }): Promise<MappingOutcome>;
   searchFda(query: string): Promise<ProcessedDrug[]>;
   cachePharmaceutical(drug: ProcessedDrug): Promise<{ id: string }>;
   /** Demo fallback; returns null when demo data is disabled. */
   findDemoRemedies(query: string): NaturalRemedy[] | null;
+}
+
+/**
+ * The one place a policy refusal is flattened into an empty result list.
+ *
+ * A "never-mapped" refusal is a real answer — the policy withholds remedies
+ * for anticoagulants on purpose — but the search response has no field to
+ * carry it yet, so today it renders as an empty list exactly as it did before.
+ *
+ * This function exists so that collapse is a single, named, greppable step
+ * rather than an `[]` returned from six places. When the search response grows
+ * an outcome of its own, this is the only thing that has to change.
+ */
+function collapseMappingOutcome(outcome: MappingOutcome): NaturalRemedy[] {
+  return dataOr(outcome, []);
 }
 
 class TierUnavailable extends Error {
@@ -69,10 +86,12 @@ async function fromDatabase(
     const existing = await ports.findRemediesFor(drug.id);
     if (existing.length > 0) return existing;
 
-    return await ports.generateMappingsFor({
-      pharmaceuticalId: drug.id,
-      drug,
-    });
+    return collapseMappingOutcome(
+      await ports.generateMappingsFor({
+        pharmaceuticalId: drug.id,
+        drug,
+      }),
+    );
   } catch {
     // The drug is known but its mappings could not be produced. That is a
     // failure to answer, not an answer of "none".
@@ -100,10 +119,12 @@ async function fromOpenFda(
   try {
     const saved = await ports.cachePharmaceutical(drug);
     if (!saved?.id) throw new Error("cachePharmaceutical returned no id");
-    return await ports.generateMappingsFor({
-      pharmaceuticalId: saved.id,
-      drug,
-    });
+    return collapseMappingOutcome(
+      await ports.generateMappingsFor({
+        pharmaceuticalId: saved.id,
+        drug,
+      }),
+    );
   } catch {
     throw new TierUnavailable("database");
   }
