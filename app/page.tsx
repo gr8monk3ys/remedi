@@ -31,8 +31,8 @@ const STEPS = [
   },
   {
     icon: Cpu,
-    title: "Ingredient matching",
-    body: "Active ingredients and properties are scored against remedies. Weak matches are hidden.",
+    title: "Ingredient scoring",
+    body: "Active ingredients and properties are scored against remedies. Anything below the display floor is not shown.",
   },
 ] as const;
 
@@ -54,9 +54,10 @@ export default function Home() {
               </span>
             </h1>
             <p className="reveal-up reveal-delay-1 mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-              Every match is labelled Alternative, Complementary or Supportive,
-              so you can see what it is actually claiming. Some medications
-              carry no matches at all — that is a decision, not a gap.
+              Every mapping is labelled Alternative, Complementary or
+              Supportive, so you can see what it is actually claiming. Some
+              medications carry no mappings at all — that is a decision, not a
+              gap.
             </p>
           </section>
 
@@ -96,7 +97,7 @@ export default function Home() {
           <section className="grid gap-8 border-t border-border py-16 md:grid-cols-[1fr_1.6fr] md:gap-16">
             <div>
               <h2 className="mt-3 text-2xl font-semibold md:text-3xl">
-                Three passes, from curated data to a scored match
+                Three passes, from curated data to a scored mapping
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 Results are only as good as the evidence behind them. The

@@ -40,7 +40,7 @@ so a careless edit fails the build instead of shipping:
   contraceptives can never carry an "Alternative" label.
 - Anticoagulants and antiplatelets (warfarin, apixaban, rivaroxaban, dabigatran,
   clopidogrel) and quetiapine have **zero** mappings on purpose. Even a
-  "supportive" supplement changes bleeding risk, so an empty page is the curated
+  "Supportive" Natural Remedy changes bleeding risk, so an empty page is the curated
   answer.
 - A pair already recorded as a Drug Interaction cannot also be offered as a
   remedy for it — magnesium beside ciprofloxacin, iron beside a fluoroquinolone.
