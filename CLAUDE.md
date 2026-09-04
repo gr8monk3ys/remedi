@@ -38,3 +38,14 @@ https://remedi-iota.vercel.app.
 - `type-check` and `knip` need a `DATABASE_URL` only to run `prisma generate`; the scripts default one.
 - `release-please` publishes from `main`; CHANGELOG.md is generated, don't hand-edit.
 - Husky pre-commit runs lint-staged and `type-check`.
+- **`.env.local` points `DATABASE_URL` at the production Neon database.** So
+  `bun run init` — which runs `prisma migrate dev` — offers to reset production
+  when it finds migration drift. Export the local URL before any
+  Prisma command that writes:
+  `export DATABASE_URL="postgresql://remedi:remedi_dev@localhost:5433/remedi?schema=public"`
+- **Re-run `format:write` on a release PR immediately before merging it, not
+  when it opens.** release-please rewrites CHANGELOG.md whenever another PR
+  merges while the release PR is open, which silently discards an earlier
+  formatting fix. `format:check` globs root `*.md`, so the regenerated file
+  fails main's own gate and blocks every PR behind it. Fixed three times now: #76,
+  then twice for 1.2.0.
