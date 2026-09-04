@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, Shield, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  AlertTriangle,
+  Shield,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,48 +16,16 @@ import {
   readInteractionsFor,
   type InteractionOutcome,
 } from "@/lib/interactions/read";
-import type { Interaction } from "./interaction.types";
+import {
+  SEVERITY_CONFIG,
+  EVIDENCE_LABELS,
+  type Interaction,
+} from "./interaction.types";
 import { InteractionUnavailable } from "./InteractionUnavailable";
 
 interface InteractionWarningsProps {
   remedyName: string;
 }
-
-const SEVERITY_CONFIG: Record<
-  string,
-  { label: string; color: string; bgColor: string; borderColor: string }
-> = {
-  contraindicated: {
-    label: "Contraindicated",
-    color: "text-red-700 dark:text-red-400",
-    bgColor: "bg-red-100 dark:bg-red-950",
-    borderColor: "border-red-300 dark:border-red-800",
-  },
-  severe: {
-    label: "Severe",
-    color: "text-red-600 dark:text-red-400",
-    bgColor: "bg-red-50 dark:bg-red-950/50",
-    borderColor: "border-red-200 dark:border-red-900",
-  },
-  moderate: {
-    label: "Moderate",
-    color: "text-orange-600 dark:text-orange-400",
-    bgColor: "bg-orange-50 dark:bg-orange-950/50",
-    borderColor: "border-orange-200 dark:border-orange-900",
-  },
-  mild: {
-    label: "Mild",
-    color: "text-yellow-600 dark:text-yellow-400",
-    bgColor: "bg-yellow-50 dark:bg-yellow-950/50",
-    borderColor: "border-yellow-200 dark:border-yellow-900",
-  },
-};
-
-const EVIDENCE_LABELS: Record<string, string> = {
-  established: "Established",
-  theoretical: "Theoretical",
-  case_report: "Case Report",
-};
 
 function WarningItem({
   interaction,
@@ -75,6 +49,10 @@ function WarningItem({
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2">
+            <config.icon
+              aria-hidden="true"
+              className={`h-4 w-4 shrink-0 ${config.color}`}
+            />
             <span className="text-sm font-medium">{otherSubstance}</span>
             <Badge
               variant={
@@ -176,7 +154,7 @@ export function InteractionWarnings({
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Shield className="h-4 w-4 text-amber-500" />
+            <Shield aria-hidden="true" className="h-4 w-4 text-amber-500" />
             Interaction Warnings
           </CardTitle>
         </CardHeader>
@@ -208,7 +186,10 @@ export function InteractionWarnings({
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Shield className="h-4 w-4 text-green-500" />
+            <ShieldCheck
+              aria-hidden="true"
+              className="h-4 w-4 text-green-500"
+            />
             Interaction Warnings
           </CardTitle>
         </CardHeader>
