@@ -9,6 +9,7 @@ import {
   NEVER_ALTERNATIVE,
   NEVER_MAPPED,
   isNeverMapped,
+  neverMappedReason,
 } from "@/lib/remedy-matcher";
 
 /**
@@ -113,6 +114,30 @@ describe("seed remedy mappings", () => {
           `${m.pharmaceuticalName} -> ${m.naturalRemedyName} (${m.similarityScore})`,
       );
     expect(violations).toEqual([]);
+  });
+
+  it("offers no serotonergic remedy beside an SSRI", () => {
+    // The recorded interaction covers only St. John's Wort, and the catalogue
+    // also carried SAMe as an "Alternative" and 5-HTP as "Complementary" —
+    // the same serotonin-syndrome mechanism, unrecorded, so no gate could ever
+    // catch them. The class is the unsafe unit, not the pair.
+    const ssris = [
+      "Sertraline",
+      "Fluoxetine",
+      "Paroxetine",
+      "Citalopram",
+      "Escitalopram",
+    ];
+
+    const offered = remedyMappings
+      .filter((m) => ssris.includes(m.pharmaceuticalName))
+      .map((m) => `${m.pharmaceuticalName} -> ${m.naturalRemedyName}`);
+    expect(offered).toEqual([]);
+
+    // Unmapped because it is a decision, and the decision states its reason.
+    for (const name of ssris) {
+      expect(neverMappedReason({ name, category: "" })).toMatch(/SSRI/);
+    }
   });
 
   it("suggests no magnesium alongside fluoroquinolones (absorption chelation)", () => {

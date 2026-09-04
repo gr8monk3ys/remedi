@@ -42,6 +42,10 @@ so a careless edit fails the build instead of shipping:
   clopidogrel) and quetiapine have **zero** mappings on purpose. Even a
   "Supportive" Natural Remedy changes bleeding risk, so an empty page is the curated
   answer.
+- SSRIs (sertraline, fluoxetine, paroxetine, citalopram, escitalopram) are
+  unmapped for the same reason: every plausible "natural antidepressant" —
+  St. John's Wort, SAMe, 5-HTP, saffron, rhodiola — raises serotonergic tone,
+  so beside an SSRI each carries the same serotonin-syndrome mechanism.
 - A pair already recorded as a Drug Interaction cannot also be offered as a
   remedy for it — magnesium beside ciprofloxacin, iron beside a fluoroquinolone.
 
@@ -89,7 +93,7 @@ glossary's words.
 
 ## Evidence on Hand
 
-- Curated seed set: 85 Pharmaceuticals, 504 Natural Remedies, 249 Remedy
+- Curated seed set: 85 Pharmaceuticals, 504 Natural Remedies, 235 Remedy
   Mappings (`prisma/seed-data/`), plus 48 curated Drug Interactions.
 - Safety invariants enforced by `__tests__/seed-data/mappings.test.ts` and
   `lib/remedy-matcher.ts`.
