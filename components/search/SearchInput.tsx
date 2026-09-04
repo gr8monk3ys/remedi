@@ -104,7 +104,7 @@ export function SearchInput({
           placeholder={
             useAiSearch
               ? "Describe your needs naturally..."
-              : "Search a drug or supplement..."
+              : "Search a drug or remedy..."
           }
           value={query}
           onChange={(e) => setQuery(e.target.value)}

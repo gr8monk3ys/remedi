@@ -1,31 +1,20 @@
-import {
-  Database,
-  Globe,
-  Cpu,
-  Leaf,
-  Search,
-  Shield,
-  Sparkles,
-} from "lucide-react";
+import { Database, Globe, Cpu } from "lucide-react";
 import { OnboardingWrapper } from "@/components/home/OnboardingWrapper";
 import { FavoritesSection } from "@/components/home/FavoritesSection";
 import { SearchSection } from "@/components/home/SearchSection";
 
-const FEATURES = [
+const LABELS = [
   {
-    icon: Search,
-    title: "Smart Search",
-    body: "Search by drug name, symptom, or condition. Our database maps FDA-approved drugs to natural alternatives.",
+    label: "Alternative",
+    body: "May stand in for the drug. The strongest claim, and the rarest — most medications never carry it.",
   },
   {
-    icon: Shield,
-    title: "Evidence-Based",
-    body: "Every remedy includes evidence levels, dosage guidance, and scientific references you can verify.",
+    label: "Complementary",
+    body: "May be taken alongside the drug, not instead of it.",
   },
   {
-    icon: Sparkles,
-    title: "AI-Powered",
-    body: "Describe your needs in natural language. Our AI understands queries like “I need help sleeping.”",
+    label: "Supportive",
+    body: "Neither. Offers general support only, and says so.",
   },
 ] as const;
 
@@ -58,20 +47,16 @@ export default function Home() {
         <div className="relative mx-auto max-w-5xl">
           {/* Hero */}
           <section className="pt-20 pb-10 text-center md:pt-28 md:pb-14">
-            <p className="eyebrow reveal-up inline-flex items-center gap-2">
-              <Leaf className="h-3.5 w-3.5" aria-hidden="true" />
-              Evidence-based natural alternatives
-            </p>
-            <h1 className="reveal-up reveal-delay-1 mx-auto mt-5 max-w-3xl text-4xl font-semibold leading-[1.08] sm:text-5xl md:text-6xl">
-              Find natural alternatives
+            <h1 className="reveal-up mx-auto max-w-3xl text-4xl font-semibold leading-[1.08] sm:text-5xl md:text-6xl">
+              Search a drug. See what honestly
               <span className="block text-muted-foreground">
-                to pharmaceuticals
+                relates to it.
               </span>
             </h1>
-            <p className="reveal-up reveal-delay-2 mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-              Search any drug or supplement to discover evidence-based natural
-              remedies. Each match carries an evidence rating, dosage guidance,
-              and the studies behind it.
+            <p className="reveal-up reveal-delay-1 mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+              Every match is labelled Alternative, Complementary or Supportive,
+              so you can see what it is actually claiming. Some medications
+              carry no matches at all — that is a decision, not a gap.
             </p>
           </section>
 
@@ -85,35 +70,31 @@ export default function Home() {
             <FavoritesSection />
           </section>
 
-          {/* Features */}
+          {/* What a label is allowed to claim */}
           <section className="pt-12 pb-16">
-            <div className="grid overflow-hidden rounded-lg border border-border bg-card sm:grid-cols-3 sm:divide-x sm:divide-border max-sm:divide-y max-sm:divide-border">
-              {FEATURES.map(({ icon: Icon, title, body }, index) => (
-                <div key={title} className="p-6">
-                  <div className="flex items-center justify-between">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background">
-                      <Icon
-                        className="h-4 w-4 text-primary"
-                        aria-hidden="true"
-                      />
-                    </span>
-                    <span className="font-mono text-xs text-muted-foreground">
-                      0{index + 1}
-                    </span>
-                  </div>
-                  <h3 className="mt-5 text-sm font-semibold">{title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+            <h2 className="text-sm font-semibold">
+              What a label is allowed to claim
+            </h2>
+            <dl className="mt-4 divide-y divide-border border-y border-border">
+              {LABELS.map(({ label, body }) => (
+                <div
+                  key={label}
+                  className="grid gap-1 py-4 sm:grid-cols-[10rem_1fr] sm:gap-6"
+                >
+                  <dt className="text-sm font-medium text-foreground">
+                    {label}
+                  </dt>
+                  <dd className="text-sm leading-relaxed text-muted-foreground">
                     {body}
-                  </p>
+                  </dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </section>
 
           {/* How it works */}
           <section className="grid gap-8 border-t border-border py-16 md:grid-cols-[1fr_1.6fr] md:gap-16">
             <div>
-              <p className="eyebrow">How a search works</p>
               <h2 className="mt-3 text-2xl font-semibold md:text-3xl">
                 Three passes, from curated data to a scored match
               </h2>

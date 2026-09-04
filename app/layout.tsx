@@ -36,7 +36,7 @@ const plexMono = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "Remedi - Natural Alternatives to Pharmaceuticals",
+    default: "Remedi - What honestly relates to your medication",
     template: "%s | Remedi",
   },
   description:
@@ -70,13 +70,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "/",
     siteName: "Remedi",
-    title: "Remedi - Natural Alternatives to Pharmaceuticals",
+    title: "Remedi - What honestly relates to your medication",
     description:
       "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Remedi - Natural Alternatives to Pharmaceuticals",
+    title: "Remedi - What honestly relates to your medication",
     description:
       "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.",
     creator: "@remedi",
