@@ -405,6 +405,44 @@ describe("/api/ai-search", () => {
     // Successful Responses
     // ----------------------------------------------------------------------
 
+    describe("Policy Refusals", () => {
+      it("serializes the refusal so a reader can be told why", async () => {
+        // The refusal has to survive the route, not just the lib. An empty
+        // recommendation list with the reason dropped renders as "nothing
+        // found", which is the confusion this policy exists to prevent.
+        mockEnhanceRemedyMatching.mockResolvedValue({
+          kind: "unknown",
+          reason: "never-mapped",
+          message:
+            "Warfarin is an anticoagulant; even a supportive addition alters bleeding risk.",
+        });
+
+        const { POST } = await import("@/app/api/ai-search/route");
+        const request = createPostRequest({ query: "warfarin alternatives" });
+        const response = await POST(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(data.success).toBe(true);
+        expect(data.data.recommendations).toEqual([]);
+        expect(data.data.refused).toEqual({
+          reason: "never-mapped",
+          message:
+            "Warfarin is an anticoagulant; even a supportive addition alters bleeding risk.",
+        });
+      });
+
+      it("carries no refusal when the outcome is known", async () => {
+        const { POST } = await import("@/app/api/ai-search/route");
+        const request = createPostRequest({ query: "headache remedies" });
+        const response = await POST(request);
+        const data = await response.json();
+
+        expect(data.data.refused).toBeUndefined();
+        expect(data.data.recommendations).toHaveLength(1);
+      });
+    });
+
     describe("Successful Responses", () => {
       it("should process a valid query and return recommendations with intent", async () => {
         const { POST } = await import("@/app/api/ai-search/route");

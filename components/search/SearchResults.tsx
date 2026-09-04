@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { SearchResultCard } from "./SearchResultCard";
 import { AIInsightsPanel } from "./AIInsightsPanel";
-import type { SearchResult, AIInsights } from "./types";
+import type { SearchResult, AIInsights, SearchRefusal } from "./types";
 
 interface FilterOption {
   value: string;
@@ -23,6 +23,11 @@ interface SearchResultsProps {
   onPageChange: (page: number) => void;
   isLoading: boolean;
   error: string | null;
+  /**
+   * A stated policy refusal. Rendered in place of the empty state, which would
+   * otherwise report a refusal as "no results found".
+   */
+  refusal?: SearchRefusal | null;
   query: string;
   showFilters: boolean;
   categoryOptions: FilterOption[];
@@ -50,6 +55,7 @@ export function SearchResults({
   onPageChange,
   isLoading,
   error,
+  refusal,
   query,
   showFilters,
   categoryOptions,
@@ -118,16 +124,35 @@ export function SearchResults({
         </div>
       )}
 
-      {/* Empty State */}
-      {!isLoading && filteredResults.length === 0 && query && !error && (
-        <div className="py-12 text-center">
-          <p className="text-sm text-muted-foreground">
-            {results.length > 0
-              ? "No results match your current filters. Try adjusting your filters."
-              : `No results found for "${query}". Try a different search term.`}
+      {/* Refusal — a decision, stated as one, never an empty result. */}
+      {!isLoading && refusal && (
+        <div
+          role="status"
+          className="my-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4"
+        >
+          <p className="text-sm font-medium text-foreground">
+            No matches are offered for this search.
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {refusal.message}
           </p>
         </div>
       )}
+
+      {/* Empty State */}
+      {!isLoading &&
+        !refusal &&
+        filteredResults.length === 0 &&
+        query &&
+        !error && (
+          <div className="py-12 text-center">
+            <p className="text-sm text-muted-foreground">
+              {results.length > 0
+                ? "No results match your current filters. Try adjusting your filters."
+                : `No results found for "${query}". Try a different search term.`}
+            </p>
+          </div>
+        )}
 
       {/* Error State */}
       {error && (

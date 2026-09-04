@@ -175,6 +175,33 @@ describe("SearchResults", () => {
       ).toBeInTheDocument();
     });
 
+    it("states a refusal as a decision rather than an empty result", () => {
+      // A policy refusal reaching the screen as "No results found" is the one
+      // confusion the mapping policy exists to prevent.
+      render(
+        <SearchResults
+          {...defaultProps}
+          results={[]}
+          filteredResults={[]}
+          query="warfarin"
+          refusal={{
+            reason: "never-mapped",
+            message:
+              "Warfarin is an anticoagulant; even a supportive addition alters bleeding risk.",
+          }}
+        />,
+      );
+
+      expect(
+        screen.getByText(/No matches are offered for this search/),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/even a supportive addition alters bleeding risk/),
+      ).toBeInTheDocument();
+      // and not the generic empty state
+      expect(screen.queryByText(/No results found/)).not.toBeInTheDocument();
+    });
+
     it("does not show empty state when there is no query", () => {
       render(
         <SearchResults

@@ -354,6 +354,8 @@ const INTERACTION_STOPWORDS: ReadonlySet<string> = new Set([
   "disease",
   "control",
   "pills",
+  "drug",
+  "drugs",
   "and",
   "oral",
   "high",
@@ -362,37 +364,86 @@ const INTERACTION_STOPWORDS: ReadonlySet<string> = new Set([
   "root",
 ]);
 
-function significantWords(substance: string): string[] {
+/**
+ * A word with a plural "s" removed, so a class phrase written one way reaches a
+ * record written the other: a row says "Thiazide Diuretics" and the record's
+ * category says "Diuretic". Only the trailing letter goes, and only on words
+ * long enough that it is unlikely to be part of the stem.
+ */
+function singular(word: string): string {
+  return word.length > 3 && word.endsWith("s") ? word.slice(0, -1) : word;
+}
+
+/**
+ * A substance name from a recorded Drug Interaction, split into the
+ * alternatives it lists.
+ *
+ * Both sides of a row are written the same way: a name, optionally followed by
+ * the members or aliases it covers — "Fluoroquinolone Antibiotics
+ * (Ciprofloxacin, Levofloxacin)", "Coenzyme Q10 (CoQ10)". Parentheses, commas,
+ * slashes and the conjunction "and" separate alternatives, so each becomes its
+ * own group and matching ANY complete group is a match.
+ *
+ * Within a group the words are a phrase and must ALL be present. That is what
+ * stops a class word from matching alone: "Calcium Channel Blockers" must not
+ * fire on the "atorvastatin calcium" in a statin's ingredients, and
+ * "Anticonvulsants (Valproic Acid, ...)" must not fire on every substance whose
+ * name ends in "acid". A denylist of such words cannot be kept complete — the
+ * phrase is the structure that makes it unnecessary.
+ */
+function interactionGroups(substance: string): string[][] {
   return substance
     .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((word) => word.length > 0 && !INTERACTION_STOPWORDS.has(word));
+    .split(/[()/,]+|\band\b/)
+    .map((segment) =>
+      segment
+        .split(/[^a-z0-9]+/)
+        .filter((word) => word.length > 0 && !INTERACTION_STOPWORDS.has(word)),
+    )
+    .filter((group) => group.length > 0);
 }
 
 /**
- * The words identifying the *drug* side of a recorded Drug Interaction.
+ * Whether `text` contains every word of one group.
  *
- * A drug-side name is a class followed by the members it covers —
- * "Fluoroquinolone Antibiotics (Ciprofloxacin, Levofloxacin)". Those are
- * alternatives, so a drug matches when it matches ANY of them: a record named
- * "Ciprofloxacin" contains none of the word "fluoroquinolone".
+ * Words match as substrings, which is what absorbs the plural and possessive
+ * variance between a row and a record ("Iron Supplements" against "Iron
+ * Bisglycinate", "St. John's Wort" against "St. Johns Wort").
  *
- * Single letters are dropped here because a drug haystack is long enough that
- * one letter matches everything.
+ * A single letter is the exception. Beside one other word it is a designator
+ * that tells substances apart — "Vitamin E" from "Vitamin B12" — and as a
+ * substring it matches nearly everything, so "Vitamin E (High Dose)" forbade
+ * most of the vitamin catalogue: "vitamin" and a stray "e" both appear in
+ * "Vitamin B1 (Thiamine)". There it must appear as its own word. Among several
+ * words a lone letter is punctuation debris — the "s" that splitting
+ * "St. John's Wort" leaves behind — and is dropped rather than required.
+ *
+ * The trailing `\d*` keeps a designator covering its numbered forms, so
+ * "Vitamin D (High Dose)" still reaches "Vitamin D3 (Cholecalciferol)".
  */
-export function interactionDrugTerms(substance: string): string[] {
-  return significantWords(substance).filter((word) => word.length >= 3);
+function groupMatches(group: readonly string[], text: string): boolean {
+  const words = group.filter((word) => word.length > 1);
+  if (!words.every((word) => text.includes(singular(word)))) return false;
+  if (words.length > 1) return true;
+  return group
+    .filter((word) => word.length === 1)
+    .every((letter) => new RegExp(`\\b${letter}\\d*\\b`).test(text));
 }
 
 /**
- * The remedy-side names of a recorded Drug Interaction, as alternatives.
+ * The drug-side alternatives of a recorded Drug Interaction.
  *
- * Unlike the drug side, this names ONE substance — so its words are a phrase
- * and a remedy must match all of them, which is what keeps "Vitamin D (High
- * Dose)" from forbidding Vitamin E. But parentheses and slashes carry aliases
- * for that same substance ("Coenzyme Q10 (CoQ10)", "Turmeric/Curcumin"), and
- * requiring those too would forbid nothing at all. So each alias is its own
- * group, and a remedy matching any complete group is forbidden.
+ * Single letters are dropped entirely here: a drug haystack carries a name, a
+ * category and every ingredient, so one letter matches all of them.
+ */
+export function interactionDrugGroups(substance: string): string[][] {
+  return interactionGroups(substance)
+    .map((group) => group.filter((word) => word.length >= 3))
+    .filter((group) => group.length > 0);
+}
+
+/**
+ * The remedy-side alternatives of a recorded Drug Interaction.
  *
  * Nothing is dropped for being short. An earlier version required five
  * characters and so produced no words at all for "Iron Supplements", "Kava"
@@ -401,15 +452,7 @@ export function interactionDrugTerms(substance: string): string[] {
  * than no rule, because it looks like one.
  */
 export function interactionRemedyTerms(substance: string): string[][] {
-  return substance
-    .toLowerCase()
-    .split(/[()/,]+/)
-    .map((segment) =>
-      segment
-        .split(/[^a-z0-9]+/)
-        .filter((word) => word.length > 0 && !INTERACTION_STOPWORDS.has(word)),
-    )
-    .filter((group) => group.length > 0);
+  return interactionGroups(substance);
 }
 
 /**
@@ -428,9 +471,7 @@ export function isRemedyForbidden(
   groups: readonly (readonly string[])[],
 ): boolean {
   const remedy = remedyName.toLowerCase();
-  return groups.some(
-    (group) => group.length > 0 && group.every((word) => remedy.includes(word)),
-  );
+  return groups.some((group) => groupMatches(group, remedy));
 }
 
 /** The fields that can identify which substance a drug record is. */
@@ -516,12 +557,20 @@ export function forbiddenRemedyGroupsFor(
   // Keyed on the joined words so the same alias from two rows collapses.
   const groups = new Map<string, string[]>();
   for (const row of rows) {
-    const namesThisDrug = interactionDrugTerms(row.substanceB).some((term) =>
-      haystack.includes(term),
+    const remedyGroups = interactionRemedyTerms(row.substanceA);
+
+    // A record that *is* the remedy this row names is not the drug the row is
+    // about. "Melatonin interacts with sedatives and sleep medications" was
+    // matching a melatonin record on the word "sleep" in its own category, and
+    // so forbade mapping melatonin to melatonin.
+    if (remedyGroups.some((group) => groupMatches(group, haystack))) continue;
+
+    const namesThisDrug = interactionDrugGroups(row.substanceB).some((group) =>
+      groupMatches(group, haystack),
     );
     if (!namesThisDrug) continue;
 
-    for (const group of interactionRemedyTerms(row.substanceA)) {
+    for (const group of remedyGroups) {
       groups.set(group.join(" "), group);
     }
   }
