@@ -14,16 +14,19 @@
 
 import { describe, it, expect } from "vitest";
 import {
-  interactionTerms,
+  interactionDrugTerms,
+  interactionRemedyTerms,
   isRemedyForbidden,
   buildRemedyMappingsFor,
 } from "@/lib/remedy-matcher";
 import type { ProcessedDrug } from "@/lib/types";
 
-describe("interactionTerms picks out the identifying words", () => {
+describe("the drug side lists alternatives, so any of them matches", () => {
   it("keeps the class and the members it lists in parentheses", () => {
+    // A record named "Ciprofloxacin" contains none of the word
+    // "fluoroquinolone", so these have to be alternatives rather than a phrase.
     expect(
-      interactionTerms(
+      interactionDrugTerms(
         "Fluoroquinolone Antibiotics (Ciprofloxacin, Levofloxacin)",
       ),
     ).toEqual(["fluoroquinolone", "ciprofloxacin", "levofloxacin"]);
@@ -31,23 +34,40 @@ describe("interactionTerms picks out the identifying words", () => {
 
   it("drops words that identify no substance", () => {
     // A rule firing on "and" or "oral" would forbid everything.
-    expect(interactionTerms("Magnesium Supplements")).toEqual(["magnesium"]);
     expect(
-      interactionTerms("Oral Contraceptives (Birth Control Pills)"),
+      interactionDrugTerms("Oral Contraceptives (Birth Control Pills)"),
     ).toEqual(["contraceptives", "birth"]);
-  });
-
-  it("splits compound names", () => {
-    expect(interactionTerms("Turmeric/Curcumin")).toEqual([
-      "turmeric",
-      "curcumin",
-    ]);
-    expect(interactionTerms("Ginseng (Panax)")).toEqual(["ginseng", "panax"]);
   });
 });
 
-describe("isRemedyForbidden matches a class term to a specific product", () => {
-  const magnesium = interactionTerms("Magnesium Supplements");
+describe("the remedy side names one substance, so every word must match", () => {
+  it("treats parentheses and slashes as aliases, not extra requirements", () => {
+    // Requiring "coenzyme AND q10 AND coq10" would forbid nothing at all.
+    expect(interactionRemedyTerms("Coenzyme Q10 (CoQ10)")).toEqual([
+      ["coenzyme", "q10"],
+      ["coq10"],
+    ]);
+    expect(interactionRemedyTerms("Turmeric/Curcumin")).toEqual([
+      ["turmeric"],
+      ["curcumin"],
+    ]);
+  });
+
+  it("keeps short names that a length rule would silently erase", () => {
+    // An earlier version required five characters, so these produced nothing
+    // and forbade nothing — while the table records iron against
+    // fluoroquinolones (the same chelation as magnesium) and St. John's Wort
+    // against the only two contraindicated entries there are.
+    expect(interactionRemedyTerms("Iron Supplements")).toEqual([["iron"]]);
+    expect(interactionRemedyTerms("Kava")).toEqual([["kava"]]);
+    expect(interactionRemedyTerms("St. John's Wort")).toEqual([
+      ["st", "john", "s", "wort"],
+    ]);
+  });
+});
+
+describe("isRemedyForbidden matches a recorded substance to a product", () => {
+  const magnesium = interactionRemedyTerms("Magnesium Supplements");
 
   it.each([
     "Magnesium Glycinate",
@@ -55,6 +75,25 @@ describe("isRemedyForbidden matches a class term to a specific product", () => {
     "Magnesium L-Threonate",
   ])("forbids %s", (remedy) => {
     expect(isRemedyForbidden(remedy, magnesium)).toBe(true);
+  });
+
+  it("forbids iron beside a fluoroquinolone, the same chelation as magnesium", () => {
+    const iron = interactionRemedyTerms("Iron Supplements");
+    expect(isRemedyForbidden("Iron Bisglycinate", iron)).toBe(true);
+  });
+
+  it("does not let one vitamin forbid a different one", () => {
+    const vitaminD = interactionRemedyTerms("Vitamin D (High Dose)");
+    expect(isRemedyForbidden("Vitamin D3", vitaminD)).toBe(true);
+    expect(isRemedyForbidden("Vitamin E", vitaminD)).toBe(false);
+  });
+
+  it("does not let a dropped generic word forbid an unrelated remedy", () => {
+    // "root" is a dosage-form word; without dropping it, "Licorice Root"
+    // would forbid "Valerian Root".
+    const licorice = interactionRemedyTerms("Licorice Root (Glycyrrhiza)");
+    expect(isRemedyForbidden("Valerian Root", licorice)).toBe(false);
+    expect(isRemedyForbidden("Licorice Extract", licorice)).toBe(true);
   });
 
   it("leaves unrelated remedies alone", () => {
@@ -113,7 +152,7 @@ describe("the policy drops a forbidden pair before scoring it", () => {
   it("drops magnesium once the recorded interaction is supplied", () => {
     const outcome = buildRemedyMappingsFor(cipro, candidates, {
       minScore: 0,
-      forbiddenRemedies: interactionTerms("Magnesium Supplements"),
+      forbiddenRemedies: interactionRemedyTerms("Magnesium Supplements"),
     });
     if (outcome.kind !== "known") throw new Error("unreachable");
 
@@ -133,7 +172,7 @@ describe("the policy drops a forbidden pair before scoring it", () => {
       ingredients: ["levofloxacin"],
     };
 
-    const drugTerms = interactionTerms(
+    const drugTerms = interactionDrugTerms(
       "Fluoroquinolone Antibiotics (Ciprofloxacin, Levofloxacin)",
     );
     const haystack = [

@@ -356,38 +356,81 @@ const INTERACTION_STOPWORDS: ReadonlySet<string> = new Set([
   "pills",
   "and",
   "oral",
+  "high",
+  "dose",
+  "juice",
+  "root",
 ]);
 
-/**
- * The identifying words in a Drug Interaction's substance name.
- *
- * Rows name a class and then list its members in parentheses —
- * "Fluoroquinolone Antibiotics (Ciprofloxacin, Levofloxacin)" — so splitting on
- * punctuation yields both the class and the drugs it covers. Short and generic
- * words are dropped, because a rule that fires on "oral" or "and" would forbid
- * everything.
- */
-export function interactionTerms(substance: string): string[] {
+function significantWords(substance: string): string[] {
   return substance
     .toLowerCase()
     .split(/[^a-z0-9]+/)
-    .filter((term) => term.length >= 5 && !INTERACTION_STOPWORDS.has(term));
+    .filter((word) => word.length > 0 && !INTERACTION_STOPWORDS.has(word));
+}
+
+/**
+ * The words identifying the *drug* side of a recorded Drug Interaction.
+ *
+ * A drug-side name is a class followed by the members it covers —
+ * "Fluoroquinolone Antibiotics (Ciprofloxacin, Levofloxacin)". Those are
+ * alternatives, so a drug matches when it matches ANY of them: a record named
+ * "Ciprofloxacin" contains none of the word "fluoroquinolone".
+ *
+ * Single letters are dropped here because a drug haystack is long enough that
+ * one letter matches everything.
+ */
+export function interactionDrugTerms(substance: string): string[] {
+  return significantWords(substance).filter((word) => word.length >= 3);
+}
+
+/**
+ * The remedy-side names of a recorded Drug Interaction, as alternatives.
+ *
+ * Unlike the drug side, this names ONE substance — so its words are a phrase
+ * and a remedy must match all of them, which is what keeps "Vitamin D (High
+ * Dose)" from forbidding Vitamin E. But parentheses and slashes carry aliases
+ * for that same substance ("Coenzyme Q10 (CoQ10)", "Turmeric/Curcumin"), and
+ * requiring those too would forbid nothing at all. So each alias is its own
+ * group, and a remedy matching any complete group is forbidden.
+ *
+ * Nothing is dropped for being short. An earlier version required five
+ * characters and so produced no words at all for "Iron Supplements", "Kava"
+ * and "St. John's Wort" — the last of which holds the only two contraindicated
+ * interactions in the table. A rule that silently forbids nothing is worse
+ * than no rule, because it looks like one.
+ */
+export function interactionRemedyTerms(substance: string): string[][] {
+  return substance
+    .toLowerCase()
+    .split(/[()/,]+/)
+    .map((segment) =>
+      segment
+        .split(/[^a-z0-9]+/)
+        .filter((word) => word.length > 0 && !INTERACTION_STOPWORDS.has(word)),
+    )
+    .filter((group) => group.length > 0);
 }
 
 /**
  * Whether a recorded Drug Interaction forbids pairing this remedy with a drug.
  *
- * `terms` are the remedy-side words of interactions recorded against the drug,
- * already resolved by the caller — the policy stays a pure function, and the
- * database access stays in the data layer where it can be tested against a
- * real table.
+ * `groups` are the remedy-side alternatives of interactions recorded against
+ * the drug, already resolved by the caller — the policy stays a pure function,
+ * and the database access stays in the data layer where it can be tested
+ * against a real table.
+ *
+ * A group matches only when every one of its words is present: the words name
+ * one substance together, so a partial match is a different substance.
  */
 export function isRemedyForbidden(
   remedyName: string,
-  terms: readonly string[],
+  groups: readonly (readonly string[])[],
 ): boolean {
   const remedy = remedyName.toLowerCase();
-  return terms.some((term) => remedy.includes(term));
+  return groups.some(
+    (group) => group.length > 0 && group.every((word) => remedy.includes(word)),
+  );
 }
 
 /** The fields that can identify which substance a drug record is. */
@@ -516,11 +559,11 @@ export function buildRemedyMappingsFor(
     limit?: number;
     minScore?: number;
     /**
-     * Remedy-side words of Drug Interactions recorded against this drug.
-     * Candidates matching one are dropped: a pair we have already recorded as
-     * interacting must not also be offered as a remedy for it.
+     * Remedy-side alternatives of Drug Interactions recorded against this
+     * drug. A candidate matching any complete group is dropped: a pair we have
+     * already recorded as interacting must not also be offered as a remedy.
      */
-    forbiddenRemedies?: readonly string[];
+    forbiddenRemedies?: readonly (readonly string[])[];
   },
 ): MappingOutcome {
   const refusal = neverMappedReason(drug);

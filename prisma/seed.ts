@@ -11,7 +11,8 @@ import type { ProcessedDrug } from "../lib/types.ts";
 import {
   buildRemedyMappingsFor,
   certifyReplacementType,
-  interactionTerms,
+  interactionDrugTerms,
+  interactionRemedyTerms,
   isRemedyForbidden,
   type RemedyMatchCandidate,
 } from "../lib/remedy-matcher.ts";
@@ -386,13 +387,13 @@ type PharmaIdentity = {
  */
 async function resolveForbiddenTerms(
   pharmas: PharmaIdentity[],
-): Promise<Map<string, string[]>> {
+): Promise<Map<string, string[][]>> {
   const rows = await prisma.drugInteraction.findMany({
     where: { severity: { in: ["moderate", "severe", "contraindicated"] } },
     select: { substanceA: true, substanceB: true },
   });
 
-  const byPharma = new Map<string, string[]>();
+  const byPharma = new Map<string, string[][]>();
   for (const pharma of pharmas) {
     const haystack = [
       pharma.name,
@@ -404,15 +405,19 @@ async function resolveForbiddenTerms(
       .join(" ")
       .toLowerCase();
 
-    const terms = new Set<string>();
+    const groups = new Map<string, string[]>();
     for (const row of rows) {
       if (
-        interactionTerms(row.substanceB).some((term) => haystack.includes(term))
+        interactionDrugTerms(row.substanceB).some((term) =>
+          haystack.includes(term),
+        )
       ) {
-        for (const term of interactionTerms(row.substanceA)) terms.add(term);
+        for (const group of interactionRemedyTerms(row.substanceA)) {
+          groups.set(group.join(" "), group);
+        }
       }
     }
-    if (terms.size > 0) byPharma.set(pharma.id, [...terms]);
+    if (groups.size > 0) byPharma.set(pharma.id, [...groups.values()]);
   }
   return byPharma;
 }

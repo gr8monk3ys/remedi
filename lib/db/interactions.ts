@@ -8,7 +8,11 @@
 
 import "server-only";
 import { prisma } from "./client";
-import { interactionTerms, type PolicyIdentity } from "@/lib/remedy-matcher";
+import {
+  interactionDrugTerms,
+  interactionRemedyTerms,
+  type PolicyIdentity,
+} from "@/lib/remedy-matcher";
 
 /** Severity ranking for sorting (most severe first) */
 const SEVERITY_ORDER: Record<string, number> = {
@@ -170,7 +174,7 @@ export type InteractionResult = {
  */
 export async function forbiddenRemedyTermsForDrug(
   drug: PolicyIdentity,
-): Promise<string[]> {
+): Promise<string[][]> {
   const rows = await prisma.drugInteraction.findMany({
     where: { severity: { in: ["moderate", "severe", "contraindicated"] } },
     select: { substanceA: true, substanceB: true },
@@ -186,18 +190,19 @@ export async function forbiddenRemedyTermsForDrug(
     .join(" ")
     .toLowerCase();
 
-  const terms = new Set<string>();
+  const groups = new Map<string, string[]>();
   for (const row of rows) {
     // Every row is natural_remedy x pharmaceutical: substanceB names the drug.
-    const namesThisDrug = interactionTerms(row.substanceB).some((term) =>
+    const namesThisDrug = interactionDrugTerms(row.substanceB).some((term) =>
       haystack.includes(term),
     );
     if (!namesThisDrug) continue;
 
-    for (const term of interactionTerms(row.substanceA)) {
-      terms.add(term);
+    for (const group of interactionRemedyTerms(row.substanceA)) {
+      // Keyed on the joined words so the same alias from two rows collapses.
+      groups.set(group.join(" "), group);
     }
   }
 
-  return [...terms];
+  return [...groups.values()];
 }
