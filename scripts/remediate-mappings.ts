@@ -24,12 +24,13 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import {
-  FORBIDDING_SEVERITIES,
+  FORBIDDING_INTERACTIONS_QUERY,
   MIN_DISPLAY_SIMILARITY,
   certifyReplacementType,
   forbiddenRemedyGroupsFor,
   isRemedyForbidden,
-  type PolicyIdentity,
+  toPolicyIdentity,
+  type ForbiddenRemedyGroups,
 } from "../lib/remedy-matcher.ts";
 
 const APPLY = process.argv.includes("--apply");
@@ -53,10 +54,9 @@ type Violation = {
 };
 
 async function main() {
-  const interactions = await prisma.drugInteraction.findMany({
-    where: { severity: { in: [...FORBIDDING_SEVERITIES] } },
-    select: { substanceA: true, substanceB: true },
-  });
+  const interactions = await prisma.drugInteraction.findMany(
+    FORBIDDING_INTERACTIONS_QUERY,
+  );
 
   const mappings = await prisma.naturalRemedyMapping.findMany({
     include: {
@@ -74,13 +74,12 @@ async function main() {
 
   const violations: Violation[] = [];
 
+  // Resolved once per drug rather than once per mapping: the groups depend
+  // only on the drug, and a drug commonly carries several mappings.
+  const forbiddenByDrug = new Map<string, ForbiddenRemedyGroups>();
+
   for (const mapping of mappings) {
-    const drug: PolicyIdentity = {
-      name: mapping.pharmaceutical.name,
-      genericName: mapping.pharmaceutical.genericName ?? undefined,
-      category: mapping.pharmaceutical.category,
-      ingredients: mapping.pharmaceutical.ingredients,
-    };
+    const drug = toPolicyIdentity(mapping.pharmaceutical);
     const remedy = mapping.naturalRemedy.name;
     const base = { mappingId: mapping.id, drug: drug.name, remedy };
 
@@ -95,9 +94,13 @@ async function main() {
       continue;
     }
 
-    if (
-      isRemedyForbidden(remedy, forbiddenRemedyGroupsFor(drug, interactions))
-    ) {
+    let forbidden = forbiddenByDrug.get(mapping.pharmaceuticalId);
+    if (forbidden === undefined) {
+      forbidden = forbiddenRemedyGroupsFor(drug, interactions);
+      forbiddenByDrug.set(mapping.pharmaceuticalId, forbidden);
+    }
+
+    if (isRemedyForbidden(remedy, forbidden)) {
       violations.push({
         ...base,
         kind: "forbidden",

@@ -468,7 +468,7 @@ export function interactionRemedyTerms(substance: string): string[][] {
  */
 export function isRemedyForbidden(
   remedyName: string,
-  groups: readonly (readonly string[])[],
+  groups: ForbiddenRemedyGroups,
 ): boolean {
   const remedy = remedyName.toLowerCase();
   return groups.some((group) => groupMatches(group, remedy));
@@ -526,11 +526,88 @@ export const FORBIDDING_SEVERITIES = [
   "contraindicated",
 ] as const;
 
-/** A recorded Drug Interaction, reduced to the two names that matter. */
+/**
+ * The remedy-side alternatives forbidden for one drug: a remedy matching every
+ * word of any one group may not be mapped to it.
+ */
+export type ForbiddenRemedyGroups = readonly (readonly string[])[];
+
+/** The substance-type value marking a side of a row as the remedy. */
+const NATURAL_REMEDY_TYPE = "natural_remedy";
+
+/** A recorded Drug Interaction, reduced to what the policy reads. */
 export type InteractionRow = {
   readonly substanceA: string;
   readonly substanceB: string;
+  readonly substanceAType?: string | null;
+  readonly substanceBType?: string | null;
 };
+
+/**
+ * The `findMany` arguments for the interactions that can forbid a pair.
+ *
+ * The runtime path, the seed and the remediation script each wrote this
+ * literal out, so the severity filter and the selected columns could drift
+ * apart three ways. The policy module already owns which severities forbid and
+ * what an `InteractionRow` is; which columns are needed to build one is the
+ * same fact. Executing it stays with each caller, which owns its own client.
+ */
+export const FORBIDDING_INTERACTIONS_QUERY = {
+  where: { severity: { in: [...FORBIDDING_SEVERITIES] } },
+  select: {
+    substanceA: true,
+    substanceB: true,
+    substanceAType: true,
+    substanceBType: true,
+  },
+};
+
+/**
+ * Which side of a row names the remedy and which names the drug.
+ *
+ * `CONTEXT.md`: "Records are directionless: the pair is the unit, not the
+ * order." The row carries the answer in its type columns, and reading
+ * `substanceA` as the remedy regardless happened to work only because all 43
+ * seeded rows are written that way — a curator entering the next one the other
+ * way round would have silently switched the rule off.
+ *
+ * A row with a remedy on neither side is a drug-drug interaction, and one with
+ * a remedy on both sides has no drug: neither can forbid a Remedy Mapping.
+ * Rows carrying no type at all keep the curated convention.
+ */
+function sidesOf(row: InteractionRow): { remedy: string; drug: string } | null {
+  const aIsRemedy = row.substanceAType === NATURAL_REMEDY_TYPE;
+  const bIsRemedy = row.substanceBType === NATURAL_REMEDY_TYPE;
+
+  if (aIsRemedy && bIsRemedy) return null;
+  if (aIsRemedy) return { remedy: row.substanceA, drug: row.substanceB };
+  if (bIsRemedy) return { remedy: row.substanceB, drug: row.substanceA };
+  if (row.substanceAType == null && row.substanceBType == null) {
+    return { remedy: row.substanceA, drug: row.substanceB };
+  }
+  return null;
+}
+
+/**
+ * The policy identity of a Pharmaceutical row, however it was loaded.
+ *
+ * Prisma returns `genericName` as `string | null` and the policy takes
+ * `string | undefined`, so every caller rebuilt this same four-field object by
+ * hand. One conversion means one place to change when identity grows a field.
+ */
+export function toPolicyIdentity(row: {
+  name: string;
+  genericName?: string | null;
+  category: string;
+  ingredients: string[];
+}): PolicyIdentity {
+  return {
+    name: row.name,
+    genericName: row.genericName ?? undefined,
+    category: row.category,
+    ingredients: row.ingredients,
+  };
+}
 
 /**
  * The remedy-side alternatives forbidden for a drug, given recorded interactions.
@@ -557,7 +634,10 @@ export function forbiddenRemedyGroupsFor(
   // Keyed on the joined words so the same alias from two rows collapses.
   const groups = new Map<string, string[]>();
   for (const row of rows) {
-    const remedyGroups = interactionRemedyTerms(row.substanceA);
+    const sides = sidesOf(row);
+    if (sides === null) continue;
+
+    const remedyGroups = interactionRemedyTerms(sides.remedy);
 
     // A record that *is* the remedy this row names is not the drug the row is
     // about. "Melatonin interacts with sedatives and sleep medications" was
@@ -565,7 +645,7 @@ export function forbiddenRemedyGroupsFor(
     // so forbade mapping melatonin to melatonin.
     if (remedyGroups.some((group) => groupMatches(group, haystack))) continue;
 
-    const namesThisDrug = interactionDrugGroups(row.substanceB).some((group) =>
+    const namesThisDrug = interactionDrugGroups(sides.drug).some((group) =>
       groupMatches(group, haystack),
     );
     if (!namesThisDrug) continue;

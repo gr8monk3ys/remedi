@@ -103,6 +103,18 @@ describe("seed remedy mappings", () => {
     expect(violations).toEqual([]);
   });
 
+  it("curates nothing under the display floor", () => {
+    // The seed now drops these rather than persisting a row that can never be
+    // shown. Pinning the data means that gate never has to fire.
+    const violations = remedyMappings
+      .filter((m) => m.similarityScore < MIN_DISPLAY_SIMILARITY)
+      .map(
+        (m) =>
+          `${m.pharmaceuticalName} -> ${m.naturalRemedyName} (${m.similarityScore})`,
+      );
+    expect(violations).toEqual([]);
+  });
+
   it("suggests no magnesium alongside fluoroquinolones (absorption chelation)", () => {
     const violations = remedyMappings
       .filter(
