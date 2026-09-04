@@ -24,11 +24,11 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import {
+  FORBIDDING_SEVERITIES,
   MIN_DISPLAY_SIMILARITY,
   certifyReplacementType,
-  interactionTerms,
+  forbiddenRemedyGroupsFor,
   isRemedyForbidden,
-  parseReplacementType,
   type PolicyIdentity,
 } from "../lib/remedy-matcher.ts";
 
@@ -54,7 +54,7 @@ type Violation = {
 
 async function main() {
   const interactions = await prisma.drugInteraction.findMany({
-    where: { severity: { in: ["moderate", "severe", "contraindicated"] } },
+    where: { severity: { in: [...FORBIDDING_SEVERITIES] } },
     select: { substanceA: true, substanceB: true },
   });
 
@@ -95,28 +95,9 @@ async function main() {
       continue;
     }
 
-    const haystack = [
-      drug.name,
-      drug.genericName,
-      drug.category,
-      ...(drug.ingredients ?? []),
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-
-    const forbiddenTerms = new Set<string>();
-    for (const row of interactions) {
-      if (
-        interactionTerms(row.substanceB).some((term) => haystack.includes(term))
-      ) {
-        for (const term of interactionTerms(row.substanceA)) {
-          forbiddenTerms.add(term);
-        }
-      }
-    }
-
-    if (isRemedyForbidden(remedy, [...forbiddenTerms])) {
+    if (
+      isRemedyForbidden(remedy, forbiddenRemedyGroupsFor(drug, interactions))
+    ) {
       violations.push({
         ...base,
         kind: "forbidden",
@@ -134,8 +115,10 @@ async function main() {
       continue;
     }
 
-    const stored = parseReplacementType(mapping.replacementType);
-    if (stored !== certified.data) {
+    // Compare the stored value RAW. Coercing it first would make a legacy or
+    // unrecognised label compare equal to "Supportive" and quietly pass — the
+    // read boundary would keep hiding it, and the row would never be fixed.
+    if (mapping.replacementType !== certified.data) {
       violations.push({
         ...base,
         kind: "overclaim",
