@@ -20,7 +20,12 @@ import { SearchInput } from "./SearchInput";
 import { SearchTabs } from "./SearchTabs";
 import { SearchHistory } from "./SearchHistory";
 import { SearchResults } from "./SearchResults";
-import type { SearchResult, AIInsights, AIRecommendation } from "./types";
+import type {
+  SearchResult,
+  AIInsights,
+  AIRecommendation,
+  SearchRefusal,
+} from "./types";
 
 const log = createLogger("search-component");
 
@@ -141,6 +146,7 @@ export function SearchComponent({
   const [useAiSearch, setUseAiSearch] = useState<boolean>(false);
   const [aiSearchAvailable, setAiSearchAvailable] = useState<boolean>(false);
   const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
+  const [refusal, setRefusal] = useState<SearchRefusal | null>(null);
   // Set when the API rejects a search because the user's plan quota is spent,
   // so we can offer an upgrade instead of a dead-end error message.
   const [planLimitReason, setPlanLimitReason] = useState<
@@ -280,21 +286,39 @@ export function SearchComponent({
       setIsLoading(true);
       setError(null);
       setAiInsights(null);
+      setRefusal(null);
 
       try {
         log.info("Searching", { query: queryToSearch, aiPowered: useAiSearch });
 
         if (useAiSearch && aiSearchAvailable) {
-          const { recommendations, intent, extractedInfo } =
+          const { recommendations, intent, extractedInfo, refused } =
             await apiClient.post<{
               recommendations: AIRecommendation[];
               intent: AIInsights["intent"];
               extractedInfo: AIInsights["extractedInfo"];
+              refused?: SearchRefusal;
             }>(
               "/api/ai-search",
               { query: queryToSearch },
               { signal: controller.signal },
             );
+
+          // The route answers a policy refusal with an empty list and a stated
+          // reason. Dropping the reason here is what made a refusal look like
+          // "nothing found" on screen.
+          if (refused) {
+            if (isStale()) return;
+            setRefusal(refused);
+            setResults([]);
+            setFilteredResults([]);
+            if (onSearch) onSearch([]);
+            setCurrentPage(1);
+            setCategoryFilters([]);
+            setNutrientFilters([]);
+            setActiveTab("results");
+            return;
+          }
 
           const aiResults: SearchResult[] = recommendations.map((rec) => ({
             id: rec.remedy.id,
@@ -454,6 +478,7 @@ export function SearchComponent({
             onPageChange={handlePageChange}
             isLoading={isLoading}
             error={error}
+            refusal={refusal}
             query={query}
             showFilters={showFilters}
             categoryOptions={categoryOptions}

@@ -45,6 +45,17 @@ export interface AIInsights {
   recommendations?: AIRecommendation[];
 }
 
+/**
+ * A stated reason the search will not answer, as opposed to having found
+ * nothing. The two must never render the same way: an empty list presented for
+ * a refusal reads as "no interactions known", which is the one confusion the
+ * mapping policy exists to prevent.
+ */
+export interface SearchRefusal {
+  reason: string;
+  message: string;
+}
+
 export interface SearchHistoryItem {
   id: string;
   query: string;
