@@ -2,12 +2,11 @@
 
 ## [1.2.2](https://github.com/gr8monk3ys/remedi/compare/v1.2.1...v1.2.2) (2026-09-07)
 
-
 ### Bug Fixes
 
-* **search:** let the primary search path state a policy refusal ([#114](https://github.com/gr8monk3ys/remedi/issues/114)) ([3959fd7](https://github.com/gr8monk3ys/remedi/commit/3959fd72a93e58e5d1b5a2528f422c219f95403c))
-* **seed:** report the catalogue it actually has, and name what it drops ([#115](https://github.com/gr8monk3ys/remedi/issues/115)) ([ef1c151](https://github.com/gr8monk3ys/remedi/commit/ef1c1513758042d2da3fb9b0461834b4f91237ce))
-* **seed:** separate the catalogue from the demo fixtures ([#112](https://github.com/gr8monk3ys/remedi/issues/112)) ([9c02157](https://github.com/gr8monk3ys/remedi/commit/9c02157824d786e1c9ea78ac884151d8a95791e3)), closes [#111](https://github.com/gr8monk3ys/remedi/issues/111)
+- **search:** let the primary search path state a policy refusal ([#114](https://github.com/gr8monk3ys/remedi/issues/114)) ([3959fd7](https://github.com/gr8monk3ys/remedi/commit/3959fd72a93e58e5d1b5a2528f422c219f95403c))
+- **seed:** report the catalogue it actually has, and name what it drops ([#115](https://github.com/gr8monk3ys/remedi/issues/115)) ([ef1c151](https://github.com/gr8monk3ys/remedi/commit/ef1c1513758042d2da3fb9b0461834b4f91237ce))
+- **seed:** separate the catalogue from the demo fixtures ([#112](https://github.com/gr8monk3ys/remedi/issues/112)) ([9c02157](https://github.com/gr8monk3ys/remedi/commit/9c02157824d786e1c9ea78ac884151d8a95791e3)), closes [#111](https://github.com/gr8monk3ys/remedi/issues/111)
 
 ## [1.2.1](https://github.com/gr8monk3ys/remedi/compare/v1.2.0...v1.2.1) (2026-09-04)
 
