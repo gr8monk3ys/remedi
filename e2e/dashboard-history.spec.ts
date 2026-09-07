@@ -118,16 +118,18 @@ test.describe("Dashboard Search History", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
-          data: [
-            {
-              id: "rem-1",
-              name: "Chamomile",
-              description: "Herbal remedy.",
-              category: "Herbal",
-              similarityScore: 0.85,
-              matchingNutrients: [],
-            },
-          ],
+          data: {
+            remedies: [
+              {
+                id: "rem-1",
+                name: "Chamomile",
+                description: "Herbal remedy.",
+                category: "Herbal",
+                similarityScore: 0.85,
+                matchingNutrients: [],
+              },
+            ],
+          },
         }),
       });
     });

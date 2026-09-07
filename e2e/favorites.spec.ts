@@ -126,16 +126,18 @@ test.describe("Favorites", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
-          data: [
-            {
-              id: "rem-1",
-              name: "Chamomile Tea",
-              description: "A calming herbal tea for relaxation.",
-              category: "Herbal",
-              similarityScore: 0.9,
-              matchingNutrients: ["Apigenin"],
-            },
-          ],
+          data: {
+            remedies: [
+              {
+                id: "rem-1",
+                name: "Chamomile Tea",
+                description: "A calming herbal tea for relaxation.",
+                category: "Herbal",
+                similarityScore: 0.9,
+                matchingNutrients: ["Apigenin"],
+              },
+            ],
+          },
         }),
       });
     });
