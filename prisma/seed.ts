@@ -157,7 +157,7 @@ async function main(): Promise<void> {
   console.log(
     `Demo fixtures: ${SHOULD_SEED_DEMO ? "YES (SEED_DEMO=true)" : "no — catalogue only"}`,
   );
-  console.log(`Total natural remedies: ${allNaturalRemedies.length}`);
+  console.log(`Natural remedy entries: ${allNaturalRemedies.length}`);
   console.log(`Total pharmaceuticals: ${pharmaceuticals.length}`);
   console.log(`Total mappings: ${remedyMappings.length}`);
 
@@ -201,6 +201,28 @@ async function main(): Promise<void> {
 
   // Create natural remedies in batches
   console.log("\nCreating natural remedies...");
+
+  // `skipDuplicates` keeps the first entry for a name and silently drops the
+  // rest, so a second curated entry for the same remedy never reaches the
+  // database and nothing said so. These are not near-duplicates: each pair
+  // differs in description, category, dosage and references, so one of two
+  // independently written records is being discarded by file order alone.
+  const namesSeen = new Set<string>();
+  const duplicateNames = new Set<string>();
+  for (const remedy of allNaturalRemedies) {
+    if (namesSeen.has(remedy.name)) duplicateNames.add(remedy.name);
+    namesSeen.add(remedy.name);
+  }
+  if (duplicateNames.size > 0) {
+    console.warn(
+      `  ${duplicateNames.size} remedy names appear more than once; only the ` +
+        `first entry for each is kept:`,
+    );
+    for (const name of [...duplicateNames].sort()) {
+      console.warn(`    ${name}`);
+    }
+  }
+
   for (let i = 0; i < allNaturalRemedies.length; i += BATCH_SIZE) {
     const batch = allNaturalRemedies.slice(i, i + BATCH_SIZE);
     await prisma.naturalRemedy.createMany({
@@ -239,7 +261,12 @@ async function main(): Promise<void> {
       `  Created remedies ${i + 1} to ${Math.min(i + BATCH_SIZE, allNaturalRemedies.length)}`,
     );
   }
-  console.log(`Created ${allNaturalRemedies.length} natural remedies.`);
+  // Counted, not assumed: the input length is not what lands.
+  const remedyCount = await prisma.naturalRemedy.count();
+  console.log(
+    `Created ${remedyCount} natural remedies (${allNaturalRemedies.length} entries, ` +
+      `${duplicateNames.size} duplicate names).`,
+  );
   await backfillRemedySourceUrls();
 
   // Create mappings between pharmaceuticals and natural remedies
@@ -392,7 +419,7 @@ async function main(): Promise<void> {
   console.log("Seed completed successfully!");
   console.log("========================================");
   console.log(`Pharmaceuticals: ${pharmaceuticals.length}`);
-  console.log(`Natural Remedies: ${allNaturalRemedies.length}`);
+  console.log(`Natural Remedies: ${remedyCount}`);
   console.log(`Mappings: ${upsertedMappings}`);
   console.log("========================================");
 

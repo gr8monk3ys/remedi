@@ -104,6 +104,25 @@ describe("seed remedy mappings", () => {
     expect(violations).toEqual([]);
   });
 
+  it("says how many remedies it actually has", () => {
+    // `createMany({ skipDuplicates: true })` keeps the first entry for a name
+    // and drops the rest, so the catalogue is smaller than the entry count and
+    // the seed used to report the input length regardless. Each of these pairs
+    // is two independently written records — different description, category,
+    // dosage and references — so the discard loses real curation and should be
+    // resolved rather than tolerated. Pinned so the gap cannot widen unnoticed.
+    const names = allNaturalRemedies.map((r) => r.name);
+    const distinct = new Set(names);
+
+    expect(names.length).toBe(504);
+    expect(distinct.size).toBe(488);
+
+    const duplicated = [
+      ...new Set(names.filter((n, i) => names.indexOf(n) !== i)),
+    ];
+    expect(duplicated.length).toBe(16);
+  });
+
   it("curates nothing under the display floor", () => {
     // The seed now drops these rather than persisting a row that can never be
     // shown. Pinning the data means that gate never has to fire.
