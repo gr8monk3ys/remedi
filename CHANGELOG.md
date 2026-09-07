@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3](https://github.com/gr8monk3ys/remedi/compare/v1.2.2...v1.2.3) (2026-09-07)
+
+
+### Bug Fixes
+
+* **search:** answer from the record that has mappings, not the first hit ([#117](https://github.com/gr8monk3ys/remedi/issues/117)) ([1567905](https://github.com/gr8monk3ys/remedi/commit/156790536229121a46b1d9b04ae06eb2043ac30a))
+
 ## [1.2.2](https://github.com/gr8monk3ys/remedi/compare/v1.2.1...v1.2.2) (2026-09-07)
 
 ### Bug Fixes
