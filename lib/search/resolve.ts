@@ -92,9 +92,19 @@ async function fromDatabase(
   if (!drug) return noRemedies;
 
   try {
-    const existing = await ports.findRemediesFor(drug.id);
-    if (existing.length > 0) return { kind: "remedies", remedies: existing };
+    // Candidates collide. OpenFDA caches a record under whatever name the
+    // label leads with, so "Ibuprofen Dye Free" sits beside the curated
+    // "Ibuprofen" and can outrank it — and taking the top hit alone answered
+    // with the empty one while seven curated mappings sat next to it. Prefer
+    // whichever candidate actually carries mappings; these are reads, and the
+    // list is capped at ten.
+    for (const candidate of drugs) {
+      const existing = await ports.findRemediesFor(candidate.id);
+      if (existing.length > 0) return { kind: "remedies", remedies: existing };
+    }
 
+    // None carry mappings yet, so generate for the best match. A refusal here
+    // is still a refusal: the drug is what it is whichever record we hold.
     return fromMappingOutcome(
       await ports.generateMappingsFor({
         pharmaceuticalId: drug.id,

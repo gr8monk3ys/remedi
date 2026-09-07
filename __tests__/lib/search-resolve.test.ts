@@ -128,6 +128,59 @@ describe("absent", () => {
   });
 });
 
+describe("colliding pharmaceutical records", () => {
+  // OpenFDA caches a record under whatever name the label leads with, so
+  // "Ibuprofen Dye Free" ends up beside the curated "Ibuprofen" and can
+  // outrank it. Production answered "no results for ibuprofen" while seven
+  // curated mappings sat on the other record.
+  const cached: ProcessedDrug = {
+    ...DRUG,
+    id: "p-cached",
+    name: "Ibuprofen Dye Free",
+  };
+  const curated: ProcessedDrug = {
+    ...DRUG,
+    id: "p-curated",
+    name: "Ibuprofen",
+  };
+
+  it("answers from the candidate that has mappings, not the first one", async () => {
+    const outcome = await resolveSearch(
+      "ibuprofen",
+      ports({
+        findPharmaceuticals: async () => [cached, curated],
+        findRemediesFor: async (id: string) =>
+          id === "p-curated" ? [REMEDY] : [],
+      }),
+    );
+
+    expect(outcome).toEqual({
+      kind: "found",
+      remedies: [REMEDY],
+      source: "database",
+    });
+  });
+
+  it("still generates when no candidate carries mappings", async () => {
+    const generateMappingsFor = vi.fn(async () => known([REMEDY]));
+    const outcome = await resolveSearch(
+      "ibuprofen",
+      ports({
+        findPharmaceuticals: async () => [cached, curated],
+        findRemediesFor: async () => [],
+        generateMappingsFor,
+      }),
+    );
+
+    expect(outcome.kind).toBe("found");
+    // Generation is for the top-ranked match, and happens once.
+    expect(generateMappingsFor).toHaveBeenCalledTimes(1);
+    expect(generateMappingsFor).toHaveBeenCalledWith(
+      expect.objectContaining({ pharmaceuticalId: "p-cached" }),
+    );
+  });
+});
+
 describe("refused", () => {
   // The policy withholds remedies for anticoagulants and SSRIs on purpose.
   // Until now that arrived as an empty list, indistinguishable from "we
