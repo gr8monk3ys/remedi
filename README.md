@@ -7,7 +7,7 @@ it, with the relationship labelled: **Alternative**, **Complementary** or
 **Supportive**. Live at https://remedi-iota.vercel.app.
 
 The interesting part is not the search; it is what the data is not allowed to
-say. The seed set (85 drugs, 504 remedies, 249 mappings in
+say. The seed set (85 drugs, 488 remedies, 235 mappings in
 [`prisma/seed-data/mappings.ts`](prisma/seed-data/mappings.ts)) is held to
 pharmacological invariants by
 [`__tests__/seed-data/mappings.test.ts`](__tests__/seed-data/mappings.test.ts),

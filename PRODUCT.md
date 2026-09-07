@@ -93,7 +93,7 @@ glossary's words.
 
 ## Evidence on Hand
 
-- Curated seed set: 85 Pharmaceuticals, 504 Natural Remedies, 235 Remedy
+- Curated seed set: 85 Pharmaceuticals, 488 Natural Remedies, 235 Remedy
   Mappings (`prisma/seed-data/`), plus 48 curated Drug Interactions.
 - Safety invariants enforced by `__tests__/seed-data/mappings.test.ts` and
   `lib/remedy-matcher.ts`.
