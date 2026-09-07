@@ -45,7 +45,7 @@ jobs:
       - name: Prisma generate
         run: bunx prisma generate
       - name: Migrate + seed
-        run: bunx prisma migrate dev && bunx prisma db seed
+        run: bunx prisma migrate dev && SEED_DEMO=true bunx prisma db seed
       - name: DB verify
         run: bun run db:verify
       - name: Data integrity checks
@@ -120,7 +120,7 @@ jobs:
       - name: Prisma generate
         run: bunx prisma generate
       - name: Migrate + seed
-        run: bunx prisma migrate dev && bunx prisma db seed
+        run: bunx prisma migrate dev && SEED_DEMO=true bunx prisma db seed
       - name: Run E2E tests
         run: bun run test:e2e
       - name: Upload Playwright report
@@ -171,6 +171,6 @@ jobs:
       - name: Prisma generate
         run: bunx prisma generate
       - name: Migrate + seed
-        run: bunx prisma migrate dev && bunx prisma db seed
+        run: bunx prisma migrate dev && SEED_DEMO=true bunx prisma db seed
       - name: Production readiness check
         run: bun run prod:check

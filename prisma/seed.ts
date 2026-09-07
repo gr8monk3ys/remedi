@@ -30,6 +30,22 @@ const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 // Batch size for database operations
 const BATCH_SIZE = 50;
 const SHOULD_RESET = process.env.SEED_RESET === "true";
+
+/**
+ * Whether to seed demo fixtures alongside the catalogue.
+ *
+ * The catalogue — Pharmaceuticals, Natural Remedies, Remedy Mappings and Drug
+ * Interactions — is the product's own data. It is idempotent and every write
+ * passes the safety policy, so it is safe to re-apply anywhere, production
+ * included.
+ *
+ * What follows it is not: five users on subscription plans, their search
+ * history and favourites, and the analytics events behind the dashboards.
+ * Against a real database those are fake users and fake metrics. So this
+ * defaults to off and the workflows that want fixtures ask for them.
+ */
+const SHOULD_SEED_DEMO = process.env.SEED_DEMO === "true";
+
 const DEFAULT_DEMO_EMAIL = "demo@remedi.local";
 const REQUIRED_REMEDY_SAMPLE_SIZE = 72;
 
@@ -123,8 +139,24 @@ async function backfillRemedySourceUrls(): Promise<void> {
   );
 }
 
+/** The host being written to, with any credentials stripped. */
+function databaseHost(url: string): string {
+  try {
+    return new URL(url).host;
+  } catch {
+    return "unparseable DATABASE_URL";
+  }
+}
+
 async function main(): Promise<void> {
   console.log("Starting database seed...");
+  // `.env.local` points DATABASE_URL at the production database, so a seed can
+  // reach production from a laptop without anyone meaning it to. Name the
+  // target before writing to it.
+  console.log(`Target database: ${databaseHost(databaseUrl!)}`);
+  console.log(
+    `Demo fixtures: ${SHOULD_SEED_DEMO ? "YES (SEED_DEMO=true)" : "no — catalogue only"}`,
+  );
   console.log(`Total natural remedies: ${allNaturalRemedies.length}`);
   console.log(`Total pharmaceuticals: ${pharmaceuticals.length}`);
   console.log(`Total mappings: ${remedyMappings.length}`);
@@ -366,7 +398,14 @@ async function main(): Promise<void> {
 
   // Seed drug interactions
   await seedInteractions(prisma);
-  await ensureSubscriptionFeatureData();
+
+  if (SHOULD_SEED_DEMO) {
+    await ensureSubscriptionFeatureData();
+  } else {
+    console.log(
+      "\nSEED_DEMO not set: catalogue only, no demo users or activity.",
+    );
+  }
 
   // Print category breakdown
   const categoryCounts = allNaturalRemedies.reduce(
