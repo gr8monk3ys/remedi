@@ -48,17 +48,19 @@ test.describe("Search Functionality", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
-          data: [
-            {
-              id: "mock-remedy-1",
-              name: "Mock Remedy",
-              description: "Mock remedy used for deterministic E2E testing.",
-              imageUrl: "",
-              category: "Herbal",
-              matchingNutrients: ["Vitamin C"],
-              similarityScore: 0.92,
-            },
-          ],
+          data: {
+            remedies: [
+              {
+                id: "mock-remedy-1",
+                name: "Mock Remedy",
+                description: "Mock remedy used for deterministic E2E testing.",
+                imageUrl: "",
+                category: "Herbal",
+                matchingNutrients: ["Vitamin C"],
+                similarityScore: 0.92,
+              },
+            ],
+          },
         }),
       });
     });
@@ -88,17 +90,19 @@ test.describe("Search Functionality", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
-          data: [
-            {
-              id: "mock-remedy-2",
-              name: "Mock Remedy 2",
-              description: "Mock result for click-based search flow.",
-              imageUrl: "",
-              category: "Supplement",
-              matchingNutrients: ["Magnesium"],
-              similarityScore: 0.87,
-            },
-          ],
+          data: {
+            remedies: [
+              {
+                id: "mock-remedy-2",
+                name: "Mock Remedy 2",
+                description: "Mock result for click-based search flow.",
+                imageUrl: "",
+                category: "Supplement",
+                matchingNutrients: ["Magnesium"],
+                similarityScore: 0.87,
+              },
+            ],
+          },
         }),
       });
     });
@@ -222,17 +226,20 @@ test.describe("Search Functionality", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
-          data: [
-            {
-              id: "mock-remedy-3",
-              name: "Mock Remedy 3",
-              description: "Mock result used to verify detail-page navigation.",
-              imageUrl: "",
-              category: "Herbal",
-              matchingNutrients: ["Vitamin C"],
-              similarityScore: 0.9,
-            },
-          ],
+          data: {
+            remedies: [
+              {
+                id: "mock-remedy-3",
+                name: "Mock Remedy 3",
+                description:
+                  "Mock result used to verify detail-page navigation.",
+                imageUrl: "",
+                category: "Herbal",
+                matchingNutrients: ["Vitamin C"],
+                similarityScore: 0.9,
+              },
+            ],
+          },
         }),
       });
     });

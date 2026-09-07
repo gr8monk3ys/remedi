@@ -11,7 +11,7 @@
 
 import { describe, it, expect, vi } from "vitest";
 import { resolveSearch, type SearchPorts } from "@/lib/search/resolve";
-import { known } from "@/lib/outcome";
+import { known, unknown } from "@/lib/outcome";
 import type { NaturalRemedy, ProcessedDrug } from "@/lib/types";
 
 const DRUG: ProcessedDrug = {
@@ -125,6 +125,78 @@ describe("absent", () => {
       ports({ searchFda: async () => [] }),
     );
     expect(outcome).toEqual({ kind: "absent" });
+  });
+});
+
+describe("refused", () => {
+  // The policy withholds remedies for anticoagulants and SSRIs on purpose.
+  // Until now that arrived as an empty list, indistinguishable from "we
+  // looked and found none" — the one confusion the whole policy exists to
+  // prevent, surviving all the way to the primary search path.
+  const refusal = unknown<never, "never-mapped">(
+    "never-mapped",
+    "Warfarin is an anticoagulant; even a supportive addition alters bleeding risk.",
+  );
+
+  it("states the refusal instead of returning an empty list", async () => {
+    const outcome = await resolveSearch(
+      "warfarin",
+      ports({
+        findPharmaceuticals: async () => [DRUG],
+        generateMappingsFor: async () => refusal,
+      }),
+    );
+
+    expect(outcome).toEqual({
+      kind: "refused",
+      reason: "never-mapped",
+      message:
+        "Warfarin is an anticoagulant; even a supportive addition alters bleeding risk.",
+    });
+  });
+
+  it("does not fall through to OpenFDA", async () => {
+    const searchFda = vi.fn(async () => [DRUG]);
+    const outcome = await resolveSearch(
+      "warfarin",
+      ports({
+        findPharmaceuticals: async () => [DRUG],
+        generateMappingsFor: async () => refusal,
+        searchFda,
+      }),
+    );
+
+    // Answering "we will not map this drug" with a list from another tier
+    // would undo the refusal entirely.
+    expect(outcome.kind).toBe("refused");
+    expect(searchFda).not.toHaveBeenCalled();
+  });
+
+  it("does not fall through to demo data", async () => {
+    const findDemoRemedies = vi.fn(() => [REMEDY]);
+    const outcome = await resolveSearch(
+      "warfarin",
+      ports({
+        findPharmaceuticals: async () => [DRUG],
+        generateMappingsFor: async () => refusal,
+        findDemoRemedies,
+      }),
+    );
+
+    expect(outcome.kind).toBe("refused");
+    expect(findDemoRemedies).not.toHaveBeenCalled();
+  });
+
+  it("is distinguishable from an honest empty result", async () => {
+    const absent = await resolveSearch(
+      "aspirin",
+      ports({
+        findPharmaceuticals: async () => [DRUG],
+        generateMappingsFor: async () => known([]),
+      }),
+    );
+
+    expect(absent).toEqual({ kind: "absent" });
   });
 });
 

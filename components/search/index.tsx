@@ -345,15 +345,20 @@ export function SearchComponent({
             searchParamsForRequest.set("sessionId", sessionId);
           }
 
-          const data = await apiClient.get<SearchResult[]>(
-            `/api/search?${searchParamsForRequest.toString()}`,
-            { signal: controller.signal },
-          );
+          const { remedies, refused } = await apiClient.get<{
+            remedies: SearchResult[];
+            refused?: SearchRefusal;
+          }>(`/api/search?${searchParamsForRequest.toString()}`, {
+            signal: controller.signal,
+          });
 
           if (isStale()) return;
-          setResults(data);
-          setFilteredResults(data);
-          if (onSearch) onSearch(data);
+          // The same refusal handling as the AI path: a policy decision is
+          // stated, never rendered as "no results found".
+          if (refused) setRefusal(refused);
+          setResults(remedies);
+          setFilteredResults(remedies);
+          if (onSearch) onSearch(remedies);
         }
 
         if (isStale()) return;

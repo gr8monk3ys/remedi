@@ -176,15 +176,26 @@ export async function GET(req: NextRequest) {
     const remedies = outcome.kind === "found" ? outcome.remedies : [];
     const source = outcome.kind === "found" ? outcome.source : "none";
 
-    record(remedies.length, source);
+    // A refusal ships beside the remedies rather than as an empty list, so a
+    // reader cannot take "the policy will not map this drug" for "we looked
+    // and found none". Same field, same shape as /api/ai-search.
+    const refused =
+      outcome.kind === "refused"
+        ? { reason: outcome.reason, message: outcome.message }
+        : undefined;
+
+    record(remedies.length, refused ? "refused" : source);
 
     return NextResponse.json(
-      successResponse(remedies, {
-        total: remedies.length,
-        processingTime: Date.now() - startTime,
-        apiVersion: "1.0",
-        source: source === "demo" ? ("fallback" as const) : source,
-      }),
+      successResponse(
+        { remedies, refused },
+        {
+          total: remedies.length,
+          processingTime: Date.now() - startTime,
+          apiVersion: "1.0",
+          source: source === "demo" ? ("fallback" as const) : source,
+        },
+      ),
       { status: 200, headers: { "Cache-Control": CACHE_CONTROL } },
     );
   } catch (error) {

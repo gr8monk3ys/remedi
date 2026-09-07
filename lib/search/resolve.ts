@@ -14,8 +14,7 @@
  */
 
 import type { NaturalRemedy, ProcessedDrug } from "@/lib/types";
-import type { MappingOutcome } from "@/lib/remedy-matcher";
-import { dataOr } from "@/lib/outcome";
+import type { MappingOutcome, MappingRefusal } from "@/lib/remedy-matcher";
 
 export type SearchSource = "database" | "openfda" | "demo";
 
@@ -23,6 +22,11 @@ export type SearchOutcome =
   | { kind: "found"; remedies: NaturalRemedy[]; source: SearchSource }
   /** Every tier was reached and none matched. An honest empty result. */
   | { kind: "absent" }
+  /**
+   * The policy will not map this drug at all — an anticoagulant, an SSRI. A
+   * decision, and the one arm that must never be presented as an absence.
+   */
+  | { kind: "refused"; reason: MappingRefusal; message: string }
   /** A tier we depend on could not be reached. Never an empty result. */
   | { kind: "unavailable"; which: "database" | "openfda" };
 
@@ -47,18 +51,23 @@ export interface SearchPorts {
 }
 
 /**
- * The one place a policy refusal is flattened into an empty result list.
+ * What one tier produced: remedies, or the policy's refusal to map this drug.
  *
- * A "never-mapped" refusal is a real answer — the policy withholds remedies
- * for anticoagulants on purpose — but the search response has no field to
- * carry it yet, so today it renders as an empty list exactly as it did before.
- *
- * This function exists so that collapse is a single, named, greppable step
- * rather than an `[]` returned from six places. When the search response grows
- * an outcome of its own, this is the only thing that has to change.
+ * A refusal travels as a value rather than an exception, because it is an
+ * answer. Only an unreachable tier throws — conflating the two would be the
+ * collapse this module exists to prevent, wearing different clothes.
  */
-function collapseMappingOutcome(outcome: MappingOutcome): NaturalRemedy[] {
-  return dataOr(outcome, []);
+type TierResult =
+  | { kind: "remedies"; remedies: NaturalRemedy[] }
+  | { kind: "refused"; reason: MappingRefusal; message: string };
+
+const noRemedies: TierResult = { kind: "remedies", remedies: [] };
+
+/** Carry a refusal out of the mapping policy instead of flattening it to `[]`. */
+function fromMappingOutcome(outcome: MappingOutcome): TierResult {
+  return outcome.kind === "known"
+    ? { kind: "remedies", remedies: outcome.data }
+    : { kind: "refused", reason: outcome.reason, message: outcome.message };
 }
 
 class TierUnavailable extends Error {
@@ -71,7 +80,7 @@ class TierUnavailable extends Error {
 async function fromDatabase(
   query: string,
   ports: SearchPorts,
-): Promise<NaturalRemedy[]> {
+): Promise<TierResult> {
   let drugs: ProcessedDrug[];
   try {
     drugs = await ports.findPharmaceuticals(query);
@@ -80,13 +89,13 @@ async function fromDatabase(
   }
 
   const drug = drugs[0];
-  if (!drug) return [];
+  if (!drug) return noRemedies;
 
   try {
     const existing = await ports.findRemediesFor(drug.id);
-    if (existing.length > 0) return existing;
+    if (existing.length > 0) return { kind: "remedies", remedies: existing };
 
-    return collapseMappingOutcome(
+    return fromMappingOutcome(
       await ports.generateMappingsFor({
         pharmaceuticalId: drug.id,
         drug,
@@ -103,7 +112,7 @@ async function fromDatabase(
 async function fromOpenFda(
   query: string,
   ports: SearchPorts,
-): Promise<NaturalRemedy[]> {
+): Promise<TierResult> {
   let drugs: ProcessedDrug[];
   try {
     drugs = await ports.searchFda(query);
@@ -112,14 +121,14 @@ async function fromOpenFda(
   }
 
   const drug = drugs[0];
-  if (!drug) return [];
+  if (!drug) return noRemedies;
 
   // The cache-back is load-bearing, not an optimisation: mappings are keyed on
   // the persisted row, so a failed write means we cannot answer at all.
   try {
     const saved = await ports.cachePharmaceutical(drug);
     if (!saved?.id) throw new Error("cachePharmaceutical returned no id");
-    return collapseMappingOutcome(
+    return fromMappingOutcome(
       await ports.generateMappingsFor({
         pharmaceuticalId: saved.id,
         drug,
@@ -139,13 +148,17 @@ export async function resolveSearch(
 ): Promise<SearchOutcome> {
   try {
     const fromDb = await fromDatabase(query, ports);
-    if (fromDb.length > 0) {
-      return { kind: "found", remedies: fromDb, source: "database" };
+    // A refusal ends the search. Falling through to OpenFDA or to demo data
+    // would answer "we will not map this drug" with a list of remedies.
+    if (fromDb.kind === "refused") return fromDb;
+    if (fromDb.remedies.length > 0) {
+      return { kind: "found", remedies: fromDb.remedies, source: "database" };
     }
 
     const fromFda = await fromOpenFda(query, ports);
-    if (fromFda.length > 0) {
-      return { kind: "found", remedies: fromFda, source: "openfda" };
+    if (fromFda.kind === "refused") return fromFda;
+    if (fromFda.remedies.length > 0) {
+      return { kind: "found", remedies: fromFda.remedies, source: "openfda" };
     }
   } catch (error) {
     if (error instanceof TierUnavailable) {

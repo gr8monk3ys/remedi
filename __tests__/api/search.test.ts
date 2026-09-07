@@ -68,6 +68,7 @@ import { GET } from "@/app/api/search/route";
 import {
   searchPharmaceuticals,
   getNaturalRemediesForPharmaceutical,
+  generateRemedyMappingsForPharmaceutical,
   upsertPharmaceutical,
 } from "@/lib/db";
 import { searchFdaDrugs } from "@/lib/openFDA";
@@ -170,9 +171,11 @@ describe("GET /api/search", () => {
 
       expect(response.status).toBe(200);
       expect(json.success).toBe(true);
-      expect(Array.isArray(json.data)).toBe(true);
-      expect(json.data.length).toBeGreaterThan(0);
-      expect(json.data[0]).toHaveProperty("name", "Turmeric");
+      expect(Array.isArray(json.data.remedies)).toBe(true);
+      expect(json.data.remedies.length).toBeGreaterThan(0);
+      expect(json.data.remedies[0]).toHaveProperty("name", "Turmeric");
+      // Not a refusal: the policy had nothing to say about this drug.
+      expect(json.data.refused).toBeUndefined();
       expect(searchPharmaceuticals).toHaveBeenCalledWith("ibuprofen");
       expect(getNaturalRemediesForPharmaceutical).toHaveBeenCalledWith("1");
     });
@@ -294,7 +297,7 @@ describe("GET /api/search", () => {
       expect(response.status).toBe(200);
       expect(json.success).toBe(true);
       expect(fuzzySearch).toHaveBeenCalled();
-      expect(Array.isArray(json.data)).toBe(true);
+      expect(Array.isArray(json.data.remedies)).toBe(true);
     });
 
     it("should return empty array when all search tiers fail", async () => {
@@ -310,8 +313,51 @@ describe("GET /api/search", () => {
 
       expect(response.status).toBe(200);
       expect(json.success).toBe(true);
-      expect(Array.isArray(json.data)).toBe(true);
-      expect(json.data.length).toBe(0);
+      expect(Array.isArray(json.data.remedies)).toBe(true);
+      expect(json.data.remedies.length).toBe(0);
+      // An honest empty result, not a policy refusal.
+      expect(json.data.refused).toBeUndefined();
+    });
+  });
+
+  describe("Policy Refusals", () => {
+    it("serializes the refusal rather than an empty list", async () => {
+      // Anticoagulants and SSRIs carry no mappings on purpose. Shipping that
+      // as `[]` reads as "there are no natural remedies for warfarin", which
+      // is the confusion the mapping policy exists to prevent.
+      vi.mocked(searchPharmaceuticals).mockResolvedValue([
+        {
+          id: "p-warfarin",
+          fdaId: "fda-w",
+          name: "Warfarin",
+          description: "",
+          category: "Anticoagulant",
+          ingredients: ["warfarin sodium"],
+          benefits: [],
+        },
+      ] as never);
+      vi.mocked(getNaturalRemediesForPharmaceutical).mockResolvedValue([]);
+      vi.mocked(generateRemedyMappingsForPharmaceutical).mockResolvedValue({
+        kind: "unknown",
+        reason: "never-mapped",
+        message:
+          "Warfarin is an anticoagulant; even a supportive addition alters bleeding risk.",
+      } as never);
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/search?query=warfarin",
+      );
+      const response = await GET(request);
+      const json = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(json.success).toBe(true);
+      expect(json.data.remedies).toEqual([]);
+      expect(json.data.refused).toEqual({
+        reason: "never-mapped",
+        message:
+          "Warfarin is an anticoagulant; even a supportive addition alters bleeding risk.",
+      });
     });
   });
 
@@ -448,12 +494,12 @@ describe("GET /api/search", () => {
       const json = await response.json();
 
       expect(json.success).toBe(true);
-      expect(Array.isArray(json.data)).toBe(true);
-      expect(json.data[0]).toHaveProperty("id");
-      expect(json.data[0]).toHaveProperty("name");
-      expect(json.data[0]).toHaveProperty("description");
-      expect(json.data[0]).toHaveProperty("category");
-      expect(json.data[0]).toHaveProperty("similarityScore");
+      expect(Array.isArray(json.data.remedies)).toBe(true);
+      expect(json.data.remedies[0]).toHaveProperty("id");
+      expect(json.data.remedies[0]).toHaveProperty("name");
+      expect(json.data.remedies[0]).toHaveProperty("description");
+      expect(json.data.remedies[0]).toHaveProperty("category");
+      expect(json.data.remedies[0]).toHaveProperty("similarityScore");
     });
 
     it("should include metadata in response", async () => {

@@ -46,7 +46,7 @@ test.describe("Loading States", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
-          data: [],
+          data: { remedies: [] },
         }),
       });
     });
