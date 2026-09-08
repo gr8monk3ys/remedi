@@ -12,6 +12,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { MockedFunction } from "vitest";
 import { mockFdaApiResponse } from "@/__tests__/mocks";
+import type { Outcome } from "@/lib/outcome";
+import type { FdaRefusal } from "@/lib/openFDA";
 
 // Store original fetch
 const originalFetch = global.fetch;
@@ -27,6 +29,22 @@ const jsonResponse = (body: unknown, status = 200): Response =>
 
 const errorResponse = (status: number, statusText: string): Response =>
   new Response(statusText, { status, statusText });
+
+/**
+ * Assert a read established an answer, and return it.
+ *
+ * Both reads return an Outcome now: reaching OpenFDA and matching nothing is
+ * `known([])`, while failing to reach it at all is `unknown("unavailable")`.
+ * Unwrapping through this helper means a test that expects data fails loudly
+ * if the read was actually unavailable, rather than silently comparing
+ * against an empty array.
+ */
+function dataOf<T>(outcome: Outcome<T, FdaRefusal>): T {
+  if (outcome.kind !== "known") {
+    throw new Error(`expected a known outcome, got: ${outcome.message}`);
+  }
+  return outcome.data;
+}
 
 beforeEach(() => {
   mockFetch = vi.fn() as MockedFunction<typeof fetch>;
@@ -52,7 +70,7 @@ describe("OpenFDA API Integration", () => {
       mockFetch.mockResolvedValueOnce(jsonResponse(mockFdaApiResponse));
 
       const { searchFdaDrugs } = await getModule();
-      const results = await searchFdaDrugs("ibuprofen");
+      const results = dataOf(await searchFdaDrugs("ibuprofen"));
 
       expect(mockFetch).toHaveBeenCalled();
       const calledUrl = mockFetch.mock.calls[0][0];
@@ -83,21 +101,21 @@ describe("OpenFDA API Integration", () => {
       mockFetch.mockResolvedValueOnce(errorResponse(404, "Not Found"));
 
       const { searchFdaDrugs } = await getModule();
-      const results = await searchFdaDrugs("nonexistent-drug");
+      const results = dataOf(await searchFdaDrugs("nonexistent-drug"));
 
       expect(results).toEqual([]);
     });
 
-    it("should return empty array on API error", async () => {
-      mockFetch.mockResolvedValueOnce(
-        errorResponse(500, "Internal Server Error"),
-      );
+    it("reports an API error as unavailable, not as an empty result", async () => {
+      mockFetch.mockResolvedValue(errorResponse(500, "Internal Server Error"));
 
       const { searchFdaDrugs } = await getModule();
-      const results = await searchFdaDrugs("test");
+      const outcome = await searchFdaDrugs("test");
 
-      // Should return empty array instead of throwing
-      expect(results).toEqual([]);
+      // Deliberately not `known([])`. A 500 means we could not ask, and the
+      // caller has to be able to tell that from an empty catalogue.
+      expect(outcome.kind).toBe("unknown");
+      expect(outcome).toMatchObject({ reason: "unavailable" });
     });
 
     it("should handle rate limiting (429) with retry", async () => {
@@ -112,7 +130,7 @@ describe("OpenFDA API Integration", () => {
       vi.useFakeTimers();
       const resultPromise = searchFdaDrugs("ibuprofen");
       await vi.advanceTimersByTimeAsync(65000); // Wait for rate limit delay
-      const results = await resultPromise;
+      const results = dataOf(await resultPromise);
       vi.useRealTimers();
 
       // Should have been called twice due to retry
@@ -140,8 +158,8 @@ describe("OpenFDA API Integration", () => {
       expect(calledUrl).toContain("pain%20%2B%20relief");
     });
 
-    it("should handle network errors gracefully", async () => {
-      mockFetch.mockRejectedValueOnce(new Error("Network error"));
+    it("reports a network error as unavailable, not as an empty result", async () => {
+      mockFetch.mockRejectedValue(new Error("Network error"));
 
       const { searchFdaDrugs } = await getModule();
 
@@ -149,10 +167,12 @@ describe("OpenFDA API Integration", () => {
       vi.useFakeTimers();
       const resultPromise = searchFdaDrugs("test");
       await vi.advanceTimersByTimeAsync(10000);
-      const results = await resultPromise;
+      const outcome = await resultPromise;
       vi.useRealTimers();
 
-      expect(results).toEqual([]);
+      // This is the case that rendered as "No results found" in production.
+      expect(outcome.kind).toBe("unknown");
+      expect(outcome).toMatchObject({ reason: "unavailable" });
     });
 
     it("should process FDA results correctly", async () => {
@@ -180,7 +200,7 @@ describe("OpenFDA API Integration", () => {
       mockFetch.mockResolvedValueOnce(jsonResponse(detailedResponse));
 
       const { searchFdaDrugs } = await getModule();
-      const results = await searchFdaDrugs("advil");
+      const results = dataOf(await searchFdaDrugs("advil"));
 
       expect(results[0].name).toBe("Advil");
       expect(results[0].fdaId).toBe("fda-123");
@@ -198,7 +218,7 @@ describe("OpenFDA API Integration", () => {
       mockFetch.mockResolvedValueOnce(jsonResponse(mockFdaApiResponse));
 
       const { getFdaDrugById } = await getModule();
-      const result = await getFdaDrugById("fda-123");
+      const result = dataOf(await getFdaDrugById("fda-123"));
 
       expect(mockFetch).toHaveBeenCalled();
       const calledUrl = mockFetch.mock.calls[0][0];
@@ -212,7 +232,7 @@ describe("OpenFDA API Integration", () => {
       mockFetch.mockResolvedValueOnce(errorResponse(404, "Not Found"));
 
       const { getFdaDrugById } = await getModule();
-      const result = await getFdaDrugById("nonexistent-id");
+      const result = dataOf(await getFdaDrugById("nonexistent-id"));
 
       expect(result).toBeNull();
     });
@@ -221,20 +241,20 @@ describe("OpenFDA API Integration", () => {
       mockFetch.mockResolvedValueOnce(jsonResponse({ results: [] }));
 
       const { getFdaDrugById } = await getModule();
-      const result = await getFdaDrugById("empty-results-id");
+      const result = dataOf(await getFdaDrugById("empty-results-id"));
 
       expect(result).toBeNull();
     });
 
-    it("should handle API errors gracefully", async () => {
-      mockFetch.mockResolvedValueOnce(
-        errorResponse(500, "Internal Server Error"),
-      );
+    it("reports an API error as unavailable, not as a missing drug", async () => {
+      mockFetch.mockResolvedValue(errorResponse(500, "Internal Server Error"));
 
       const { getFdaDrugById } = await getModule();
-      const result = await getFdaDrugById("test-id");
+      const outcome = await getFdaDrugById("test-id");
 
-      expect(result).toBeNull();
+      // `known(null)` would say OpenFDA holds no such drug. It did not say so.
+      expect(outcome.kind).toBe("unknown");
+      expect(outcome).toMatchObject({ reason: "unavailable" });
     });
   });
 
@@ -255,7 +275,7 @@ describe("OpenFDA API Integration", () => {
       );
 
       const { searchFdaDrugs } = await getModule();
-      const results = await searchFdaDrugs("acetaminophen");
+      const results = dataOf(await searchFdaDrugs("acetaminophen"));
 
       expect(results[0].name).toBe("ACETAMINOPHEN");
     });
@@ -274,7 +294,7 @@ describe("OpenFDA API Integration", () => {
       );
 
       const { searchFdaDrugs } = await getModule();
-      const results = await searchFdaDrugs("unknown");
+      const results = dataOf(await searchFdaDrugs("unknown"));
 
       expect(results[0].name).toBe("Unknown Drug");
     });
@@ -304,7 +324,7 @@ describe("OpenFDA API Integration", () => {
         );
 
         const { searchFdaDrugs } = await getModule();
-        const results = await searchFdaDrugs("test");
+        const results = dataOf(await searchFdaDrugs("test"));
 
         expect(results[0].category).toBe(testCase.expected);
       }
@@ -328,7 +348,7 @@ describe("OpenFDA API Integration", () => {
       );
 
       const { searchFdaDrugs } = await getModule();
-      const results = await searchFdaDrugs("sleep");
+      const results = dataOf(await searchFdaDrugs("sleep"));
 
       expect(results[0].category).toBe("Sleep Aid");
     });
@@ -348,7 +368,7 @@ describe("OpenFDA API Integration", () => {
       );
 
       const { searchFdaDrugs } = await getModule();
-      const results = await searchFdaDrugs("test");
+      const results = dataOf(await searchFdaDrugs("test"));
 
       expect(results[0].description.length).toBeLessThanOrEqual(203); // 200 + '...'
       expect(results[0].description.endsWith("...")).toBe(true);
@@ -368,7 +388,7 @@ describe("OpenFDA API Integration", () => {
       // test is about retry behaviour, not matching.
       const resultPromise = searchFdaDrugs("ibuprofen");
       await vi.advanceTimersByTimeAsync(5000);
-      const results = await resultPromise;
+      const results = dataOf(await resultPromise);
       vi.useRealTimers();
 
       expect(mockFetch).toHaveBeenCalledTimes(2);
@@ -383,10 +403,12 @@ describe("OpenFDA API Integration", () => {
       vi.useFakeTimers();
       const resultPromise = searchFdaDrugs("test");
       await vi.advanceTimersByTimeAsync(20000);
-      const results = await resultPromise;
+      const outcome = await resultPromise;
       vi.useRealTimers();
 
-      expect(results).toEqual([]);
+      // Exhausting the retries is still a failure to reach OpenFDA.
+      expect(outcome.kind).toBe("unknown");
+      expect(outcome).toMatchObject({ reason: "unavailable" });
     });
   });
 
@@ -422,7 +444,7 @@ describe("OpenFDA API Integration", () => {
       );
 
       const { searchFdaDrugs } = await getModule();
-      const results = await searchFdaDrugs("tylenol extra strength");
+      const results = dataOf(await searchFdaDrugs("tylenol extra strength"));
 
       expect(results).toHaveLength(0);
     });
@@ -444,7 +466,7 @@ describe("OpenFDA API Integration", () => {
       );
 
       const { searchFdaDrugs } = await getModule();
-      const results = await searchFdaDrugs("ibuprofen");
+      const results = dataOf(await searchFdaDrugs("ibuprofen"));
 
       expect(results).toHaveLength(1);
     });
@@ -486,7 +508,7 @@ describe("substance identity survives label processing", () => {
     mockFetch.mockResolvedValueOnce(jsonResponse(brandedLabel));
     const { searchFdaDrugs } = await import("@/lib/openFDA");
 
-    const [drug] = await searchFdaDrugs("coumadin");
+    const [drug] = dataOf(await searchFdaDrugs("coumadin"));
 
     // The brand still leads, because that is what a person searched for.
     expect(drug.name).toBe("COUMADIN");
@@ -498,7 +520,7 @@ describe("substance identity survives label processing", () => {
     mockFetch.mockResolvedValueOnce(jsonResponse(brandedLabel));
     const { searchFdaDrugs } = await import("@/lib/openFDA");
 
-    const [drug] = await searchFdaDrugs("coumadin");
+    const [drug] = dataOf(await searchFdaDrugs("coumadin"));
 
     expect(drug.rxcui).toEqual(["855288", "855296"]);
     expect(drug.unii).toEqual(["6153CWM0CL"]);
@@ -519,7 +541,7 @@ describe("substance identity survives label processing", () => {
     );
     const { searchFdaDrugs } = await import("@/lib/openFDA");
 
-    const [drug] = await searchFdaDrugs("mystery");
+    const [drug] = dataOf(await searchFdaDrugs("mystery"));
 
     expect(drug.genericName).toBeUndefined();
     expect(drug.rxcui).toEqual([]);

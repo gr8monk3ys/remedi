@@ -40,7 +40,7 @@ function ports(overrides: Partial<SearchPorts> = {}): SearchPorts {
     findPharmaceuticals: async () => [],
     findRemediesFor: async () => [],
     generateMappingsFor: async () => known([]),
-    searchFda: async () => [],
+    searchFda: async () => known([]),
     cachePharmaceutical: async () => ({ id: "p1" }),
     findDemoRemedies: () => null,
     ...overrides,
@@ -89,7 +89,7 @@ describe("found", () => {
     const outcome = await resolveSearch(
       "novel drug",
       ports({
-        searchFda: async () => [DRUG],
+        searchFda: async () => known([DRUG]),
         cachePharmaceutical: cache,
         generateMappingsFor: async () => known([REMEDY]),
       }),
@@ -122,7 +122,7 @@ describe("absent", () => {
   it("is absent, not unavailable, when OpenFDA simply has no match", async () => {
     const outcome = await resolveSearch(
       "unknown",
-      ports({ searchFda: async () => [] }),
+      ports({ searchFda: async () => known([]) }),
     );
     expect(outcome).toEqual({ kind: "absent" });
   });
@@ -209,7 +209,7 @@ describe("refused", () => {
   });
 
   it("does not fall through to OpenFDA", async () => {
-    const searchFda = vi.fn(async () => [DRUG]);
+    const searchFda = vi.fn(async () => known([DRUG]));
     const outcome = await resolveSearch(
       "warfarin",
       ports({
@@ -294,11 +294,38 @@ describe("unavailable", () => {
     expect(outcome).toEqual({ kind: "unavailable", which: "openfda" });
   });
 
+  // The case above passes against a fake that throws. The real adapter never
+  // did — it returned `[]` — so this arm was unreachable in production while
+  // that test stayed green. The port now states unavailability as a value,
+  // which is the shape `searchFdaDrugs` actually returns.
+  it("reports a stated OpenFDA unavailability, not just a thrown one", async () => {
+    const outcome = await resolveSearch(
+      "novel drug",
+      ports({
+        searchFda: async () => unknown("unavailable", "FDA unreachable"),
+      }),
+    );
+
+    expect(outcome).toEqual({ kind: "unavailable", which: "openfda" });
+  });
+
+  it("does not answer a stated OpenFDA outage with demo data", async () => {
+    const outcome = await resolveSearch(
+      "novel drug",
+      ports({
+        searchFda: async () => unknown("unavailable", "FDA unreachable"),
+        findDemoRemedies: () => [REMEDY],
+      }),
+    );
+
+    expect(outcome).toEqual({ kind: "unavailable", which: "openfda" });
+  });
+
   it("does not let a failed cache-back silently discard the drug", async () => {
     const outcome = await resolveSearch(
       "novel drug",
       ports({
-        searchFda: async () => [DRUG],
+        searchFda: async () => known([DRUG]),
         cachePharmaceutical: async () => {
           throw new Error("write failed");
         },
@@ -312,7 +339,7 @@ describe("unavailable", () => {
     const outcome = await resolveSearch(
       "novel drug",
       ports({
-        searchFda: async () => [DRUG],
+        searchFda: async () => known([DRUG]),
         cachePharmaceutical: async () => ({}) as { id: string },
       }),
     );

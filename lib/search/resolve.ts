@@ -15,6 +15,8 @@
 
 import type { NaturalRemedy, ProcessedDrug } from "@/lib/types";
 import type { MappingOutcome, MappingRefusal } from "@/lib/remedy-matcher";
+import type { Outcome } from "@/lib/outcome";
+import type { FdaRefusal } from "@/lib/openFDA";
 
 export type SearchSource = "database" | "openfda" | "demo";
 
@@ -36,6 +38,13 @@ export type SearchOutcome =
  * Two adapters satisfy this: the real one in the route, and an in-memory one
  * in tests — which is what lets the tier chain be tested with no database and
  * no network.
+ *
+ * Where a port can fail to reach what it wraps, that is stated in its return
+ * type rather than in prose. `searchFda` returns an Outcome for exactly that
+ * reason: it used to be typed `Promise<ProcessedDrug[]>` with a comment saying
+ * it threw when unreachable, and the shipped adapter quietly returned `[]`
+ * instead — so the `unavailable` arm below was unreachable in production while
+ * its test passed against a fake that did throw.
  */
 export interface SearchPorts {
   findPharmaceuticals(query: string): Promise<ProcessedDrug[]>;
@@ -44,7 +53,7 @@ export interface SearchPorts {
     pharmaceuticalId: string;
     drug: ProcessedDrug;
   }): Promise<MappingOutcome>;
-  searchFda(query: string): Promise<ProcessedDrug[]>;
+  searchFda(query: string): Promise<Outcome<ProcessedDrug[], FdaRefusal>>;
   cachePharmaceutical(drug: ProcessedDrug): Promise<{ id: string }>;
   /** Demo fallback; returns null when demo data is disabled. */
   findDemoRemedies(query: string): NaturalRemedy[] | null;
@@ -123,13 +132,17 @@ async function fromOpenFda(
   query: string,
   ports: SearchPorts,
 ): Promise<TierResult> {
-  let drugs: ProcessedDrug[];
+  let found: Outcome<ProcessedDrug[], FdaRefusal>;
   try {
-    drugs = await ports.searchFda(query);
+    found = await ports.searchFda(query);
   } catch {
     throw new TierUnavailable("openfda");
   }
+  // The port states its own unavailability, so this is no longer reachable
+  // only by an adapter that happens to throw.
+  if (found.kind === "unknown") throw new TierUnavailable("openfda");
 
+  const drugs = found.data;
   const drug = drugs[0];
   if (!drug) return noRemedies;
 

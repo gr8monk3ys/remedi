@@ -10,6 +10,20 @@
 import type { DrugSearchResult, FdaDrugResult, ProcessedDrug } from "./types";
 import { createLogger } from "@/lib/logger";
 import { CircuitBreaker, CircuitBreakerOpenError } from "@/lib/circuit-breaker";
+import { known, unknown, type Outcome } from "@/lib/outcome";
+
+/**
+ * Why an OpenFDA read could not produce an answer.
+ *
+ * There is one reason, and it is deliberately not a list of transport
+ * details: a caller can do nothing different for a timeout than for an open
+ * circuit breaker. What matters is that this is not an empty result.
+ */
+export type FdaRefusal = "unavailable";
+
+/** Both reads share this: the caller cannot fix it, and must not hide it. */
+const UNREACHABLE =
+  "We could not reach the FDA drug database. This is not a result.";
 
 const logger = createLogger("openfda");
 
@@ -160,15 +174,21 @@ function matchesQuery(drug: ProcessedDrug, query: string): boolean {
 }
 
 /**
- * Search for drugs in the FDA database with retry logic and error handling
+ * Search for drugs in the FDA database with retry logic and error handling.
+ *
+ * Returns an Outcome rather than an array because the two failure shapes are
+ * not the same fact. A search that reaches OpenFDA and matches nothing is
+ * `known([])`; one that cannot reach it at all is `unknown("unavailable")`.
+ * This function used to return `[]` for both, which meant the caller could not
+ * tell them apart and an outage reached the page as "No results found."
+ *
  * @param query Search term
  * @param limit Number of results to return
- * @returns Processed drug results
  */
 export async function searchFdaDrugs(
   query: string,
   limit = 5,
-): Promise<ProcessedDrug[]> {
+): Promise<Outcome<ProcessedDrug[], FdaRefusal>> {
   try {
     return await fdaCircuitBreaker.call(async () => {
       // Search the drug-name fields specifically, with the term quoted as a
@@ -184,8 +204,9 @@ export async function searchFdaDrugs(
 
       if (!response.ok) {
         if (response.status === 404) {
+          // A 404 is OpenFDA answering: it looked and holds nothing.
           logger.debug("No results found", { query });
-          return [];
+          return known<ProcessedDrug[], FdaRefusal>([]);
         }
         throw new Error(
           `FDA API error: ${response.status} ${response.statusText}`,
@@ -207,27 +228,32 @@ export async function searchFdaDrugs(
         });
       }
 
-      return relevant;
+      return known<ProcessedDrug[], FdaRefusal>(relevant);
     });
   } catch (error) {
     if (error instanceof CircuitBreakerOpenError) {
-      logger.warn("OpenFDA circuit breaker is open, falling back to mock data");
+      logger.warn("OpenFDA circuit breaker is open");
     } else {
       logger.error("Error searching FDA drugs", error);
     }
-    // Return empty array instead of throwing to allow fallback to mock data
-    return [];
+    // Deliberately not `[]`. An unreachable tier is not an empty catalogue,
+    // and returning one for the other is what put "No results found" on the
+    // page during an outage.
+    return unknown<ProcessedDrug[], FdaRefusal>("unavailable", UNREACHABLE);
   }
 }
 
 /**
- * Get detailed information about a specific drug by FDA ID with retry logic
+ * Get detailed information about a specific drug by FDA ID with retry logic.
+ *
+ * Carries the same distinction as `searchFdaDrugs`: a `known(null)` means
+ * OpenFDA holds no such drug, an `unknown` means we could not ask.
+ *
  * @param fdaId FDA ID of the drug
- * @returns Detailed drug information
  */
 export async function getFdaDrugById(
   fdaId: string,
-): Promise<ProcessedDrug | null> {
+): Promise<Outcome<ProcessedDrug | null, FdaRefusal>> {
   try {
     return await fdaCircuitBreaker.call(async () => {
       const endpoint = `/drug/label.json?search=id:${fdaId}`;
@@ -238,7 +264,7 @@ export async function getFdaDrugById(
       if (!response.ok) {
         if (response.status === 404) {
           logger.debug("Drug not found by ID", { fdaId });
-          return null;
+          return known<ProcessedDrug | null, FdaRefusal>(null);
         }
         throw new Error(
           `FDA API error: ${response.status} ${response.statusText}`,
@@ -248,12 +274,12 @@ export async function getFdaDrugById(
       const data: DrugSearchResult = await response.json();
 
       if (data.results.length === 0) {
-        return null;
+        return known<ProcessedDrug | null, FdaRefusal>(null);
       }
 
       // Process the FDA API result into our application format
       const processedDrugs = processFdaResults(data.results);
-      return processedDrugs[0] || null;
+      return known<ProcessedDrug | null, FdaRefusal>(processedDrugs[0] ?? null);
     });
   } catch (error) {
     if (error instanceof CircuitBreakerOpenError) {
@@ -263,7 +289,10 @@ export async function getFdaDrugById(
     } else {
       logger.error("Error fetching FDA drug by ID", error);
     }
-    return null;
+    return unknown<ProcessedDrug | null, FdaRefusal>(
+      "unavailable",
+      UNREACHABLE,
+    );
   }
 }
 
