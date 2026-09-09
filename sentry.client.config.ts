@@ -31,20 +31,21 @@ Sentry.init({
 
   // Integrations for browser monitoring
   integrations: [
-    // Session Replay for debugging user sessions
+    // Session Replay records what is on screen. On this product that is
+    // someone's Medication Cabinet, Health Profile and Journal — so the
+    // defaults here have to be the private ones, not the debuggable ones.
     Sentry.replayIntegration({
-      // Mask sensitive text content
-      maskAllText: false,
-      // Block media to reduce payload size
-      blockAllMedia: false,
-      // Mask all inputs for privacy
+      // Was `false`, directly under a comment saying "Mask sensitive text
+      // content". Replays of 10% of sessions, and 100% of error sessions,
+      // were carrying users' medications and journal entries as readable
+      // text to a third party.
+      maskAllText: true,
+      blockAllMedia: true,
       maskAllInputs: true,
-      // Network request/response capture
-      networkDetailAllowUrls: [
-        window.location.origin,
-        /^https:\/\/api\.openai\.com/,
-        /^https:\/\/api\.openfda\.gov/,
-      ],
+      // Deliberately no networkDetailAllowUrls. It previously included
+      // `window.location.origin`, which captured the request and response
+      // bodies of our own API — /api/health-profile, /api/journal and
+      // /api/medication-cabinet among them.
     }),
     // Browser Tracing for performance monitoring
     Sentry.browserTracingIntegration({

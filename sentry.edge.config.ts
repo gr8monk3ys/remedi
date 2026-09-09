@@ -12,6 +12,12 @@ import * as Sentry from "@sentry/nextjs";
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
+  // Explicit because it is load-bearing here: with sendDefaultPii on, Sentry
+  // attaches request bodies and cookies, which on this product means health
+  // profiles, journal entries and medication lists. It defaults to false, but
+  // a default is not a decision.
+  sendDefaultPii: false,
+
   // Environment detection
   environment: process.env.NODE_ENV,
 
