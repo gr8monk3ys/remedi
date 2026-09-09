@@ -95,15 +95,27 @@ async function selectCandidateRemedies(
 }
 
 /**
- * What an AI matching request produced: recommendations, or a refusal.
+ * Why an AI matching request produced no answer.
  *
- * `known` with an empty array means the model had nothing to offer. `unknown`
- * means the policy declined to answer at all. They are different facts and a
- * caller must not render them the same way.
+ * Two different facts, and they are answered differently: a refusal is a
+ * decision we made and ship as a 200, an unavailability is a failure and ships
+ * as a 503.
+ */
+export type AIMatchingRefusal = MappingRefusal | "unavailable";
+
+/**
+ * What an AI matching request produced: recommendations, or a stated reason
+ * there are none.
+ *
+ * `known` with an empty array means the model was asked and had nothing to
+ * offer. `unknown` means we never got an answer — either the policy declined
+ * to ask, or we could not reach the model. All three used to collapse into
+ * `known([])`, so "OpenAI is down" reached the page as "no remedies found" —
+ * the same collapse `searchFdaDrugs` had, on the sibling path.
  */
 export type AIMatchingOutcome = Outcome<
   AIRemedyRecommendation[],
-  MappingRefusal
+  AIMatchingRefusal
 >;
 
 /**
@@ -243,7 +255,11 @@ export async function enhanceRemedyMatching(
   try {
     const client = getOpenAIClient();
     if (!client) {
-      return known([]);
+      // No key configured is not "the model had nothing to suggest".
+      return unknown(
+        "unavailable",
+        "AI search is not available right now. This is not a result.",
+      );
     }
 
     // Pick candidates by relevance to the query, not by insertion order.
@@ -304,6 +320,11 @@ export async function enhanceRemedyMatching(
     } else {
       logger.error("AI matching error", error);
     }
-    return known([]);
+    // Deliberately not `known([])`. An outage is not an empty answer, and
+    // asserting one here is exactly what lib/outcome.ts exists to prevent.
+    return unknown(
+      "unavailable",
+      "We could not complete your AI search just now. This is not a result — please try again shortly.",
+    );
   }
 }

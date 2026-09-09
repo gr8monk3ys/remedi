@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { DrugInteractionResult } from "@/lib/ai/types";
 
 // Mock OpenAI before importing
 const mockCreate = vi.fn();
@@ -22,6 +23,13 @@ vi.mock("openai", () => {
 });
 
 // Mock Prisma
+// The AI path reads curated forbidden pairs. Unmocked, that read threw and was
+// swallowed into known([]) — which is why the "recommendations" test below
+// passed while asserting only `length >= 0`.
+vi.mock("@/lib/db/interactions", () => ({
+  forbiddenRemedyTermsForDrug: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock("@/lib/db", () => ({
   prisma: {
     naturalRemedy: {
@@ -94,7 +102,8 @@ describe("AI Module", () => {
         query: "pain relief",
       });
 
-      expect(result).toEqual({ kind: "known", data: [] });
+      // No API key configured is not "the model had nothing to suggest".
+      expect(result).toMatchObject({ kind: "unknown", reason: "unavailable" });
     });
 
     it("should return recommendations when AI is enabled", async () => {
@@ -151,7 +160,9 @@ describe("AI Module", () => {
 
       expect(result.kind).toBe("known");
       if (result.kind !== "known") throw new Error("unreachable");
-      expect(result.data.length).toBeGreaterThanOrEqual(0);
+      // `length >= 0` is true of every array, so it asserted nothing.
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0]?.remedy.name).toBe("Turmeric");
     });
 
     it("should handle AI errors gracefully", async () => {
@@ -168,7 +179,8 @@ describe("AI Module", () => {
         query: "test",
       });
 
-      expect(result).toEqual({ kind: "known", data: [] });
+      // Previously known([]) — an outage rendered as "no remedies found".
+      expect(result).toMatchObject({ kind: "unknown", reason: "unavailable" });
     });
 
     it("should handle empty AI response", async () => {
@@ -187,7 +199,9 @@ describe("AI Module", () => {
         query: "test",
       });
 
-      expect(result).toEqual({ kind: "known", data: [] });
+      // A model that returned nothing at all did not answer "none" — we never
+      // got a response to read.
+      expect(result).toMatchObject({ kind: "unknown", reason: "unavailable" });
     });
 
     it("should handle malformed JSON response", async () => {
@@ -296,29 +310,41 @@ describe("AI Module", () => {
   });
 
   describe("checkDrugInteractions", () => {
+    /** Assert the check produced a verdict, and return it. */
+    const verdict = <T>(o: { kind: string } & Record<string, unknown>): T => {
+      if (o.kind !== "known") {
+        throw new Error(`expected a verdict, got: ${String(o.message)}`);
+      }
+      return o.data as T;
+    };
+
     it("should return safe result for empty medications", async () => {
       vi.resetModules();
 
       const { checkDrugInteractions } = await import("@/lib/ai/interactions");
-      const result = await checkDrugInteractions("Turmeric", []);
+      const result = verdict<DrugInteractionResult>(
+        await checkDrugInteractions("Turmeric", []),
+      );
 
       expect(result.hasInteractions).toBe(false);
       expect(result.warnings).toEqual([]);
       expect(result.severity).toBe("low");
     });
 
-    it("should return warning when AI is disabled", async () => {
+    it("reports an unavailable checker as unknown, not as an interaction", async () => {
       delete process.env.OPENAI_API_KEY;
       vi.resetModules();
 
       const { checkDrugInteractions } = await import("@/lib/ai/interactions");
-      const result = await checkDrugInteractions("Turmeric", ["Warfarin"]);
+      const outcome = await checkDrugInteractions("Turmeric", ["Warfarin"]);
 
-      expect(result.hasInteractions).toBe(true);
-      expect(result.warnings[0]).toContain(
-        "AI interaction checking unavailable",
-      );
-      expect(result.severity).toBe("moderate");
+      // This used to answer with a fabricated `hasInteractions: true` and a
+      // moderate severity — safe in direction, but it asserts a verdict that
+      // was never reached, in the subsystem where that matters most.
+      expect(outcome.kind).toBe("unknown");
+      expect(outcome).toMatchObject({ reason: "unavailable" });
+      if (outcome.kind !== "unknown") throw new Error("unreachable");
+      expect(outcome.message).toMatch(/not a confirmation that none exist/i);
     });
 
     it("should check interactions when AI is enabled", async () => {
@@ -341,7 +367,9 @@ describe("AI Module", () => {
       });
 
       const { checkDrugInteractions } = await import("@/lib/ai/interactions");
-      const result = await checkDrugInteractions("Turmeric", ["Warfarin"]);
+      const result = verdict<DrugInteractionResult>(
+        await checkDrugInteractions("Turmeric", ["Warfarin"]),
+      );
 
       expect(result.hasInteractions).toBe(true);
       expect(result.warnings[0]).toContain("blood thinners");
@@ -369,11 +397,13 @@ describe("AI Module", () => {
       });
 
       const { checkDrugInteractions } = await import("@/lib/ai/interactions");
-      const result = await checkDrugInteractions("Turmeric", [
-        "Warfarin",
-        "Aspirin",
-        "Metformin",
-      ]);
+      const result = verdict<DrugInteractionResult>(
+        await checkDrugInteractions("Turmeric", [
+          "Warfarin",
+          "Aspirin",
+          "Metformin",
+        ]),
+      );
 
       expect(result.hasInteractions).toBe(true);
       expect(result.severity).toBe("high");
@@ -386,11 +416,11 @@ describe("AI Module", () => {
       mockCreate.mockRejectedValue(new Error("Interaction check failed"));
 
       const { checkDrugInteractions } = await import("@/lib/ai/interactions");
-      const result = await checkDrugInteractions("Turmeric", ["Warfarin"]);
+      const outcome = await checkDrugInteractions("Turmeric", ["Warfarin"]);
 
-      expect(result.hasInteractions).toBe(true);
-      expect(result.warnings[0]).toContain("Unable to verify");
-      expect(result.severity).toBe("moderate");
+      // A failed check states that it failed. It does not invent a moderate
+      // interaction, which is what the old sentinel did.
+      expect(outcome).toMatchObject({ kind: "unknown", reason: "unavailable" });
     });
   });
 });

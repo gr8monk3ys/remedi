@@ -257,3 +257,46 @@ describe("the AI path consults the same forbidden pairs as every write path", ()
     expect(mockForbiddenTerms).not.toHaveBeenCalled();
   });
 });
+
+describe("the AI subsystem never reports an outage as an answer", () => {
+  it("states an unreachable model as unavailable, not as an empty result", async () => {
+    // The same collapse searchFdaDrugs had, on the sibling path: an outage
+    // returned known([]) and reached the page as "no remedies found".
+    mockForbiddenTerms.mockResolvedValue([]);
+    mockCreate.mockRejectedValue(new Error("OpenAI is down"));
+    const { enhanceRemedyMatching } = await import("@/lib/ai/matching");
+
+    const outcome = await enhanceRemedyMatching({ query: "joint pain" });
+
+    expect(outcome).toMatchObject({ kind: "unknown", reason: "unavailable" });
+  });
+
+  it("keeps a genuinely empty model answer as known", async () => {
+    // The control: an outage and "the model had nothing" must not collapse
+    // into each other in either direction.
+    mockForbiddenTerms.mockResolvedValue([]);
+    mockCreate.mockResolvedValue({
+      choices: [
+        { message: { content: JSON.stringify({ recommendations: [] }) } },
+      ],
+    });
+    const { enhanceRemedyMatching } = await import("@/lib/ai/matching");
+
+    const outcome = await enhanceRemedyMatching({ query: "joint pain" });
+
+    expect(outcome).toEqual({ kind: "known", data: [] });
+  });
+
+  it("distinguishes a policy refusal from an unavailability", async () => {
+    // Both are `unknown`, but they are answered differently: a refusal is a
+    // decision and ships 200, an unavailability is a failure and ships 503.
+    mockForbiddenTerms.mockResolvedValue([]);
+    const { enhanceRemedyMatching } = await import("@/lib/ai/matching");
+
+    const refused = await enhanceRemedyMatching({
+      query: "instead of warfarin",
+    });
+
+    expect(refused).toMatchObject({ kind: "unknown", reason: "never-mapped" });
+  });
+});

@@ -15,7 +15,11 @@ import {
   checkDrugInteractions,
 } from "@/lib/ai-matching";
 import { getCurrentUser } from "@/lib/auth";
-import { successResponse, errorResponse } from "@/lib/api/response";
+import {
+  successResponse,
+  errorResponse,
+  getStatusCode,
+} from "@/lib/api/response";
 import { getValidationErrorMessage } from "@/lib/validations/api";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
@@ -145,6 +149,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // We could not reach the model. That is a failure, not an answer, so it
+    // ships as a 503 rather than a 200 with an empty list — the same way the
+    // primary search path reports an unreachable tier.
+    if (outcome.kind === "unknown" && outcome.reason === "unavailable") {
+      log.warn("AI search could not complete", { message: outcome.message });
+      return NextResponse.json(
+        errorResponse("SERVICE_UNAVAILABLE", outcome.message),
+        { status: getStatusCode("SERVICE_UNAVAILABLE") },
+      );
+    }
+
     // A refusal is reported as a refusal. Returning an empty recommendation
     // list would make "we do not suggest remedies alongside this drug" look
     // identical to "the model found nothing", which is the one confusion this
@@ -177,13 +192,27 @@ export async function POST(request: NextRequest) {
     ) {
       interactionResults = await Promise.all(
         recommendations.map(async (rec) => {
-          const interactions = await checkDrugInteractions(
+          const outcome = await checkDrugInteractions(
             rec.remedy.name,
             currentMedications,
           );
+
+          // `checked` is the discriminator a reader needs. Without it, an
+          // outage and a genuine all-clear arrive as the same payload — and
+          // the old sentinel answered an outage with a fabricated moderate
+          // interaction rather than saying it could not check.
+          if (outcome.kind === "unknown") {
+            return {
+              remedyName: rec.remedy.name,
+              checked: false as const,
+              message: outcome.message,
+            };
+          }
+
           return {
             remedyName: rec.remedy.name,
-            ...interactions,
+            checked: true as const,
+            ...outcome.data,
           };
         }),
       );
