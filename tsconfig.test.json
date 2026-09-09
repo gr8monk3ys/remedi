@@ -1,0 +1,28 @@
+{
+  // Type-checks the test suite, which tsconfig.json deliberately excludes.
+  //
+  // The app's own config sets "types": [] so that Next.js builds do not pull in
+  // ambient test globals. That is right for app code and wrong for tests, and
+  // the consequence was that no test file was ever type-checked: a fake could
+  // assert a shape no call site could legally receive and nothing complained.
+  // Fakes are exactly where that matters, because a fake that does not match
+  // the interface is a test proving something about a world we do not ship.
+  //
+  // Run by `bun run type-check:tests`.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    // Tests legitimately declare fixtures they use in only some cases.
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  // Playwright specs run under a different runner with its own globals.
+  "exclude": ["node_modules", "e2e"]
+}

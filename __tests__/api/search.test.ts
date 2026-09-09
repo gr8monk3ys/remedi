@@ -510,7 +510,7 @@ describe("GET /api/search", () => {
           category: "Test",
           ingredients: [],
           benefits: [],
-        } as SearchPharmaceuticalsResult[number],
+        } as unknown as SearchPharmaceuticalsResult[number],
       ]);
       vi.mocked(getNaturalRemediesForPharmaceutical).mockResolvedValue([
         mockRemedy,

@@ -20,7 +20,10 @@ import { render } from "@react-email/components";
 // Mock env module
 const mockEnv = {
   hasResendEmail: vi.fn(() => true),
-  getResendApiKey: vi.fn(() => "test-resend-api-key"),
+  // Typed as the real getResendApiKey is — `string | undefined` — so a test can
+  // simulate a missing key. Inferring from the default made the fake narrower
+  // than the function it stands in for.
+  getResendApiKey: vi.fn<() => string | undefined>(() => "test-resend-api-key"),
   getEmailFrom: vi.fn(() => "Remedi <noreply@remedi.com>"),
 };
 

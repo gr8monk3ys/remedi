@@ -30,6 +30,7 @@
     "import:fda:dry": "bun run scripts/import-openfda-data.ts --dry-run",
     "import:fda:quick": "bun run scripts/import-openfda-data.ts --limit 50",
     "type-check": "DATABASE_URL=${DATABASE_URL:-postgresql://remedi:remedi_dev@localhost:5433/remedi?schema=public} bunx prisma generate && tsc --noEmit",
+    "type-check:tests": "tsc --noEmit -p tsconfig.test.json",
     "init": "bunx prisma generate && bunx prisma migrate dev && bun run db:seed:demo",
     "db:seed": "bunx prisma db seed",
     "db:seed:demo": "SEED_DEMO=true bunx prisma db seed",

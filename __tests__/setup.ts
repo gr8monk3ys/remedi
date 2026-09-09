@@ -22,9 +22,11 @@ afterEach(() => {
 
 // Mock IntersectionObserver
 class MockIntersectionObserver implements IntersectionObserver {
-  readonly root: Element | null = null;
+  readonly root: Element | Document | null = null;
   readonly rootMargin: string = "";
   readonly thresholds: readonly number[] = [];
+  // Added to lib.dom after this mock was written.
+  readonly scrollMargin: string = "";
 
   constructor(
     _callback: IntersectionObserverCallback,

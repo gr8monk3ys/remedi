@@ -484,11 +484,20 @@ export function isRemedyForbidden(
   return groups.some((group) => groupMatches(group, remedy));
 }
 
-/** The fields that can identify which substance a drug record is. */
+/**
+ * The fields that can identify which substance a drug record is.
+ *
+ * `ingredients` is optional here even though `ProcessedDrug` requires it,
+ * because this is a policy *input*, not a drug record. The AI path builds one
+ * from a free-typed question where no ingredient list exists, and
+ * `policyHaystack` has always written `?? []` to cope — a defence against a
+ * value the type claimed was guaranteed. The type was the thing that was
+ * wrong.
+ */
 export type PolicyIdentity = Pick<
   ProcessedDrug,
-  "name" | "genericName" | "category" | "ingredients"
->;
+  "name" | "genericName" | "category"
+> & { ingredients?: string[] };
 
 /**
  * The text the safety rules are matched against.

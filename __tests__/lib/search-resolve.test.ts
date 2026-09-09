@@ -13,6 +13,7 @@ import { describe, it, expect, vi } from "vitest";
 import { resolveSearch, type SearchPorts } from "@/lib/search/resolve";
 import { known, unknown } from "@/lib/outcome";
 import type { NaturalRemedy, ProcessedDrug } from "@/lib/types";
+import type { RemedyMapping } from "@/lib/remedy-matcher";
 
 const DRUG: ProcessedDrug = {
   id: "p1",
@@ -34,6 +35,16 @@ const REMEDY: NaturalRemedy = {
   similarityScore: 0.8,
   replacementType: "Complementary",
 };
+
+/**
+ * REMEDY as the policy would have minted it.
+ *
+ * `RemedyMapping` carries a brand only lib/remedy-matcher can attach, so a
+ * fixture standing in for one needs a deliberate cast. That is the guard
+ * working: it cannot be written by accident, and this is the single greppable
+ * place where the test claims the policy produced something.
+ */
+const MAPPED = REMEDY as RemedyMapping;
 
 function ports(overrides: Partial<SearchPorts> = {}): SearchPorts {
   return {
@@ -91,7 +102,7 @@ describe("found", () => {
       ports({
         searchFda: async () => known([DRUG]),
         cachePharmaceutical: cache,
-        generateMappingsFor: async () => known([REMEDY]),
+        generateMappingsFor: async () => known([MAPPED]),
       }),
     );
 
@@ -162,7 +173,7 @@ describe("colliding pharmaceutical records", () => {
   });
 
   it("still generates when no candidate carries mappings", async () => {
-    const generateMappingsFor = vi.fn(async () => known([REMEDY]));
+    const generateMappingsFor = vi.fn(async () => known([MAPPED]));
     const outcome = await resolveSearch(
       "ibuprofen",
       ports({

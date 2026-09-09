@@ -21,7 +21,10 @@ export async function POST(request: NextRequest) {
   try {
     // Check rate limit
     const rateLimit = await withRateLimit(request, RATE_LIMITS.billingPortal);
-    if (!rateLimit.allowed) {
+    // `response` is optional on the return type, so guard it rather than
+    // returning `NextResponse | undefined` — a route that returns undefined
+    // throws in Next. Matches the idiom the other rate-limited routes use.
+    if (!rateLimit.allowed && rateLimit.response) {
       return rateLimit.response;
     }
 
