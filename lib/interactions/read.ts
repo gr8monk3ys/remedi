@@ -8,7 +8,9 @@
  * and have to say which case they are rendering.
  */
 
-import { apiClient, ApiClientError } from "@/lib/api/client";
+import { apiClient } from "@/lib/api/client";
+import { readOutcome } from "@/lib/api/read-outcome";
+import type { Outcome } from "@/lib/outcome";
 import type {
   CheckResponse,
   Interaction,
@@ -32,16 +34,12 @@ export type UnknownReason =
  * particular, `known` with an empty payload is the only state that may be
  * presented as "no known interactions"; every `unknown` must be presented as
  * a failure to verify.
+ *
+ * This is the shared `Outcome` at a specific Reason, not a second copy of it.
+ * It used to be written out longhand here, which is how the codebase came to
+ * hold two structurally identical definitions of the same distinction.
  */
-export type InteractionOutcome<T> =
-  | { kind: "known"; data: T }
-  | {
-      kind: "unknown";
-      reason: UnknownReason;
-      message: string;
-      /** Seconds to wait, when the reason is "rate-limited". */
-      retryAfter?: number;
-    };
+export type InteractionOutcome<T> = Outcome<T, UnknownReason>;
 
 const FALLBACK_MESSAGE =
   "We could not check for interactions right now. This is not a confirmation that none exist.";
@@ -63,30 +61,14 @@ function reasonForCode(code: string): UnknownReason {
 /**
  * Run a read and convert every failure mode into an `unknown` outcome.
  *
- * This is the only place in the app that turns a thrown ApiClientError into
- * an interaction result, which is why no call site needs a try/catch of its
- * own — and why an omitted one cannot silently become an all-clear.
+ * This is the only place an interaction read turns a thrown ApiClientError
+ * into a result, which is why no call site needs a try/catch of its own — and
+ * why an omitted one cannot silently become an all-clear. The conversion
+ * itself now lives in `readOutcome`, shared with every other domain that has
+ * to make the same guarantee.
  */
-async function attempt<T>(
-  read: () => Promise<T>,
-): Promise<InteractionOutcome<T>> {
-  try {
-    return { kind: "known", data: await read() };
-  } catch (error) {
-    if (error instanceof ApiClientError) {
-      return {
-        kind: "unknown",
-        reason: reasonForCode(error.code),
-        message: error.message || FALLBACK_MESSAGE,
-        ...(error.retryAfter !== undefined && { retryAfter: error.retryAfter }),
-      };
-    }
-    return {
-      kind: "unknown",
-      reason: "unavailable",
-      message: FALLBACK_MESSAGE,
-    };
-  }
+function attempt<T>(read: () => Promise<T>): Promise<InteractionOutcome<T>> {
+  return readOutcome(read, reasonForCode, FALLBACK_MESSAGE);
 }
 
 /** Interactions recorded for a single substance. */
