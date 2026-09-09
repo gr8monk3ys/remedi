@@ -52,6 +52,9 @@ vi.mock("framer-motion", () => ({
 
 const defaultProps = {
   currentPlan: "free" as const,
+  // Required by PricingCards. Omitting it left every test here rendering the
+  // downgrade button with no handler.
+  onDowngrade: vi.fn(),
   isYearly: false,
   loading: null,
   trialEligible: false,

@@ -93,7 +93,7 @@ describe("Middleware", () => {
     vi.clearAllMocks();
     mockIsPublicRoute.mockReturnValue(true);
     process.env = { ...originalEnv };
-    process.env.NODE_ENV = "test";
+    (process.env as Record<string, string | undefined>).NODE_ENV = "test";
     process.env.MAINTENANCE_MODE = "false";
     process.env.NEXT_PUBLIC_APP_URL = "http://localhost:3000";
   });
@@ -162,7 +162,8 @@ describe("Middleware", () => {
     });
 
     it("should include unsafe-eval in CSP in non-production environment", async () => {
-      process.env.NODE_ENV = "development";
+      (process.env as Record<string, string | undefined>).NODE_ENV =
+        "development";
       const req = createRequest("/");
       const res = await callMiddleware(req);
 
@@ -171,7 +172,8 @@ describe("Middleware", () => {
     });
 
     it("should NOT include unsafe-eval in CSP in production environment", async () => {
-      process.env.NODE_ENV = "production";
+      (process.env as Record<string, string | undefined>).NODE_ENV =
+        "production";
       const req = createRequest("/");
       const res = await callMiddleware(req);
 
@@ -180,7 +182,8 @@ describe("Middleware", () => {
     });
 
     it("should include HSTS in production", async () => {
-      process.env.NODE_ENV = "production";
+      (process.env as Record<string, string | undefined>).NODE_ENV =
+        "production";
       const req = createRequest("/");
       const res = await callMiddleware(req);
 
@@ -190,7 +193,8 @@ describe("Middleware", () => {
     });
 
     it("should NOT include HSTS in non-production", async () => {
-      process.env.NODE_ENV = "development";
+      (process.env as Record<string, string | undefined>).NODE_ENV =
+        "development";
       const req = createRequest("/");
       const res = await callMiddleware(req);
 
@@ -328,7 +332,8 @@ describe("Middleware", () => {
     });
 
     it("should allow localhost:3001 as origin in non-production", async () => {
-      process.env.NODE_ENV = "development";
+      (process.env as Record<string, string | undefined>).NODE_ENV =
+        "development";
       const req = createRequest("/api/search", {
         headers: { origin: "http://localhost:3001" },
       });

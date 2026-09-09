@@ -6,9 +6,9 @@ const ORIGINAL_DEMO_MODE = process.env.DEMO_MODE;
 
 function setEnv(nodeEnv: string | undefined, demoMode: string | undefined) {
   if (nodeEnv === undefined) {
-    delete process.env.NODE_ENV;
+    delete (process.env as Record<string, string | undefined>).NODE_ENV;
   } else {
-    process.env.NODE_ENV = nodeEnv;
+    (process.env as Record<string, string | undefined>).NODE_ENV = nodeEnv;
   }
   if (demoMode === undefined) {
     delete process.env.DEMO_MODE;

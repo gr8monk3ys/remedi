@@ -15,6 +15,7 @@ https://remedi-iota.vercel.app.
 ## Check (all of these gate CI, `.github/workflows/ci.yml`)
 
     bun run format:check && bun run lint && bun run type-check && bun run knip
+    bun run type-check:tests             # tsconfig.json excludes __tests__; this covers it
     bun run test:run                     # vitest, __tests__/
     bun run test:e2e                     # playwright, e2e/ (needs DB)
     bun run db:verify && bun run db:integrity && bun run prod:check

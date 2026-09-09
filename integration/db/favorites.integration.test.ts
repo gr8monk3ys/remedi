@@ -47,16 +47,20 @@ describe("Favorites DB Integration", () => {
       userId: testUserId,
     });
 
-    const favorites = await getFavorites(undefined, testUserId);
+    // getFavorites returns { favorites, total }, not a bare array. This file
+    // indexed it as an array, so every assertion here read `undefined`.
+    const { favorites, total } = await getFavorites(undefined, testUserId);
 
     expect(favorites).toHaveLength(1);
-    expect(favorites[0].remedyId).toBe(remedyId);
-    expect(favorites[0].userId).toBe(testUserId);
+    expect(total).toBe(1);
+    expect(favorites[0]?.remedyId).toBe(remedyId);
+    expect(favorites[0]?.userId).toBe(testUserId);
   });
 
   it("getFavorites returns empty array when no identifier provided", async () => {
-    const favorites = await getFavorites();
+    const { favorites, total } = await getFavorites();
     expect(favorites).toEqual([]);
+    expect(total).toBe(0);
   });
 
   it("getFavorites caps at 100 records", async () => {
@@ -70,7 +74,7 @@ describe("Favorites DB Integration", () => {
     );
     await Promise.all(inserts);
 
-    const favorites = await getFavorites(undefined, testUserId);
+    const { favorites } = await getFavorites(undefined, testUserId);
     expect(favorites.length).toBeLessThanOrEqual(100);
     expect(favorites.length).toBe(5);
   });

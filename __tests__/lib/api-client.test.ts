@@ -67,7 +67,9 @@ describe("malformed failures still produce an ApiClientError", () => {
     // This used to throw `TypeError: Cannot read properties of undefined`.
     respond({ success: false }, { status: 400 });
 
-    const error = await apiClient.get("/api/x").catch((e) => e);
+    const error = (await apiClient
+      .get("/api/x")
+      .catch((e) => e)) as ApiClientError;
     expect(error).toBeInstanceOf(ApiClientError);
     expect(error.statusCode).toBe(400);
   });
@@ -75,7 +77,9 @@ describe("malformed failures still produce an ApiClientError", () => {
   it("handles a body that is not JSON at all", async () => {
     respond("<html>502</html>", { status: 502, contentType: "text/html" });
 
-    const error = await apiClient.get("/api/x").catch((e) => e);
+    const error = (await apiClient
+      .get("/api/x")
+      .catch((e) => e)) as ApiClientError;
     expect(error).toBeInstanceOf(ApiClientError);
     expect(error.statusCode).toBe(502);
   });
@@ -101,7 +105,9 @@ describe("transport failures", () => {
     // Previously a raw TypeError, which every instanceof check missed.
     global.fetch = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
 
-    const error = await apiClient.get("/api/x").catch((e) => e);
+    const error = (await apiClient
+      .get("/api/x")
+      .catch((e) => e)) as ApiClientError;
     expect(error).toBeInstanceOf(ApiClientError);
     expect(error.statusCode).toBe(0);
   });
@@ -113,7 +119,9 @@ describe("transport failures", () => {
       .fn()
       .mockRejectedValue(new DOMException("Aborted", "AbortError"));
 
-    const error = await apiClient.get("/api/x").catch((e) => e);
+    const error = (await apiClient
+      .get("/api/x")
+      .catch((e) => e)) as ApiClientError;
     expect(error).toBeInstanceOf(DOMException);
     expect(error.name).toBe("AbortError");
     expect(error).not.toBeInstanceOf(ApiClientError);
@@ -135,7 +143,9 @@ describe("error detail", () => {
       { status: 429 },
     );
 
-    const error = await apiClient.get("/api/x").catch((e) => e);
+    const error = (await apiClient
+      .get("/api/x")
+      .catch((e) => e)) as ApiClientError;
     expect(error).toMatchObject({
       code: "RATE_LIMIT_EXCEEDED",
       message: "Too many requests.",
@@ -160,7 +170,9 @@ describe("error detail", () => {
       { status: 429, headers: { "Retry-After": "12" } },
     );
 
-    const error = await apiClient.get("/api/x").catch((e) => e);
+    const error = (await apiClient
+      .get("/api/x")
+      .catch((e) => e)) as ApiClientError;
     expect(error.retryAfter).toBe(12);
   });
 
@@ -178,7 +190,9 @@ describe("error detail", () => {
       { status: 429, headers: { "Retry-After": "12" } },
     );
 
-    const error = await apiClient.get("/api/x").catch((e) => e);
+    const error = (await apiClient
+      .get("/api/x")
+      .catch((e) => e)) as ApiClientError;
     expect(error.retryAfter).toBe(30);
   });
 
@@ -196,7 +210,9 @@ describe("error detail", () => {
       { status: 429 },
     );
 
-    const error = await apiClient.get("/api/x").catch((e) => e);
+    const error = (await apiClient
+      .get("/api/x")
+      .catch((e) => e)) as ApiClientError;
     expect(error.retryAfter).toBe(45);
   });
 
@@ -209,7 +225,9 @@ describe("error detail", () => {
       { status: 500, headers: { "Retry-After": "not-a-number" } },
     );
 
-    const error = await apiClient.get("/api/x").catch((e) => e);
+    const error = (await apiClient
+      .get("/api/x")
+      .catch((e) => e)) as ApiClientError;
     expect(error.retryAfter).toBeUndefined();
   });
 });

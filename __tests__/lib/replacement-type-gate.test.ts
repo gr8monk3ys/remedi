@@ -150,7 +150,7 @@ describe("parseReplacementType degrades to the weakest claim", () => {
     ["LegacyLabel", "a label from an older vocabulary"],
     ["alternative", "the right word in the wrong case"],
     [42, "a value of the wrong type entirely"],
-  ])("coerces %s (%s) to Supportive", (value) => {
+  ])("coerces %s (%s) to Supportive", (value, _label) => {
     expect(parseReplacementType(value)).toBe("Supportive");
   });
 
