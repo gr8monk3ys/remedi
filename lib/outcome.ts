@@ -26,7 +26,22 @@
  */
 export type Outcome<T, Reason extends string> =
   | { kind: "known"; data: T }
-  | { kind: "unknown"; reason: Reason; message: string };
+  | {
+      kind: "unknown";
+      reason: Reason;
+      message: string;
+      /**
+       * Seconds to wait before the answer could become establishable.
+       *
+       * Lives here rather than in one domain's copy of this union because
+       * "come back in 30 seconds" is a property of not knowing, not a property
+       * of interactions — a rate-limited search is the same fact as a
+       * rate-limited interaction check. It was the only field that differed
+       * between this type and `InteractionOutcome`, and therefore the whole
+       * reason a second copy of the union existed.
+       */
+      retryAfter?: number;
+    };
 
 /** Wrap a value as an established answer. */
 export function known<T, Reason extends string = never>(
@@ -39,8 +54,14 @@ export function known<T, Reason extends string = never>(
 export function unknown<T, Reason extends string>(
   reason: Reason,
   message: string,
+  retryAfter?: number,
 ): Outcome<T, Reason> {
-  return { kind: "unknown", reason, message };
+  return {
+    kind: "unknown",
+    reason,
+    message,
+    ...(retryAfter !== undefined && { retryAfter }),
+  };
 }
 
 /**
