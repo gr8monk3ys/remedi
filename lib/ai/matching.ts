@@ -13,11 +13,13 @@ import { createLogger } from "@/lib/logger";
 import {
   MIN_DISPLAY_SIMILARITY,
   certifyReplacementType,
+  isRemedyForbidden,
   neverMappedReason,
   replacementTypeForScore,
   type MappingRefusal,
   type PolicyIdentity,
 } from "@/lib/remedy-matcher";
+import { forbiddenRemedyTermsForDrug } from "@/lib/db/interactions";
 import { known, unknown, type Outcome } from "@/lib/outcome";
 
 const logger = createLogger("ai-matching");
@@ -131,6 +133,7 @@ function parseAIResponse(
   response: string,
   allRemedies: RawDatabaseRemedy[],
   identity: PolicyIdentity,
+  forbiddenRemedies: string[][],
 ): AIRemedyRecommendation[] {
   try {
     const parsedJson: unknown = JSON.parse(response);
@@ -155,6 +158,21 @@ function parseAIResponse(
         );
 
         if (!remedy) return [];
+
+        // A pair already recorded as interacting must not be offered as a
+        // remedy for the other, whoever proposed it. Every other write path
+        // consults the DrugInteraction table; this one never did, so a model
+        // could recommend magnesium beside ciprofloxacin and only the
+        // never-mapped and never-alternative rules stood in the way.
+        if (isRemedyForbidden(remedy.name, forbiddenRemedies)) {
+          logger.warn(
+            "Dropped an AI recommendation forbidden by a recorded interaction",
+            {
+              remedy: remedy.name,
+            },
+          );
+          return [];
+        }
 
         // The model's confidence is scored on the same scale as a Similarity
         // Score and rendered in the same place, so it answers to the same
@@ -234,6 +252,11 @@ export async function enhanceRemedyMatching(
     // recommended.
     const allRemedies = await selectCandidateRemedies(query, symptoms);
 
+    // Read alongside the candidates, before the model is asked. The pairs are
+    // curated and class-level, so this is the same list the database write
+    // path uses — the AI path simply never consulted it.
+    const forbiddenRemedies = await forbiddenRemedyTermsForDrug(identity);
+
     const remediesContext = allRemedies
       .map((r) => {
         const ingredients = Array.isArray(r.ingredients)
@@ -272,7 +295,9 @@ export async function enhanceRemedyMatching(
       throw new Error("No response from AI");
     }
 
-    return known(parseAIResponse(response, allRemedies, identity));
+    return known(
+      parseAIResponse(response, allRemedies, identity, forbiddenRemedies),
+    );
   } catch (error) {
     if (error instanceof CircuitBreakerOpenError) {
       logger.warn("OpenAI circuit breaker is open, skipping AI matching");
