@@ -10,6 +10,7 @@ import {
   getStatusCode,
 } from "@/lib/api/response";
 import { createLogger } from "@/lib/logger";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/utils";
 import { isDemoDataEnabled } from "@/lib/env";
 import type { DetailedRemedy } from "@/lib/types";
@@ -135,6 +136,17 @@ const MOCK_REMEDIES: Record<string, DetailedRemedy> = {
  * Fetch multiple remedies by their IDs for comparison
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  // Anonymous callers can reach this, and `search` — the comparable public
+  // endpoint — is already limited. Rate limiting is opt-in per route here, so
+  // an unlimited public read is an omission rather than a decision.
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.general,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const startTime = Date.now();
 
   try {
