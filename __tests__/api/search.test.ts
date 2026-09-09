@@ -14,7 +14,11 @@ import { NextRequest } from "next/server";
 vi.mock("@/lib/db", () => ({
   searchPharmaceuticals: vi.fn(),
   getNaturalRemediesForPharmaceutical: vi.fn(),
-  generateRemedyMappingsForPharmaceutical: vi.fn().mockResolvedValue([]),
+  // A MappingOutcome, not a bare array — the default stub used to return `[]`,
+  // which no call site could legally receive.
+  generateRemedyMappingsForPharmaceutical: vi
+    .fn()
+    .mockResolvedValue({ kind: "known", data: [] }),
   upsertPharmaceutical: vi.fn(),
   saveSearchHistory: vi.fn(),
 }));
@@ -73,6 +77,7 @@ import {
 } from "@/lib/db";
 import { searchFdaDrugs } from "@/lib/openFDA";
 import { fuzzySearch } from "@/lib/fuzzy-search";
+import { known, unknown } from "@/lib/outcome";
 
 type SearchPharmaceuticalsResult = Awaited<
   ReturnType<typeof searchPharmaceuticals>
@@ -117,7 +122,7 @@ describe("GET /api/search", () => {
 
     it("should accept valid query parameters", async () => {
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
-      vi.mocked(searchFdaDrugs).mockResolvedValue([]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(known([]));
       vi.mocked(fuzzySearch).mockReturnValue([]);
 
       const request = new NextRequest(
@@ -182,17 +187,19 @@ describe("GET /api/search", () => {
 
     it("should handle database returning no results and fallback to FDA API", async () => {
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
-      vi.mocked(searchFdaDrugs).mockResolvedValue([
-        {
-          id: "fda-1",
-          fdaId: "fda-test",
-          name: "Aspirin",
-          description: "Pain reliever",
-          category: "Pain Reliever",
-          ingredients: ["Aspirin"],
-          benefits: ["Pain relief"],
-        },
-      ]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(
+        known([
+          {
+            id: "fda-1",
+            fdaId: "fda-test",
+            name: "Aspirin",
+            description: "Pain reliever",
+            category: "Pain Reliever",
+            ingredients: ["Aspirin"],
+            benefits: ["Pain relief"],
+          },
+        ]),
+      );
       vi.mocked(fuzzySearch).mockReturnValue([]);
       // The cache-back must succeed: remedy mappings are keyed on the
       // persisted row, so a failed write is a failure to answer.
@@ -214,17 +221,19 @@ describe("GET /api/search", () => {
   describe("OpenFDA API Search (Tier 2)", () => {
     it("should use FDA API when database has no results", async () => {
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
-      vi.mocked(searchFdaDrugs).mockResolvedValue([
-        {
-          id: "fda-1",
-          fdaId: "fda-test-id",
-          name: "Melatonin",
-          description: "Sleep aid",
-          category: "Sleep Aid",
-          ingredients: ["Melatonin"],
-          benefits: ["Sleep regulation"],
-        },
-      ]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(
+        known([
+          {
+            id: "fda-1",
+            fdaId: "fda-test-id",
+            name: "Melatonin",
+            description: "Sleep aid",
+            category: "Sleep Aid",
+            ingredients: ["Melatonin"],
+            benefits: ["Sleep regulation"],
+          },
+        ]),
+      );
       vi.mocked(upsertPharmaceutical).mockResolvedValue({
         id: "cached-1",
       } as UpsertPharmaceuticalResult);
@@ -250,7 +259,7 @@ describe("GET /api/search", () => {
       };
 
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
-      vi.mocked(searchFdaDrugs).mockResolvedValue([fdaDrug]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(known([fdaDrug]));
       vi.mocked(upsertPharmaceutical).mockResolvedValue(
         {} as UpsertPharmaceuticalResult,
       );
@@ -272,7 +281,7 @@ describe("GET /api/search", () => {
   describe("Mock Data Fallback (Tier 3)", () => {
     it("should use fuzzy search on mock data when database and FDA fail", async () => {
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
-      vi.mocked(searchFdaDrugs).mockResolvedValue([]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(known([]));
       // Return a properly structured pharmaceutical object
       vi.mocked(fuzzySearch).mockReturnValue([
         {
@@ -302,7 +311,7 @@ describe("GET /api/search", () => {
 
     it("should return empty array when all search tiers fail", async () => {
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
-      vi.mocked(searchFdaDrugs).mockResolvedValue([]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(known([]));
       vi.mocked(fuzzySearch).mockReturnValue([]);
 
       const request = new NextRequest(
@@ -364,7 +373,7 @@ describe("GET /api/search", () => {
   describe("Query Processing", () => {
     it("should handle queries with common suffixes", async () => {
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
-      vi.mocked(searchFdaDrugs).mockResolvedValue([]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(known([]));
       vi.mocked(fuzzySearch).mockReturnValue([]);
 
       const request = new NextRequest(
@@ -378,7 +387,7 @@ describe("GET /api/search", () => {
 
     it("should normalize query case", async () => {
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
-      vi.mocked(searchFdaDrugs).mockResolvedValue([]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(known([]));
       vi.mocked(fuzzySearch).mockReturnValue([]);
 
       const request = new NextRequest(
@@ -391,7 +400,7 @@ describe("GET /api/search", () => {
 
     it("should handle spelling variants", async () => {
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
-      vi.mocked(searchFdaDrugs).mockResolvedValue([]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(known([]));
       vi.mocked(fuzzySearch).mockReturnValue([]);
 
       const request = new NextRequest(
@@ -409,7 +418,7 @@ describe("GET /api/search", () => {
       vi.mocked(searchPharmaceuticals).mockRejectedValue(
         new Error("Database error"),
       );
-      vi.mocked(searchFdaDrugs).mockResolvedValue([]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(known([]));
       vi.mocked(fuzzySearch).mockReturnValue([]);
 
       const request = new NextRequest(
@@ -436,18 +445,38 @@ describe("GET /api/search", () => {
       const response = await GET(request);
       const json = await response.json();
 
-      // Previously 500 — and unreachable in production, since searchFdaDrugs
-      // catches everything and returns []. Now the same 503 a DB outage gives.
       expect(response.status).toBe(503);
       expect(json.success).toBe(false);
       expect(json).toHaveProperty("error");
+    });
+
+    // The case above drives a fake that throws. The real searchFdaDrugs never
+    // did — it returned [] — so this route answered an outage with 200 and an
+    // empty list, which the page renders as "No results found." It now states
+    // its unavailability as a value, and this is that shape.
+    it("reports a stated OpenFDA outage as 503, not as an empty result", async () => {
+      vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(
+        unknown("unavailable", "FDA unreachable"),
+      );
+      vi.mocked(fuzzySearch).mockReturnValue([]);
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/search?query=test",
+      );
+      const response = await GET(request);
+      const json = await response.json();
+
+      expect(response.status).toBe(503);
+      expect(json.success).toBe(false);
+      expect(json.error.code).toBe("SERVICE_UNAVAILABLE");
     });
 
     it("reports a synchronous database throw as unavailable too", async () => {
       vi.mocked(searchPharmaceuticals).mockImplementation(() => {
         throw new Error("Unexpected error");
       });
-      vi.mocked(searchFdaDrugs).mockResolvedValue([]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(known([]));
       vi.mocked(fuzzySearch).mockReturnValue([]);
 
       const request = new NextRequest(
@@ -504,7 +533,7 @@ describe("GET /api/search", () => {
 
     it("should include metadata in response", async () => {
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
-      vi.mocked(searchFdaDrugs).mockResolvedValue([]);
+      vi.mocked(searchFdaDrugs).mockResolvedValue(known([]));
       vi.mocked(fuzzySearch).mockReturnValue([]);
 
       const request = new NextRequest(
