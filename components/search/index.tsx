@@ -26,6 +26,7 @@ import type {
   AIRecommendation,
   SearchRefusal,
 } from "./types";
+import { toSearchStatus } from "./status";
 
 const log = createLogger("search-component");
 
@@ -353,9 +354,23 @@ export function SearchComponent({
           });
 
           if (isStale()) return;
-          // The same refusal handling as the AI path: a policy decision is
-          // stated, never rendered as "no results found".
-          if (refused) setRefusal(refused);
+          // The same refusal handling as the AI path, including the early
+          // return. Without it this path set a refusal *and* the remedies
+          // beside it, and was safe only because the route happens to send an
+          // empty list with a refusal — an invariant held by the server and
+          // unchecked here.
+          if (refused) {
+            setRefusal(refused);
+            setResults([]);
+            setFilteredResults([]);
+            if (onSearch) onSearch([]);
+            setCurrentPage(1);
+            setCategoryFilters([]);
+            setNutrientFilters([]);
+            setActiveTab("results");
+            return;
+          }
+
           setResults(remedies);
           setFilteredResults(remedies);
           if (onSearch) onSearch(remedies);
@@ -482,8 +497,7 @@ export function SearchComponent({
             itemsPerPage={itemsPerPage}
             onPageChange={handlePageChange}
             isLoading={isLoading}
-            error={error}
-            refusal={refusal}
+            status={toSearchStatus({ error, refusal })}
             query={query}
             showFilters={showFilters}
             categoryOptions={categoryOptions}
