@@ -631,15 +631,8 @@ export function forbiddenRemedyGroupsFor(
   drug: PolicyIdentity,
   rows: readonly InteractionRow[],
 ): string[][] {
-  const haystack = [
-    drug.name,
-    drug.genericName,
-    drug.category,
-    ...(drug.ingredients ?? []),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
+  // The same identity text every other rule is matched against.
+  const haystack = policyHaystack(drug);
 
   // Keyed on the joined words so the same alias from two rows collapses.
   const groups = new Map<string, string[]>();
@@ -716,6 +709,82 @@ export function certifyReplacementType(
   }
 
   return known(type);
+}
+
+/**
+ * What the policy makes of one curated Remedy Mapping.
+ *
+ * The curated path — the seed and the remediation script — asks four questions
+ * in a fixed order: may this drug be mapped at all, is this pair forbidden by
+ * a recorded interaction, does the score clear the display floor, and does the
+ * hand-typed Replacement Type overclaim. Both callers used to spell that
+ * sequence out themselves. The primitives could not drift, but the
+ * *composition* could: a new caller, or an edit to one of the two, was free to
+ * reorder the checks or leave one out.
+ *
+ * This is that sequence as one value. Callers still report in their own voice
+ * — the seed warns and drops, the script records a violation to fix — but they
+ * no longer each decide what the policy is.
+ */
+export type CuratedMappingVerdict =
+  /** The drug may not be mapped at all. */
+  | { kind: "refused"; message: string }
+  /** A recorded Drug Interaction covers this pair. */
+  | { kind: "forbidden" }
+  /** Below the display floor, so it would persist and never be shown. */
+  | { kind: "below-floor"; score: number; floor: number }
+  /** Allowed, but the claim was lowered. */
+  | { kind: "demoted"; replacementType: ReplacementType; claimed: unknown }
+  /** Allowed exactly as curated. */
+  | { kind: "accepted"; replacementType: ReplacementType };
+
+/**
+ * Judge one curated Remedy Mapping against the whole curated-path policy.
+ *
+ * Deliberately does NOT apply the high-risk free-text downgrade. See
+ * `certifyReplacementType` above, and docs/adr/0001: that scan reads a label's
+ * warnings and interactions, which name *other* substances, so on curated
+ * prose it fires for any drug that merely interacts with an anticoagulant.
+ */
+export function certifyCuratedMapping(args: {
+  drug: PolicyIdentity;
+  remedyName: string;
+  similarityScore: number;
+  claimedReplacementType: unknown;
+  forbiddenRemedies: ForbiddenRemedyGroups;
+}): CuratedMappingVerdict {
+  const certified = certifyReplacementType(
+    args.drug,
+    args.claimedReplacementType,
+  );
+  if (certified.kind === "unknown") {
+    return { kind: "refused", message: certified.message };
+  }
+
+  if (isRemedyForbidden(args.remedyName, args.forbiddenRemedies)) {
+    return { kind: "forbidden" };
+  }
+
+  if (args.similarityScore < MIN_DISPLAY_SIMILARITY) {
+    return {
+      kind: "below-floor",
+      score: args.similarityScore,
+      floor: MIN_DISPLAY_SIMILARITY,
+    };
+  }
+
+  // Compared RAW against the stored value. Coercing first would make a legacy
+  // or unrecognised label compare equal to "Supportive" and quietly pass, so
+  // the row would never be surfaced as needing a fix.
+  if (args.claimedReplacementType !== certified.data) {
+    return {
+      kind: "demoted",
+      replacementType: certified.data,
+      claimed: args.claimedReplacementType,
+    };
+  }
+
+  return { kind: "accepted", replacementType: certified.data };
 }
 
 /** Why the policy declined to produce any Remedy Mapping for a drug. */

@@ -25,10 +25,8 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import {
   FORBIDDING_INTERACTIONS_QUERY,
-  MIN_DISPLAY_SIMILARITY,
-  certifyReplacementType,
+  certifyCuratedMapping,
   forbiddenRemedyGroupsFor,
-  isRemedyForbidden,
   toPolicyIdentity,
   type ForbiddenRemedyGroups,
 } from "../lib/remedy-matcher.ts";
@@ -83,51 +81,52 @@ async function main() {
     const remedy = mapping.naturalRemedy.name;
     const base = { mappingId: mapping.id, drug: drug.name, remedy };
 
-    const certified = certifyReplacementType(drug, mapping.replacementType);
-
-    if (certified.kind === "unknown") {
-      violations.push({
-        ...base,
-        kind: "refused",
-        detail: certified.message,
-      });
-      continue;
-    }
-
     let forbidden = forbiddenByDrug.get(mapping.pharmaceuticalId);
     if (forbidden === undefined) {
       forbidden = forbiddenRemedyGroupsFor(drug, interactions);
       forbiddenByDrug.set(mapping.pharmaceuticalId, forbidden);
     }
 
-    if (isRemedyForbidden(remedy, forbidden)) {
-      violations.push({
-        ...base,
-        kind: "forbidden",
-        detail: "a recorded Drug Interaction covers this pair",
-      });
-      continue;
-    }
+    // The same four checks, in the same order, as the seed applies on the way
+    // in — because they are now the same function. This script exists to find
+    // rows that predate the gate, so a composition of its own would have been
+    // one more thing that could disagree with what it is auditing.
+    const verdict = certifyCuratedMapping({
+      drug,
+      remedyName: remedy,
+      similarityScore: mapping.similarityScore,
+      claimedReplacementType: mapping.replacementType,
+      forbiddenRemedies: forbidden,
+    });
 
-    if (mapping.similarityScore < MIN_DISPLAY_SIMILARITY) {
-      violations.push({
-        ...base,
-        kind: "below-floor",
-        detail: `score ${mapping.similarityScore} is under ${MIN_DISPLAY_SIMILARITY}`,
-      });
-      continue;
-    }
-
-    // Compare the stored value RAW. Coercing it first would make a legacy or
-    // unrecognised label compare equal to "Supportive" and quietly pass — the
-    // read boundary would keep hiding it, and the row would never be fixed.
-    if (mapping.replacementType !== certified.data) {
-      violations.push({
-        ...base,
-        kind: "overclaim",
-        detail: `${mapping.replacementType} should be ${certified.data}`,
-        demoteTo: certified.data,
-      });
+    switch (verdict.kind) {
+      case "refused":
+        violations.push({ ...base, kind: "refused", detail: verdict.message });
+        break;
+      case "forbidden":
+        violations.push({
+          ...base,
+          kind: "forbidden",
+          detail: "a recorded Drug Interaction covers this pair",
+        });
+        break;
+      case "below-floor":
+        violations.push({
+          ...base,
+          kind: "below-floor",
+          detail: `score ${verdict.score} is under ${verdict.floor}`,
+        });
+        break;
+      case "demoted":
+        violations.push({
+          ...base,
+          kind: "overclaim",
+          detail: `${String(verdict.claimed)} should be ${verdict.replacementType}`,
+          demoteTo: verdict.replacementType,
+        });
+        break;
+      case "accepted":
+        break;
     }
   }
 
