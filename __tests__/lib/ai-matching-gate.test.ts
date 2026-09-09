@@ -40,6 +40,14 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
+// Forbidden pairs come from the curated DrugInteraction table. Tests that are
+// not about that rule get an empty list; the ones that are set it explicitly.
+const mockForbiddenTerms = vi.fn<() => Promise<string[][]>>();
+
+vi.mock("@/lib/db/interactions", () => ({
+  forbiddenRemedyTermsForDrug: () => mockForbiddenTerms(),
+}));
+
 vi.mock("@/lib/logger", () => ({
   createLogger: () => ({
     info: vi.fn(),
@@ -72,6 +80,8 @@ function respondWithConfidence(confidence: number) {
 
 beforeEach(() => {
   mockCreate.mockReset();
+  mockForbiddenTerms.mockReset();
+  mockForbiddenTerms.mockResolvedValue([]);
 });
 
 afterEach(() => {
@@ -185,5 +195,65 @@ describe("AI results carry the same floor and label as every other path", () => 
 
     if (outcome.kind !== "known") throw new Error("unreachable");
     expect(outcome.data[0]?.remedy.replacementType).toBe("Complementary");
+  });
+});
+
+describe("the AI path consults the same forbidden pairs as every write path", () => {
+  it("drops a remedy recorded as interacting with the substance", async () => {
+    // The pair the seed tests have guarded all along, arriving by the one
+    // route that never checked it: a model recommending magnesium for someone
+    // asking about ciprofloxacin. Magnesium binds the antibiotic and blunts it.
+    mockForbiddenTerms.mockResolvedValue([["turmeric"]]);
+    respondWithConfidence(0.9);
+    const { enhanceRemedyMatching } = await import("@/lib/ai/matching");
+
+    const outcome = await enhanceRemedyMatching({
+      query: "alternatives to ciprofloxacin",
+    });
+
+    if (outcome.kind !== "known") throw new Error("unreachable");
+    expect(outcome.data).toEqual([]);
+  });
+
+  it("keeps the same remedy when no interaction is recorded", async () => {
+    // The control: the drop above is the recorded pair, not the score or the
+    // drug class doing the work.
+    mockForbiddenTerms.mockResolvedValue([]);
+    respondWithConfidence(0.9);
+    const { enhanceRemedyMatching } = await import("@/lib/ai/matching");
+
+    const outcome = await enhanceRemedyMatching({
+      query: "alternatives to ciprofloxacin",
+    });
+
+    if (outcome.kind !== "known") throw new Error("unreachable");
+    expect(outcome.data).toHaveLength(1);
+  });
+
+  it("looks the pairs up for a substance it is willing to map", async () => {
+    mockForbiddenTerms.mockResolvedValue([]);
+    respondWithConfidence(0.9);
+    const { enhanceRemedyMatching } = await import("@/lib/ai/matching");
+
+    await enhanceRemedyMatching({
+      query: "joint pain",
+      currentMedications: ["Ibuprofen"],
+    });
+
+    expect(mockForbiddenTerms).toHaveBeenCalled();
+  });
+
+  it("does not bother looking them up for a substance it refuses", async () => {
+    // The refusal short-circuits before the model *and* before this read.
+    // Warfarin is never mapped at all, so there is no pair to consult.
+    const { enhanceRemedyMatching } = await import("@/lib/ai/matching");
+
+    const outcome = await enhanceRemedyMatching({
+      query: "joint pain",
+      currentMedications: ["Warfarin"],
+    });
+
+    expect(outcome.kind).toBe("unknown");
+    expect(mockForbiddenTerms).not.toHaveBeenCalled();
   });
 });
