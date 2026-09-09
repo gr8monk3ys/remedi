@@ -18,6 +18,7 @@
     "knip": "DATABASE_URL=${DATABASE_URL:-postgresql://remedi:remedi_dev@localhost:5433/remedi?schema=public} knip",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "analyze": "ANALYZE=true next build",

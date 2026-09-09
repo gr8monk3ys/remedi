@@ -62,6 +62,11 @@ jobs:
         run: bun run knip
       - name: Unit tests
         run: bun run test:run
+      # These exercise the real database rather than a mock. They existed for
+      # months without a runner: no script, no CI step, so a whole file had
+      # rotted against the current getFavorites signature unnoticed.
+      - name: Integration tests
+        run: bun run test:integration
 
   # Guards the exact failure that shipped an unstyled site: a production build
   # whose only stylesheet contained custom properties and no Tailwind utilities.
