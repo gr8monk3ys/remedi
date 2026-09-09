@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import {
   getNaturalRemedyById,
   resolveRelatedRemedies,
@@ -163,6 +164,17 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  // Anonymous callers can reach this, and `search` — the comparable public
+  // endpoint — is already limited. Rate limiting is opt-in per route here, so
+  // an unlimited public read is an omission rather than a decision.
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.general,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const startTime = Date.now();
 
   try {

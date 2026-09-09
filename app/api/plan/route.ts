@@ -10,7 +10,8 @@
  * This endpoint is intentionally lightweight compared to /api/usage.
  */
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { getCurrentUser } from "@/lib/auth";
 import {
   successResponse,
@@ -20,7 +21,18 @@ import {
 import { PLAN_LIMITS } from "@/lib/stripe-config";
 import { getEffectivePlanLimits } from "@/lib/trial";
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  // Anonymous callers can reach this, and `search` — the comparable public
+  // endpoint — is already limited. Rate limiting is opt-in per route here, so
+  // an unlimited public read is an omission rather than a decision.
+  const { allowed, response: rateLimitResponse } = await withRateLimit(
+    request,
+    RATE_LIMITS.general,
+  );
+  if (!allowed && rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const user = await getCurrentUser();
 

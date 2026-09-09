@@ -8,6 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { NextRequest } from "next/server";
 import { PLAN_LIMITS } from "@/lib/stripe-config";
 
 const mockGetCurrentUser = vi.fn();
@@ -21,6 +22,18 @@ vi.mock("@/lib/trial", () => ({
   getEffectivePlanLimits: (...args: unknown[]) =>
     mockGetEffectivePlanLimits(...args),
 }));
+
+const mockWithRateLimit = vi
+  .fn()
+  .mockResolvedValue({ allowed: true, result: { success: true } });
+
+vi.mock("@/lib/rate-limit", () => ({
+  withRateLimit: (...args: unknown[]) => mockWithRateLimit(...args),
+  RATE_LIMITS: { general: { limit: 60, window: 60, identifier: "general" } },
+}));
+
+/** The route reads only the request's identity, for rate limiting. */
+const makeRequest = () => new NextRequest("http://localhost:3000/api/plan");
 
 const authenticatedUser = {
   id: "user-123",
@@ -39,7 +52,7 @@ describe("/api/plan", () => {
       mockGetCurrentUser.mockResolvedValue(null);
 
       const { GET } = await import("@/app/api/plan/route");
-      const response = await GET();
+      const response = await GET(makeRequest());
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -60,7 +73,7 @@ describe("/api/plan", () => {
       });
 
       const { GET } = await import("@/app/api/plan/route");
-      const response = await GET();
+      const response = await GET(makeRequest());
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -80,7 +93,7 @@ describe("/api/plan", () => {
       });
 
       const { GET } = await import("@/app/api/plan/route");
-      const response = await GET();
+      const response = await GET(makeRequest());
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -95,12 +108,31 @@ describe("/api/plan", () => {
       mockGetEffectivePlanLimits.mockRejectedValue(new Error("Database error"));
 
       const { GET } = await import("@/app/api/plan/route");
-      const response = await GET();
+      const response = await GET(makeRequest());
       const data = await response.json();
 
       expect(response.status).toBe(500);
       expect(data.success).toBe(false);
       expect(data.error.code).toBe("INTERNAL_ERROR");
+    });
+  });
+
+  describe("rate limiting", () => {
+    it("returns the limiter's response instead of resolving the plan", async () => {
+      // Anonymous callers reach this endpoint, so an unlimited public read was
+      // an omission rather than a decision.
+      const limited = new Response("rate limited", { status: 429 });
+      mockWithRateLimit.mockResolvedValueOnce({
+        allowed: false,
+        response: limited,
+        result: { success: false },
+      });
+      const { GET } = await import("@/app/api/plan/route");
+
+      const response = await GET(makeRequest());
+
+      expect(response.status).toBe(429);
+      expect(mockGetCurrentUser).not.toHaveBeenCalled();
     });
   });
 });
