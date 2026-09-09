@@ -153,18 +153,6 @@ export type PharmaceuticalCategory =
   (typeof PHARMACEUTICAL_CATEGORIES)[keyof typeof PHARMACEUTICAL_CATEGORIES];
 
 /**
- * Replacement types for remedy mappings
- */
-export const REPLACEMENT_TYPES = {
-  ALTERNATIVE: "Alternative",
-  COMPLEMENTARY: "Complementary",
-  SUPPLEMENT: "Supplement",
-} as const;
-
-export type ReplacementType =
-  (typeof REPLACEMENT_TYPES)[keyof typeof REPLACEMENT_TYPES];
-
-/**
  * HTTP Cache Configuration
  */
 export const CACHE_CONFIG = {

@@ -10,11 +10,9 @@ import { seedInteractions } from "./seeds/interactions.ts";
 import type { ProcessedDrug } from "../lib/types.ts";
 import {
   buildRemedyMappingsFor,
-  certifyReplacementType,
+  certifyCuratedMapping,
   FORBIDDING_INTERACTIONS_QUERY,
   forbiddenRemedyGroupsFor,
-  isRemedyForbidden,
-  MIN_DISPLAY_SIMILARITY,
   toPolicyIdentity,
   type RemedyMatchCandidate,
 } from "../lib/remedy-matcher.ts";
@@ -319,51 +317,44 @@ async function main(): Promise<void> {
       const pharma = pharmMap.get(mapping.pharmaceuticalName)!;
 
       // A curated row is typed by a person and was previously written straight
-      // through. The same rules that govern generated mappings apply here.
-      const certified = certifyReplacementType(
-        {
-          name: pharma.name,
-          genericName: pharma.genericName ?? undefined,
-          category: pharma.category,
-          ingredients: pharma.ingredients,
-        },
-        mapping.replacementType,
-      );
+      // through. The same rules that govern generated mappings apply here, and
+      // the order they are applied in now lives in the policy rather than
+      // being spelled out again at every write site.
+      const verdict = certifyCuratedMapping({
+        drug: toPolicyIdentity(pharma),
+        remedyName: mapping.naturalRemedyName,
+        similarityScore: mapping.similarityScore,
+        claimedReplacementType: mapping.replacementType,
+        forbiddenRemedies: curatedForbidden.get(pharma.id) ?? [],
+      });
 
-      if (certified.kind === "unknown") {
-        console.warn(
-          `  Policy refused a curated mapping: ${mapping.pharmaceuticalName} -> ` +
-            `${mapping.naturalRemedyName} (${certified.message})`,
-        );
-        return [];
-      }
+      const pair = `${mapping.pharmaceuticalName} -> ${mapping.naturalRemedyName}`;
 
-      const forbidden = curatedForbidden.get(pharma.id) ?? [];
-      if (isRemedyForbidden(mapping.naturalRemedyName, forbidden)) {
-        console.warn(
-          `  Recorded interaction forbids a curated mapping: ` +
-            `${mapping.pharmaceuticalName} -> ${mapping.naturalRemedyName}`,
-        );
-        return [];
-      }
-
-      // The generated path filters on the display floor via `minScore`; the
-      // curated path wrote its hand-typed score straight through, so a row
-      // under the floor would be persisted and then never shown.
-      if (mapping.similarityScore < MIN_DISPLAY_SIMILARITY) {
-        console.warn(
-          `  Policy dropped a curated mapping under the display floor: ` +
-            `${mapping.pharmaceuticalName} -> ${mapping.naturalRemedyName} ` +
-            `(${mapping.similarityScore} < ${MIN_DISPLAY_SIMILARITY})`,
-        );
-        return [];
-      }
-
-      if (certified.data !== mapping.replacementType) {
-        console.warn(
-          `  Policy demoted a curated mapping: ${mapping.pharmaceuticalName} -> ` +
-            `${mapping.naturalRemedyName} (${mapping.replacementType} -> ${certified.data})`,
-        );
+      switch (verdict.kind) {
+        case "refused":
+          console.warn(
+            `  Policy refused a curated mapping: ${pair} (${verdict.message})`,
+          );
+          return [];
+        case "forbidden":
+          console.warn(
+            `  Recorded interaction forbids a curated mapping: ${pair}`,
+          );
+          return [];
+        case "below-floor":
+          console.warn(
+            `  Policy dropped a curated mapping under the display floor: ` +
+              `${pair} (${verdict.score} < ${verdict.floor})`,
+          );
+          return [];
+        case "demoted":
+          console.warn(
+            `  Policy demoted a curated mapping: ${pair} ` +
+              `(${String(verdict.claimed)} -> ${verdict.replacementType})`,
+          );
+          break;
+        case "accepted":
+          break;
       }
 
       return [
@@ -372,7 +363,7 @@ async function main(): Promise<void> {
           naturalRemedyId: remedyMap.get(mapping.naturalRemedyName)!,
           similarityScore: mapping.similarityScore,
           matchingNutrients: parseSeedArray(mapping.matchingNutrients),
-          replacementType: certified.data,
+          replacementType: verdict.replacementType,
         },
       ];
     });
