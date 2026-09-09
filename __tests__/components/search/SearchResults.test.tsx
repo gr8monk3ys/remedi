@@ -72,7 +72,7 @@ const defaultProps = {
   itemsPerPage: 10,
   onPageChange: vi.fn(),
   isLoading: false,
-  error: null,
+  status: { kind: "answered" } as const,
   query: "ibuprofen",
   showFilters: false,
   categoryOptions: [],
@@ -184,8 +184,8 @@ describe("SearchResults", () => {
           results={[]}
           filteredResults={[]}
           query="warfarin"
-          refusal={{
-            reason: "never-mapped",
+          status={{
+            kind: "refused",
             message:
               "Warfarin is an anticoagulant; even a supportive addition alters bleeding risk.",
           }}
@@ -216,13 +216,18 @@ describe("SearchResults", () => {
   });
 
   describe("Error state", () => {
-    it("displays an error message when error prop is provided", () => {
-      render(<SearchResults {...defaultProps} error="Something went wrong" />);
+    it("displays the message when the search was unavailable", () => {
+      render(
+        <SearchResults
+          {...defaultProps}
+          status={{ kind: "unavailable", message: "Something went wrong" }}
+        />,
+      );
       expect(screen.getByText("Something went wrong")).toBeInTheDocument();
     });
 
-    it("does not display error when error prop is null", () => {
-      render(<SearchResults {...defaultProps} error={null} />);
+    it("displays no error when the search answered", () => {
+      render(<SearchResults {...defaultProps} />);
       expect(
         screen.queryByText("Something went wrong"),
       ).not.toBeInTheDocument();

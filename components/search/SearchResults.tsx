@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { SearchResultCard } from "./SearchResultCard";
 import { AIInsightsPanel } from "./AIInsightsPanel";
-import type { SearchResult, AIInsights, SearchRefusal } from "./types";
+import type { SearchResult, AIInsights } from "./types";
+import type { SearchStatus } from "./status";
 
 interface FilterOption {
   value: string;
@@ -22,12 +23,15 @@ interface SearchResultsProps {
   itemsPerPage: number;
   onPageChange: (page: number) => void;
   isLoading: boolean;
-  error: string | null;
   /**
-   * A stated policy refusal. Rendered in place of the empty state, which would
-   * otherwise report a refusal as "no results found".
+   * What the search has to say: answered, refused, or unavailable.
+   *
+   * One value rather than separate `error` and `refusal` props, so the empty
+   * state ("No results found") is structurally unreachable unless the search
+   * actually answered. Reporting a refusal or an outage as an absence is the
+   * failure this shape exists to prevent.
    */
-  refusal?: SearchRefusal | null;
+  status: SearchStatus;
   query: string;
   showFilters: boolean;
   categoryOptions: FilterOption[];
@@ -54,8 +58,7 @@ export function SearchResults({
   itemsPerPage,
   onPageChange,
   isLoading,
-  error,
-  refusal,
+  status,
   query,
   showFilters,
   categoryOptions,
@@ -124,8 +127,14 @@ export function SearchResults({
         </div>
       )}
 
-      {/* Refusal — a decision, stated as one, never an empty result. */}
-      {!isLoading && refusal && (
+      {/*
+        The three arms below are mutually exclusive by construction. The empty
+        state sits inside `status.kind === "answered"`, so a refusal or an
+        outage cannot reach it — previously that was a `!refusal && !error`
+        guard, which anyone editing this JSX could drop without the compiler
+        noticing.
+      */}
+      {!isLoading && status.kind === "refused" && (
         <div
           role="status"
           className="my-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4"
@@ -133,18 +142,20 @@ export function SearchResults({
           <p className="text-sm font-medium text-foreground">
             No matches are offered for this search.
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {refusal.message}
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{status.message}</p>
         </div>
       )}
 
-      {/* Empty State */}
+      {!isLoading && status.kind === "unavailable" && (
+        <div role="status" className="py-8 text-center">
+          <p className="text-sm text-destructive">{status.message}</p>
+        </div>
+      )}
+
       {!isLoading &&
-        !refusal &&
+        status.kind === "answered" &&
         filteredResults.length === 0 &&
-        query &&
-        !error && (
+        query && (
           <div className="py-12 text-center">
             <p className="text-sm text-muted-foreground">
               {results.length > 0
@@ -153,13 +164,6 @@ export function SearchResults({
             </p>
           </div>
         )}
-
-      {/* Error State */}
-      {error && (
-        <div className="py-8 text-center">
-          <p className="text-sm text-destructive">{error}</p>
-        </div>
-      )}
 
       {/* Results List */}
       <div className="grid grid-cols-1 gap-3 mt-2">
