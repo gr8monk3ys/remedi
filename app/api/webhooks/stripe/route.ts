@@ -12,6 +12,7 @@ import { headers } from "next/headers";
 import Stripe from "stripe";
 import { stripe, getPlanByPriceId, PLANS } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
+import { subscriptionStatusFor } from "@/lib/subscription-status";
 import { Prisma } from "@prisma/client";
 import { createLogger } from "@/lib/logger";
 import {
@@ -38,34 +39,6 @@ async function verifyWebhookSignature(
   }
 
   return stripe.webhooks.constructEvent(body, signature, webhookSecret);
-}
-
-/**
- * Our subscription status for a Stripe one.
- *
- * Entitlements are derived from this single field, so anything that has not
- * actually been paid for — or is mid-authentication — must not land on
- * "active". Unknown statuses fall through to "expired" rather than being left
- * alone: failing closed is the right default when money is involved.
- */
-function subscriptionStatusFor(stripeStatus: string): string {
-  switch (stripeStatus) {
-    case "active":
-      return "active";
-    case "trialing":
-      return "trialing";
-    case "canceled":
-      return "cancelled";
-    case "paused":
-      return "suspended";
-    case "past_due":
-    case "unpaid":
-    case "incomplete":
-    case "incomplete_expired":
-      return "expired";
-    default:
-      return "expired";
-  }
 }
 
 /**
