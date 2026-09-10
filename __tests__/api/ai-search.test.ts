@@ -21,7 +21,8 @@ import { NextRequest } from "next/server";
 const mockGetCurrentUser = vi.fn();
 const mockWithRateLimit = vi.fn();
 const mockCanPerformAction = vi.fn();
-const mockIncrementUsage = vi.fn();
+const mockTryConsumeUsage = vi.fn();
+const mockRefundUsage = vi.fn();
 const mockProcessNaturalLanguageQuery = vi.fn();
 const mockEnhanceRemedyMatching = vi.fn();
 const mockCheckDrugInteractions = vi.fn();
@@ -43,7 +44,8 @@ vi.mock("@/lib/rate-limit", () => ({
 
 vi.mock("@/lib/analytics/usage-tracker", () => ({
   canPerformAction: (...args: unknown[]) => mockCanPerformAction(...args),
-  incrementUsage: (...args: unknown[]) => mockIncrementUsage(...args),
+  tryConsumeUsage: (...args: unknown[]) => mockTryConsumeUsage(...args),
+  refundUsage: (...args: unknown[]) => mockRefundUsage(...args),
 }));
 
 vi.mock("@/lib/ai-matching", () => ({
@@ -145,11 +147,14 @@ describe("/api/ai-search", () => {
       limit: 50,
       plan: "basic",
     });
-    mockIncrementUsage.mockResolvedValue({
+    mockTryConsumeUsage.mockResolvedValue({
+      allowed: true,
+      plan: "basic",
+      limit: 50,
       newCount: 3,
-      wasWithinLimit: true,
-      isNowWithinLimit: true,
+      date: new Date("2026-01-01"),
     });
+    mockRefundUsage.mockResolvedValue(undefined);
     mockProcessNaturalLanguageQuery.mockResolvedValue(mockNlpResult);
     // enhanceRemedyMatching returns a Mapping Outcome now: a refusal for a
     // never-mapped substance is a different arm from an empty result.
@@ -567,20 +572,42 @@ describe("/api/ai-search", () => {
     // ----------------------------------------------------------------------
 
     describe("Usage Tracking", () => {
-      it("should increment usage after a successful AI search", async () => {
+      it("reserves quota before calling the model, and keeps it on success", async () => {
+        // The reservation is atomic and happens up front; success simply does
+        // not refund it. Previously the increment ran afterwards, so ten
+        // concurrent requests all passed the same stale check.
         const { POST } = await import("@/app/api/ai-search/route");
         const request = createPostRequest({ query: "headache remedies" });
         await POST(request);
 
-        expect(mockIncrementUsage).toHaveBeenCalledWith(
+        expect(mockTryConsumeUsage).toHaveBeenCalledWith(
           "user-123",
           "aiSearches",
           1,
         );
+        expect(mockRefundUsage).not.toHaveBeenCalled();
       });
 
-      it("should still return success even if usage tracking fails", async () => {
-        mockIncrementUsage.mockRejectedValue(
+      it("refuses when the reservation cannot be made", async () => {
+        mockTryConsumeUsage.mockResolvedValue({
+          allowed: false,
+          plan: "basic",
+          limit: 10,
+          currentUsage: 10,
+          reason: "limit_reached",
+        });
+
+        const { POST } = await import("@/app/api/ai-search/route");
+        const response = await POST(
+          createPostRequest({ query: "headache remedies" }),
+        );
+
+        expect(response.status).toBe(429);
+        expect(mockEnhanceRemedyMatching).not.toHaveBeenCalled();
+      });
+
+      it("should still return success even if a refund fails", async () => {
+        mockRefundUsage.mockRejectedValue(
           new Error("Database connection lost"),
         );
 
@@ -666,7 +693,11 @@ describe("/api/ai-search", () => {
         expect(data.error.code).toBe("INTERNAL_ERROR");
       });
 
-      it("should not increment usage when AI processing throws", async () => {
+      it("does not charge the user when AI processing throws", async () => {
+        // Same guarantee as before, different mechanism. The quota is now
+        // reserved up front so concurrent requests cannot all pass the same
+        // stale check — so "not charged" means the reservation is refunded,
+        // rather than never taken.
         mockEnhanceRemedyMatching.mockRejectedValue(
           new Error("AI service down"),
         );
@@ -675,7 +706,13 @@ describe("/api/ai-search", () => {
         const request = createPostRequest({ query: "headache remedies" });
         await POST(request);
 
-        expect(mockIncrementUsage).not.toHaveBeenCalled();
+        expect(mockTryConsumeUsage).toHaveBeenCalled();
+        expect(mockRefundUsage).toHaveBeenCalledWith(
+          "user-123",
+          "aiSearches",
+          expect.any(Date),
+          1,
+        );
       });
     });
   });
