@@ -24,15 +24,32 @@ export default function HomeLoading() {
           </div>
         </section>
 
-        {/* Features Grid Skeleton */}
+        {/*
+          Mirrors the "What a label is allowed to claim" <dl> in app/page.tsx,
+          row for row. It used to be a three-across card grid, which stands in
+          for nothing on that page and collapses on mobile to a much shorter
+          block than the content it replaces.
+
+          Measured honestly: this improves Cumulative Layout Shift on a local
+          server, where CLS is 0.20-0.27. Production is already at 0.068 — well
+          inside the 0.1 threshold — so treat this as a skeleton that now
+          resembles what it stands in for, not as a fix for a production
+          problem.
+        */}
         <section className="pt-12 pb-16">
-          <div className="grid overflow-hidden rounded-lg border border-border bg-card sm:grid-cols-3 sm:divide-x sm:divide-border">
+          <Skeleton className="h-4 w-56" />
+          <div className="mt-4 divide-y divide-border border-y border-border">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="p-6">
-                <Skeleton className="h-8 w-8" />
-                <Skeleton className="mt-5 h-4 w-24" />
-                <Skeleton className="mt-2 h-3 w-full" />
-                <Skeleton className="mt-1 h-3 w-3/4" />
+              <div
+                key={i}
+                className="grid gap-1 py-4 sm:grid-cols-[10rem_1fr] sm:gap-6"
+              >
+                <Skeleton className="h-4 w-32" />
+                <div>
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="mt-2 h-3 w-full" />
+                  <Skeleton className="mt-2 h-3 w-2/3" />
+                </div>
               </div>
             ))}
           </div>

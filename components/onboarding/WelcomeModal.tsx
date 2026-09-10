@@ -263,7 +263,9 @@ export function WelcomeModal({
           <div
             className="flex gap-1.5 mb-4"
             role="progressbar"
+            aria-label={`Welcome tour progress: step ${step + 1} of ${TOTAL_STEPS}`}
             aria-valuenow={step + 1}
+            aria-valuemin={1}
             aria-valuemax={TOTAL_STEPS}
           >
             {Array.from({ length: TOTAL_STEPS }).map((_, index) => (

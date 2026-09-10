@@ -32,6 +32,12 @@ export const PUBLIC_ROUTE_PATTERNS = [
   "/remedy/(.*)",
   "/robots.txt",
   "/sitemap.xml",
+  // The middleware matcher excludes `.js` but deliberately not `.json`
+  // (`js(?!on)`), so the PWA manifest declared in app/layout.tsx reached Clerk
+  // and 307'd to /sign-in for every signed-out visitor — breaking install and
+  // putting a failed request in the critical path of every page load.
+  "/manifest.json",
+  "/llms.txt",
   // Public API routes
   // Exact: `/api/search(.*)` also matched /api/search-history.
   "/api/search",
