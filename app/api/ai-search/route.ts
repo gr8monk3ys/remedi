@@ -25,8 +25,7 @@ import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
 import {
   canPerformAction,
-  tryConsumeUsage,
-  refundUsage,
+  incrementUsage,
 } from "@/lib/analytics/usage-tracker";
 
 const log = createLogger("ai-search-api");
@@ -64,9 +63,6 @@ export async function POST(request: NextRequest) {
   if (!allowed && rateLimitResponse) {
     return rateLimitResponse;
   }
-
-  // Hoisted so the outer catch can give the reservation back too.
-  let releaseReservation: (() => Promise<void>) | null = null;
 
   try {
     const user = await getCurrentUser();
@@ -134,44 +130,6 @@ export async function POST(request: NextRequest) {
       checkInteractions,
     } = validation.data;
 
-    // Reserve the quota atomically, immediately before the first paid call.
-    // The read-only check above still short-circuits a plan gate early; this
-    // is what actually holds the slot. Everything that can reject the request
-    // — missing API key, unparseable body, failed validation — has already
-    // returned by here, so a 400 still costs nothing.
-    const reservation = await tryConsumeUsage(user.id, "aiSearches", 1);
-    if (!reservation.allowed) {
-      return reservation.reason === "not_in_plan"
-        ? NextResponse.json(
-            errorResponse(
-              "FORBIDDEN",
-              "AI search requires a Basic plan or higher",
-            ),
-            { status: 403 },
-          )
-        : NextResponse.json(
-            errorResponse("LIMIT_EXCEEDED", "AI search daily limit exceeded", {
-              currentUsage: reservation.currentUsage,
-              limit: reservation.limit,
-              plan: reservation.plan,
-            }),
-            { status: 429 },
-          );
-    }
-
-    // Give the reservation back if the work it paid for did not happen.
-    let charged = true;
-    const release = async (): Promise<void> => {
-      if (!charged) return;
-      charged = false;
-      try {
-        await refundUsage(user.id, "aiSearches", reservation.date, 1);
-      } catch (error) {
-        log.warn("Failed to refund AI search usage", { error });
-      }
-    };
-    releaseReservation = release;
-
     // Process natural language query first
     const nlpResult = await processNaturalLanguageQuery(query);
 
@@ -195,8 +153,6 @@ export async function POST(request: NextRequest) {
     // ships as a 503 rather than a 200 with an empty list — the same way the
     // primary search path reports an unreachable tier.
     if (outcome.kind === "unknown" && outcome.reason === "unavailable") {
-      // We never got an answer, so the reservation is given back.
-      await release();
       log.warn("AI search could not complete", { message: outcome.message });
       return NextResponse.json(
         errorResponse("SERVICE_UNAVAILABLE", outcome.message),
@@ -209,9 +165,6 @@ export async function POST(request: NextRequest) {
     // identical to "the model found nothing", which is the one confusion this
     // policy exists to prevent.
     if (outcome.kind === "unknown") {
-      // A refusal is decided before the model is called, so it stays free —
-      // which is what the previous increment-on-success shape did too.
-      await release();
       return NextResponse.json(
         successResponse({
           intent: nlpResult.intent,
@@ -265,6 +218,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Record usage only after a successful AI response.
+    try {
+      await incrementUsage(user.id, "aiSearches", 1);
+    } catch (error) {
+      log.warn("Failed to record AI search usage", { error });
+    }
+
     return NextResponse.json(
       successResponse({
         intent: nlpResult.intent,
@@ -279,8 +239,6 @@ export async function POST(request: NextRequest) {
       }),
     );
   } catch (error) {
-    // The request threw after the quota was reserved, so give it back.
-    await releaseReservation?.();
     log.error("AI search error", error);
 
     if (error instanceof Error && error.message.includes("API key")) {
