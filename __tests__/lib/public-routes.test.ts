@@ -56,7 +56,32 @@ const MUST_BE_PROTECTED = [
   "/api/trial/start",
 ];
 
+/**
+ * Pages that MUST stay public. Dropping one is as dangerous as adding one:
+ * removing `/sign-in(.*)` makes the sign-in page require sign-in, which is an
+ * infinite redirect — the whole app becomes unreachable for signed-out users.
+ * That is exactly what happened when this list was first extracted.
+ */
+const MUST_BE_PUBLIC = [
+  "/",
+  "/sign-in",
+  "/sign-in/factor-one",
+  "/sign-up",
+  "/pricing",
+  "/about",
+  "/faq",
+  "/legal/privacy",
+  "/contribute",
+  "/robots.txt",
+  "/sitemap.xml",
+];
+
 describe("public route allowlist", () => {
+  it.each(MUST_BE_PUBLIC)("keeps %s reachable without auth", (route) => {
+    const matching = PUBLIC_ROUTE_PATTERNS.filter((p) => matches(p, route));
+    expect(matching.length).toBeGreaterThan(0);
+  });
+
   it.each(MUST_BE_PROTECTED)("does not expose %s", (route) => {
     const matching = PUBLIC_ROUTE_PATTERNS.filter((p) => matches(p, route));
     expect(matching).toEqual([]);

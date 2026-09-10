@@ -11,14 +11,20 @@
  *
  * Prefer an exact string. Reach for `(.*)` only for a genuine subtree, and
  * write it as `/prefix/(.*)` so the slash anchors it.
+ *
+ * Dropping an entry here is as dangerous as adding one: removing
+ * `/sign-in(.*)` makes the sign-in page itself require sign-in, which is an
+ * infinite redirect. The tests alongside this file cover both directions.
  */
 export const PUBLIC_ROUTE_PATTERNS = [
   "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
   "/about(.*)",
-  "/api-docs(.*)",
-  "/compare(.*)",
-  "/contact(.*)",
   "/faq(.*)",
+  "/legal/(.*)",
+  "/compare(.*)",
+  "/contribute(.*)",
   "/interactions(.*)",
   "/landing(.*)",
   "/maintenance(.*)",
@@ -27,6 +33,7 @@ export const PUBLIC_ROUTE_PATTERNS = [
   "/robots.txt",
   "/sitemap.xml",
   // Public API routes
+  // Exact: `/api/search(.*)` also matched /api/search-history.
   "/api/search",
   "/api/remedy/(.*)",
   "/api/remedies/(.*)",
