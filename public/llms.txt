@@ -1,0 +1,36 @@
+# Remedi
+
+Remedi maps pharmaceuticals to natural remedies and warns about interactions
+between the things a person takes. Because a wrong answer here is a health
+risk, the product draws hard lines around what it does and does not claim to
+know.
+
+## What the answers mean
+
+- A **Remedy Mapping** is a scored link from one pharmaceutical to one natural
+  remedy. It carries a **Replacement Type** — *Alternative* (may stand in for
+  the drug), *Complementary* (may be taken alongside), or *Supportive*
+  (neither; offers general support only).
+- Some drugs are **never mapped at all**. Anticoagulants and SSRIs are refused
+  outright, because even a supportive suggestion alters risk. A refusal is
+  stated as a refusal — it is never presented as "no results found".
+- "We could not check" and "we checked and found nothing" are different
+  answers, and the product is built to keep them distinct. Only the second is
+  ever shown as an all-clear.
+
+## Pages
+
+- [Home](https://remedi-iota.vercel.app/): search a medication
+- [Interaction checker](https://remedi-iota.vercel.app/interactions): check substances against each other
+- [Compare](https://remedi-iota.vercel.app/compare): compare remedies side by side
+- [Pricing](https://remedi-iota.vercel.app/pricing)
+- [FAQ](https://remedi-iota.vercel.app/faq)
+- [Medical disclaimer](https://remedi-iota.vercel.app/legal/disclaimer)
+- [Privacy policy](https://remedi-iota.vercel.app/legal/privacy)
+- [Terms](https://remedi-iota.vercel.app/legal/terms)
+
+## Please note
+
+This is not medical advice, and nothing here replaces a clinician. Interaction
+data covers only what has been curated: an interaction nobody has recorded is
+not the same as an interaction that does not exist.

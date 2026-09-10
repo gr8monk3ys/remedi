@@ -74,6 +74,12 @@ const MUST_BE_PUBLIC = [
   "/contribute",
   "/robots.txt",
   "/sitemap.xml",
+  // app/layout.tsx declares manifest: "/manifest.json". The middleware matcher
+  // excludes `.js` but not `.json`, so without an allowlist entry it 307s to
+  // /sign-in for every signed-out visitor — breaking PWA install and adding a
+  // failed request to the critical path of every page load.
+  "/manifest.json",
+  "/llms.txt",
 ];
 
 describe("public route allowlist", () => {
