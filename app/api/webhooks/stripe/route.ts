@@ -41,6 +41,34 @@ async function verifyWebhookSignature(
 }
 
 /**
+ * Our subscription status for a Stripe one.
+ *
+ * Entitlements are derived from this single field, so anything that has not
+ * actually been paid for — or is mid-authentication — must not land on
+ * "active". Unknown statuses fall through to "expired" rather than being left
+ * alone: failing closed is the right default when money is involved.
+ */
+function subscriptionStatusFor(stripeStatus: string): string {
+  switch (stripeStatus) {
+    case "active":
+      return "active";
+    case "trialing":
+      return "trialing";
+    case "canceled":
+      return "cancelled";
+    case "paused":
+      return "suspended";
+    case "past_due":
+    case "unpaid":
+    case "incomplete":
+    case "incomplete_expired":
+      return "expired";
+    default:
+      return "expired";
+  }
+}
+
+/**
  * Handle checkout.session.completed event
  * Idempotent: checks if subscription already exists before creating
  */
@@ -95,6 +123,36 @@ async function handleCheckoutSessionCompleted(
     ? new Date(currentPeriodEndUnix * 1000)
     : new Date();
 
+  // Reflect what Stripe actually says, rather than assuming "active".
+  //
+  // This used to hardcode `status: "active"` without consulting
+  // `stripeSubscription.status` or `session.payment_status`. Every entitlement
+  // check keys off exactly that field, so a subscription that had never
+  // produced a paid invoice — a trial, or one left `incomplete` because SCA
+  // was never completed — granted full paid limits indefinitely.
+  const status = subscriptionStatusFor(stripeSubscription.status);
+
+  // A Stripe-native trial is a real trial and has to burn the one free trial
+  // this account gets. The checkout path granted `trial_period_days` while
+  // leaving `hasUsedTrial` false, which meant the trial could be taken again
+  // and again by cancelling and re-subscribing.
+  //
+  // getTrialStatus() requires BOTH status "trialing" and trialEndDate to treat
+  // a trial as active, so the dates are written here too — without them a
+  // legitimate Stripe trial would be entitled to nothing.
+  if (stripeSubscription.status === "trialing") {
+    const trialStart = stripeSubscription.trial_start;
+    const trialEnd = stripeSubscription.trial_end;
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        hasUsedTrial: true,
+        ...(trialStart && { trialStartDate: new Date(trialStart * 1000) }),
+        ...(trialEnd && { trialEndDate: new Date(trialEnd * 1000) }),
+      },
+    });
+  }
+
   // Update subscription in database
   await prisma.subscription.upsert({
     where: { userId },
@@ -104,7 +162,7 @@ async function handleCheckoutSessionCompleted(
       customerId,
       priceId,
       plan: plan || "basic",
-      status: "active",
+      status,
       interval: subscriptionItem?.price.recurring?.interval || "month",
       currentPeriodStart,
       currentPeriodEnd,
@@ -117,7 +175,7 @@ async function handleCheckoutSessionCompleted(
       customerId,
       priceId,
       plan: plan || "basic",
-      status: "active",
+      status,
       interval: subscriptionItem?.price.recurring?.interval || "month",
       currentPeriodStart,
       currentPeriodEnd,
@@ -215,23 +273,11 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     ? new Date(currentPeriodEndUnix * 1000)
     : dbSubscription.currentPeriodEnd;
 
-  // Map Stripe status to our status
-  let status: string = dbSubscription.status;
-  switch (subscription.status) {
-    case "active":
-      status = "active";
-      break;
-    case "canceled":
-      status = "cancelled";
-      break;
-    case "past_due":
-    case "unpaid":
-      status = "expired";
-      break;
-    case "paused":
-      status = "suspended";
-      break;
-  }
+  // Previously a switch with no case for "trialing", "incomplete" or
+  // "incomplete_expired", seeded with `let status = dbSubscription.status` —
+  // so an unmapped Stripe status silently kept whatever we already had, which
+  // was "active". One mapper now serves both handlers.
+  const status = subscriptionStatusFor(subscription.status);
 
   await prisma.subscription.update({
     where: { id: dbSubscription.id },

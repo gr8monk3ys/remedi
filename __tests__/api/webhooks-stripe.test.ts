@@ -58,6 +58,7 @@ const mockUpsert = vi.fn();
 const mockUpdate = vi.fn();
 const mockWebhookStatusUpsert = vi.fn().mockResolvedValue({});
 const mockUserFindUnique = vi.fn().mockResolvedValue(null);
+const mockUserUpdate = vi.fn().mockResolvedValue({});
 const mockWebhookEventUpsert = vi
   .fn()
   .mockResolvedValue({ id: "dlq_123", attempts: 1 });
@@ -79,6 +80,7 @@ vi.mock("@/lib/db", () => ({
     },
     user: {
       findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
+      update: (...args: unknown[]) => mockUserUpdate(...args),
     },
   },
 }));
@@ -190,6 +192,73 @@ describe("/api/webhooks/stripe", () => {
         expect(response.status).toBe(200);
         expect(json.received).toBe(true);
         expect(mockUpsert).toHaveBeenCalled();
+      });
+
+      // A subscription that has never produced a paid invoice must not land
+      // on "active": every entitlement check keys off that one field.
+      it("records a Stripe-native trial as trialing, and burns the free trial", async () => {
+        mockConstructEvent.mockReturnValue({
+          type: "checkout.session.completed",
+          data: { object: mockStripeSession },
+        });
+        mockFindUnique.mockResolvedValue(null);
+        mockRetrieve.mockResolvedValue({
+          ...mockStripeSubscription,
+          status: "trialing",
+          trial_start: 1_700_000_000,
+          trial_end: 1_700_604_800,
+        });
+        mockUpsert.mockResolvedValue(mockSubscription);
+
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
+        const response = await POST(
+          new NextRequest("http://localhost:3000/api/webhooks/stripe", {
+            method: "POST",
+            body: JSON.stringify({}),
+          }),
+        );
+
+        expect(response.status).toBe(200);
+        expect(mockUpsert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            create: expect.objectContaining({ status: "trialing" }),
+          }),
+        );
+        // The checkout path used to grant trial_period_days while leaving
+        // hasUsedTrial false, so the trial could be taken again and again.
+        expect(mockUserUpdate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({ hasUsedTrial: true }),
+          }),
+        );
+      });
+
+      it("does not mark an incomplete subscription active", async () => {
+        mockConstructEvent.mockReturnValue({
+          type: "checkout.session.completed",
+          data: { object: mockStripeSession },
+        });
+        mockFindUnique.mockResolvedValue(null);
+        mockRetrieve.mockResolvedValue({
+          ...mockStripeSubscription,
+          status: "incomplete",
+        });
+        mockUpsert.mockResolvedValue(mockSubscription);
+
+        const { POST } = await import("@/app/api/webhooks/stripe/route");
+        await POST(
+          new NextRequest("http://localhost:3000/api/webhooks/stripe", {
+            method: "POST",
+            body: JSON.stringify({}),
+          }),
+        );
+
+        // SCA never completed: no payment, so no entitlement.
+        expect(mockUpsert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            create: expect.objectContaining({ status: "expired" }),
+          }),
+        );
       });
 
       it("should skip if subscription already processed", async () => {

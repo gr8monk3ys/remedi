@@ -136,6 +136,18 @@ export async function startTrial(userId: string): Promise<{
     throw new Error("User is not eligible for a free trial");
   }
 
+  // The upsert below overwrites plan and status unconditionally. Without this
+  // guard a paying Basic subscriber could call /api/trial/start and be moved
+  // to Premium on a trial — and worse, processExpiredTrials would later reset
+  // them to "free", silently cancelling a customer who was still paying.
+  const paid = await prisma.subscription.findUnique({
+    where: { userId },
+    select: { status: true },
+  });
+  if (paid?.status === "active" || paid?.status === "trialing") {
+    throw new Error("User already has an active subscription");
+  }
+
   const trialStartDate = new Date();
   const trialEndDate = new Date();
   trialEndDate.setDate(trialEndDate.getDate() + TRIAL_CONFIG.durationDays);
