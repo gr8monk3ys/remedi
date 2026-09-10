@@ -12,46 +12,13 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { csrfMiddleware, generateCSRFToken, setCSRFCookie } from "@/lib/csrf";
+import { PUBLIC_ROUTE_PATTERNS } from "@/lib/public-routes";
 
 /**
  * Routes that are publicly accessible without authentication.
  * All other routes will require the user to be signed in.
  */
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/about(.*)",
-  "/faq(.*)",
-  "/legal/(.*)",
-  "/compare(.*)",
-  "/contribute(.*)",
-  "/interactions(.*)",
-  "/landing(.*)",
-  "/maintenance(.*)",
-  "/pricing(.*)",
-  "/remedy/(.*)",
-  "/robots.txt",
-  "/sitemap.xml",
-  // Public API routes
-  "/api/search(.*)",
-  "/api/remedy/(.*)",
-  "/api/remedies/(.*)",
-  "/api/webhooks/(.*)",
-  "/api/health(.*)",
-  "/api/reviews", // GET is public (POST requires auth at route level)
-  "/api/favorites(.*)", // Supports anonymous sessionId-based access
-  "/api/search-history(.*)", // Supports anonymous sessionId-based access
-  "/api/filter-preferences(.*)", // Supports anonymous sessionId-based access
-  "/api/plan(.*)", // Lightweight plan/limits lookup (safe for anonymous)
-  "/api/user-events(.*)", // Anonymous event tracking
-  "/api/conversion-events(.*)", // Anonymous conversion tracking
-  "/api/ai-search(.*)", // AI availability check is public
-  "/api/interactions(.*)", // Public interaction checker + substance lookup
-  // Scheduled jobs authenticate with CRON_SECRET at the route level; Clerk
-  // must not intercept them or the secret check is never reached.
-  "/api/cron/(.*)",
-]);
+const isPublicRoute = createRouteMatcher([...PUBLIC_ROUTE_PATTERNS]);
 
 /**
  * User agents to block (scrapers, bots)
