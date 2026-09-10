@@ -32,6 +32,10 @@ const plexMono = localFont({
   ],
   variable: "--font-plex-mono",
   display: "swap",
+  // Used only for the step numbers below the fold, but preloaded at high
+  // priority it competed with the render-blocking stylesheet on the critical
+  // path. `display: swap` already covers the swap-in.
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -138,7 +142,7 @@ export default async function RootLayout({
         <a href="#main-content" className="skip-to-main">
           Skip to main content
         </a>
-        <Providers>
+        <Providers nonce={nonce}>
           <Header />
           <div id="main-content">{children}</div>
           <Footer />
