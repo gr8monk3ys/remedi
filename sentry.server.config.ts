@@ -43,24 +43,23 @@ Sentry.init({
     Sentry.nativeNodeFetchIntegration(),
   ],
 
-  // Filter out known non-critical errors to reduce noise
-  ignoreErrors: [
-    // Network errors (often transient)
-    "ECONNRESET",
-    "ENOTFOUND",
-    "ETIMEDOUT",
-    "ECONNREFUSED",
-    "EPIPE",
-    "EAI_AGAIN",
-    // Prisma connection errors (retryable)
-    "PrismaClientInitializationError",
-    "PrismaClientRustPanicError",
-    // Request cancellation
-    "AbortError",
-    "The operation was aborted",
-    // Health check failures (handled by monitoring)
-    "Health check failed",
-  ],
+  // Filter out genuine noise — and nothing else.
+  //
+  // This list used to drop ECONNRESET, ENOTFOUND, ETIMEDOUT, ECONNREFUSED,
+  // EPIPE, EAI_AGAIN, PrismaClientInitializationError,
+  // PrismaClientRustPanicError and "Health check failed". Those are not noise:
+  // they are precisely how a Neon outage, a connection-pool exhaustion, a DNS
+  // failure or a cross-region timeout reaches us. The highest-signal events
+  // this application can emit were the ones being discarded, so the first
+  // notice of a database outage would have been a user complaint.
+  //
+  // "Health check failed" carried the comment "handled by monitoring". There
+  // is no monitoring — nothing polls /api/health at all — so it was handled by
+  // nobody.
+  //
+  // What remains is request cancellation, which is a client navigating away
+  // mid-request and says nothing about our health.
+  ignoreErrors: ["AbortError", "The operation was aborted"],
 
   // Debug mode (disable in production)
   debug: false,
