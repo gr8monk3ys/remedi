@@ -12,6 +12,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { csrfMiddleware, generateCSRFToken, setCSRFCookie } from "@/lib/csrf";
+import { clerkFrontendOrigin, sentryIngestOrigin } from "@/lib/csp-origins";
 import { PUBLIC_ROUTE_PATTERNS } from "@/lib/public-routes";
 
 /**
@@ -58,35 +59,6 @@ function generateCspNonce(): string {
 /**
  * Add security headers to response
  */
-/**
- * The Clerk Frontend API origin this deployment actually talks to.
- *
- * A publishable key encodes its own frontend API host after the second
- * underscore, base64 with a trailing "$". On a Clerk *custom domain* that host
- * is neither *.clerk.accounts.dev nor *.clerk.com — so a CSP hardcoded to
- * those two patterns blocks Clerk's own script, and sign-in silently fails
- * behind ClerkErrorBoundary.
- *
- * Deriving it from the key means the policy follows the deployment instead of
- * having to be remembered.
- */
-function clerkFrontendOrigin(): string | null {
-  const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-  if (!key) return null;
-
-  const encoded = key.split("_").slice(2).join("_");
-  if (!encoded) return null;
-
-  try {
-    const host = Buffer.from(encoded, "base64")
-      .toString("utf8")
-      .replace(/\$$/, "");
-    // Only accept something that looks like a hostname, never arbitrary text.
-    return /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(host) ? `https://${host}` : null;
-  } catch {
-    return null;
-  }
-}
 
 function addSecurityHeaders(response: NextResponse, nonce: string): void {
   // X-Frame-Options is set to a hardcoded literal ("DENY"); no user input is
@@ -116,6 +88,9 @@ function addSecurityHeaders(response: NextResponse, nonce: string): void {
       : []),
   ].join(" ");
   const clerkScriptSrc = clerkHosts;
+  // Errors can only be reported to a host the policy allows to be contacted.
+  const sentryOrigin = sentryIngestOrigin();
+  const sentryConnectSrc = sentryOrigin ? ` ${sentryOrigin}` : "";
   // 'unsafe-inline' is kept as a fallback for older browsers that do not
   // support nonces. Nonce-aware browsers ignore 'unsafe-inline' when a
   // nonce source is present, so this is safe and follows CSP best practices.
@@ -127,7 +102,7 @@ function addSecurityHeaders(response: NextResponse, nonce: string): void {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' https://images.unsplash.com https://img.clerk.com https://*.clerk.com data: blob:",
     "font-src 'self' data:",
-    `connect-src 'self' https://api.fda.gov https://api.openai.com https://api.clerk.com ${clerkHosts}`,
+    `connect-src 'self' https://api.fda.gov https://api.openai.com https://api.clerk.com ${clerkHosts}${sentryConnectSrc}`,
     `frame-src 'self' https://accounts.clerk.com ${clerkHosts}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",

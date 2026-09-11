@@ -23,19 +23,12 @@ Sentry.init({
   // Capture 10% of transactions in production for performance monitoring
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
 
-  // Session Replay
-  // Capture 10% of sessions for replay in production
-  replaysSessionSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 0,
-  // Capture 100% of sessions with errors for replay
-  replaysOnErrorSampleRate: 1.0,
+  // No replay sample rates: Session Replay is not attached at all. Leaving
+  // them set would be a standing instruction to record health-dashboard
+  // sessions the moment anyone adds the integration back. See the note at the
+  // foot of this file.
 
   // Integrations for browser monitoring.
-  //
-  // Session Replay is deliberately NOT here — it is loaded lazily below, after
-  // the page is interactive. Its bundle is 50-70 KB, and putting it on the
-  // critical path would undo the LCP work in #140. Error reporting is the part
-  // that must be present from the first millisecond; replay is diagnostic
-  // colour and can arrive late.
   integrations: [
     // Browser Tracing for performance monitoring
     Sentry.browserTracingIntegration({
@@ -134,41 +127,26 @@ Sentry.init({
 });
 
 /**
- * Attach Session Replay once the page has settled.
+ * Session Replay is deliberately not attached.
  *
- * `lazyLoadIntegration` fetches the replay bundle from the CDN rather than
- * shipping it in the initial chunk. Deferring to `load` keeps it off the
- * critical path entirely.
+ * It used to be, at replaysOnErrorSampleRate: 1.0 — every session that hit an
+ * error, recorded and sent to a third party. The masking below it was careful
+ * and correct, and it was still the wrong trade for this product.
  *
- * The masking below is the same as before and is not optional: this product
- * renders a person's Medication Cabinet, Health Profile and Journal, so a
- * replay that captured text would be shipping health data to a third party.
- * `maskAllInputs` alone is not enough — the sensitive content here is what is
- * displayed back to someone, not only what they type. There is deliberately no
- * `networkDetailAllowUrls`; it previously included `window.location.origin`,
- * which captured our own API's request and response bodies.
+ * Remedi collects GDPR Article 9 special-category data: HealthProfile carries
+ * allergies and conditions, MedicationCabinet is a person's actual medication
+ * list, RemedyJournal holds symptoms, side effects, mood and sleep. Those
+ * pages are exactly where an error is most likely, so a 100% on-error sample
+ * targets the most sensitive sessions in the product. The privacy policy does
+ * not disclose any of it, no legal basis is stated, and the cookie consent
+ * that correctly gates Google Analytics never gated this.
+ *
+ * Masking reduces that exposure; it does not make it disclosed or consented,
+ * and a masking option that regresses silently is not something to stake
+ * health data on. Errors still report in full, which is the part that was
+ * actually missing — until this commit the browser SDK could not send anything
+ * at all, because connect-src did not list the ingest host.
+ *
+ * Re-enabling it is a product decision, and needs the privacy policy and the
+ * consent flow updated first, not just this file.
  */
-if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  const attachReplay = (): void => {
-    void Sentry.lazyLoadIntegration("replayIntegration")
-      .then((replayIntegration) => {
-        Sentry.getClient()?.addIntegration(
-          replayIntegration({
-            maskAllText: true,
-            blockAllMedia: true,
-            maskAllInputs: true,
-          }),
-        );
-      })
-      .catch(() => {
-        // Replay is diagnostic. Failing to load it must never break the page,
-        // and must never be mistaken for error reporting being down.
-      });
-  };
-
-  if (document.readyState === "complete") {
-    attachReplay();
-  } else {
-    window.addEventListener("load", attachReplay, { once: true });
-  }
-}
