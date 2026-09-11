@@ -31,7 +31,12 @@ import type { PlanType } from "@/lib/stripe-config";
 
 interface DashboardSidebarProps {
   user: DashboardUser;
-  currentPlan?: PlanType;
+  /**
+   * `null` means we could not establish the plan — a database outage, not the
+   * Free tier. Advertising "Free Plan" at a Premium subscriber because a query
+   * failed is a claim about their account that we have not earned.
+   */
+  currentPlan?: PlanType | null;
 }
 
 const navItems = [
@@ -186,7 +191,7 @@ export function DashboardSidebar({
               {displayName}
             </p>
             <p className="truncate font-mono text-[11px] text-muted-foreground">
-              {planLabels[currentPlan]}
+              {currentPlan ? planLabels[currentPlan] : "Plan unavailable"}
             </p>
           </div>
         </div>
