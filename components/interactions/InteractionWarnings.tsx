@@ -17,7 +17,7 @@ import {
   type InteractionOutcome,
 } from "@/lib/interactions/read";
 import {
-  SEVERITY_CONFIG,
+  severityPresentation,
   EVIDENCE_LABELS,
   type Interaction,
 } from "./interaction.types";
@@ -35,7 +35,7 @@ function WarningItem({
   remedyName: string;
 }): React.ReactElement {
   const [expanded, setExpanded] = useState(false);
-  const config = SEVERITY_CONFIG[interaction.severity] || SEVERITY_CONFIG.mild!;
+  const config = severityPresentation(interaction.severity);
 
   // Determine the "other" substance (the one that isn't this remedy)
   const otherSubstance = interaction.substanceA
@@ -54,17 +54,7 @@ function WarningItem({
               className={`h-4 w-4 shrink-0 ${config.color}`}
             />
             <span className="text-sm font-medium">{otherSubstance}</span>
-            <Badge
-              variant={
-                interaction.severity === "contraindicated" ||
-                interaction.severity === "severe"
-                  ? "destructive"
-                  : interaction.severity === "moderate"
-                    ? "default"
-                    : "secondary"
-              }
-              className="text-xs"
-            >
+            <Badge variant={config.badgeVariant} className="text-xs">
               {config.label}
             </Badge>
             {interaction.evidence && (
