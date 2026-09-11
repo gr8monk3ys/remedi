@@ -29,24 +29,14 @@ Sentry.init({
   // Capture 100% of sessions with errors for replay
   replaysOnErrorSampleRate: 1.0,
 
-  // Integrations for browser monitoring
+  // Integrations for browser monitoring.
+  //
+  // Session Replay is deliberately NOT here — it is loaded lazily below, after
+  // the page is interactive. Its bundle is 50-70 KB, and putting it on the
+  // critical path would undo the LCP work in #140. Error reporting is the part
+  // that must be present from the first millisecond; replay is diagnostic
+  // colour and can arrive late.
   integrations: [
-    // Session Replay records what is on screen. On this product that is
-    // someone's Medication Cabinet, Health Profile and Journal — so the
-    // defaults here have to be the private ones, not the debuggable ones.
-    Sentry.replayIntegration({
-      // Was `false`, directly under a comment saying "Mask sensitive text
-      // content". Replays of 10% of sessions, and 100% of error sessions,
-      // were carrying users' medications and journal entries as readable
-      // text to a third party.
-      maskAllText: true,
-      blockAllMedia: true,
-      maskAllInputs: true,
-      // Deliberately no networkDetailAllowUrls. It previously included
-      // `window.location.origin`, which captured the request and response
-      // bodies of our own API — /api/health-profile, /api/journal and
-      // /api/medication-cabinet among them.
-    }),
     // Browser Tracing for performance monitoring
     Sentry.browserTracingIntegration({
       // Track navigation and page load performance
@@ -142,3 +132,43 @@ Sentry.init({
     return event;
   },
 });
+
+/**
+ * Attach Session Replay once the page has settled.
+ *
+ * `lazyLoadIntegration` fetches the replay bundle from the CDN rather than
+ * shipping it in the initial chunk. Deferring to `load` keeps it off the
+ * critical path entirely.
+ *
+ * The masking below is the same as before and is not optional: this product
+ * renders a person's Medication Cabinet, Health Profile and Journal, so a
+ * replay that captured text would be shipping health data to a third party.
+ * `maskAllInputs` alone is not enough — the sensitive content here is what is
+ * displayed back to someone, not only what they type. There is deliberately no
+ * `networkDetailAllowUrls`; it previously included `window.location.origin`,
+ * which captured our own API's request and response bodies.
+ */
+if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  const attachReplay = (): void => {
+    void Sentry.lazyLoadIntegration("replayIntegration")
+      .then((replayIntegration) => {
+        Sentry.getClient()?.addIntegration(
+          replayIntegration({
+            maskAllText: true,
+            blockAllMedia: true,
+            maskAllInputs: true,
+          }),
+        );
+      })
+      .catch(() => {
+        // Replay is diagnostic. Failing to load it must never break the page,
+        // and must never be mistaken for error reporting being down.
+      });
+  };
+
+  if (document.readyState === "complete") {
+    attachReplay();
+  } else {
+    window.addEventListener("load", attachReplay, { once: true });
+  }
+}
