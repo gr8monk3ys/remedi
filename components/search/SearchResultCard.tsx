@@ -6,19 +6,12 @@ import Link from "next/link";
 import { ArrowUpRight, Heart, GitCompare, Check } from "lucide-react";
 import { useCompare } from "@/lib/context/CompareContext";
 import { Badge } from "@/components/ui/badge";
+import { ReplacementTypeBadge } from "@/components/remedy/ReplacementTypeBadge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { SearchResult } from "./types";
 
 /** Plain-language meaning of each replacement type, shown on hover. */
-const REPLACEMENT_TYPE_HINTS: Record<string, string> = {
-  Alternative:
-    "May serve a similar purpose. Never stop a prescribed medication without talking to your provider.",
-  Complementary: "Sometimes used alongside conventional treatment.",
-  Supportive:
-    "General supportive use only — not a substitute for this medication.",
-};
-
 interface SearchResultCardProps {
   result: SearchResult;
   isFavorite: boolean;
@@ -166,18 +159,9 @@ export const SearchResultCard = memo(function SearchResultCard({
               <Badge variant="secondary">{result.category}</Badge>
             )}
             {/* Without this, a merely supportive suggestion looks identical
-                to a genuine alternative to someone's medication. */}
-            {result.replacementType && (
-              <Badge
-                variant="outline"
-                title={
-                  REPLACEMENT_TYPE_HINTS[result.replacementType] ??
-                  "How this remedy relates to the medication."
-                }
-              >
-                {result.replacementType}
-              </Badge>
-            )}
+                to a genuine alternative to someone's medication. The copy now
+                lives in lib/replacement-type so /compare renders it too. */}
+            <ReplacementTypeBadge type={result.replacementType} />
           </div>
 
           {/* Description */}
