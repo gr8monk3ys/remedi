@@ -79,43 +79,22 @@ function getTodayUTC(): Date {
 async function getOrCreateTodayUsage(userId: string): Promise<DailyUsage> {
   const today = getTodayUTC();
 
-  const existing = await prisma.usageRecord.findUnique({
-    where: {
-      userId_date: {
-        userId,
-        date: today,
-      },
-    },
-  });
-
-  if (existing) {
-    return {
-      searches: existing.searches,
-      aiSearches: existing.aiSearches,
-      exports: existing.exports,
-      comparisons: existing.comparisons,
-      date: existing.date,
-    };
-  }
-
-  // Create new record for today
-  const newRecord = await prisma.usageRecord.create({
-    data: {
-      userId,
-      date: today,
-      searches: 0,
-      aiSearches: 0,
-      exports: 0,
-      comparisons: 0,
-    },
+  // Upsert rather than findUnique-then-create. Two concurrent
+  // first-requests-of-the-day both missed the read and both hit `create`, and
+  // the loser threw an uncaught P2002 — a 500 on the first request after UTC
+  // midnight. An empty `update` makes this idempotent.
+  const record = await prisma.usageRecord.upsert({
+    where: { userId_date: { userId, date: today } },
+    create: { userId, date: today },
+    update: {},
   });
 
   return {
-    searches: newRecord.searches,
-    aiSearches: newRecord.aiSearches,
-    exports: newRecord.exports,
-    comparisons: newRecord.comparisons,
-    date: newRecord.date,
+    searches: record.searches,
+    aiSearches: record.aiSearches,
+    exports: record.exports,
+    comparisons: record.comparisons,
+    date: record.date,
   };
 }
 
@@ -199,6 +178,154 @@ export async function incrementUsage(
     wasWithinLimit: isWithinLimit(limit, previousCount),
     isNowWithinLimit: isWithinLimit(limit, newCount),
   };
+}
+
+/** Which plan limit governs which counter. */
+const LIMIT_KEY = {
+  searches: "maxSearchesPerDay",
+  aiSearches: "maxAiSearchesPerDay",
+  exports: "maxExportsPerDay",
+  comparisons: "maxCompareItems",
+} as const;
+
+/** The effective plan for a user, trial included. */
+async function resolvePlan(userId: string): Promise<PlanType> {
+  const trialStatus = await getTrialStatus(userId);
+  if (trialStatus.isActive) return "premium";
+
+  const subscription = await prisma.subscription.findUnique({
+    where: { userId },
+    select: { plan: true, status: true },
+  });
+
+  return subscription?.status === "active"
+    ? parsePlanType(subscription.plan)
+    : "free";
+}
+
+/** The outcome of trying to reserve one unit of quota. */
+export type ConsumeResult =
+  | {
+      allowed: true;
+      plan: PlanType;
+      limit: number;
+      newCount: number;
+      date: Date;
+    }
+  | {
+      allowed: false;
+      plan: PlanType;
+      limit: number;
+      currentUsage: number;
+      /** `not_in_plan` is a 403 — upgrading helps. `limit_reached` is a 429. */
+      reason: "not_in_plan" | "limit_reached";
+    };
+
+/**
+ * Atomically reserve one unit of quota.
+ *
+ * `canPerformAction` reads, the caller acts, `incrementUsage` writes — with no
+ * transaction spanning them. Concurrent requests all passed the check against
+ * the same stale count, so a user at 9 of 10 AI searches could fire ten at once
+ * and have all ten succeed. Each one costs a GPT-4 call.
+ *
+ * Here the limit lives inside the UPDATE's WHERE clause, so Postgres serialises
+ * the increments on the row lock and exactly `limit` of them can win. The
+ * reservation is durable before the expensive work starts; `refundUsage` gives
+ * it back if that work then fails.
+ */
+export async function tryConsumeUsage(
+  userId: string,
+  type: UsageType,
+  amount: number = 1,
+): Promise<ConsumeResult> {
+  const today = getTodayUTC();
+  const plan = await resolvePlan(userId);
+  const limit = getPlanLimits(plan)[LIMIT_KEY[type]];
+
+  // 0 means the feature is not on this plan at all, which is a different
+  // answer from "you have used today's allowance".
+  if (limit === 0) {
+    return {
+      allowed: false,
+      plan,
+      limit,
+      currentUsage: 0,
+      reason: "not_in_plan",
+    };
+  }
+
+  if (limit === -1) {
+    const row = await prisma.usageRecord.upsert({
+      where: { userId_date: { userId, date: today } },
+      create: { userId, date: today, [type]: amount },
+      update: { [type]: { increment: amount } },
+    });
+    return {
+      allowed: true,
+      plan,
+      limit,
+      newCount: row[type] as number,
+      date: today,
+    };
+  }
+
+  // The row must exist for updateMany to match it.
+  await prisma.usageRecord.upsert({
+    where: { userId_date: { userId, date: today } },
+    create: { userId, date: today },
+    update: {},
+  });
+
+  // `lt: limit` is exactly isWithinLimit(limit, current) in SQL.
+  const reserved = await prisma.usageRecord.updateMany({
+    where: { userId, date: today, [type]: { lt: limit } },
+    data: { [type]: { increment: amount } },
+  });
+
+  // Fetch the whole row: a dynamic `select` loses the field's type, and the
+  // four counters are all `number` on the model, so indexing is type-safe.
+  const row = await prisma.usageRecord.findUnique({
+    where: { userId_date: { userId, date: today } },
+  });
+  const current = row ? row[type] : 0;
+
+  if (reserved.count === 0) {
+    return {
+      allowed: false,
+      plan,
+      limit,
+      currentUsage: current || limit,
+      reason: "limit_reached",
+    };
+  }
+
+  return {
+    allowed: true,
+    plan,
+    limit,
+    newCount: current || amount,
+    date: today,
+  };
+}
+
+/**
+ * Give back a reservation whose work failed.
+ *
+ * Takes the date the reservation was made against, so a refund landing after
+ * UTC midnight cannot decrement the wrong day. The `gte` guard stops the
+ * counter going negative.
+ */
+export async function refundUsage(
+  userId: string,
+  type: UsageType,
+  date: Date,
+  amount: number = 1,
+): Promise<void> {
+  await prisma.usageRecord.updateMany({
+    where: { userId, date, [type]: { gte: amount } },
+    data: { [type]: { decrement: amount } },
+  });
 }
 
 /**
