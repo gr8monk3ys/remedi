@@ -296,7 +296,7 @@ describe("/api/ai-search", () => {
     // ----------------------------------------------------------------------
 
     describe("OpenAI API Key Configuration", () => {
-      it("should return 503 when OPENAI_API_KEY is not set", async () => {
+      it("should return 503 when no AI provider is configured", async () => {
         delete process.env.OPENAI_API_KEY;
 
         const { POST } = await import("@/app/api/ai-search/route");
@@ -307,7 +307,37 @@ describe("/api/ai-search", () => {
         expect(response.status).toBe(503);
         expect(data.success).toBe(false);
         expect(data.error.code).toBe("SERVICE_UNAVAILABLE");
-        expect(data.error.message).toMatch(/OPENAI_API_KEY/i);
+        expect(data.error.message).toMatch(/temporarily unavailable/i);
+      });
+
+      /**
+       * Replaces an assertion that the message matched /OPENAI_API_KEY/i.
+       * It did, and that was the defect: an end user cannot act on an
+       * environment variable, and telling an anonymous caller which ones are
+       * missing is free reconnaissance.
+       */
+      it("does not name internal configuration in the response", async () => {
+        delete process.env.OPENAI_API_KEY;
+
+        const { POST } = await import("@/app/api/ai-search/route");
+        const response = await POST(
+          createPostRequest({ query: "headache remedies" }),
+        );
+        const body = JSON.stringify(await response.json());
+
+        expect(body).not.toMatch(/OPENAI_API_KEY/i);
+        expect(body).not.toMatch(/environment variable/i);
+      });
+
+      it("charges nobody for a search it cannot perform", async () => {
+        // The configuration check must stay ahead of the quota reservation.
+        delete process.env.OPENAI_API_KEY;
+        mockTryConsumeUsage.mockClear();
+
+        const { POST } = await import("@/app/api/ai-search/route");
+        await POST(createPostRequest({ query: "headache remedies" }));
+
+        expect(mockTryConsumeUsage).not.toHaveBeenCalled();
       });
     });
 
@@ -749,6 +779,7 @@ describe("/api/ai-search", () => {
       expect(data.success).toBe(true);
       expect(data.data.status).toBe("not_configured");
       expect(data.data.features.naturalLanguageProcessing).toBe(false);
+      expect(JSON.stringify(data)).not.toMatch(/OPENAI_API_KEY/i);
     });
 
     it("should return not_configured when OPENAI_API_KEY contains a dummy value", async () => {
