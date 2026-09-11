@@ -358,13 +358,24 @@
   }
 }
 
+/*
+  Deliberately animates transform only.
+
+  With `animation-fill-mode: both`, the 0% frame applies *before* the animation
+  starts, so an `opacity: 0` here meant the hero painted fully transparent.
+  Chrome excludes a transparent element from Largest Contentful Paint
+  candidacy and does not reconsider it once it becomes visible — candidacy is
+  decided at first paint. The <h1>, the hero <p> and the search card all carry
+  .reveal-up, so the three largest above-the-fold elements were all ineligible
+  and LCP fell through to content that only exists after hydration.
+
+  The entrance still reads as a slide; it no longer fades.
+*/
 @keyframes reveal-up {
   0% {
-    opacity: 0;
     transform: translateY(12px);
   }
   100% {
-    opacity: 1;
     transform: translateY(0);
   }
 }

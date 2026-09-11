@@ -21,6 +21,8 @@ const ComparisonBar = dynamic(
 );
 
 interface ProvidersProps {
+  /** Forwarded to next-themes' inline pre-paint script so CSP allows it. */
+  nonce?: string;
   children: ReactNode;
 }
 
@@ -67,7 +69,7 @@ class ClerkErrorBoundary extends Component<
 /**
  * Inner providers that wrap the app content regardless of auth state
  */
-function AppProviders({ children }: ProvidersProps): ReactNode {
+function AppProviders({ children, nonce }: ProvidersProps): ReactNode {
   // useState ensures a single QueryClient per app lifetime (standard Next.js pattern)
   const [queryClient] = useState(
     () =>
@@ -85,7 +87,12 @@ function AppProviders({ children }: ProvidersProps): ReactNode {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        nonce={nonce}
+      >
         <OnboardingProvider>
           <CompareProvider>
             {children}
@@ -105,11 +112,13 @@ function AppProviders({ children }: ProvidersProps): ReactNode {
  * ClerkProvider is wrapped in an error boundary so if Clerk JS fails to load
  * (e.g. CSP blocks it, network issue), the rest of the app still renders.
  */
-export function Providers({ children }: ProvidersProps) {
+export function Providers({ children, nonce }: ProvidersProps) {
   return (
-    <ClerkErrorBoundary fallback={<AppProviders>{children}</AppProviders>}>
+    <ClerkErrorBoundary
+      fallback={<AppProviders nonce={nonce}>{children}</AppProviders>}
+    >
       <ClerkProvider>
-        <AppProviders>{children}</AppProviders>
+        <AppProviders nonce={nonce}>{children}</AppProviders>
       </ClerkProvider>
     </ClerkErrorBoundary>
   );
