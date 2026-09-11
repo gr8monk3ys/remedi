@@ -101,6 +101,53 @@ async function main() {
     issues.push(`Reports with invalid status values: ${invalidReportStatuses}`);
   }
 
+  // Severity is a free-text column, and the interaction UI can only present
+  // the four values it knows. Anything else now renders as "Unknown severity"
+  // rather than as a green "Mild" — correct, but a row that lands there is a
+  // data defect, and this is what makes it visible instead of merely survivable.
+  const unknownSeverities = await prisma.drugInteraction.findMany({
+    where: {
+      severity: { notIn: ["contraindicated", "severe", "moderate", "mild"] },
+    },
+    select: { substanceA: true, substanceB: true, severity: true },
+    take: 20,
+  });
+  if (unknownSeverities.length > 0) {
+    const sample = unknownSeverities
+      .map((r) => `${r.substanceA}+${r.substanceB}="${r.severity}"`)
+      .join(", ");
+    issues.push(
+      `Interactions with an unrecognised severity: ${unknownSeverities.length} (${sample})`,
+    );
+  }
+
+  // Same argument for the claim-limiting label on a mapping. The column is
+  // NOT NULL, but Postgres does not constrain its values, and
+  // lib/db/remedies.ts coerces at read time — so a bad value survives
+  // indefinitely and is never seen.
+  const invalidReplacementTypes = await prisma.naturalRemedyMapping.count({
+    where: {
+      replacementType: {
+        notIn: ["Alternative", "Complementary", "Supportive"],
+      },
+    },
+  });
+  if (invalidReplacementTypes > 0) {
+    issues.push(
+      `Mappings with an invalid replacement type: ${invalidReplacementTypes}`,
+    );
+  }
+
+  // The schema documents similarityScore as 0-1. Only the lower bound was checked.
+  const aboveRangeMappings = await prisma.naturalRemedyMapping.count({
+    where: { similarityScore: { gt: 1 } },
+  });
+  if (aboveRangeMappings > 0) {
+    issues.push(
+      `Mappings with similarity score above 1: ${aboveRangeMappings}`,
+    );
+  }
+
   if (issues.length > 0) {
     console.error("Data integrity checks FAILED:");
     for (const issue of issues) {

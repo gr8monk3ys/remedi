@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  SEVERITY_CONFIG,
   EVIDENCE_LABELS,
+  severityPresentation,
   type Interaction,
 } from "./interaction.types";
 import { SeverityBadge } from "./SeverityBadge";
@@ -18,7 +18,7 @@ export function InteractionCard({
   interaction: Interaction;
 }): React.ReactElement {
   const [expanded, setExpanded] = useState(false);
-  const config = SEVERITY_CONFIG[interaction.severity] || SEVERITY_CONFIG.mild!;
+  const config = severityPresentation(interaction.severity);
 
   return (
     <Card className={config.borderColor}>
@@ -59,6 +59,14 @@ export function InteractionCard({
         </div>
       </CardHeader>
       <CardContent>
+        {!config.known && (
+          <p className="mb-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+            We hold a record of this interaction but not a severity we
+            recognise, so we cannot tell you how serious it is. Treat it as
+            unassessed and ask a pharmacist or prescriber before combining
+            these.
+          </p>
+        )}
         <p className="text-sm text-muted-foreground leading-relaxed">
           {interaction.description}
         </p>
