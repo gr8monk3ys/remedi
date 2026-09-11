@@ -6,6 +6,14 @@
 
 import { Metadata } from "next";
 import Link from "next/link";
+/**
+ * The date this document last changed, in ISO form.
+ *
+ * Not `new Date()`. That made every legal page claim to have been updated
+ * today, every day, which defeats the promise to signal changes by updating
+ * this date and misdates the document. Change it when the text changes.
+ */
+const LAST_UPDATED = "2026-02-19";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -19,10 +27,11 @@ export default function TermsOfServicePage() {
         <h1 className="text-4xl font-semibold">Terms of Service</h1>
         <p className="mt-3 mb-12 font-mono text-xs text-muted-foreground">
           Last updated:{" "}
-          {new Date().toLocaleDateString("en-US", {
+          {new Date(`${LAST_UPDATED}T00:00:00Z`).toLocaleDateString("en-US", {
             month: "long",
             day: "numeric",
             year: "numeric",
+            timeZone: "UTC",
           })}
         </p>
 
