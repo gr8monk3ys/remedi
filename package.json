@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "bunx prisma generate && bunx prisma migrate deploy && next build && bun run check:css",
+    "build": "bunx prisma generate && bun run db:migrate:deploy && next build && bun run check:css",
     "check:css": "bun run scripts/check-built-css.ts",
     "start": "next start",
     "format:check": "prettier --check \"{app,components,context,hooks,lib,scripts,__tests__,e2e,prisma}/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{ts,tsx,js,jsx,json,css,md,mjs,yml,yaml}\"",
@@ -45,7 +45,8 @@
     "prod:check": "bun run scripts/production-check.ts",
     "predeploy": "bun run format:check && bun run lint && bun run type-check && bun run test:run && bun run db:verify && bun run db:integrity && bun run prod:check",
     "quality:check": "bun run format:check && bun run lint && bun run type-check && bun run test:run && bun run test:e2e && bun run db:verify && bun run db:integrity && bun run prod:check",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:migrate:deploy": "bun run scripts/migrate-on-deploy.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.3",
