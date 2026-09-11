@@ -118,6 +118,37 @@ describe("SearchResults", () => {
     });
   });
 
+  describe("Medical disclaimer", () => {
+    /**
+     * The disclaimer used to live only at the foot of app/page.tsx, two
+     * screens below the last recommendation and in the smallest type on the
+     * page. Every other recommending surface carried a proper alert.
+     */
+    it("appears with the results, not two screens below them", () => {
+      render(<SearchResults {...defaultProps} />);
+      expect(screen.getByText(/are not medical advice/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/never stop or change a prescribed medication/i),
+      ).toBeInTheDocument();
+    });
+
+    it("is not shown when there is nothing to disclaim", () => {
+      render(
+        <SearchResults {...defaultProps} results={[]} filteredResults={[]} />,
+      );
+      expect(
+        screen.queryByText(/are not medical advice/i),
+      ).not.toBeInTheDocument();
+    });
+
+    it("is not shown while results are still loading", () => {
+      render(<SearchResults {...defaultProps} isLoading={true} />);
+      expect(
+        screen.queryByText(/are not medical advice/i),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   describe("Loading state", () => {
     it("renders skeleton cards when loading", () => {
       const { container } = render(
