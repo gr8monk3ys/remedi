@@ -1,0 +1,97 @@
+# Poll production, and open an issue when it stops answering.
+#
+# docs/DEPLOYMENT.md describes an uptime table — UptimeRobot, Pingdom — as
+# something an operator should go and configure. Nothing in this repository
+# ever did, and scripts/health-check-http.ts defaults to localhost:3000 and is
+# invoked by nothing. So if Postgres went down, /api/health returned 503 to
+# nobody: the first signal would have been a user complaint.
+#
+# This is not a replacement for a real uptime service. GitHub delays and drops
+# scheduled runs under load, so treat a missing run as unknown rather than
+# healthy. It is, however, the difference between an outage being noticed in
+# minutes and being noticed by a customer.
+name: uptime
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    name: production answers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe /api/health
+        id: probe
+        env:
+          HEALTH_URL: https://remedi-iota.vercel.app/api/health
+        run: |
+          set -uo pipefail
+          # Two failures thirty seconds apart, so a single dropped packet or a
+          # cold start is not reported as an outage.
+          for attempt in 1 2; do
+            code=$(curl -s -o /tmp/body -w '%{http_code}' --max-time 25 \
+              "${HEALTH_URL}?cb=${RANDOM}${attempt}" || echo "000")
+            health=$(jq -r '.status // empty' /tmp/body 2>/dev/null || true)
+
+            if [ "$code" = "200" ] && [ "$health" = "healthy" ]; then
+              echo "healthy (attempt ${attempt})"
+              echo "ok=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            echo "attempt ${attempt}: HTTP ${code}, status '${health:-<none>}'"
+            [ "$attempt" = "1" ] && sleep 30
+          done
+
+          {
+            echo "ok=false"
+            echo "code=${code}"
+            echo "status=${health:-<none>}"
+          } >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Open or update an incident issue
+        if: steps.probe.outputs.ok == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CODE: ${{ steps.probe.outputs.code }}
+          STATUS: ${{ steps.probe.outputs.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --label uptime --state open \
+            --json number --jq '.[0].number // empty')
+
+          body=$(printf '%s\n' \
+            "\`/api/health\` did not answer healthy on two attempts thirty seconds apart." \
+            "" \
+            "- HTTP status: \`${CODE}\`" \
+            "- Reported status: \`${STATUS}\`" \
+            "- Run: ${RUN_URL}" \
+            "" \
+            "A 503 from this endpoint means the database was unreachable — it runs \`SELECT 1\` before answering. \`000\` means the request did not complete at all." )
+
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create \
+              --title "Production health check failing" \
+              --label uptime \
+              --body "$body"
+          fi
+
+      - name: Fail the run so the outage is visible
+        if: steps.probe.outputs.ok == 'false'
+        run: |
+          echo "::error::production health check failed (HTTP ${{ steps.probe.outputs.code }}, status ${{ steps.probe.outputs.status }})"
+          exit 1
