@@ -25,6 +25,16 @@ export interface AIRemedyInfo {
   imageUrl?: string;
   category?: string;
   matchingNutrients?: string[];
+  /**
+   * The claim-limiting label, as certified by the mapping policy.
+   *
+   * lib/ai/matching.ts runs every AI recommendation through
+   * certifyReplacementType() and drops the ones it refuses, so this is a
+   * policy decision and not the model's opinion. It was missing from this
+   * interface, which is why the field existed on the wire and on SearchResult
+   * but could not travel between them.
+   */
+  replacementType?: string;
 }
 
 export interface AIRecommendation {
