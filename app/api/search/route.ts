@@ -16,6 +16,7 @@ import {
   getStatusCode,
 } from "@/lib/api/response";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { tryConsumeUsage, refundUsage } from "@/lib/analytics/usage-tracker";
 import { MOCK_PHARMACEUTICALS, MOCK_REMEDY_MAPPINGS } from "@/lib/mock-data";
 import { createLogger } from "@/lib/logger";
 import { trackUserEventSafe } from "@/lib/analytics/user-events";
@@ -133,6 +134,46 @@ export async function GET(req: NextRequest) {
     const query = validation.data.query;
     const processedQuery = normalizeSearchQuery(query);
 
+    // Meter the search against the signed-in user's daily allowance.
+    //
+    // PLAN_LIMITS has carried maxSearchesPerDay since the plans were written,
+    // and nothing enforced it: this route never consulted it, and the counter
+    // only moved if a client voluntarily POSTed /api/usage, which no client
+    // does. So the limit existed on the pricing page and nowhere else.
+    //
+    // Anonymous visitors are not metered — there is no user to meter against.
+    // They remain bounded by the per-IP rate limit. See the PR for why that
+    // asymmetry needs a product decision rather than a code one.
+    let releaseSearch: (() => Promise<void>) | null = null;
+    if (userId) {
+      const reservation = await tryConsumeUsage(userId, "searches", 1);
+      if (!reservation.allowed) {
+        return NextResponse.json(
+          errorResponse(
+            "LIMIT_EXCEEDED",
+            "You have reached your daily search limit. Upgrade for more.",
+            {
+              currentUsage: reservation.currentUsage,
+              limit: reservation.limit,
+              plan: reservation.plan,
+            },
+          ),
+          { status: getStatusCode("LIMIT_EXCEEDED") },
+        );
+      }
+
+      let charged = true;
+      releaseSearch = async (): Promise<void> => {
+        if (!charged) return;
+        charged = false;
+        try {
+          await refundUsage(userId, "searches", reservation.date, 1);
+        } catch (error) {
+          log.warn("Failed to refund search usage", { error });
+        }
+      };
+    }
+
     const record = (resultsCount: number, source: string) => {
       void Promise.allSettled([
         (async () => {
@@ -162,6 +203,8 @@ export async function GET(req: NextRequest) {
     // A tier we depend on could not be reached. Saying "no remedies found"
     // here would present an outage as a medical answer.
     if (outcome.kind === "unavailable") {
+      // We could not answer, so the allowance is given back.
+      await releaseSearch?.();
       log.warn("Search could not complete", { which: outcome.which });
       record(0, `unavailable:${outcome.which}`);
       return NextResponse.json(
