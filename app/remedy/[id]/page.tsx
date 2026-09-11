@@ -11,6 +11,7 @@ import { BackButton } from "@/components/remedy/BackButton";
 import { logger } from "@/lib/logger";
 import { isUuid } from "@/lib/utils";
 import { isDemoDataEnabled } from "@/lib/env";
+import { known, unknown, type Outcome } from "@/lib/outcome";
 import { DETAILED_REMEDIES } from "./mockRemedies";
 import { RemedyHero } from "./RemedyHero";
 import { RemedyContent } from "./RemedyContent";
@@ -26,6 +27,17 @@ type RemedyLookup = {
   sourceUrl: string | null;
 };
 
+/**
+ * What the lookup established.
+ *
+ * `known(null)` is "we looked and this remedy is not there" — a 404 is the
+ * honest rendering of that. `unknown("unavailable")` is "we could not look",
+ * and it must never become a 404: telling someone the page they bookmarked
+ * does not exist, because Postgres was briefly unreachable, is the same
+ * failure-as-an-answer collapse lib/outcome.ts exists to prevent.
+ */
+type RemedyOutcome = Outcome<RemedyLookup | null, "unavailable">;
+
 function sourceUrlFromReferences(
   references: { title: string; url: string }[] | undefined,
 ): string | null {
@@ -36,7 +48,7 @@ function sourceUrlFromReferences(
 // and the page component, so cache() collapses them into a single DB call.
 const getRemedy = cache(loadRemedy);
 
-async function loadRemedy(id: string): Promise<RemedyLookup | null> {
+async function loadRemedy(id: string): Promise<RemedyOutcome> {
   // Demo/mock remedies are only served when demo data is enabled (off in
   // production by default) so a real deployment never renders fabricated data.
   const demoEnabled = isDemoDataEnabled();
@@ -44,11 +56,11 @@ async function loadRemedy(id: string): Promise<RemedyLookup | null> {
   // Mock remedy IDs are numeric; DB IDs are UUIDs.
   if (NUMERIC_MOCK_ID_PATTERN.test(id)) {
     const remedy = demoEnabled ? DETAILED_REMEDIES[id] || null : null;
-    if (!remedy) return null;
-    return {
+    if (!remedy) return known(null);
+    return known({
       remedy,
       sourceUrl: sourceUrlFromReferences(remedy.references),
-    };
+    });
   }
 
   // Only valid UUIDs exist in the database. Querying Postgres with a non-UUID
@@ -62,35 +74,56 @@ async function loadRemedy(id: string): Promise<RemedyLookup | null> {
         // sidebar links point at real pages instead of 404ing.
         const related = await resolveRelatedRemedies(dbRemedy.relatedRemedies);
         const remedy = toDetailedRemedy(dbRemedy, 1.0, related);
-        return {
+        return known({
           remedy,
           sourceUrl:
             dbRemedy.sourceUrl || sourceUrlFromReferences(remedy.references),
-        };
+        });
       }
     } catch (error) {
-      logger.warn(
-        "Database unavailable for remedy lookup, falling back to mock data",
-        { id, error },
+      // The database is the only place a UUID-keyed remedy can come from, so
+      // a failure here is a failure to answer — not evidence of absence. Demo
+      // data is a stand-in for an empty catalogue, never for an outage; the
+      // search resolver makes the same distinction for the same reason.
+      logger.error("Database unavailable for remedy lookup", { id, error });
+      return unknown(
+        "unavailable",
+        "We could not load this remedy just now. Please try again.",
       );
     }
   }
 
   // Fallback to mock data (demo only)
   const remedy = demoEnabled ? DETAILED_REMEDIES[id] || null : null;
-  if (!remedy) return null;
-  return {
+  if (!remedy) return known(null);
+  return known({
     remedy,
     sourceUrl: sourceUrlFromReferences(remedy.references),
-  };
+  });
 }
+
+/**
+ * Raised when a tier we depend on could not be reached.
+ *
+ * Thrown from the page so Next's error boundary (./error.tsx) renders, which
+ * offers Try Again and reports to Sentry. `notFound()` would render
+ * "Page Not Found" — a confident statement about a fact we do not have.
+ */
+class RemedyUnavailable extends Error {}
 
 export async function generateMetadata({
   params,
 }: RemedyPageProps): Promise<Metadata> {
   const { id } = await params;
-  const lookup = await getRemedy(id);
-  const remedy = lookup?.remedy ?? null;
+  const outcome = await getRemedy(id);
+
+  // An outage must not produce a "Not Found" title either — that string gets
+  // cached, shared and indexed as a statement that the remedy is gone.
+  if (outcome.kind === "unknown") {
+    return { title: "Remedy temporarily unavailable" };
+  }
+
+  const remedy = outcome.data?.remedy ?? null;
 
   if (!remedy) {
     return {
@@ -110,9 +143,14 @@ export async function generateMetadata({
 
 export default async function RemedyDetailPage({ params }: RemedyPageProps) {
   const { id } = await params;
-  const lookup = await getRemedy(id);
-  const remedy = lookup?.remedy ?? null;
-  const sourceUrl = lookup?.sourceUrl ?? null;
+  const outcome = await getRemedy(id);
+
+  if (outcome.kind === "unknown") {
+    throw new RemedyUnavailable(outcome.message);
+  }
+
+  const remedy = outcome.data?.remedy ?? null;
+  const sourceUrl = outcome.data?.sourceUrl ?? null;
 
   if (!remedy) {
     notFound();
