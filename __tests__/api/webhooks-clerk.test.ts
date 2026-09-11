@@ -51,6 +51,7 @@ const mockFilterPreferenceDeleteMany = vi.fn();
 const mockUserEventDeleteMany = vi.fn();
 const mockConversionEventDeleteMany = vi.fn();
 const mockEmailLogDeleteMany = vi.fn();
+const mockWebhookEventUpsert = vi.fn();
 
 vi.mock("@/lib/db", () => ({
   prisma: {
@@ -84,7 +85,22 @@ vi.mock("@/lib/db", () => ({
     emailLog: {
       deleteMany: (...args: unknown[]) => mockEmailLogDeleteMany(...args),
     },
+    webhookEvent: {
+      upsert: (...args: unknown[]) => mockWebhookEventUpsert(...args),
+    },
   },
+}));
+
+// Mock Stripe: erasure must stop billing, so the route now reaches for it.
+const mockSubscriptionsCancel = vi.fn();
+const mockIsStripeConfigured = vi.fn(() => true);
+vi.mock("@/lib/stripe", () => ({
+  isStripeConfigured: () => mockIsStripeConfigured(),
+  getStripe: () => ({
+    subscriptions: {
+      cancel: (...args: unknown[]) => mockSubscriptionsCancel(...args),
+    },
+  }),
 }));
 
 // Mock clerkClient (override the global mock from setup.ts)
@@ -962,9 +978,14 @@ describe("/api/webhooks/clerk", () => {
         const response = await POST(request);
 
         expect(response.status).toBe(200);
+        // The subscription is read before the delete, because Subscription
+        // cascades from User and is unrecoverable afterwards.
         expect(mockUserFindUnique).toHaveBeenCalledWith({
           where: { clerkId: "user_test123" },
-          select: { id: true },
+          select: {
+            id: true,
+            subscription: { select: { stripeSubscriptionId: true } },
+          },
         });
         expect(mockFavoriteDeleteMany).toHaveBeenCalledWith({
           where: { userId: "db-user-1" },
@@ -988,6 +1009,118 @@ describe("/api/webhooks/clerk", () => {
           where: { clerkId: "user_test123" },
         });
         expect(mockTransaction).toHaveBeenCalledTimes(1);
+      });
+
+      // ----------------------------------------------------------------
+      // Erasure must stop the billing, not just the data.
+      //
+      // Deleting the User cascades the Subscription row away, so before this
+      // the Stripe subscription outlived the account and kept charging, with
+      // nothing local left that could notice.
+      // ----------------------------------------------------------------
+
+      const erasureRequest = (): Request =>
+        new Request("http://localhost:3000/api/webhooks/clerk", {
+          method: "POST",
+          body: JSON.stringify({
+            type: "user.deleted",
+            data: { id: "user_test123" },
+          }),
+          headers: { "Content-Type": "application/json" },
+        });
+
+      const armErasure = (stripeSubscriptionId: string | null): void => {
+        mockVerify.mockReturnValue({
+          type: "user.deleted",
+          data: { id: "user_test123" },
+        });
+        mockUserFindUnique.mockResolvedValue({
+          id: "db-user-1",
+          subscription: stripeSubscriptionId ? { stripeSubscriptionId } : null,
+        });
+        for (const m of [
+          mockFavoriteDeleteMany,
+          mockSearchHistoryDeleteMany,
+          mockFilterPreferenceDeleteMany,
+          mockUserEventDeleteMany,
+          mockConversionEventDeleteMany,
+          mockEmailLogDeleteMany,
+        ]) {
+          m.mockResolvedValue({ count: 0 });
+        }
+        mockUserDeleteMany.mockResolvedValue({ count: 1 });
+      };
+
+      it("cancels the Stripe subscription before deleting the rows that name it", async () => {
+        armErasure("sub_live_123");
+        mockSubscriptionsCancel.mockResolvedValue({ status: "canceled" });
+
+        const { POST } = await import("@/app/api/webhooks/clerk/route");
+        const response = await POST(erasureRequest());
+
+        expect(response.status).toBe(200);
+        expect(mockSubscriptionsCancel).toHaveBeenCalledWith("sub_live_123");
+      });
+
+      it("does not reach for Stripe when there was no subscription", async () => {
+        armErasure(null);
+
+        const { POST } = await import("@/app/api/webhooks/clerk/route");
+        await POST(erasureRequest());
+
+        expect(mockSubscriptionsCancel).not.toHaveBeenCalled();
+      });
+
+      it("still erases the data when Stripe cannot be reached", async () => {
+        // The deletion is a legal obligation. Stripe being down does not
+        // suspend it.
+        armErasure("sub_live_123");
+        mockSubscriptionsCancel.mockRejectedValue(new Error("stripe is down"));
+
+        const { POST } = await import("@/app/api/webhooks/clerk/route");
+        const response = await POST(erasureRequest());
+
+        expect(response.status).toBe(200);
+        expect(mockUserDeleteMany).toHaveBeenCalledWith({
+          where: { clerkId: "user_test123" },
+        });
+      });
+
+      it("records a failed cancellation where an operator will find it", async () => {
+        armErasure("sub_live_123");
+        mockSubscriptionsCancel.mockRejectedValue(new Error("stripe is down"));
+        mockWebhookEventUpsert.mockResolvedValue({ id: "wh-1" });
+
+        const { POST } = await import("@/app/api/webhooks/clerk/route");
+        await POST(erasureRequest());
+
+        // A person is still being billed for an account that no longer
+        // exists; a log line that scrolls away is not good enough.
+        expect(mockWebhookEventUpsert).toHaveBeenCalledTimes(1);
+        const arg = mockWebhookEventUpsert.mock.calls[0]![0] as {
+          create: { type: string; status: string; payload: unknown };
+        };
+        expect(arg.create.type).toBe(
+          "clerk.user.deleted.subscription_cancel_failed",
+        );
+        expect(arg.create.status).toBe("failed");
+        expect(arg.create.payload).toMatchObject({
+          stripeSubscriptionId: "sub_live_123",
+        });
+      });
+
+      it("treats an already-absent subscription as success, not as a failure", async () => {
+        armErasure("sub_live_123");
+        mockSubscriptionsCancel.mockRejectedValue(
+          Object.assign(new Error("No such subscription"), {
+            code: "resource_missing",
+          }),
+        );
+
+        const { POST } = await import("@/app/api/webhooks/clerk/route");
+        await POST(erasureRequest());
+
+        expect(mockWebhookEventUpsert).not.toHaveBeenCalled();
       });
 
       it("should not call deleteMany when id is missing", async () => {
