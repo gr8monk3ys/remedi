@@ -5,6 +5,9 @@ import { isStripeConfigured, listCustomerInvoices } from "@/lib/stripe";
 import { SubscriptionClient } from "./subscription-client";
 import type { PlanType } from "@/lib/stripe-config";
 import type { Metadata } from "next";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("subscription-page");
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +62,7 @@ export default async function SubscriptionPage(): Promise<React.JSX.Element | nu
     subscription.status === "active" &&
     currentPlan !== "free";
 
+  let invoicesUnavailable = false;
   let invoices: Array<{
     id: string;
     number: string | null;
@@ -99,8 +103,11 @@ export default async function SubscriptionPage(): Promise<React.JSX.Element | nu
           ? new Date(inv.periodEnd * 1000).toISOString()
           : null,
       }));
-    } catch {
-      invoices = [];
+    } catch (error) {
+      // A Stripe outage is not an empty billing history. Rendering it as one
+      // tells a paying customer they have never been invoiced.
+      logger.error("Could not load invoices from Stripe", error);
+      invoicesUnavailable = true;
     }
   }
 
@@ -122,6 +129,7 @@ export default async function SubscriptionPage(): Promise<React.JSX.Element | nu
         cancelAtPeriodEnd={subscription?.cancelAtPeriodEnd ?? false}
         hasActiveSubscription={hasActiveSubscription}
         invoices={invoices}
+        invoicesUnavailable={invoicesUnavailable}
         usage={{
           favorites: {
             current: favoritesCount,
