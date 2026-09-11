@@ -329,6 +329,10 @@ export function SearchComponent({
             category: rec.remedy.category,
             matchingNutrients: rec.remedy.matchingNutrients || [],
             similarityScore: rec.confidence,
+            // Certified by the mapping policy server-side and then dropped
+            // here, so the paid AI path was the one surface that rendered a
+            // score with no claim-limiting label beside it.
+            replacementType: rec.remedy.replacementType,
           }));
 
           if (isStale()) return;
