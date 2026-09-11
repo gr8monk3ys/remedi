@@ -137,7 +137,12 @@ describe("/api/reports/[id]", () => {
     });
 
     it("should return 404 when report is missing", async () => {
+      // DELETE calls deleteReport, not getReportById. Stubbing only the latter
+      // left this passing on whatever mockDeleteReport a sibling test had
+      // last set — 404 in declaration order, 200 or 500 under any other. The
+      // deletion returning falsy is what actually produces the 404.
       mockGetReportById.mockResolvedValue(null);
+      mockDeleteReport.mockResolvedValue(false);
 
       const response = await DELETE(new Request("http://localhost:3000"), {
         params: params("report-1"),

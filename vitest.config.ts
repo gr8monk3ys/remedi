@@ -11,6 +11,11 @@ export default defineConfig({
       "e2e/**", // Exclude Playwright E2E tests
     ],
     include: ["**/__tests__/**/*.test.{ts,tsx}"],
+    // Randomise order so a test cannot pass by inheriting mock state a sibling
+    // left behind. Two did: reports-detail's 404 case depended on whichever
+    // DELETE test ran first, and search.test's OpenFDA case could not pass
+    // alone at all. Both looked green in declaration order for months.
+    sequence: { shuffle: true },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html", "lcov"],

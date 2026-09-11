@@ -220,6 +220,11 @@ describe("GET /api/search", () => {
 
   describe("OpenFDA API Search (Tier 2)", () => {
     it("should use FDA API when database has no results", async () => {
+      // Without this the bare fuzzySearch mock returns undefined, and
+      // findDemoRemedies throws on `matched[0]` — a 500, not a 200. The test
+      // only passed because an earlier one left a mockReturnValue behind, so
+      // in isolation it failed.
+      vi.mocked(fuzzySearch).mockReturnValue([]);
       vi.mocked(searchPharmaceuticals).mockResolvedValue([]);
       vi.mocked(searchFdaDrugs).mockResolvedValue(
         known([
