@@ -8,6 +8,17 @@
 import { Metadata } from "next";
 import Link from "next/link";
 
+/**
+ * The date this policy last changed, in ISO form.
+ *
+ * This used to render `new Date()`, so all three legal pages claimed to have
+ * been updated today, every day. That defeats section 9 below, which promises
+ * to signal changes by updating this date — a signal that is permanently on
+ * carries no information — and a misdated legal document is a defect in its
+ * own right. Change it when, and only when, the text above changes.
+ */
+const LAST_UPDATED = "2026-09-11";
+
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
@@ -21,10 +32,11 @@ export default function PrivacyPolicyPage() {
         <h1 className="text-4xl font-semibold">Privacy Policy</h1>
         <p className="mt-3 mb-12 font-mono text-xs text-muted-foreground">
           Last updated:{" "}
-          {new Date().toLocaleDateString("en-US", {
+          {new Date(`${LAST_UPDATED}T00:00:00Z`).toLocaleDateString("en-US", {
             month: "long",
             day: "numeric",
             year: "numeric",
+            timeZone: "UTC",
           })}
         </p>
 
@@ -57,7 +69,47 @@ export default function PrivacyPolicyPage() {
             </ul>
 
             <h3 className="text-xl font-medium mb-3">
-              2.2 Information Collected Automatically
+              2.2 Health Information You Choose to Provide
+            </h3>
+            <p className="mb-4 leading-relaxed text-muted-foreground">
+              Some features ask for information about your health. These
+              features are optional — the search, comparison and interaction
+              tools work without them — and we only hold what you enter:
+            </p>
+            <ul className="mb-4 list-disc space-y-1 pl-6 leading-relaxed text-muted-foreground">
+              <li>
+                <strong>Health profile:</strong> allergies, medical conditions
+                and dietary preferences
+              </li>
+              <li>
+                <strong>Medication cabinet:</strong> the medications and
+                supplements you add, including dosage and schedule
+              </li>
+              <li>
+                <strong>Remedy journal:</strong> symptoms, side effects, mood,
+                energy and sleep entries you record
+              </li>
+              <li>
+                <strong>Reports:</strong> summaries generated from the above at
+                your request
+              </li>
+            </ul>
+            <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
+              <p className="leading-relaxed text-amber-900 dark:text-amber-200">
+                <strong>This is special category data.</strong> Under UK and EU
+                GDPR (Article 9), information about your health receives extra
+                protection. We process it only on the basis of your explicit
+                consent, given when you choose to fill in one of these features,
+                and only to provide that feature back to you. You can withdraw
+                consent at any time by deleting the entries or your account,
+                which erases them. We do not use health information for
+                advertising, we do not sell it, and we do not use it to train
+                any model.
+              </p>
+            </div>
+
+            <h3 className="text-xl font-medium mb-3">
+              2.3 Information Collected Automatically
             </h3>
             <ul className="mb-4 list-disc space-y-1 pl-6 leading-relaxed text-muted-foreground">
               <li>Usage data (pages visited, search patterns)</li>
@@ -127,9 +179,24 @@ export default function PrivacyPolicyPage() {
             <h2 className="mb-3 text-xl font-semibold">7. Cookies</h2>
             <p className="mb-4 leading-relaxed text-muted-foreground">
               We use essential cookies for authentication and session
-              management. We may use analytics cookies (Plausible) which are
-              privacy-focused and do not require consent in most jurisdictions.
-              You can control cookies through your browser settings.
+              management. These are required for the service to work and cannot
+              be switched off.
+            </p>
+            <p className="mb-4 leading-relaxed text-muted-foreground">
+              For analytics we may use Plausible, which is cookieless and
+              collects no personal data, and Google Analytics, which does set
+              cookies. <strong>Google Analytics runs only if you accept</strong>{" "}
+              in the cookie banner; decline it and it is never loaded. You can
+              change your mind at any time by clearing this site&apos;s data in
+              your browser, and you can control cookies through your browser
+              settings.
+            </p>
+            <p className="mb-4 leading-relaxed text-muted-foreground">
+              We do not record your screen. Our error monitoring captures
+              diagnostic details about failures — the error, the page it
+              happened on, and technical context — but session replay is
+              switched off, so the contents of your health profile, medication
+              cabinet and journal are not captured.
             </p>
           </section>
 
