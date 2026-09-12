@@ -1,0 +1,72 @@
+# Notice when production stops matching main.
+#
+# On 2026-09-11 Vercel's git integration stopped creating deployments. Seven
+# commits merged to main (#148-#154), CI went green on every one, and
+# production served twenty-hour-old code. Every gate in this repository passed
+# while the fixes they were gating never reached a user.
+#
+# This is the missing alarm. It does not gate pull requests on purpose: a red
+# required check on main blocks every merge behind it, and the failure this
+# watches for is an infrastructure one that a code change cannot fix.
+name: deploy-check
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-matches-main:
+    name: production is serving this commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for production to report this commit
+        env:
+          EXPECTED: ${{ github.sha }}
+          HEALTH_URL: https://remedi-iota.vercel.app/api/health
+        run: |
+          set -uo pipefail
+          # Vercel builds this project in roughly 1-2 minutes; 12 minutes of
+          # polling is generous enough that a slow build is not reported as a
+          # missing one.
+          deadline=$(( SECONDS + 720 ))
+          seen=""
+
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            # Cache-bust. A plain request returned a stale body once and made a
+            # successful deploy look like a failed one.
+            body=$(curl -fsS --max-time 20 "${HEALTH_URL}?cb=${RANDOM}${SECONDS}" || true)
+            seen=$(printf '%s' "$body" | jq -r '.commit // empty' 2>/dev/null || true)
+
+            if [ -n "$seen" ] && [ "$seen" = "$EXPECTED" ]; then
+              echo "production is serving ${EXPECTED}"
+              exit 0
+            fi
+
+            echo "waiting: production reports '${seen:-<none>}', expected ${EXPECTED}"
+            sleep 20
+          done
+
+          echo "::error::Production is not serving ${EXPECTED}. It reports '${seen:-<none>}'."
+          cat <<'MSG'
+
+          Production has not picked up this commit.
+
+          The usual cause is that Vercel's git integration has stopped creating
+          deployments. Check whether Vercel created one at all:
+
+              gh api "repos/${GITHUB_REPOSITORY:-gr8monk3ys/remedi}/deployments?per_page=8" \
+                --jq '.[] | "\(.created_at)  \(.environment)  \(.ref[:12])"'
+
+          If there is no Production entry for this commit, deploy by hand from a
+          clean main:
+
+              npx vercel deploy --prod --yes --scope gr8monk3ys-projects
+
+          If the health endpoint reports no commit at all, the deployment
+          predates the commit marker and this check cannot judge it.
+          MSG
+          exit 1
