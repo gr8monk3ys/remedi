@@ -13,8 +13,8 @@ import {
 import { useDbUser } from "@/hooks/use-db-user";
 import { useSessionId } from "@/hooks/use-session-id";
 import { createLogger } from "@/lib/logger";
-import { useFeatureAccess } from "@/components/upgrade/FeatureGate";
-import { UpgradeModal } from "@/components/upgrade/UpgradeModal";
+import dynamic from "next/dynamic";
+import { useFeatureAccess } from "@/components/upgrade/use-feature-access";
 import { usePlanQuery } from "@/hooks/queries";
 import { SearchInput } from "./SearchInput";
 import { SearchTabs } from "./SearchTabs";
@@ -27,6 +27,17 @@ import type {
   SearchRefusal,
 } from "./types";
 import { toSearchStatus } from "./status";
+
+// The upgrade modal (and framer-motion behind it) is only needed once a plan
+// quota is hit. Statically imported it shipped in the search chunk on every
+// home page load; now it is fetched the first time it has to open.
+const UpgradeModal = dynamic(
+  () =>
+    import("@/components/upgrade/UpgradeModal").then((m) => ({
+      default: m.UpgradeModal,
+    })),
+  { ssr: false },
+);
 
 const log = createLogger("search-component");
 
@@ -153,6 +164,11 @@ export function SearchComponent({
   const [planLimitReason, setPlanLimitReason] = useState<
     "search_limit" | "ai_search_limit" | null
   >(null);
+  // Latches on the first quota hit; see the render site below.
+  const [upgradeModalNeeded, setUpgradeModalNeeded] = useState(false);
+  useEffect(() => {
+    if (planLimitReason !== null) setUpgradeModalNeeded(true);
+  }, [planLimitReason]);
 
   // Refs for DOM elements (React pattern instead of document.querySelector)
   const searchResultsRef = useRef<HTMLDivElement>(null);
@@ -519,13 +535,17 @@ export function SearchComponent({
         </div>
       )}
 
-      {/* Hitting a plan quota should offer a way forward, not just an error. */}
-      <UpgradeModal
-        isOpen={planLimitReason !== null}
-        onClose={() => setPlanLimitReason(null)}
-        triggerReason={planLimitReason ?? "feature"}
-        currentPlan={currentPlan}
-      />
+      {/* Hitting a plan quota should offer a way forward, not just an error.
+          Mounted on first need and kept mounted afterwards so its exit
+          animation still plays when it closes. */}
+      {(upgradeModalNeeded || planLimitReason !== null) && (
+        <UpgradeModal
+          isOpen={planLimitReason !== null}
+          onClose={() => setPlanLimitReason(null)}
+          triggerReason={planLimitReason ?? "feature"}
+          currentPlan={currentPlan}
+        />
+      )}
     </div>
   );
 }

@@ -17,13 +17,7 @@ import { apiClient } from "@/lib/api/client";
 import { logger } from "@/lib/logger";
 import { UpgradeModal } from "./UpgradeModal";
 
-type FeatureKey =
-  | "canExport"
-  | "canCompare"
-  | "canAccessHistory"
-  | "prioritySupport"
-  | "canViewCabinetInteractions"
-  | "canTrackJournal";
+import type { FeatureKey } from "./use-feature-access";
 
 /**
  * What the gate established about this user's access.
@@ -334,50 +328,6 @@ export function FeatureGate({
   );
 }
 
-/**
- * Hook to check feature access
- */
-export function useFeatureAccess(feature: FeatureKey): {
-  hasAccess: boolean | null;
-  isLoading: boolean;
-  currentPlan: PlanType;
-} {
-  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-  const [currentPlan, setCurrentPlan] = useState<PlanType>("free");
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAccess = async () => {
-      if (!isSignedIn && isAuthLoaded) {
-        setHasAccess(false);
-        setCurrentPlan("free");
-        setIsLoading(false);
-        return;
-      }
-
-      if (!isAuthLoaded) {
-        return;
-      }
-
-      try {
-        const data = await apiClient.get<{ plan: string }>("/api/usage");
-        const userPlan = data.plan as PlanType;
-        setCurrentPlan(userPlan);
-
-        const planLimits =
-          PLAN_LIMITS[userPlan.toUpperCase() as keyof typeof PLAN_LIMITS];
-        setHasAccess(planLimits[feature] === true);
-      } catch (error) {
-        logger.warn("Feature access check failed", { error, feature });
-        setHasAccess(false);
-      }
-
-      setIsLoading(false);
-    };
-
-    checkAccess();
-  }, [isAuthLoaded, isSignedIn, feature]);
-
-  return { hasAccess, isLoading, currentPlan };
-}
+// Lives in its own module so callers that only need the access check do not
+// pull framer-motion (which this file imports for the overlay) into their chunk.
+export { useFeatureAccess } from "./use-feature-access";
