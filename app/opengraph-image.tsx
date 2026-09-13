@@ -15,8 +15,7 @@ export default function OGImage(): ImageResponse {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background:
-          "linear-gradient(135deg, #1e6b38 0%, #2d8a4e 30%, #3da663 60%, #2a7d5a 100%)",
+        background: "linear-gradient(135deg, #1e6b38, #2d8a4e)",
         fontFamily: "system-ui, sans-serif",
         position: "relative",
         overflow: "hidden",

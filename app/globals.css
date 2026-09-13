@@ -439,7 +439,7 @@
   a[href]::after {
     content: " (" attr(href) ")";
     font-size: 0.8em;
-    color: #666;
+    color: var(--muted-foreground);
   }
 
   img {
@@ -448,8 +448,8 @@
   }
 
   .disclaimer {
-    border: 1px solid #996600 !important;
-    background: #fffbeb !important;
+    border: 1px solid var(--warning) !important;
+    background: var(--premium-surface) !important;
     padding: 1rem !important;
     margin-top: 2rem !important;
   }

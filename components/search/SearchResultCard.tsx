@@ -71,7 +71,7 @@ export const SearchResultCard = memo(function SearchResultCard({
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="font-mono text-[11px] text-muted-foreground">
                 No Image
               </span>
             </div>
