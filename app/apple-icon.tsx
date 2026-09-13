@@ -13,7 +13,7 @@ export default function AppleIcon(): ImageResponse {
         alignItems: "center",
         justifyContent: "center",
         background: "linear-gradient(135deg, #1e6b38, #2d8a4e)",
-        borderRadius: "36px",
+        borderRadius: "20%",
       }}
     >
       <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
