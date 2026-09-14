@@ -73,8 +73,21 @@ export function PWARegister() {
           logger.error("Service worker registration failed", error);
         });
 
-      // Handle controller change (new service worker activated)
+      // Handle controller change (new service worker activated).
+      //
+      // sw.js calls skipWaiting() and clients.claim(), so on a visitor's very
+      // first load the freshly installed worker claims the page a few seconds
+      // in and this event fires. Reloading then threw away a page that had
+      // already painted: every first visit (and every Lighthouse run) loaded
+      // the home page twice, and LCP was measured on the second load — 4.7 s
+      // against a 1.9 s first paint. Only an *update* replacing a worker that
+      // was already controlling the page has anything to refresh.
+      const hadController = Boolean(navigator.serviceWorker.controller);
       navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!hadController) {
+          logger.info("Service worker took control of first load");
+          return;
+        }
         logger.info("New service worker activated");
         window.location.reload();
       });
