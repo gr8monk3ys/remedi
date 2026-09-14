@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.4.0](https://github.com/gr8monk3ys/remedi/compare/v1.3.0...v1.4.0) (2026-09-14)
+
+
+### Features
+
+* **design:** DESIGN.md and detector fixes ([#161](https://github.com/gr8monk3ys/remedi/issues/161)) ([0d43051](https://github.com/gr8monk3ys/remedi/commit/0d43051a83f9b5836bba0913b55ccde86a067ce9))
+
+
+### Bug Fixes
+
+* **proxy:** let metadata routes through unauthenticated and allow blob workers ([#165](https://github.com/gr8monk3ys/remedi/issues/165)) ([d1889ad](https://github.com/gr8monk3ys/remedi/commit/d1889ade2fe6acb914b56d70f2aa7b8af1cb1cdc))
+* **search:** stop anonymous visitors requesting search history they cannot read ([#160](https://github.com/gr8monk3ys/remedi/issues/160)) ([90e3728](https://github.com/gr8monk3ys/remedi/commit/90e372819ef2e0295419cea6779b9bcee1e6f55a))
+
+
+### Performance Improvements
+
+* **home:** paint the hero at first render, fix layout shift and trim JavaScript ([#163](https://github.com/gr8monk3ys/remedi/issues/163)) ([f910c7a](https://github.com/gr8monk3ys/remedi/commit/f910c7ae2a629a1d1038b6196cb33b0b9d767aa6))
+* **sentry:** drop unused SDK code from the initial bundle ([#164](https://github.com/gr8monk3ys/remedi/issues/164)) ([2e5bb69](https://github.com/gr8monk3ys/remedi/commit/2e5bb69975a41e1ac463b8eb0caf95302dd128d0))
+
 ## [1.3.0](https://github.com/gr8monk3ys/remedi/compare/v1.2.3...v1.3.0) (2026-09-12)
 
 ### Features
