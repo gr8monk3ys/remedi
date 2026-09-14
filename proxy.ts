@@ -104,6 +104,10 @@ function addSecurityHeaders(response: NextResponse, nonce: string): void {
     "font-src 'self' data:",
     `connect-src 'self' https://api.fda.gov https://api.openai.com https://api.clerk.com ${clerkHosts}${sentryConnectSrc}`,
     `frame-src 'self' https://accounts.clerk.com ${clerkHosts}`,
+    // Sentry's Session Replay compressor and Clerk create Workers from blob:
+    // URLs; without worker-src the browser falls back to script-src and logs a
+    // CSP violation on every page load.
+    "worker-src 'self' blob:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
