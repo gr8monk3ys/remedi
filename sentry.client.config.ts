@@ -28,20 +28,13 @@ Sentry.init({
   // sessions the moment anyone adds the integration back. See the note at the
   // foot of this file.
 
-  // Integrations for browser monitoring.
+  // Integrations for browser monitoring. The feedback widget is deliberately
+  // not here: see loadFeedbackWidget below.
   integrations: [
     // Browser Tracing for performance monitoring
     Sentry.browserTracingIntegration({
       // Track navigation and page load performance
       enableInp: true,
-    }),
-    // Feedback widget for user error reports
-    Sentry.feedbackIntegration({
-      colorScheme: "system",
-      showBranding: false,
-      formTitle: "Report an Issue",
-      submitButtonLabel: "Send Report",
-      successMessageText: "Thank you for your feedback!",
     }),
   ],
 
@@ -125,6 +118,39 @@ Sentry.init({
     return event;
   },
 });
+
+/**
+ * The "Report an Issue" widget is attached at idle, from its own chunk.
+ *
+ * `Sentry.feedbackIntegration` is a Preact app (button, modal, screenshot
+ * editor) that ships in the same chunk as `Sentry.init` when listed in
+ * `integrations`, making Sentry the largest script on the home route. Nobody
+ * files feedback in the first seconds of a page load, so the widget is pulled
+ * in via a dynamic import once the browser is idle. Error and performance
+ * monitoring above are untouched by this: `Sentry.init` still runs at module
+ * evaluation with the same sample rates, and only the widget's UI code moves.
+ *
+ * Not `Sentry.lazyLoadIntegration`: that fetches the integration from Sentry's
+ * CDN, which the CSP does not allow and which would add a third-party script
+ * to a health product. The dynamic import stays a same-origin chunk.
+ */
+function loadFeedbackWidget(): void {
+  import("./lib/sentry-feedback")
+    .then((m) => m.attachFeedbackWidget())
+    .catch(() => {
+      // The widget is a convenience; losing it must not break the page, and
+      // error reporting does not depend on it.
+    });
+}
+
+if (typeof window !== "undefined") {
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(loadFeedbackWidget, { timeout: 5000 });
+  } else {
+    // Safari has no requestIdleCallback.
+    setTimeout(loadFeedbackWidget, 2000);
+  }
+}
 
 /**
  * Session Replay is deliberately not attached.
