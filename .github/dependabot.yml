@@ -12,6 +12,12 @@ updates:
       dependency-type: development
     production-dependencies:
       dependency-type: production
+  ignore:
+  # TypeScript 7 is the native port; typescript-eslint 8 and Next 16 cannot load
+  # it (#144 failed lint and build on it). Re-enable when they can.
+  - dependency-name: typescript
+    update-types:
+    - version-update:semver-major
 - package-ecosystem: github-actions
   directory: /
   schedule:
