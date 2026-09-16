@@ -34,11 +34,14 @@ const Alert = React.forwardRef<
 ));
 Alert.displayName = "Alert";
 
+// A <div>, not an <h5>: the alert sits under an h1/h2 on every page that uses
+// it, so a fixed h5 skipped heading levels and cost /about its accessibility
+// score (Lighthouse heading-order). Matches current shadcn/ui.
 const AlertTitle = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLHeadingElement>
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <h5
+  <div
     ref={ref}
     className={cn("mb-1 font-semibold leading-none tracking-tight", className)}
     {...props}

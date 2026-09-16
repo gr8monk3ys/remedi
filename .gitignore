@@ -64,3 +64,6 @@ about-page.png
 /.github/agents/
 /.github/hooks/
 /.github/skills/
+
+# Lighthouse reports written by scripts/check-lighthouse-score.mjs
+artifacts/
