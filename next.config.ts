@@ -139,6 +139,12 @@ const nextConfig: NextConfig = {
   experimental: {
     // Optimize package imports for better tree-shaking
     optimizePackageImports: ["lucide-react", "framer-motion"],
+    // Ship the (~17KB) stylesheet inside the HTML instead of as a separate
+    // render-blocking request. Over HTTP/2 that request shared the mobile
+    // link with 22 async script chunks started at the same instant, and first
+    // paint waited ~2s for it. The CSP already allows inline styles
+    // (style-src 'unsafe-inline' in proxy.ts).
+    inlineCss: true,
   },
 
   // Turbopack handles code splitting automatically in Next.js 16+
