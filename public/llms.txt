@@ -20,14 +20,14 @@ know.
 
 ## Pages
 
-- [Home](https://remedi-iota.vercel.app/): search a medication
-- [Interaction checker](https://remedi-iota.vercel.app/interactions): check substances against each other
-- [Compare](https://remedi-iota.vercel.app/compare): compare remedies side by side
-- [Pricing](https://remedi-iota.vercel.app/pricing)
-- [FAQ](https://remedi-iota.vercel.app/faq)
-- [Medical disclaimer](https://remedi-iota.vercel.app/legal/disclaimer)
-- [Privacy policy](https://remedi-iota.vercel.app/legal/privacy)
-- [Terms](https://remedi-iota.vercel.app/legal/terms)
+- [Home](https://remedi.vivancedata.com/): search a medication
+- [Interaction checker](https://remedi.vivancedata.com/interactions): check substances against each other
+- [Compare](https://remedi.vivancedata.com/compare): compare remedies side by side
+- [Pricing](https://remedi.vivancedata.com/pricing)
+- [FAQ](https://remedi.vivancedata.com/faq)
+- [Medical disclaimer](https://remedi.vivancedata.com/legal/disclaimer)
+- [Privacy policy](https://remedi.vivancedata.com/legal/privacy)
+- [Terms](https://remedi.vivancedata.com/legal/terms)
 
 ## Please note
 

@@ -26,7 +26,7 @@ jobs:
       - name: Wait for production to report this commit
         env:
           EXPECTED: ${{ github.sha }}
-          HEALTH_URL: https://remedi-iota.vercel.app/api/health
+          HEALTH_URL: https://remedi.vivancedata.com/api/health
         run: |
           set -uo pipefail
           # Vercel builds this project in roughly 1-2 minutes; 12 minutes of

@@ -33,7 +33,7 @@ jobs:
       - name: Probe /api/health
         id: probe
         env:
-          HEALTH_URL: https://remedi-iota.vercel.app/api/health
+          HEALTH_URL: https://remedi.vivancedata.com/api/health
         run: |
           set -uo pipefail
           # Two failures thirty seconds apart, so a single dropped packet or a
