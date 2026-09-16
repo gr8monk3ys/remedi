@@ -4,7 +4,7 @@
 
 Search a pharmaceutical, get the natural remedies that are honestly related to
 it, with the relationship labelled: **Alternative**, **Complementary** or
-**Supportive**. Live at https://remedi-iota.vercel.app.
+**Supportive**. Live at https://remedi.vivancedata.com.
 
 The interesting part is not the search; it is what the data is not allowed to
 say. The seed set (85 drugs, 488 remedies, 235 mappings in
