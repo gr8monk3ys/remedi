@@ -22,6 +22,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "analyze": "ANALYZE=true next build",
+    "lighthouse:ci": "node scripts/check-lighthouse-score.mjs http://127.0.0.1:3000 / /about /faq /pricing /compare",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
