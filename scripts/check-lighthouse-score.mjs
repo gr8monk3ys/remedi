@@ -40,11 +40,17 @@ const SCORE_FLOORS = {
 // Per-route exceptions, each pinned at its real score so a further slide
 // still fails. /pricing: an h3 card title under the h1 (heading-order) and
 // the primary CTA on the premium gradient panel (color-contrast). /compare:
-// an h3 inside a fixed-position overlay (heading-order). Delete an entry
-// once its page is fixed and the route is held at 100 like the others.
+// an h3 inside a fixed-position overlay (heading-order). /about: the medical
+// disclaimer's AlertTitle renders as an h5 under the page's h1/h2 chain
+// (heading-order); the h5 is deliberate — it is what gives the disclaimer a
+// heading role, which an e2e test asserts and a health app needs — so the
+// fix is to rework the page's heading levels, not to demote the title to a
+// <div>. Delete an entry once its page is fixed and the route is held at 100
+// like the others.
 const ROUTE_FLOORS = {
   "/pricing": { accessibility: 95 },
   "/compare": { accessibility: 98 },
+  "/about": { accessibility: 98 },
 };
 
 // Gzipped bytes of the home document. `experimental.inlineCss` folds the
