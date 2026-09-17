@@ -30,8 +30,11 @@ import { spawnSync } from "node:child_process";
 // floor whenever the real score improves.
 const SCORE_FLOORS = {
   // Local production build, 3 runs x 5 routes: 100 everywhere except
-  // /compare at 99. Floor is 2 below that minimum.
-  performance: 97,
+  // /compare at 99. The shared GitHub runner is slower and noisier: its
+  // first run of this job measured / at 97, /about and /compare at 99. The
+  // floor is 2 below the CI minimum, not the local one, because CI is what
+  // votes on the check.
+  performance: 95,
   accessibility: 100,
   bestPractices: 100,
   seo: 100,
