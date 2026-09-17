@@ -208,7 +208,14 @@ jobs:
     env:
       DATABASE_URL: postgresql://remedi:remedi_dev@localhost:5432/remedi?schema=public
       AUTH_SECRET: ci-auth-secret
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      # 127.0.0.1, not localhost, and it must stay in step with the host
+      # `bun run lighthouse:ci` browses. This value becomes `metadataBase`, so
+      # it is the origin of every canonical URL in the build; Lighthouse's
+      # `canonical` audit only flags a page whose canonical points at the site
+      # root when that canonical shares an origin with the page it is auditing.
+      # The localhost/127.0.0.1 split silently disabled that check, and a
+      # site-wide canonical pointing at the homepage sailed through this job.
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci
       CLERK_SECRET_KEY: sk_test_ci
       # The same Clerk stub the e2e job runs under: clerkMiddleware refuses

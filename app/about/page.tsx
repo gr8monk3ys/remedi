@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import {
   Database,
   Globe,
@@ -13,11 +14,12 @@ import { EvidenceBadge } from "@/components/remedy/EvidenceBadge";
 import { PageHeader } from "@/components/ui/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-export const metadata: Metadata = {
-  title: "About | Remedi",
+export const metadata: Metadata = pageMetadata({
+  path: "/about",
+  title: "About",
   description:
     "Learn how Remedi helps you discover evidence-based natural alternatives to pharmaceutical drugs and supplements.",
-};
+});
 
 const SEARCH_STEPS = [
   {

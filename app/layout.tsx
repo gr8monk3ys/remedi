@@ -65,13 +65,14 @@ export const metadata: Metadata = {
     telephone: false,
   },
   metadataBase: new URL(getBaseUrl()),
-  alternates: {
-    canonical: "/",
-  },
+  // No `alternates.canonical` and no `openGraph.url` here on purpose. Next
+  // inherits both verbatim into every child route, so a value declared at this
+  // level is only ever correct for the homepage: it told /pricing, /about,
+  // /faq and /compare that their canonical URL was the site root. Each page
+  // declares its own through lib/seo.ts `pageMetadata({ path })`.
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "/",
     siteName: "Remedi",
     title: "Remedi - What honestly relates to your medication",
     description:

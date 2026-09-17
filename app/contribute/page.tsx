@@ -1,12 +1,14 @@
 import { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { ContributionForm } from "@/components/remedy";
 import { PageHeader } from "@/components/ui/page-header";
 
-export const metadata: Metadata = {
-  title: "Contribute a Remedy | Remedi",
+export const metadata: Metadata = pageMetadata({
+  path: "/contribute",
+  title: "Contribute a Remedy",
   description:
     "Share your knowledge of natural remedies with the Remedi community. Submit a new remedy for review.",
-};
+});
 
 export default function ContributePage() {
   return (

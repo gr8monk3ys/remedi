@@ -6,6 +6,7 @@
  */
 
 import { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 
 /**
@@ -19,11 +20,12 @@ import Link from "next/link";
  */
 const LAST_UPDATED = "2026-09-11";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/legal/privacy",
   title: "Privacy Policy",
   description:
     "Learn how Remedi collects, uses, and protects your personal information.",
-};
+});
 
 export default function PrivacyPolicyPage() {
   return (

@@ -1,11 +1,13 @@
 import { SignUp } from "@clerk/nextjs";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/sign-up",
   title: "Sign Up",
   description:
     "Create your Remedi account to save remedies and get personalized recommendations.",
-};
+});
 
 export default function SignUpPage() {
   return (

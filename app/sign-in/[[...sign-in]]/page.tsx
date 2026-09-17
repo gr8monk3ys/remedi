@@ -1,11 +1,13 @@
 import { SignIn } from "@clerk/nextjs";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/sign-in",
   title: "Sign In",
   description:
     "Sign in to your Remedi account to access saved remedies and personalized recommendations.",
-};
+});
 
 export default function SignInPage() {
   return (

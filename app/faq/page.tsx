@@ -1,14 +1,16 @@
 import { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { FAQAccordion } from "./FAQAccordion";
 
-export const metadata: Metadata = {
-  title: "FAQ | Remedi",
+export const metadata: Metadata = pageMetadata({
+  path: "/faq",
+  title: "FAQ",
   description:
     "Frequently asked questions about Remedi, natural remedies, and how to use our platform.",
-};
+});
 
 const faqSections = [
   {

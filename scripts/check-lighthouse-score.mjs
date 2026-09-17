@@ -84,6 +84,8 @@ const outputDir = mkdtempSync(join(tmpdir(), "remedi-lighthouse-"));
 try {
   mkdirSync(artifactDir, { recursive: true });
 
+  checkCanonicals(baseUrl, routes);
+
   for (const route of routes) {
     const url = new URL(route, baseUrl).toString();
     const floors = { ...SCORE_FLOORS, ...(ROUTE_FLOORS[route] ?? {}) };
@@ -138,6 +140,84 @@ try {
   checkHomeDocumentBytes(new URL("/", baseUrl).toString());
 } finally {
   rmSync(outputDir, { recursive: true, force: true });
+}
+
+/**
+ * Every gated route must ship exactly one absolute canonical URL, on the
+ * origin the app was built for, pointing at its own path.
+ *
+ * This runs before Lighthouse because Lighthouse alone could not be trusted to
+ * catch it. Its `canonical` audit only reports a root-pointing canonical when
+ * `canonicalURL.origin === baseURL.origin`, and this job used to build with
+ * NEXT_PUBLIC_APP_URL=http://localhost:3000 while Lighthousing
+ * http://127.0.0.1:3000. Different origins, check skipped, SEO 100 — while
+ * production served `<link rel="canonical" href="https://remedi.vivancedata.com"/>`
+ * on every page and scored SEO 92 on /pricing. The origins now match (see the
+ * lighthouse job in ci.yml), so the audit fires too; this assertion is the part
+ * that does not depend on getting that pairing right.
+ */
+function checkCanonicals(base, routeList) {
+  const failures = [];
+  const origins = new Set();
+
+  for (const route of routeList) {
+    const url = new URL(route, base).toString();
+    const result = spawnSync("curl", ["-fsSL", url], { encoding: "utf-8" });
+
+    if (result.status !== 0) {
+      failures.push(`${route}: could not fetch ${url}`);
+      continue;
+    }
+
+    const hrefs = [...result.stdout.matchAll(/<link[^>]+rel="canonical"[^>]*>/gi)]
+      .map((match) => /href="([^"]*)"/i.exec(match[0])?.[1] ?? "")
+      .filter(Boolean);
+
+    if (hrefs.length !== 1) {
+      failures.push(
+        `${route}: expected exactly 1 canonical link, found ${hrefs.length}` +
+          (hrefs.length > 1 ? ` (${hrefs.join(", ")})` : ""),
+      );
+      continue;
+    }
+
+    const [href] = hrefs;
+    let canonical;
+
+    try {
+      canonical = new URL(href);
+    } catch {
+      failures.push(`${route}: canonical "${href}" is not an absolute URL`);
+      continue;
+    }
+
+    origins.add(canonical.origin);
+    const expected = new URL(route, base).pathname.replace(/(.)\/$/, "$1");
+    const actual = canonical.pathname.replace(/(.)\/$/, "$1");
+
+    if (actual !== expected) {
+      failures.push(
+        `${route}: canonical points at "${href}" (path "${actual}"), not at this page` +
+          (actual === "/"
+            ? " — a canonical declared in a layout is inherited verbatim by every child route"
+            : ""),
+      );
+      continue;
+    }
+
+    console.log(`[canonical] ${route} -> ${href}`);
+  }
+
+  if (origins.size > 1) {
+    failures.push(
+      `canonical URLs span ${origins.size} origins (${[...origins].join(", ")}); they must all sit on the deployment's own origin`,
+    );
+  }
+
+  if (failures.length > 0) {
+    console.error(`[canonical] ${failures.join("\n[canonical] ")}`);
+    process.exit(1);
+  }
 }
 
 function artifactSlug(route) {

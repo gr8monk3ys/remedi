@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { InteractionChecker } from "@/components/interactions/InteractionChecker";
 import { PageHeader } from "@/components/ui/page-header";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/interactions",
   title: "Drug Interaction Checker",
   description:
     "Check for potential interactions between medications, supplements, and natural remedies. Find safety information about combining multiple substances.",
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
     description:
       "Check for potential interactions between medications, supplements, and natural remedies.",
   },
-};
+});
 
 export default function InteractionsPage(): React.ReactElement {
   return (

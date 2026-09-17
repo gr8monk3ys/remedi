@@ -5,6 +5,7 @@
  */
 
 import { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 /**
  * The date this document last changed, in ISO form.
@@ -15,10 +16,11 @@ import Link from "next/link";
  */
 const LAST_UPDATED = "2026-02-19";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/legal/terms",
   title: "Terms of Service",
   description: "Read the terms and conditions for using Remedi.",
-};
+});
 
 export default function TermsOfServicePage() {
   return (
