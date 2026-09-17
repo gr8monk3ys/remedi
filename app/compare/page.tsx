@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { ComparisonSkeleton } from "@/components/compare";
 import { getCurrentUser } from "@/lib/auth";
@@ -8,11 +9,12 @@ import { CompareClient } from "./CompareClient";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Compare Remedies | Remedi",
+export const metadata: Metadata = pageMetadata({
+  path: "/compare",
+  title: "Compare Remedies",
   description:
     "Compare natural remedies side by side to find the best option for your needs.",
-};
+});
 
 /**
  * Compare page - Server Component

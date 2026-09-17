@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { Wrench } from "lucide-react";
 import { RefreshButton } from "./RefreshButton";
 
-export const metadata: Metadata = {
-  title: "Under Maintenance | Remedi",
+export const metadata: Metadata = pageMetadata({
+  path: "/maintenance",
+  title: "Under Maintenance",
   description: "Remedi is currently undergoing scheduled maintenance.",
-};
+});
 
 /**
  * Maintenance Mode Page - Server Component

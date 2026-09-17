@@ -6,6 +6,7 @@
  */
 
 import { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 /**
  * The date this document last changed, in ISO form.
@@ -16,10 +17,11 @@ import Link from "next/link";
  */
 const LAST_UPDATED = "2026-02-19";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/legal/disclaimer",
   title: "Medical Disclaimer",
   description: "Important health and medical disclaimer for Remedi users.",
-};
+});
 
 export default function DisclaimerPage() {
   return (

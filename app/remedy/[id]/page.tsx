@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import {
   getNaturalRemedyById,
   resolveRelatedRemedies,
@@ -131,14 +132,15 @@ export async function generateMetadata({
     };
   }
 
-  return {
+  return pageMetadata({
+    path: `/remedy/${id}`,
     title: remedy.name,
     description: remedy.description,
     openGraph: {
       title: `${remedy.name} - Natural Remedy`,
       description: remedy.description,
     },
-  };
+  });
 }
 
 export default async function RemedyDetailPage({ params }: RemedyPageProps) {

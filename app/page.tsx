@@ -1,7 +1,11 @@
+import type { Metadata } from "next";
 import { Database, Globe, Cpu } from "lucide-react";
 import { OnboardingWrapper } from "@/components/home/OnboardingWrapper";
 import { FavoritesSection } from "@/components/home/FavoritesSection";
 import { SearchSection } from "@/components/home/SearchSection";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({ path: "/" });
 
 const LABELS = [
   {
