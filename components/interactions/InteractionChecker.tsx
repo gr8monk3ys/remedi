@@ -153,7 +153,8 @@ export function InteractionChecker(): React.ReactElement {
       {/* Disclaimer */}
       <Alert>
         <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>Important Medical Disclaimer</AlertTitle>
+        {/* A peer of the h3 "Your substances" card, not a child of it. */}
+        <AlertTitle level={3}>Important Medical Disclaimer</AlertTitle>
         <AlertDescription className="space-y-2">
           <p>
             This interaction checker is for informational purposes only and is
