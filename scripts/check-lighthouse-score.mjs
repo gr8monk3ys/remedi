@@ -41,26 +41,31 @@ const SCORE_FLOORS = {
 };
 
 // Per-route exceptions, each pinned at its real score so a further slide
-// still fails. /pricing: an h3 card title under the h1 (heading-order) and
-// the primary CTA on the premium gradient panel (color-contrast). /compare:
-// an h3 inside a fixed-position overlay (heading-order). /about: the medical
-// disclaimer's AlertTitle renders as an h5 under the page's h1/h2 chain
-// (heading-order); the h5 is deliberate — it is what gives the disclaimer a
-// heading role, which an e2e test asserts and a health app needs — so the
-// fix is to rework the page's heading levels, not to demote the title to a
-// <div>. Delete an entry once its page is fixed and the route is held at 100
-// like the others.
-const ROUTE_FLOORS = {
-  "/pricing": { accessibility: 95 },
-  "/compare": { accessibility: 98 },
-  "/about": { accessibility: 98 },
-};
+// still fails. Empty on purpose: every gated route holds the global floors.
+//
+// The three that used to live here — /about 98, /compare 98, /pricing 95 —
+// were all real heading-order failures, plus one color-contrast failure on
+// /pricing, and all four were fixed rather than pinned:
+//   - AlertTitle takes a `level` prop, so the medical disclaimer keeps its
+//     heading role (an e2e test asserts it; never demote it to a <div>) while
+//     each page picks the level its outline needs. /about's is an h3 under
+//     the h2 "Disclaimer" section.
+//   - The /pricing plan cards are h2 — they sit directly under the page h1.
+//   - PWARegister's two prompts are h2: the root layout renders them at the
+//     end of every page, where only an h1 is guaranteed before them. That
+//     fixed-position h3 is what /compare was failing on.
+//   - The /pricing CTA on the premium gradient panel uses the pinned
+//     --brand-on-white token instead of --primary, which flips to the dark
+//     theme's #4fc07c and measured 2.29:1 on the white button. Now 6.47:1.
+//
+// Add an entry back only for something genuinely unfixable, and say what.
+const ROUTE_FLOORS = {};
 
 // Gzipped bytes of the home document. `experimental.inlineCss` folds the
 // stylesheet into the HTML, so the document is now the first-paint payload
 // and a stray inlined asset shows up here first. Set ~25% above the measured
 // size; the measured number is printed on every run so the cap can track it.
-// Measured 2026-09-16: 66,004 bytes gzipped on a local production build.
+// Measured 2026-09-16: 66,126 bytes gzipped on a local production build.
 const HOME_DOC_BYTE_CAP = 82_500;
 
 const MAX_ATTEMPTS = 4;

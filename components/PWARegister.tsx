@@ -156,9 +156,16 @@ export function PWARegister() {
         <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-card shadow-lg rounded-lg p-4 z-50 border border-border">
           <div className="flex items-start">
             <div className="flex-1">
-              <h3 className="font-semibold text-foreground mb-1">
+              {/*
+                h2, not h3: these prompts are rendered from the root layout, so
+                they land at the end of every page's outline and the only
+                heading guaranteed before them is the page's h1. An h3 skipped
+                a level wherever a page has no h2 before it — that is what
+                failed Lighthouse's heading-order audit on /compare.
+              */}
+              <h2 className="font-semibold text-foreground mb-1">
                 Install Remedi App
-              </h3>
+              </h2>
               <p className="text-sm text-muted-foreground mb-3">
                 Install Remedi on your device for a better experience and
                 offline access.
@@ -206,9 +213,10 @@ export function PWARegister() {
         <div className="fixed top-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 rounded-lg border border-border bg-card p-4 shadow-lg">
           <div className="flex items-start">
             <div className="flex-1">
-              <h3 className="mb-1 text-sm font-semibold text-foreground">
+              {/* Same reasoning as the install prompt above. */}
+              <h2 className="mb-1 text-sm font-semibold text-foreground">
                 Update Available
-              </h3>
+              </h2>
               <p className="mb-3 text-sm text-muted-foreground">
                 A new version of Remedi is available. Refresh to update.
               </p>

@@ -143,7 +143,8 @@ export function RemedyContent({
         {/* Medical Disclaimer */}
         <Alert variant="warning">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Medical Disclaimer</AlertTitle>
+          {/* A peer of the h3 card sections above it, not a child of them. */}
+          <AlertTitle level={3}>Medical Disclaimer</AlertTitle>
           <AlertDescription>
             This information is for educational purposes only and is not
             intended as a substitute for medical advice. Always consult a

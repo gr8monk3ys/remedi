@@ -164,7 +164,8 @@ export default function AboutPage(): React.JSX.Element {
           <Section index={5} title="Disclaimer">
             <Alert variant="warning">
               <AlertTriangle />
-              <AlertTitle>Not medical advice</AlertTitle>
+              {/* Inside the h2 "Disclaimer" section, so the title is an h3. */}
+              <AlertTitle level={3}>Not medical advice</AlertTitle>
               <AlertDescription>
                 Remedi is for informational purposes only and should not replace
                 professional medical advice. Always consult with a healthcare

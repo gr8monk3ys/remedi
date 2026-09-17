@@ -63,6 +63,20 @@
   --sidebar-accent-foreground: #131a15;
   --sidebar-border: rgba(19, 26, 21, 0.1);
   --sidebar-ring: rgba(31, 107, 69, 0.45);
+
+  /*
+   * Brand green for text on a white chip, pinned across both themes.
+   *
+   * .premium-gradient-panel is dark in light AND dark mode, so the white CTA
+   * that sits on it is white in both. Painting its label with --primary meant
+   * the dark theme's #4fc07c on #ffffff: 2.29:1, which is what Lighthouse
+   * failed on /pricing. This value is the light theme's --primary, so the
+   * button keeps the look it already has in light mode. #1f6b45 on #ffffff is
+   * 6.47:1 — over AA for normal text.
+   *
+   * Deliberately NOT redefined in .dark.
+   */
+  --brand-on-white: #1f6b45;
 }
 
 .dark {
@@ -148,6 +162,7 @@
   --color-info: var(--info);
   --color-premium: var(--premium);
   --color-premium-surface: var(--premium-surface);
+  --color-brand-on-white: var(--brand-on-white);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-input: var(--input);
