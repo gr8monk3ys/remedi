@@ -10,114 +10,132 @@
 
 import * as Sentry from "@sentry/nextjs";
 
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+import { sentryEnabled, sentryEnvironmentTag } from "./lib/sentry-gate";
 
-  // Environment detection
-  environment: process.env.NODE_ENV,
+const DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
-  // Release tracking (set during build)
-  release: process.env.NEXT_PUBLIC_SENTRY_RELEASE,
+/**
+ * Deployed environments only — see lib/sentry-gate.ts.
+ *
+ * The `beforeSend` below already returned null when NODE_ENV was
+ * "development", which covered `next dev` and nothing else: a local
+ * `next build && next start` runs with NODE_ENV "production" and reported into
+ * the shared org quota like a real deploy. That is the traffic that exhausted
+ * it, so the decision moves up here, to whether `init` runs at all.
+ */
+const SENTRY_ENABLED = sentryEnabled(DSN);
 
-  // Performance Monitoring
-  // Capture 10% of transactions in production for performance monitoring
-  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+if (SENTRY_ENABLED) {
+  Sentry.init({
+    dsn: DSN,
 
-  // No replay sample rates: Session Replay is not attached at all. Leaving
-  // them set would be a standing instruction to record health-dashboard
-  // sessions the moment anyone adds the integration back. See the note at the
-  // foot of this file.
+    // Environment detection: "production" or "preview" from Vercel, so the two
+    // deployed environments stay distinguishable in the issue stream.
+    environment: sentryEnvironmentTag(),
 
-  // Integrations for browser monitoring. The feedback widget is deliberately
-  // not here: see loadFeedbackWidget below.
-  integrations: [
-    // Browser Tracing for performance monitoring
-    Sentry.browserTracingIntegration({
-      // Track navigation and page load performance
-      enableInp: true,
-    }),
-  ],
+    // Release tracking (set during build)
+    release: process.env.NEXT_PUBLIC_SENTRY_RELEASE,
 
-  // Filter out known non-critical errors to reduce noise
-  ignoreErrors: [
-    // Browser extensions
-    /^chrome-extension:/,
-    /^moz-extension:/,
-    /^safari-extension:/,
-    // Network errors that users cannot control
-    "Failed to fetch",
-    "NetworkError",
-    "AbortError",
-    "Load failed",
-    "Network request failed",
-    // ResizeObserver loop errors (benign)
-    "ResizeObserver loop limit exceeded",
-    "ResizeObserver loop completed with undelivered notifications",
-    // Script loading errors
-    "ChunkLoadError",
-    "Loading chunk",
-    // Third-party script errors
-    /^Script error\.?$/,
-    // Cancelled requests
-    "The operation was aborted",
-    "cancelled",
-  ],
+    // Performance Monitoring
+    // Capture 10% of transactions in production for performance monitoring
+    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
 
-  // URLs to ignore (third-party scripts)
-  denyUrls: [
-    // Google Analytics
-    /google-analytics\.com/,
-    /googletagmanager\.com/,
-    // Facebook
-    /connect\.facebook\.net/,
-    // Browser extensions
-    /extensions\//,
-    /^chrome:\/\//,
-    /^chrome-extension:\/\//,
-    /^moz-extension:\/\//,
-  ],
+    // No replay sample rates: Session Replay is not attached at all. Leaving
+    // them set would be a standing instruction to record health-dashboard
+    // sessions the moment anyone adds the integration back. See the note at the
+    // foot of this file.
 
-  // Debug mode (disable in production)
-  debug: false,
+    // Integrations for browser monitoring. The feedback widget is deliberately
+    // not here: see loadFeedbackWidget below.
+    integrations: [
+      // Browser Tracing for performance monitoring
+      Sentry.browserTracingIntegration({
+        // Track navigation and page load performance
+        enableInp: true,
+      }),
+    ],
 
-  // Normalize error depth to reduce payload size
-  normalizeDepth: 5,
+    // Filter out known non-critical errors to reduce noise
+    ignoreErrors: [
+      // Browser extensions
+      /^chrome-extension:/,
+      /^moz-extension:/,
+      /^safari-extension:/,
+      // Network errors that users cannot control
+      "Failed to fetch",
+      "NetworkError",
+      "AbortError",
+      "Load failed",
+      "Network request failed",
+      // ResizeObserver loop errors (benign)
+      "ResizeObserver loop limit exceeded",
+      "ResizeObserver loop completed with undelivered notifications",
+      // Script loading errors
+      "ChunkLoadError",
+      "Loading chunk",
+      // Third-party script errors
+      /^Script error\.?$/,
+      // Cancelled requests
+      "The operation was aborted",
+      "cancelled",
+    ],
 
-  // Maximum breadcrumbs to capture
-  maxBreadcrumbs: 50,
+    // URLs to ignore (third-party scripts)
+    denyUrls: [
+      // Google Analytics
+      /google-analytics\.com/,
+      /googletagmanager\.com/,
+      // Facebook
+      /connect\.facebook\.net/,
+      // Browser extensions
+      /extensions\//,
+      /^chrome:\/\//,
+      /^chrome-extension:\/\//,
+      /^moz-extension:\/\//,
+    ],
 
-  // Before sending event, add extra context and filter
-  beforeSend(event, hint) {
-    // Don't send events in development
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[Sentry] Event captured (not sent in development):", {
-        message: event.message,
-        exception: hint?.originalException,
-      });
-      return null;
-    }
+    // Debug mode (disable in production)
+    debug: false,
 
-    // Add user context if available
-    if (typeof window !== "undefined") {
-      event.tags = {
-        ...event.tags,
-        url_path: window.location.pathname,
-        user_agent: navigator.userAgent,
-      };
-    }
+    // Normalize error depth to reduce payload size
+    normalizeDepth: 5,
 
-    return event;
-  },
+    // Maximum breadcrumbs to capture
+    maxBreadcrumbs: 50,
 
-  // Before sending a transaction, filter out unnecessary ones
-  beforeSendTransaction(event) {
-    // Skip health check transactions
-    if (event.transaction?.includes("/api/health")) {
-      return null;
-    }
-    return event;
-  },
-});
+    // Before sending event, add extra context and filter
+    beforeSend(event, hint) {
+      // Don't send events in development
+      if (process.env.NODE_ENV === "development") {
+        console.warn("[Sentry] Event captured (not sent in development):", {
+          message: event.message,
+          exception: hint?.originalException,
+        });
+        return null;
+      }
+
+      // Add user context if available
+      if (typeof window !== "undefined") {
+        event.tags = {
+          ...event.tags,
+          url_path: window.location.pathname,
+          user_agent: navigator.userAgent,
+        };
+      }
+
+      return event;
+    },
+
+    // Before sending a transaction, filter out unnecessary ones
+    beforeSendTransaction(event) {
+      // Skip health check transactions
+      if (event.transaction?.includes("/api/health")) {
+        return null;
+      }
+      return event;
+    },
+  });
+}
 
 /**
  * The "Report an Issue" widget is attached at idle, from its own chunk.
@@ -143,7 +161,9 @@ function loadFeedbackWidget(): void {
     });
 }
 
-if (typeof window !== "undefined") {
+// Nothing to attach the widget to when the SDK was never initialised, and
+// fetching its chunk would be pure waste on a local build.
+if (SENTRY_ENABLED && typeof window !== "undefined") {
   if ("requestIdleCallback" in window) {
     window.requestIdleCallback(loadFeedbackWidget, { timeout: 5000 });
   } else {
