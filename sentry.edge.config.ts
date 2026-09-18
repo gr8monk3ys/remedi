@@ -9,74 +9,85 @@
 
 import * as Sentry from "@sentry/nextjs";
 
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+import { sentryEnabled, sentryEnvironmentTag } from "./lib/sentry-gate";
 
-  // Explicit because it is load-bearing here: with sendDefaultPii on, Sentry
-  // attaches request bodies and cookies, which on this product means health
-  // profiles, journal entries and medication lists. It defaults to false, but
-  // a default is not a decision.
-  sendDefaultPii: false,
+const DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
-  // Environment detection
-  environment: process.env.NODE_ENV,
+/** Deployed environments only — see lib/sentry-gate.ts. */
+if (sentryEnabled(DSN)) {
+  Sentry.init({
+    dsn: DSN,
 
-  // Release tracking (set during build)
-  release: process.env.NEXT_PUBLIC_SENTRY_RELEASE,
+    // Explicit because it is load-bearing here: with sendDefaultPii on, Sentry
+    // attaches request bodies and cookies, which on this product means health
+    // profiles, journal entries and medication lists. It defaults to false, but
+    // a default is not a decision.
+    sendDefaultPii: false,
 
-  // Performance Monitoring
-  // Capture 10% of transactions in production for performance monitoring
-  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+    // Environment detection: "production" or "preview" from Vercel, so the two
+    // deployed environments stay distinguishable in the issue stream.
+    environment: sentryEnvironmentTag(),
 
-  // Filter out known non-critical errors
-  ignoreErrors: [
-    // Network errors
-    "Network request failed",
-    "Failed to fetch",
-    "AbortError",
-  ],
+    // Release tracking (set during build)
+    release: process.env.NEXT_PUBLIC_SENTRY_RELEASE,
 
-  // Debug mode (disable in production)
-  debug: false,
+    // Performance Monitoring
+    // Capture 10% of transactions in production for performance monitoring
+    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
 
-  // Normalize error depth to reduce payload size
-  normalizeDepth: 3,
+    // Filter out known non-critical errors
+    ignoreErrors: [
+      // Network errors
+      "Network request failed",
+      "Failed to fetch",
+      "AbortError",
+    ],
 
-  // Maximum breadcrumbs to capture (keep low for edge)
-  maxBreadcrumbs: 20,
+    // Debug mode (disable in production)
+    debug: false,
 
-  // Before sending event, add extra context and filter
-  beforeSend(event, hint) {
-    // Don't send events in development
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[Sentry] Edge event captured (not sent in development):", {
-        message: event.message,
-        exception: hint?.originalException,
-      });
-      return null;
-    }
+    // Normalize error depth to reduce payload size
+    normalizeDepth: 3,
 
-    // Add edge runtime context
-    event.tags = {
-      ...event.tags,
-      runtime: "edge",
-    };
+    // Maximum breadcrumbs to capture (keep low for edge)
+    maxBreadcrumbs: 20,
 
-    return event;
-  },
+    // Before sending event, add extra context and filter
+    beforeSend(event, hint) {
+      // Don't send events in development
+      if (process.env.NODE_ENV === "development") {
+        console.warn(
+          "[Sentry] Edge event captured (not sent in development):",
+          {
+            message: event.message,
+            exception: hint?.originalException,
+          },
+        );
+        return null;
+      }
 
-  // Before sending a transaction, filter out unnecessary ones
-  beforeSendTransaction(event) {
-    // Skip health check transactions
-    if (event.transaction?.includes("/api/health")) {
-      return null;
-    }
+      // Add edge runtime context
+      event.tags = {
+        ...event.tags,
+        runtime: "edge",
+      };
 
-    // Skip static file transactions
-    if (event.transaction?.includes("/_next/")) {
-      return null;
-    }
+      return event;
+    },
 
-    return event;
-  },
-});
+    // Before sending a transaction, filter out unnecessary ones
+    beforeSendTransaction(event) {
+      // Skip health check transactions
+      if (event.transaction?.includes("/api/health")) {
+        return null;
+      }
+
+      // Skip static file transactions
+      if (event.transaction?.includes("/_next/")) {
+        return null;
+      }
+
+      return event;
+    },
+  });
+}
