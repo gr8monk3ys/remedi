@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.4.0](https://github.com/gr8monk3ys/remedi/compare/v1.3.0...v1.4.0) (2026-09-18)
+
+
+### Features
+
+* **design:** DESIGN.md and detector fixes ([#161](https://github.com/gr8monk3ys/remedi/issues/161)) ([0d43051](https://github.com/gr8monk3ys/remedi/commit/0d43051a83f9b5836bba0913b55ccde86a067ce9))
+
+
+### Bug Fixes
+
+* **a11y:** make Alert titles level-aware and fix /pricing CTA contrast ([#172](https://github.com/gr8monk3ys/remedi/issues/172)) ([1c161e6](https://github.com/gr8monk3ys/remedi/commit/1c161e62f3fa751ad96ba47c697c9b6bfa04938f))
+* **proxy:** let metadata routes through unauthenticated and allow blob workers ([#165](https://github.com/gr8monk3ys/remedi/issues/165)) ([d1889ad](https://github.com/gr8monk3ys/remedi/commit/d1889ade2fe6acb914b56d70f2aa7b8af1cb1cdc))
+* **search:** stop anonymous visitors requesting search history they cannot read ([#160](https://github.com/gr8monk3ys/remedi/issues/160)) ([90e3728](https://github.com/gr8monk3ys/remedi/commit/90e372819ef2e0295419cea6779b9bcee1e6f55a))
+* **sentry:** report only from deployed Vercel environments ([#174](https://github.com/gr8monk3ys/remedi/issues/174)) ([d890359](https://github.com/gr8monk3ys/remedi/commit/d89035906a7744e81faea24a1881b1365ce74e66))
+* **seo:** give every page its own canonical URL instead of the homepage ([#173](https://github.com/gr8monk3ys/remedi/issues/173)) ([d26d871](https://github.com/gr8monk3ys/remedi/commit/d26d8719721d691a12a534b57830822e2e84ea4e))
+
+
+### Performance Improvements
+
+* **home:** inline the stylesheet so first paint stops waiting on it ([#169](https://github.com/gr8monk3ys/remedi/issues/169)) ([882f594](https://github.com/gr8monk3ys/remedi/commit/882f59403cd58ecaaefa88cb1fe5356ffa3d052b))
+* **home:** paint the hero at first render, fix layout shift and trim JavaScript ([#163](https://github.com/gr8monk3ys/remedi/issues/163)) ([f910c7a](https://github.com/gr8monk3ys/remedi/commit/f910c7ae2a629a1d1038b6196cb33b0b9d767aa6))
+* **sentry:** drop unused SDK code from the initial bundle ([#164](https://github.com/gr8monk3ys/remedi/issues/164)) ([2e5bb69](https://github.com/gr8monk3ys/remedi/commit/2e5bb69975a41e1ac463b8eb0caf95302dd128d0))
+
 ## [1.3.0](https://github.com/gr8monk3ys/remedi/compare/v1.2.3...v1.3.0) (2026-09-12)
 
 ### Features
