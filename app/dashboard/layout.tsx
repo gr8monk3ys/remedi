@@ -37,8 +37,13 @@ export default async function DashboardLayout({
     redirect("/sign-in?redirect_url=/dashboard");
   }
 
-  // Get user's subscription plan
-  let currentPlan: PlanType = "free";
+  // Get user's subscription plan.
+  //
+  // `null` is deliberate and distinct from "free": if the database could not
+  // be reached we do not know the plan, and defaulting to free advertises the
+  // Free tier back at someone who pays for Premium. The sidebar renders the
+  // difference rather than guessing.
+  let currentPlan: PlanType | null = "free";
 
   try {
     const subscription = await prisma.subscription.findUnique({
@@ -51,6 +56,7 @@ export default async function DashboardLayout({
     }
   } catch (error) {
     logger.error("Error fetching subscription", error);
+    currentPlan = null;
   }
 
   return (

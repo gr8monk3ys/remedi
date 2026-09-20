@@ -11,6 +11,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { PLANS, parsePlanType } from "@/lib/stripe";
+import { ENTITLING_STATUSES } from "@/lib/subscription-status";
 import { BillingClient } from "./billing-client";
 
 export const metadata: Metadata = {
@@ -38,17 +39,52 @@ export default async function BillingPage({
   const currentPlan = parsePlanType(subscription?.plan);
   const planDetails = PLANS[currentPlan] || PLANS.free;
 
+  // Entitlement as the rest of the app derives it: a paid plan whose status
+  // actually grants it. ENTITLING_STATUSES is the same list canPerformAction
+  // and getEffectivePlanLimits key off, so the banner cannot drift from what
+  // the user can really do.
+  const subscriptionIsLive =
+    currentPlan !== "free" &&
+    !!subscription?.status &&
+    (ENTITLING_STATUSES as readonly string[]).includes(subscription.status);
+
   return (
     <main className="min-h-screen px-4 pt-24 pb-16 md:px-8">
       <div className="container mx-auto px-4 max-w-6xl">
-        {/* Success/Cancel Messages */}
-        {params.success === "true" && (
-          <div className="mb-8 rounded-md border border-primary/30 bg-primary/5 p-4">
-            <p className="text-sm font-medium text-foreground">
-              Payment successful! Your subscription is now active.
-            </p>
-          </div>
-        )}
+        {/*
+          Stripe redirects here the instant checkout completes, which is
+          usually before the webhook that activates the subscription has
+          landed. Asserting "your subscription is now active" from the query
+          string alone put that sentence directly above "Current Plan: Free",
+          and anyone could produce it by visiting /billing?success=true.
+
+          The claim is now made only when our own record supports it. When it
+          does not, the page says what is actually true — the payment went
+          through and confirmation is still in flight — rather than either
+          lying or implying the payment failed.
+        */}
+        {params.success === "true" &&
+          (subscriptionIsLive ? (
+            <div className="mb-8 rounded-md border border-primary/30 bg-primary/5 p-4">
+              <p className="text-sm font-medium text-foreground">
+                Payment successful! Your subscription is now active.
+              </p>
+            </div>
+          ) : (
+            <div
+              role="status"
+              className="mb-8 rounded-md border border-primary/30 bg-primary/5 p-4"
+            >
+              <p className="text-sm font-medium text-foreground">
+                Thanks — we have your payment.
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                We are still confirming it with our payment provider, so your
+                plan below may take a few moments to update. Refresh this page
+                shortly; nothing further is needed from you.
+              </p>
+            </div>
+          ))}
         {params.canceled === "true" && (
           <div className="mb-8 rounded-md border border-warning/30 bg-warning/5 p-4">
             <p className="text-sm font-medium text-foreground">

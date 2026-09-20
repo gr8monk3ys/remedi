@@ -36,10 +36,10 @@ Before deploying, ensure you have:
 
 These must be set for the application to function:
 
-| Variable              | Description                               | Example                      |
-| --------------------- | ----------------------------------------- | ---------------------------- |
-| `DATABASE_URL`        | PostgreSQL connection string with pooling | `postgresql://...`           |
-| `NEXT_PUBLIC_APP_URL` | Production URL                            | `https://remedi.example.com` |
+| Variable              | Description                               | Example                          |
+| --------------------- | ----------------------------------------- | -------------------------------- |
+| `DATABASE_URL`        | PostgreSQL connection string with pooling | `postgresql://...`               |
+| `NEXT_PUBLIC_APP_URL` | Production URL                            | `https://remedi.vivancedata.com` |
 
 ### Authentication Variables
 

@@ -1,12 +1,15 @@
+import type { Metadata } from "next";
 import { Check, Search, Shield, Sparkles } from "lucide-react";
 import { EvidenceBadge } from "@/components/remedy/EvidenceBadge";
+import { pageMetadata } from "@/lib/seo";
 import { LandingClient } from "./landing-client";
 
-export const metadata = {
-  title: "Remedi | Natural Remedies, Backed by Science",
+export const metadata: Metadata = pageMetadata({
+  path: "/landing",
+  title: "Natural Remedies, Backed by Science",
   description:
     "Discover natural alternatives to common pharmaceuticals. Personalized search, evidence-backed recommendations, and a clear path to safer choices.",
-};
+});
 
 const FEATURES = [
   {

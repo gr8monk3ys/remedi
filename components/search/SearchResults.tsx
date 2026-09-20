@@ -156,7 +156,7 @@ export function SearchResults({
         status.kind === "answered" &&
         filteredResults.length === 0 &&
         query && (
-          <div className="py-12 text-center">
+          <div role="status" className="py-12 text-center">
             <p className="text-sm text-muted-foreground">
               {results.length > 0
                 ? "No results match your current filters. Try adjusting your filters."
@@ -164,6 +164,32 @@ export function SearchResults({
             </p>
           </div>
         )}
+
+      {/*
+        The disclaimer belongs with the advice.
+
+        It used to live only at the foot of app/page.tsx, after the label
+        glossary and the whole "How it works" section — roughly two screens
+        below the last recommendation, in the smallest, lowest-contrast type on
+        the page. Every other surface that recommends something (the remedy
+        page, the interaction checker, /compare) carries a proper alert beside
+        the recommendation. The homepage is the primary journey and had the
+        weakest treatment.
+
+        Rendering it here rather than on the page means it follows the results
+        to wherever they are shown, and appears only when there is something to
+        disclaim.
+      */}
+      {!isLoading && filteredResults.length > 0 && (
+        <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
+          <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-200">
+            <strong>These are not medical advice.</strong> Remedi maps published
+            ingredient and property data; it does not know your history. Never
+            stop or change a prescribed medication without talking to your
+            prescriber or pharmacist first.
+          </p>
+        </div>
+      )}
 
       {/* Results List */}
       <div className="grid grid-cols-1 gap-3 mt-2">

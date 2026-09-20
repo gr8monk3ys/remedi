@@ -65,8 +65,38 @@ describe("InteractionCard severity", () => {
     );
   });
 
-  it("falls back to mild for an unrecognised severity", () => {
+  /**
+   * This replaces a test that asserted the opposite — that an unrecognised
+   * severity renders as "Mild". It did, and that was the defect: `severity` is
+   * a free-text column, so a capitalised "Severe" or an imported "major" got a
+   * green shield and a stated all-clear for a risk nobody had assessed.
+   */
+  it("says a severity it does not recognise is unknown, never mild", () => {
     render(<InteractionCard interaction={interaction("nonsense")} />);
-    expect(screen.getByText("Mild")).toBeInTheDocument();
+
+    expect(screen.getByText("Unknown severity")).toBeInTheDocument();
+    expect(screen.queryByText("Mild")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/cannot tell you how serious it is/),
+    ).toBeInTheDocument();
+  });
+
+  it("gives the unknown tier a glyph of its own", () => {
+    const { container: unknown } = render(
+      <InteractionCard interaction={interaction("nonsense")} />,
+    );
+    const { container: fine } = render(
+      <InteractionCard interaction={interaction("mild")} />,
+    );
+    expect(glyphOf(unknown)).not.toBe(glyphOf(fine));
+    expect(glyphOf(unknown)).not.toBe("");
+  });
+
+  it("treats a differently-cased severity as that severity, not as unknown", () => {
+    // "Severe" is a recognised severity written differently. Routing it to the
+    // unknown state would be its own kind of wrong answer.
+    render(<InteractionCard interaction={interaction("  Severe ")} />);
+    expect(screen.getByText("Severe")).toBeInTheDocument();
+    expect(screen.queryByText("Unknown severity")).not.toBeInTheDocument();
   });
 });

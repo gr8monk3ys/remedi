@@ -1,0 +1,15 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font-size",
+        "value": "*",
+        "files": ["app/opengraph-image.tsx"],
+        "createdAt": "2026-09-13T23:10:48.922Z",
+        "reason": "next/og renders a 1200x630 social card, not the UI; its 72/28px sizes are scaled for that canvas and never appear on a page"
+      }
+    ]
+  }
+}

@@ -30,6 +30,11 @@ interface SubscriptionClientProps {
   cancelAtPeriodEnd: boolean;
   hasActiveSubscription: boolean;
   invoices: InvoiceSummary[];
+  /**
+   * True when Stripe could not be reached. Distinct from an empty `invoices`,
+   * which means Stripe answered and there are none.
+   */
+  invoicesUnavailable?: boolean;
   usage: {
     favorites: { current: number; limit: number };
     searches: { current: number; limit: number };
@@ -75,6 +80,7 @@ export function SubscriptionClient({
   cancelAtPeriodEnd,
   hasActiveSubscription,
   invoices,
+  invoicesUnavailable = false,
   usage,
 }: SubscriptionClientProps): React.JSX.Element {
   const [loadingAction, setLoadingAction] = useState<
@@ -362,7 +368,12 @@ export function SubscriptionClient({
             <h4 className="text-sm font-semibold text-foreground">
               Recent Invoices
             </h4>
-            {invoices.length === 0 ? (
+            {invoicesUnavailable ? (
+              <p role="status" className="text-sm text-destructive mt-2">
+                We could not load your billing history just now. This does not
+                mean you have none — please try again shortly.
+              </p>
+            ) : invoices.length === 0 ? (
               <p className="text-sm text-muted-foreground mt-2">
                 No invoices found yet.
               </p>

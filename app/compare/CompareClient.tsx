@@ -20,6 +20,7 @@ import {
   saveComparisonToHistory,
 } from "@/components/compare";
 import type { CompareRemedy } from "@/components/compare";
+import { ReplacementTypeBadge } from "@/components/remedy/ReplacementTypeBadge";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -478,14 +479,30 @@ export function CompareClient({
                             remedy.relatedPharmaceuticals.map((pharma) => (
                               <div
                                 key={pharma.id}
-                                className="flex items-center justify-between text-sm"
+                                className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-sm"
                               >
                                 <span className="text-foreground">
                                   {pharma.name}
                                 </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {(pharma.similarityScore * 100).toFixed(0)}%
-                                  match
+                                <span className="flex items-center gap-2">
+                                  <ReplacementTypeBadge
+                                    type={pharma.replacementType}
+                                  />
+                                  {/* "match" read as a substitution claim.
+                                      The score is ingredient overlap, and it
+                                      is only shown beside the label that says
+                                      what the overlap is allowed to mean. */}
+                                  {pharma.replacementType && (
+                                    <span
+                                      className="text-xs text-muted-foreground"
+                                      title="Relevance reflects shared ingredients and properties — it is informational only and is not a measure of medical effectiveness."
+                                    >
+                                      {(pharma.similarityScore * 100).toFixed(
+                                        0,
+                                      )}
+                                      % relevance
+                                    </span>
+                                  )}
                                 </span>
                               </div>
                             ))

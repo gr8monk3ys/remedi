@@ -49,7 +49,9 @@ export function LandingClient({
         onClick={handleCtaClick("primary_pricing")}
         className={cn(
           buttonVariants({ size: "lg" }),
-          inverted && "bg-white text-primary hover:bg-white/90",
+          // Same white-on-dark-panel CTA as /pricing: text-primary would be
+          // 2.29:1 here in dark mode. See --brand-on-white in globals.css.
+          inverted && "bg-white text-brand-on-white hover:bg-white/90",
         )}
       >
         See Pricing

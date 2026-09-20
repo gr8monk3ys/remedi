@@ -10,6 +10,7 @@
 import "server-only";
 import { prisma } from "@/lib/db/client";
 import { createLogger } from "@/lib/logger";
+import { getBaseUrl } from "@/lib/url";
 import type { PlanType } from "@/lib/stripe-config";
 import type { WeeklyDigestData } from "./types";
 
@@ -104,7 +105,7 @@ export async function buildDigestData(
       }),
     ]);
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://remedi.app";
+    const baseUrl = getBaseUrl();
 
     const data: WeeklyDigestData = {
       name: user.name || "there",

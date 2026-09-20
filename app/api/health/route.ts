@@ -192,6 +192,23 @@ function getVersion(): string {
 }
 
 /**
+ * The commit this deployment was built from.
+ *
+ * Published on the public health response on purpose. On 2026-09-11 Vercel's
+ * git integration stopped creating deployments: seven commits merged to main,
+ * CI was green on every one, and production quietly served twenty-hour-old
+ * code. Nothing could have noticed, because nothing anywhere said which commit
+ * production was actually running.
+ *
+ * The repository is public, so the SHA discloses nothing that `git log` does
+ * not. `.github/workflows/deploy-check.yml` reads this field back and fails
+ * when it does not catch up to the merged commit.
+ */
+function getDeployedCommit(): string | null {
+  return process.env.VERCEL_GIT_COMMIT_SHA || null;
+}
+
+/**
  * Get process uptime in seconds
  */
 function getUptime(): number {
@@ -214,7 +231,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       const dbHealthy = await isConnected();
       if (dbHealthy) {
         return NextResponse.json(
-          { status: "healthy", timestamp: new Date().toISOString() },
+          {
+            status: "healthy",
+            timestamp: new Date().toISOString(),
+            commit: getDeployedCommit(),
+          },
           { status: 200 },
         );
       }

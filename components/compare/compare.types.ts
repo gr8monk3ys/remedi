@@ -12,5 +12,12 @@ export interface CompareRemedy extends DetailedRemedy {
     id: string;
     name: string;
     similarityScore: number;
+    /**
+     * The claim-limiting label. Optional only because a cached response from
+     * an older deployment will not carry it; when it is absent the score is
+     * not rendered either, because an unlabelled score is exactly the
+     * presentation this field exists to prevent.
+     */
+    replacementType?: string;
   }>;
 }

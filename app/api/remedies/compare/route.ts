@@ -13,7 +13,13 @@ import {
 import { createLogger } from "@/lib/logger";
 import { isUuid } from "@/lib/utils";
 import { isDemoDataEnabled } from "@/lib/env";
-import type { DetailedRemedy, Reference, RelatedRemedy } from "@/lib/types";
+import type {
+  DetailedRemedy,
+  Reference,
+  RelatedRemedy,
+  ReplacementType,
+} from "@/lib/types";
+import { parseReplacementType } from "@/lib/remedy-matcher";
 import { normalizeReferences } from "@/lib/references";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
@@ -48,6 +54,13 @@ interface CompareRemedy extends DetailedRemedy {
     name: string;
     category: string;
     similarityScore: number;
+    /**
+     * The claim-limiting label. Carried all the way to the client because a
+     * score without it presents a Supportive mapping exactly like an
+     * Alternative — schema.prisma made this column NOT NULL for that reason
+     * and this mapper used to drop it on the floor.
+     */
+    replacementType: ReplacementType;
   }>;
 }
 
@@ -91,6 +104,9 @@ const MOCK_REMEDIES: Record<string, CompareRemedy> = {
         name: "Vitamin D3 Supplements",
         category: "Supplement",
         similarityScore: 0.9,
+        // Demo data is conservative by construction: no demo row may
+        // present itself as a candidate substitute for a medication.
+        replacementType: "Supportive" as const,
       },
     ],
   },
@@ -130,6 +146,9 @@ const MOCK_REMEDIES: Record<string, CompareRemedy> = {
         name: "Fish Oil Supplements",
         category: "Supplement",
         similarityScore: 0.85,
+        // Demo data is conservative by construction: no demo row may
+        // present itself as a candidate substitute for a medication.
+        replacementType: "Supportive" as const,
       },
     ],
   },
@@ -168,6 +187,9 @@ const MOCK_REMEDIES: Record<string, CompareRemedy> = {
         name: "Ibuprofen",
         category: "NSAID",
         similarityScore: 0.7,
+        // Demo data is conservative by construction: no demo row may
+        // present itself as a candidate substitute for a medication.
+        replacementType: "Supportive" as const,
       },
     ],
   },
@@ -209,6 +231,9 @@ const MOCK_REMEDIES: Record<string, CompareRemedy> = {
         name: "Dramamine",
         category: "Anti-nausea",
         similarityScore: 0.6,
+        // Demo data is conservative by construction: no demo row may
+        // present itself as a candidate substitute for a medication.
+        replacementType: "Supportive" as const,
       },
     ],
   },
@@ -219,12 +244,7 @@ const MOCK_REMEDIES: Record<string, CompareRemedy> = {
  */
 function toCompareRemedy(
   remedy: ParsedNaturalRemedy,
-  pharmaceuticals: Array<{
-    id: string;
-    name: string;
-    category: string;
-    similarityScore: number;
-  }> = [],
+  pharmaceuticals: CompareRemedy["relatedPharmaceuticals"] = [],
 ): CompareRemedy {
   const parsedReferences: Reference[] = normalizeReferences(remedy.references);
 
@@ -388,11 +408,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         (mapping: {
           pharmaceutical: { id: string; name: string; category: string };
           similarityScore: number;
+          replacementType: string;
         }) => ({
           id: mapping.pharmaceutical.id,
           name: mapping.pharmaceutical.name,
           category: mapping.pharmaceutical.category,
           similarityScore: mapping.similarityScore,
+          replacementType: parseReplacementType(mapping.replacementType),
         }),
       );
       dbRemedyMap.set(dbRemedy.id, toCompareRemedy(parsed, pharmaceuticals));

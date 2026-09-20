@@ -22,8 +22,8 @@ export default function RemedyError({
           Failed to load remedy details
         </h2>
         <p className="text-muted-foreground mb-6">
-          We could not load this remedy. It may no longer exist or there was a
-          server error.
+          Something went wrong on our side, so we could not load this remedy. It
+          has not been removed — please try again.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button

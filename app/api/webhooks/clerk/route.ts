@@ -19,8 +19,96 @@ import { clerkClient } from "@clerk/nextjs/server";
 import type { WebhookEvent } from "@clerk/nextjs/server";
 import { sendWelcomeEmail } from "@/lib/email";
 import { createLogger } from "@/lib/logger";
+import { getStripe, isStripeConfigured } from "@/lib/stripe";
 
 const logger = createLogger("webhook-clerk");
+
+/**
+ * Stop billing someone whose account has just been erased.
+ *
+ * Deleting the User cascades the Subscription row away, so before this existed
+ * the Stripe subscription and customer simply outlived the account: still
+ * billing, with nothing local left that could notice. reconcile-subscriptions
+ * iterates our own rows, so it could not catch it either. Someone exercised
+ * their right to erasure and kept being charged.
+ *
+ * Cancelled immediately rather than at period end. `cancelSubscription()` in
+ * lib/stripe sets cancel_at_period_end, which is right when a user chooses to
+ * leave and wants what they paid for; it is wrong here, because the account
+ * they would use it with no longer exists. Whether the unused remainder is
+ * refunded is a policy decision and is deliberately not made here.
+ *
+ * Erasure must not be blocked by a billing failure — the deletion is a legal
+ * obligation and Stripe being unreachable does not suspend it. So a failure is
+ * recorded durably in the WebhookEvent ledger instead of thrown, giving an
+ * operator a row to act on rather than a log line that scrolls away.
+ */
+async function cancelSubscriptionOnErasure(
+  clerkId: string,
+  stripeSubscriptionId: string | null,
+): Promise<void> {
+  if (!stripeSubscriptionId) return;
+
+  if (!isStripeConfigured()) {
+    logger.error(
+      "Account erased with an active Stripe subscription, but Stripe is not configured to cancel it",
+      { clerkId, stripeSubscriptionId },
+    );
+    return;
+  }
+
+  try {
+    await getStripe().subscriptions.cancel(stripeSubscriptionId);
+    logger.info("Cancelled Stripe subscription for an erased account", {
+      clerkId,
+      stripeSubscriptionId,
+    });
+    return;
+  } catch (error) {
+    // Already gone is the outcome we wanted, not a failure.
+    const code = (error as { code?: string } | null)?.code;
+    if (code === "resource_missing") {
+      logger.info("Stripe subscription already absent for an erased account", {
+        clerkId,
+        stripeSubscriptionId,
+      });
+      return;
+    }
+
+    logger.error("Failed to cancel Stripe subscription for an erased account", {
+      clerkId,
+      stripeSubscriptionId,
+      error,
+    });
+
+    // A person is still being billed for an account that no longer exists.
+    // That belongs somewhere an operator will find it.
+    try {
+      await prisma.webhookEvent.upsert({
+        where: { stripeEventId: `clerk:user.deleted:${clerkId}` },
+        create: {
+          stripeEventId: `clerk:user.deleted:${clerkId}`,
+          type: "clerk.user.deleted.subscription_cancel_failed",
+          payload: { clerkId, stripeSubscriptionId },
+          status: "failed",
+          attempts: 1,
+          lastError: error instanceof Error ? error.message : String(error),
+        },
+        update: {
+          status: "failed",
+          attempts: { increment: 1 },
+          lastError: error instanceof Error ? error.message : String(error),
+        },
+      });
+    } catch (ledgerError) {
+      logger.error("Could not record the failed cancellation either", {
+        clerkId,
+        stripeSubscriptionId,
+        error: ledgerError,
+      });
+    }
+  }
+}
 
 export async function POST(req: Request): Promise<Response> {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -173,10 +261,22 @@ export async function POST(req: Request): Promise<Response> {
     if (id) {
       const dbUser = await prisma.user.findUnique({
         where: { clerkId: id },
-        select: { id: true },
+        select: {
+          id: true,
+          // Read before the delete, not after: Subscription cascades from User
+          // (schema.prisma), so once the rows are gone there is nothing left
+          // that knows this person had a Stripe subscription at all — not even
+          // the reconcile-subscriptions cron, which iterates our own rows.
+          subscription: { select: { stripeSubscriptionId: true } },
+        },
       });
 
       if (dbUser) {
+        await cancelSubscriptionOnErasure(
+          id,
+          dbUser.subscription?.stripeSubscriptionId ?? null,
+        );
+
         // Explicitly delete rows that will not cascade (onDelete: SetNull or no relation).
         // This keeps user-deleted behavior privacy-friendly.
         await prisma.$transaction([

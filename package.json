@@ -1,6 +1,6 @@
 {
   "name": "remedi",
-  "version": "1.2.3",
+  "version": "1.3.0",
   "private": true,
   "type": "module",
   "packageManager": "bun@1.3.8",
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "bunx prisma generate && bunx prisma migrate deploy && next build && bun run check:css",
+    "build": "bunx prisma generate && bun run db:migrate:deploy && next build && bun run check:css",
     "check:css": "bun run scripts/check-built-css.ts",
     "start": "next start",
     "format:check": "prettier --check \"{app,components,context,hooks,lib,scripts,__tests__,e2e,prisma}/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{ts,tsx,js,jsx,json,css,md,mjs,yml,yaml}\"",
@@ -22,6 +22,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "analyze": "ANALYZE=true next build",
+    "lighthouse:ci": "node scripts/check-lighthouse-score.mjs http://127.0.0.1:3000 / /about /faq /pricing /compare",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
@@ -45,7 +46,8 @@
     "prod:check": "bun run scripts/production-check.ts",
     "predeploy": "bun run format:check && bun run lint && bun run type-check && bun run test:run && bun run db:verify && bun run db:integrity && bun run prod:check",
     "quality:check": "bun run format:check && bun run lint && bun run type-check && bun run test:run && bun run test:e2e && bun run db:verify && bun run db:integrity && bun run prod:check",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:migrate:deploy": "bun run scripts/migrate-on-deploy.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.3",

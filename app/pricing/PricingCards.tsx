@@ -201,7 +201,12 @@ function PlanShell({
         <span className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background">
           <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
         </span>
-        <h3 className="text-lg font-semibold">{name}</h3>
+        {/*
+          h2, not h3: the plan cards sit directly under the page's h1 with no
+          intervening section heading, so an h3 here skipped a level and failed
+          Lighthouse's heading-order audit on /pricing.
+        */}
+        <h2 className="text-lg font-semibold">{name}</h2>
       </div>
 
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground">

@@ -37,6 +37,14 @@ export const PUBLIC_ROUTE_PATTERNS = [
   // and 307'd to /sign-in for every signed-out visitor — breaking install and
   // putting a failed request in the critical path of every page load.
   "/manifest.json",
+  // Next.js metadata routes have no file extension, so the proxy matcher runs
+  // Clerk's protect() on them and the browser's favicon/OG fetches (which
+  // carry no session) were bounced: production answered /icon with a 404
+  // (x-matched-path: /_not-found) on every page load.
+  "/icon",
+  "/apple-icon",
+  "/opengraph-image(.*)",
+  "/twitter-image(.*)",
   "/llms.txt",
   // Public API routes
   // Exact: `/api/search(.*)` also matched /api/search-history.

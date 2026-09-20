@@ -85,6 +85,7 @@ export const MOCK_REMEDY_MAPPINGS: Record<string, NaturalRemedy[]> = {
       category: "Lifestyle Change",
       matchingNutrients: ["Vitamin D"],
       similarityScore: 0.95,
+      replacementType: "Supportive",
     },
     {
       id: "102",
@@ -95,6 +96,7 @@ export const MOCK_REMEDY_MAPPINGS: Record<string, NaturalRemedy[]> = {
       category: "Food Source",
       matchingNutrients: ["Vitamin D", "Calcium"],
       similarityScore: 0.8,
+      replacementType: "Supportive",
     },
   ],
   "2": [
@@ -108,6 +110,7 @@ export const MOCK_REMEDY_MAPPINGS: Record<string, NaturalRemedy[]> = {
       category: "Herbal Remedy",
       matchingNutrients: ["Anti-inflammatory compounds"],
       similarityScore: 0.75,
+      replacementType: "Supportive",
     },
     {
       id: "104",
@@ -118,6 +121,7 @@ export const MOCK_REMEDY_MAPPINGS: Record<string, NaturalRemedy[]> = {
       category: "Herbal Remedy",
       matchingNutrients: ["Anti-inflammatory compounds"],
       similarityScore: 0.7,
+      replacementType: "Supportive",
     },
   ],
   "3": [
@@ -132,6 +136,7 @@ export const MOCK_REMEDY_MAPPINGS: Record<string, NaturalRemedy[]> = {
       category: "Food Source",
       matchingNutrients: ["Melatonin"],
       similarityScore: 0.85,
+      replacementType: "Supportive",
     },
     {
       id: "106",
@@ -142,6 +147,7 @@ export const MOCK_REMEDY_MAPPINGS: Record<string, NaturalRemedy[]> = {
       category: "Herbal Remedy",
       matchingNutrients: ["Sleep-promoting compounds"],
       similarityScore: 0.65,
+      replacementType: "Supportive",
     },
   ],
   "4": [
@@ -155,6 +161,7 @@ export const MOCK_REMEDY_MAPPINGS: Record<string, NaturalRemedy[]> = {
       category: "Food Source",
       matchingNutrients: ["Omega-3 fatty acids", "EPA", "DHA"],
       similarityScore: 0.9,
+      replacementType: "Supportive",
     },
   ],
   "5": [
@@ -168,6 +175,7 @@ export const MOCK_REMEDY_MAPPINGS: Record<string, NaturalRemedy[]> = {
       category: "Herbal Remedy",
       matchingNutrients: ["Digestive soothing compounds"],
       similarityScore: 0.6,
+      replacementType: "Supportive",
     },
     {
       id: "108",
@@ -178,6 +186,7 @@ export const MOCK_REMEDY_MAPPINGS: Record<string, NaturalRemedy[]> = {
       category: "Supplement",
       matchingNutrients: ["Digestive regulation compounds"],
       similarityScore: 0.55,
+      replacementType: "Supportive",
     },
   ],
   "6": [
@@ -195,6 +204,7 @@ export const MOCK_REMEDY_MAPPINGS: Record<string, NaturalRemedy[]> = {
         "Pain-relieving properties",
       ],
       similarityScore: 0.75,
+      replacementType: "Supportive",
     },
     {
       id: "110",
@@ -205,6 +215,7 @@ export const MOCK_REMEDY_MAPPINGS: Record<string, NaturalRemedy[]> = {
       category: "Herbal Remedy",
       matchingNutrients: ["Menthol", "Pain-relieving compounds"],
       similarityScore: 0.7,
+      replacementType: "Supportive",
     },
   ],
 };

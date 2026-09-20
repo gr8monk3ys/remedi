@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import {
   Database,
   Globe,
@@ -13,11 +14,12 @@ import { EvidenceBadge } from "@/components/remedy/EvidenceBadge";
 import { PageHeader } from "@/components/ui/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-export const metadata: Metadata = {
-  title: "About | Remedi",
+export const metadata: Metadata = pageMetadata({
+  path: "/about",
+  title: "About",
   description:
     "Learn how Remedi helps you discover evidence-based natural alternatives to pharmaceutical drugs and supplements.",
-};
+});
 
 const SEARCH_STEPS = [
   {
@@ -164,7 +166,8 @@ export default function AboutPage(): React.JSX.Element {
           <Section index={5} title="Disclaimer">
             <Alert variant="warning">
               <AlertTriangle />
-              <AlertTitle>Not medical advice</AlertTitle>
+              {/* Inside the h2 "Disclaimer" section, so the title is an h3. */}
+              <AlertTitle level={3}>Not medical advice</AlertTitle>
               <AlertDescription>
                 Remedi is for informational purposes only and should not replace
                 professional medical advice. Always consult with a healthcare

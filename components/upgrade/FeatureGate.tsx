@@ -17,13 +17,23 @@ import { apiClient } from "@/lib/api/client";
 import { logger } from "@/lib/logger";
 import { UpgradeModal } from "./UpgradeModal";
 
-type FeatureKey =
-  | "canExport"
-  | "canCompare"
-  | "canAccessHistory"
-  | "prioritySupport"
-  | "canViewCabinetInteractions"
-  | "canTrackJournal";
+import type { FeatureKey } from "./use-feature-access";
+
+/**
+ * What the gate established about this user's access.
+ *
+ * The point of the union is the last arm. `denied` and `unavailable` used to
+ * be the same value — `hasAccess === false` — so one failed /api/usage call
+ * rendered a Premium subscriber a lock overlay and an Upgrade button for a
+ * feature they already pay for. Whether someone has access and whether we
+ * could find out are different facts, and only the first may be presented as
+ * a limit on their account.
+ */
+type GateState =
+  | { kind: "checking" }
+  | { kind: "granted" }
+  | { kind: "denied"; plan: PlanType }
+  | { kind: "unavailable" };
 
 interface FeatureGateProps {
   /**
@@ -104,20 +114,20 @@ export function FeatureGate({
 }: FeatureGateProps) {
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const router = useRouter();
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-  const [currentPlan, setCurrentPlan] = useState<PlanType>("free");
-  const [isLoading, setIsLoading] = useState(true);
+  const [gate, setGate] = useState<GateState>({ kind: "checking" });
+  const [attempt, setAttempt] = useState(0);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  const currentPlan = gate.kind === "denied" ? gate.plan : "free";
 
   // Check access when session changes
   useEffect(() => {
     const checkAccess = async () => {
-      // Not logged in - no access to premium features
+      // Not logged in - no access to premium features. This is a genuine
+      // denial: we know the answer.
       if (!isSignedIn && isAuthLoaded) {
-        setHasAccess(false);
-        setCurrentPlan("free");
-        setIsLoading(false);
+        setGate({ kind: "denied", plan: "free" });
         return;
       }
 
@@ -130,7 +140,6 @@ export function FeatureGate({
       try {
         const data = await apiClient.get<{ plan: string }>("/api/usage");
         const userPlan = data.plan as PlanType;
-        setCurrentPlan(userPlan);
 
         // Check if user's plan has access to this feature
         const planLimits =
@@ -144,17 +153,23 @@ export function FeatureGate({
         const requiredPlanIndex = planOrder.indexOf(minPlan);
         const meetsMinPlan = userPlanIndex >= requiredPlanIndex;
 
-        setHasAccess(hasFeatureAccess && meetsMinPlan);
+        setGate(
+          hasFeatureAccess && meetsMinPlan
+            ? { kind: "granted" }
+            : { kind: "denied", plan: userPlan },
+        );
       } catch (error) {
+        // We could not establish the plan. That is not the same fact as "this
+        // plan does not include the feature", and it must not be rendered as
+        // one — the previous `setHasAccess(false)` showed a Premium subscriber
+        // a lock and an Upgrade button for something they already pay for.
         logger.warn("Feature gate check failed", { error, feature });
-        setHasAccess(false);
+        setGate({ kind: "unavailable" });
       }
-
-      setIsLoading(false);
     };
 
     checkAccess();
-  }, [isAuthLoaded, isSignedIn, feature, requiredPlan]);
+  }, [isAuthLoaded, isSignedIn, feature, requiredPlan, attempt]);
 
   const handleUpgradeClick = () => {
     if (onUpgradeClick) {
@@ -172,7 +187,7 @@ export function FeatureGate({
   };
 
   // Still checking access
-  if (isLoading) {
+  if (gate.kind === "checking") {
     return (
       <div className={`relative ${className}`}>
         <div className="flex items-center justify-center p-8">
@@ -183,8 +198,40 @@ export function FeatureGate({
   }
 
   // User has access
-  if (hasAccess) {
+  if (gate.kind === "granted") {
     return <>{children}</>;
+  }
+
+  // We could not find out. Say so, and offer to try again — never a lock and
+  // an upsell, which tells a paying subscriber they do not have what they pay
+  // for. One of these features is Cabinet Interaction Alerts, so guessing
+  // "denied" also hides a safety feature behind a sales pitch.
+  if (gate.kind === "unavailable") {
+    return (
+      <div className={`relative ${className}`}>
+        <div
+          role="status"
+          className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card p-6 text-center"
+        >
+          <p className="text-sm text-foreground">
+            We could not check your plan just now, so this is not showing.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            This is a problem on our side, not a limit on your account.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setGate({ kind: "checking" });
+              setAttempt((n) => n + 1);
+            }}
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // Custom fallback provided
@@ -281,50 +328,6 @@ export function FeatureGate({
   );
 }
 
-/**
- * Hook to check feature access
- */
-export function useFeatureAccess(feature: FeatureKey): {
-  hasAccess: boolean | null;
-  isLoading: boolean;
-  currentPlan: PlanType;
-} {
-  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-  const [currentPlan, setCurrentPlan] = useState<PlanType>("free");
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAccess = async () => {
-      if (!isSignedIn && isAuthLoaded) {
-        setHasAccess(false);
-        setCurrentPlan("free");
-        setIsLoading(false);
-        return;
-      }
-
-      if (!isAuthLoaded) {
-        return;
-      }
-
-      try {
-        const data = await apiClient.get<{ plan: string }>("/api/usage");
-        const userPlan = data.plan as PlanType;
-        setCurrentPlan(userPlan);
-
-        const planLimits =
-          PLAN_LIMITS[userPlan.toUpperCase() as keyof typeof PLAN_LIMITS];
-        setHasAccess(planLimits[feature] === true);
-      } catch (error) {
-        logger.warn("Feature access check failed", { error, feature });
-        setHasAccess(false);
-      }
-
-      setIsLoading(false);
-    };
-
-    checkAccess();
-  }, [isAuthLoaded, isSignedIn, feature]);
-
-  return { hasAccess, isLoading, currentPlan };
-}
+// Lives in its own module so callers that only need the access check do not
+// pull framer-motion (which this file imports for the overlay) into their chunk.
+export { useFeatureAccess } from "./use-feature-access";

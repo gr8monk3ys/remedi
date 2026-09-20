@@ -99,14 +99,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if OpenAI API key is configured
+    // AI search has no provider configured. That is our problem, not the
+    // caller's, and the response says so without naming internal
+    // configuration: an end user cannot act on an environment variable, and
+    // telling an anonymous caller which ones we are missing is free
+    // reconnaissance. The operator-facing detail goes to the log instead.
+    //
+    // This check sits deliberately before the tryConsumeUsage reservation
+    // below, so an unconfigured deployment never charges anyone for a search
+    // it cannot perform. __tests__ pins that ordering.
     if (!process.env.OPENAI_API_KEY) {
+      log.error(
+        "AI search requested but OPENAI_API_KEY is not configured for this deployment",
+      );
       return NextResponse.json(
         errorResponse(
           "SERVICE_UNAVAILABLE",
-          "AI search is not configured. Please set OPENAI_API_KEY environment variable.",
+          "AI search is temporarily unavailable. Please try again later.",
         ),
-        { status: 503 },
+        { status: getStatusCode("SERVICE_UNAVAILABLE") },
       );
     }
 
@@ -318,7 +329,7 @@ export async function GET() {
       status: isConfigured ? "available" : "not_configured",
       message: isConfigured
         ? "AI search is available"
-        : "AI search requires a valid OPENAI_API_KEY environment variable",
+        : "AI search is temporarily unavailable",
       features: {
         naturalLanguageProcessing: isConfigured,
         intelligentMatching: isConfigured,

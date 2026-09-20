@@ -4,28 +4,18 @@ import Link from "next/link";
 import { Heart, ArrowRight } from "lucide-react";
 import { useFavoritesQuery } from "@/hooks/queries";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export function FavoritesSection() {
   const { data: favorites = [], isLoading } = useFavoritesQuery();
 
-  if (isLoading) {
-    return (
-      <div className="rounded-lg border border-border bg-card p-5">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-4 w-4 rounded-sm" />
-          <Skeleton className="h-4 w-32" />
-        </div>
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-16" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (favorites.length === 0) {
+  // No placeholder while loading. The section is absent from the server HTML
+  // (the query needs a session id from localStorage), so a skeleton here was
+  // mounted after hydration and unmounted again once the empty list arrived —
+  // a 288px card that pushed everything below the search box off-screen and
+  // then pulled it back. That round trip was the whole of the home page's
+  // layout shift (CLS 0.067 × 2) for every visitor without favorites, which is
+  // every first visit. Favorites still appear as soon as they are known.
+  if (isLoading || favorites.length === 0) {
     return null;
   }
 

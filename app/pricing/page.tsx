@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
  */
 
 import { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { ArrowRight, Check, Minus, Plus, ShieldCheck } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -21,11 +22,12 @@ import { parsePlanType, type PlanType } from "@/lib/stripe";
 import { getTrialStatus } from "@/lib/trial";
 import { PricingClient } from "./pricing-client";
 
-export const metadata: Metadata = {
-  title: "Pricing | Remedi",
+export const metadata: Metadata = pageMetadata({
+  path: "/pricing",
+  title: "Pricing",
   description:
     "Choose the perfect Remedi plan for your natural remedy journey. Free, Basic, and Premium plans available.",
-};
+});
 
 export default async function PricingPage() {
   const user = await getCurrentUser();
@@ -172,11 +174,17 @@ export default async function PricingPage() {
                 then talk it through with your healthcare provider.
               </p>
             </div>
+            {/*
+              text-brand-on-white, not text-primary: --primary flips to the
+              dark theme's #4fc07c, which is 2.29:1 on this white button and
+              failed Lighthouse's color-contrast audit. The pinned token is the
+              light theme's green, 6.47:1 on white.
+            */}
             <a
               href="#pricing"
               className={cn(
                 buttonVariants({ size: "lg" }),
-                "shrink-0 bg-white text-primary hover:bg-white/90",
+                "shrink-0 bg-white text-brand-on-white hover:bg-white/90",
               )}
             >
               Get Started Today
