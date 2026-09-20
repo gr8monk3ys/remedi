@@ -133,19 +133,22 @@ export async function POST(req: Request): Promise<Response> {
   const body = JSON.stringify(payload);
 
   // Verify the webhook signature
+  // svix 2.x's verify() only throws on a bad signature; it no longer returns
+  // the parsed event, so the event is the body we just verified.
   const wh = new Webhook(WEBHOOK_SECRET);
-  let evt: WebhookEvent;
 
   try {
-    evt = wh.verify(body, {
+    wh.verify(body, {
       "svix-id": svixId,
       "svix-timestamp": svixTimestamp,
       "svix-signature": svixSignature,
-    }) as WebhookEvent;
+    });
   } catch (err) {
     logger.error("Webhook verification failed", err);
     return new Response("Webhook verification failed", { status: 400 });
   }
+
+  const evt = payload as WebhookEvent;
 
   // Handle events
   const eventType = evt.type;

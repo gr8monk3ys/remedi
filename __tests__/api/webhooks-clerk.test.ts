@@ -31,8 +31,10 @@ vi.mock("svix", () => {
       constructor(_secret: string) {
         // no-op
       }
-      verify(body: string, headers: Record<string, string>) {
-        return mockVerify(body, headers);
+      // svix 2.x verify() returns nothing: it throws on a bad signature and
+      // the route reads the event from the body it verified.
+      verify(body: string, headers: Record<string, string>): undefined {
+        mockVerify(body, headers);
       }
     },
   };
