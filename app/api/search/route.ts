@@ -112,6 +112,10 @@ export async function GET(req: NextRequest) {
     return rateLimitResponse;
   }
 
+  // Declared outside the try so the catch below can give a reserved search
+  // back when the request throws after the quota was charged.
+  let releaseSearch: (() => Promise<void>) | null = null;
+
   try {
     const { searchParams } = new URL(req.url);
     const queryParam = searchParams.get("query");
@@ -144,7 +148,6 @@ export async function GET(req: NextRequest) {
     // Anonymous visitors are not metered — there is no user to meter against.
     // They remain bounded by the per-IP rate limit. See the PR for why that
     // asymmetry needs a product decision rather than a code one.
-    let releaseSearch: (() => Promise<void>) | null = null;
     if (userId) {
       const reservation = await tryConsumeUsage(userId, "searches", 1);
       if (!reservation.allowed) {
@@ -242,6 +245,8 @@ export async function GET(req: NextRequest) {
       { status: 200, headers: { "Cache-Control": CACHE_CONTROL } },
     );
   } catch (error) {
+    // The request threw after the quota was reserved, so give it back.
+    await releaseSearch?.();
     log.error("Error in search API", error);
     return NextResponse.json(errorResponseFromError(error, "INTERNAL_ERROR"), {
       status: getStatusCode("INTERNAL_ERROR"),

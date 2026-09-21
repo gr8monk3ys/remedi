@@ -145,4 +145,30 @@ describe("daily search allowance", () => {
       1,
     );
   });
+
+  it("gives the allowance back when the search throws unexpectedly", async () => {
+    // resolveSearch rethrows anything that is not a tier outage, and the
+    // route's generic catch answers 500. That is not a search either, so the
+    // reservation must not stay consumed.
+    vi.resetModules();
+    vi.doMock("@/lib/search/resolve", () => ({
+      resolveSearch: vi.fn().mockRejectedValue(new Error("unexpected")),
+    }));
+    try {
+      const { GET } = await import("@/app/api/search/route");
+
+      const res = await GET(req());
+
+      expect(res.status).toBe(500);
+      expect(mockRefundUsage).toHaveBeenCalledWith(
+        "user-1",
+        "searches",
+        expect.any(Date),
+        1,
+      );
+    } finally {
+      vi.doUnmock("@/lib/search/resolve");
+      vi.resetModules();
+    }
+  });
 });
