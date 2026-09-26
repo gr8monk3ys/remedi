@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Sparkles, Zap, Crown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import type { PlanType } from "@/lib/stripe-config";
 
 interface PlanCardProps {
@@ -109,14 +109,14 @@ export function PlanCard({
         ) : (
           <>
             <p className="tabular text-3xl font-semibold tracking-tight text-foreground">
-              ${monthlyEquivalent.toFixed(2)}
+              {formatPrice(monthlyEquivalent)}
               <span className="ml-1 text-sm font-normal text-muted-foreground">
                 /mo
               </span>
             </p>
             {interval === "yearly" && yearlyPrice && (
               <p className="mt-1 font-mono text-xs text-muted-foreground">
-                ${yearlyPrice.toFixed(2)} billed annually
+                {formatPrice(yearlyPrice)} billed annually
               </p>
             )}
           </>
@@ -140,7 +140,7 @@ export function PlanCard({
           onManage ? (
             <button
               onClick={onManage}
-              className="w-full rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-border-strong hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="w-full rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-border-strong hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Manage Subscription
             </button>
@@ -154,7 +154,7 @@ export function PlanCard({
             onClick={onSelect}
             disabled={!onSelect}
             className={cn(
-              "w-full rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "w-full rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               plan === "free"
                 ? "border border-border bg-card text-foreground hover:bg-muted"
                 : "bg-primary text-primary-foreground hover:bg-primary/90",

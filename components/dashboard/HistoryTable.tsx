@@ -8,8 +8,7 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import type { SearchHistoryItem, HistorySortOption } from "@/types/dashboard";
 
 interface HistoryTableProps {
@@ -138,7 +137,7 @@ export function HistoryTable({
               </td>
               <td className="py-3 px-4 text-muted-foreground">
                 <time dateTime={item.createdAt.toISOString()}>
-                  {format(item.createdAt, "MMM d, yyyy h:mm a")}
+                  {formatDate(item.createdAt, "mediumWithTime")}
                 </time>
               </td>
               <td className="py-3 px-4">

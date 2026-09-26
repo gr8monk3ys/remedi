@@ -43,7 +43,7 @@ export function ProductionCheckButton() {
           className="px-3 py-1.5 text-xs font-semibold rounded-md border border-border hover:bg-muted"
           disabled={loading}
         >
-          {loading ? "Running..." : "Run checks"}
+          {loading ? "Running…" : "Run checks"}
         </button>
       </div>
       {error && (

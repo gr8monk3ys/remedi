@@ -191,7 +191,9 @@ export function FeatureGate({
     return (
       <div className={`relative ${className}`}>
         <div className="flex items-center justify-center p-8">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          <span className="inline-flex shrink-0 animate-spin">
+            <Loader2 className="w-6 h-6 text-muted-foreground" />
+          </span>
         </div>
       </div>
     );

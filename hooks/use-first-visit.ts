@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { safeGetItem, safeSetItem, safeRemoveItem } from "@/lib/safe-storage";
 
 const STORAGE_KEY = "remedi_first_visit";
 const TUTORIAL_KEY = "remedi_tutorial_completed";
@@ -29,8 +30,8 @@ export function useFirstVisit(): UseFirstVisitReturn {
 
   useEffect(() => {
     // Check localStorage on mount
-    const hasVisited = localStorage.getItem(STORAGE_KEY);
-    const tutorialCompleted = localStorage.getItem(TUTORIAL_KEY);
+    const hasVisited = safeGetItem(STORAGE_KEY);
+    const tutorialCompleted = safeGetItem(TUTORIAL_KEY);
 
     setState({
       isFirstVisit: !hasVisited,
@@ -40,18 +41,18 @@ export function useFirstVisit(): UseFirstVisitReturn {
   }, []);
 
   const dismissFirstVisit = useCallback(() => {
-    localStorage.setItem(STORAGE_KEY, "true");
+    safeSetItem(STORAGE_KEY, "true");
     setState((prev) => ({ ...prev, isFirstVisit: false }));
   }, []);
 
   const completeTutorial = useCallback(() => {
-    localStorage.setItem(TUTORIAL_KEY, "true");
+    safeSetItem(TUTORIAL_KEY, "true");
     setState((prev) => ({ ...prev, hasCompletedTutorial: true }));
   }, []);
 
   const resetOnboarding = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(TUTORIAL_KEY);
+    safeRemoveItem(STORAGE_KEY);
+    safeRemoveItem(TUTORIAL_KEY);
     setState({
       isFirstVisit: true,
       hasCompletedTutorial: false,

@@ -17,7 +17,8 @@ export default function NotFound() {
           Page Not Found
         </h2>
         <p className="mt-3 text-muted-foreground">
-          The page you&apos;re looking for doesn&apos;t exist or has been moved.
+          The page you&rsquo;re looking for doesn&rsquo;t exist or has been
+          moved.
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <Button asChild>

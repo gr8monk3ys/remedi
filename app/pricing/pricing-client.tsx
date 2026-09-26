@@ -25,6 +25,7 @@ import {
 } from "@/lib/analytics/conversion-event-types";
 import { createLogger } from "@/lib/logger";
 import { PricingCards } from "./PricingCards";
+import { formatPrice } from "@/lib/utils";
 
 const logger = createLogger("pricing");
 
@@ -188,11 +189,11 @@ export function PricingClient({
   const premiumYearlyPrice = PLANS.premium.yearlyPrice;
 
   const basicDisplayPrice = isYearly
-    ? (basicYearlyPrice / 12).toFixed(2)
-    : PLANS.basic.price.toFixed(2);
+    ? formatPrice(basicYearlyPrice / 12)
+    : formatPrice(PLANS.basic.price);
   const premiumDisplayPrice = isYearly
-    ? (premiumYearlyPrice / 12).toFixed(2)
-    : PLANS.premium.price.toFixed(2);
+    ? formatPrice(premiumYearlyPrice / 12)
+    : formatPrice(PLANS.premium.price);
 
   return (
     <div id="pricing">
@@ -262,9 +263,9 @@ export function PricingClient({
         onStartTrial={handleStartTrial}
         onDowngrade={handleDowngrade}
         basicDisplayPrice={basicDisplayPrice}
-        basicYearlyBilled={basicYearlyPrice.toFixed(2)}
+        basicYearlyBilled={formatPrice(basicYearlyPrice)}
         premiumDisplayPrice={premiumDisplayPrice}
-        premiumYearlyBilled={premiumYearlyPrice.toFixed(2)}
+        premiumYearlyBilled={formatPrice(premiumYearlyPrice)}
       />
 
       {/* Manage subscription link */}

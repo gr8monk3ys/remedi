@@ -1,5 +1,3 @@
-"use client";
-
 import { Star, Zap, Moon, Smile } from "lucide-react";
 
 interface JournalEntry {

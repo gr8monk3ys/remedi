@@ -32,17 +32,24 @@ export function ReferencesInput({
       {references.map((ref, index) => (
         <div key={index} className="flex gap-2 mb-2">
           <input
+            aria-label={`Reference ${index + 1} title`}
+            name="title"
+            autoComplete="off"
             type="text"
             value={ref.title}
             onChange={(e) => onReferenceChange(index, "title", e.target.value)}
-            className="flex-1 px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="flex-1 px-4 py-2 border border-border rounded-lg bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             placeholder="Reference title"
           />
           <input
+            aria-label={`Reference ${index + 1} URL`}
+            name="url"
+            autoComplete="off"
+            spellCheck={false}
             type="url"
             value={ref.url || ""}
             onChange={(e) => onReferenceChange(index, "url", e.target.value)}
-            className="flex-1 px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="flex-1 px-4 py-2 border border-border rounded-lg bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             placeholder="URL (optional)"
           />
           {references.length > 1 && (

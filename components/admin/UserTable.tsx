@@ -14,6 +14,7 @@ import {
 import { createLogger } from "@/lib/logger";
 import { toast } from "sonner";
 import { apiClient, ApiClientError } from "@/lib/api/client";
+import { formatDate } from "@/lib/utils";
 
 const logger = createLogger("admin-users");
 
@@ -188,7 +189,7 @@ export function UserTable({ users, currentPage, totalPages }: UserTableProps) {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                  {new Date(user.createdAt).toLocaleDateString()}
+                  {formatDate(user.createdAt)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="relative">

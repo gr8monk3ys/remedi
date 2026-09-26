@@ -39,7 +39,7 @@ export function UpstashStatus() {
   if (loading) {
     return (
       <div className="rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground">
-        Loading Upstash status...
+        Loading Upstash status…
       </div>
     );
   }

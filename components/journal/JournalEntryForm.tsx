@@ -125,6 +125,8 @@ export function JournalEntryForm({
                 Remedy Name *
               </label>
               <input
+                name="remedyName"
+                autoComplete="off"
                 id="j-remedy"
                 type="text"
                 value={remedyName}
@@ -145,6 +147,8 @@ export function JournalEntryForm({
                 Date
               </label>
               <input
+                name="date"
+                autoComplete="off"
                 id="j-date"
                 type="date"
                 value={date}
@@ -187,6 +191,8 @@ export function JournalEntryForm({
               Dosage Taken
             </label>
             <input
+              name="dosageTaken"
+              autoComplete="off"
               id="j-dosage"
               type="text"
               value={dosageTaken}
@@ -219,6 +225,9 @@ export function JournalEntryForm({
             </div>
             <div className="flex gap-2">
               <input
+                aria-label="Add symptom"
+                name="newSymptom"
+                autoComplete="off"
                 type="text"
                 value={newSymptom}
                 onChange={(e) => setNewSymptom(e.target.value)}
@@ -232,7 +241,7 @@ export function JournalEntryForm({
                     setNewSymptom("");
                   }
                 }}
-                placeholder="Add symptom..."
+                placeholder="Add symptom…"
                 className="flex-1 px-3 py-1.5 rounded-lg border bg-background text-sm"
               />
               <button
@@ -276,6 +285,9 @@ export function JournalEntryForm({
             </div>
             <div className="flex gap-2">
               <input
+                aria-label="Add side effect"
+                name="newSideEffect"
+                autoComplete="off"
                 type="text"
                 value={newSideEffect}
                 onChange={(e) => setNewSideEffect(e.target.value)}
@@ -289,7 +301,7 @@ export function JournalEntryForm({
                     setNewSideEffect("");
                   }
                 }}
-                placeholder="Add side effect..."
+                placeholder="Add side effect…"
                 className="flex-1 px-3 py-1.5 rounded-lg border bg-background text-sm"
               />
               <button
@@ -328,10 +340,12 @@ export function JournalEntryForm({
               Notes
             </label>
             <textarea
+              name="notes"
+              autoComplete="off"
               id="j-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="How did you feel? Any observations..."
+              placeholder="How did you feel? Any observations…"
               rows={3}
               className="w-full px-3 py-2 rounded-lg border bg-background text-sm resize-none"
             />
@@ -348,7 +362,9 @@ export function JournalEntryForm({
               className="flex-1 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {submitting && (
-                <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+                <span className="mr-2 inline-flex shrink-0 animate-spin">
+                  <Loader2 className="w-4 h-4 inline" />
+                </span>
               )}
               Log Entry
             </button>

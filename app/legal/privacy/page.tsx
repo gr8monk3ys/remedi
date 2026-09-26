@@ -189,7 +189,7 @@ export default function PrivacyPolicyPage() {
               collects no personal data, and Google Analytics, which does set
               cookies. <strong>Google Analytics runs only if you accept</strong>{" "}
               in the cookie banner; decline it and it is never loaded. You can
-              change your mind at any time by clearing this site&apos;s data in
+              change your mind at any time by clearing this site&rsquo;s data in
               your browser, and you can control cookies through your browser
               settings.
             </p>
@@ -204,7 +204,7 @@ export default function PrivacyPolicyPage() {
 
           <section className="mb-10 border-t border-border pt-8">
             <h2 className="mb-3 text-xl font-semibold">
-              8. Children&apos;s Privacy
+              8. Children&rsquo;s Privacy
             </h2>
             <p className="mb-4 leading-relaxed text-muted-foreground">
               Our service is not intended for children under 13. We do not
@@ -221,7 +221,7 @@ export default function PrivacyPolicyPage() {
             <p className="mb-4 leading-relaxed text-muted-foreground">
               We may update this privacy policy from time to time. We will
               notify you of significant changes by posting the new policy on
-              this page and updating the &quot;Last updated&quot; date.
+              this page and updating the &ldquo;Last updated&rdquo; date.
             </p>
           </section>
 

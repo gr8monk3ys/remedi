@@ -8,6 +8,7 @@ import { UsageProgressList } from "@/components/dashboard/UsageProgress";
 import { PlanCard } from "@/components/dashboard/PlanCard";
 import type { PlanType } from "@/lib/stripe-config";
 import type { UsageData } from "@/types/dashboard";
+import { formatPrice } from "@/lib/utils";
 
 type InvoiceSummary = {
   id: string;
@@ -146,7 +147,7 @@ export function SubscriptionClient({
         currency: normalizedCurrency,
       }).format(cents / 100);
     } catch {
-      return `$${(cents / 100).toFixed(2)}`;
+      return formatPrice(cents / 100);
     }
   };
 
@@ -229,7 +230,7 @@ export function SubscriptionClient({
           <div className="flex flex-col items-start sm:items-end gap-1">
             {planConfig.price > 0 ? (
               <p className="text-2xl font-semibold text-foreground">
-                ${planConfig.price.toFixed(2)}
+                {formatPrice(planConfig.price)}
                 <span className="text-sm font-normal text-muted-foreground">
                   /mo
                 </span>
@@ -347,14 +348,16 @@ export function SubscriptionClient({
             <button
               onClick={handleManageBilling}
               disabled={loadingAction !== null}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingAction === "manage" ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                <span className="inline-flex shrink-0 animate-spin">
+                  <Loader2 className="h-4 w-4" aria-hidden="true" />
+                </span>
               ) : (
                 <CreditCard className="h-4 w-4" aria-hidden="true" />
               )}
-              {loadingAction === "manage" ? "Opening..." : "Manage Billing"}
+              {loadingAction === "manage" ? "Opening…" : "Manage Billing"}
             </button>
           </div>
 

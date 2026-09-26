@@ -162,7 +162,9 @@ export function MedicationCabinetList({
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium hover:bg-muted/50 transition-colors"
         >
           {loadingInteractions ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="inline-flex shrink-0 animate-spin">
+              <Loader2 className="w-4 h-4" />
+            </span>
           ) : (
             <AlertTriangle className="w-4 h-4" />
           )}
@@ -218,7 +220,9 @@ export function MedicationCabinetList({
                   className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-muted-foreground hover:text-red-600 transition-colors"
                 >
                   {deletingId === med.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="inline-flex shrink-0 animate-spin">
+                      <Loader2 className="w-4 h-4" />
+                    </span>
                   ) : (
                     <Trash2 className="w-4 h-4" />
                   )}

@@ -1,5 +1,3 @@
-"use client";
-
 import { Info, Shield } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { InteractionOutcome } from "@/lib/interactions/read";

@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/lib/utils";
 import { Activity } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
