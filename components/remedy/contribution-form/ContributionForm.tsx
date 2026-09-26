@@ -149,7 +149,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
           minLength={20}
           rows={3}
           className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-          placeholder="Describe the remedy and its traditional uses..."
+          placeholder="Describe the remedy and its traditional uses…"
         />
       </div>
 
@@ -192,7 +192,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             onChange={(e) => setField("usage", e.target.value)}
             rows={2}
             className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-            placeholder="How to use this remedy..."
+            placeholder="How to use this remedy…"
           />
         </div>
 
@@ -209,7 +209,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             onChange={(e) => setField("dosage", e.target.value)}
             rows={2}
             className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-            placeholder="Typical dosage recommendations..."
+            placeholder="Typical dosage recommendations…"
           />
         </div>
       </div>
@@ -228,7 +228,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
           onChange={(e) => setField("precautions", e.target.value)}
           rows={2}
           className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-          placeholder="Any contraindications or warnings..."
+          placeholder="Any contraindications or warnings…"
         />
       </div>
 
@@ -246,7 +246,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
           onChange={(e) => setField("scientificInfo", e.target.value)}
           rows={3}
           className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-          placeholder="Any scientific studies or evidence..."
+          placeholder="Any scientific studies or evidence…"
         />
       </div>
 
@@ -298,7 +298,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
         {state.isSubmitting ? (
           <>
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Submitting...
+            Submitting…
           </>
         ) : (
           <>

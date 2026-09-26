@@ -232,7 +232,7 @@ export function JournalEntryForm({
                     setNewSymptom("");
                   }
                 }}
-                placeholder="Add symptom..."
+                placeholder="Add symptom…"
                 className="flex-1 px-3 py-1.5 rounded-lg border bg-background text-sm"
               />
               <button
@@ -289,7 +289,7 @@ export function JournalEntryForm({
                     setNewSideEffect("");
                   }
                 }}
-                placeholder="Add side effect..."
+                placeholder="Add side effect…"
                 className="flex-1 px-3 py-1.5 rounded-lg border bg-background text-sm"
               />
               <button
@@ -331,7 +331,7 @@ export function JournalEntryForm({
               id="j-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="How did you feel? Any observations..."
+              placeholder="How did you feel? Any observations…"
               rows={3}
               className="w-full px-3 py-2 rounded-lg border bg-background text-sm resize-none"
             />

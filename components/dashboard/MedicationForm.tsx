@@ -142,7 +142,7 @@ export function MedicationForm({
               id="med-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any additional notes..."
+              placeholder="Any additional notes…"
               rows={2}
               className="w-full px-3 py-2 rounded-lg border bg-background text-sm resize-none"
             />

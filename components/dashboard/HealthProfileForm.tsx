@@ -180,7 +180,7 @@ export function HealthProfileForm({
                 addToList(allergies, setAllergies, newAllergy, setNewAllergy);
               }
             }}
-            placeholder="Add allergy..."
+            placeholder="Add allergy…"
             className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm"
           />
           <button
@@ -233,7 +233,7 @@ export function HealthProfileForm({
                 );
               }
             }}
-            placeholder="Add condition..."
+            placeholder="Add condition…"
             className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm"
           />
           <button
@@ -288,7 +288,7 @@ export function HealthProfileForm({
                 addToList(dietaryPrefs, setDietaryPrefs, newPref, setNewPref);
               }
             }}
-            placeholder="Add preference (e.g. vegan, gluten-free)..."
+            placeholder="Add preference (e.g. vegan, gluten-free)…"
             className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm"
           />
           <button
@@ -314,7 +314,7 @@ export function HealthProfileForm({
           {saving ? (
             <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
           ) : null}
-          {saving ? "Saving..." : "Save Profile"}
+          {saving ? "Saving…" : "Save Profile"}
         </button>
         {saved && (
           <span className="text-sm text-green-600 dark:text-green-400">

@@ -46,7 +46,7 @@ describe("SearchInput", () => {
     it("renders the AI search placeholder when useAiSearch is true", () => {
       render(<SearchInput {...defaultProps} useAiSearch={true} />);
       expect(
-        screen.getByPlaceholderText("Describe your needs naturally..."),
+        screen.getByPlaceholderText("Describe your needs naturally…"),
       ).toBeInTheDocument();
     });
 

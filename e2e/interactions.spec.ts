@@ -381,8 +381,8 @@ test.describe("Drug Interaction Checker", () => {
 
     await page.getByRole("button", { name: /Check Interactions/i }).click();
 
-    // Button should show "Checking..." text during loading
-    await expect(page.getByText("Checking...")).toBeVisible({ timeout: 1000 });
+    // Button should show "Checking…" text during loading
+    await expect(page.getByText("Checking…")).toBeVisible({ timeout: 1000 });
   });
 
   test("should handle API errors gracefully", async ({ page }) => {

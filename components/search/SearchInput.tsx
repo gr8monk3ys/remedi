@@ -103,8 +103,8 @@ export function SearchInput({
           className="h-12 pl-10 pr-28 text-base md:text-[15px]"
           placeholder={
             useAiSearch
-              ? "Describe your needs naturally..."
-              : "Search a drug or remedy..."
+              ? "Describe your needs naturally…"
+              : "Search a drug or remedy…"
           }
           value={query}
           onChange={(e) => setQuery(e.target.value)}

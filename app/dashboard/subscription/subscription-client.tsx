@@ -354,7 +354,7 @@ export function SubscriptionClient({
               ) : (
                 <CreditCard className="h-4 w-4" aria-hidden="true" />
               )}
-              {loadingAction === "manage" ? "Opening..." : "Manage Billing"}
+              {loadingAction === "manage" ? "Opening…" : "Manage Billing"}
             </button>
           </div>
 

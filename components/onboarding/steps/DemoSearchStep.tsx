@@ -35,7 +35,7 @@ export function DemoSearchStep({
             type="text"
             value={demoQuery}
             onChange={(e) => setDemoQuery(e.target.value)}
-            placeholder="Try searching for a remedy..."
+            placeholder="Try searching for a remedy…"
             className="flex-1 bg-transparent border-none outline-none text-foreground placeholder-muted-foreground"
             onKeyDown={(e) => {
               if (e.key === "Enter" && demoQuery.trim()) {
