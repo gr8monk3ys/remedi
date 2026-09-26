@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import type { UsageData } from "@/types/dashboard";
 
 interface UsageProgressProps {
@@ -51,7 +51,7 @@ export function UsageProgress({
             <span className="text-primary font-medium">Unlimited</span>
           ) : (
             <>
-              {current.toLocaleString()} / {limit.toLocaleString()}
+              {formatNumber(current)} / {formatNumber(limit)}
               {unit && ` ${unit}`}
               {showPercentage && (
                 <span className="ml-2 text-xs">

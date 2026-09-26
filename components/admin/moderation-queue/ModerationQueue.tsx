@@ -17,6 +17,7 @@ import { ModerationActions } from "./ModerationActions";
 import type { ModerationQueueProps, ModerationItemType } from "./types";
 import { toast } from "sonner";
 import { apiClient, ApiClientError } from "@/lib/api/client";
+import { formatDate } from "@/lib/utils";
 
 /**
  * Normalize list-like fields (string[] or JSON string)
@@ -150,7 +151,7 @@ export function ModerationQueue({
                         </h3>
                         <p className="text-sm text-muted-foreground">
                           by {item.user.name || item.user.email} •{" "}
-                          {new Date(item.createdAt).toLocaleDateString()}
+                          {formatDate(item.createdAt)}
                         </p>
                       </div>
                     </div>

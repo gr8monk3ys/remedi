@@ -1,3 +1,4 @@
+import { formatNumber } from "@/lib/utils";
 interface StatCardProps {
   label: string;
   value: number;
@@ -19,7 +20,7 @@ export function StatCard({ label, value, highlight }: StatCardProps) {
           highlight ? highlightColors[highlight] : "text-foreground"
         }`}
       >
-        {value.toLocaleString()}
+        {formatNumber(value)}
       </p>
     </div>
   );
@@ -30,7 +31,7 @@ export function RateCard({ label, value }: { label: string; value: number }) {
     <div className="rounded-lg border border-border bg-card p-4">
       <p className="eyebrow eyebrow-muted">{label}</p>
       <p className="tabular mt-2 text-2xl font-semibold tracking-tight text-foreground">
-        {value.toFixed(1)}%
+        {formatNumber(value, 1)}%
       </p>
     </div>
   );

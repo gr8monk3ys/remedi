@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Star, ThumbsUp, MessageSquare } from "lucide-react";
+import { formatNumber, formatDate } from "@/lib/utils";
 
 interface Review {
   id: string;
@@ -130,7 +131,7 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
       <div className="flex items-center gap-4 mb-6 pb-4 border-b border-border">
         <div className="text-center">
           <div className="text-4xl font-semibold text-foreground">
-            {data.averageRating.toFixed(1)}
+            {formatNumber(data.averageRating, 1)}
           </div>
           {renderStars(Math.round(data.averageRating))}
         </div>
@@ -181,7 +182,7 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
                 <div className="flex items-center gap-2 mb-2">
                   {renderStars(review.rating)}
                   <span className="text-xs text-muted-foreground">
-                    {new Date(review.createdAt).toLocaleDateString()}
+                    {formatDate(review.createdAt)}
                   </span>
                 </div>
 
