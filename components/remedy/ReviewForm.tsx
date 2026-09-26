@@ -144,6 +144,8 @@ export function ReviewForm({
           Title (optional)
         </label>
         <input
+          name="title"
+          autoComplete="off"
           type="text"
           id="review-title"
           value={title}
@@ -163,6 +165,8 @@ export function ReviewForm({
           Your Review *
         </label>
         <textarea
+          name="comment"
+          autoComplete="off"
           id="review-comment"
           value={comment}
           onChange={(e) => setComment(e.target.value)}

@@ -12,6 +12,7 @@ import { useAuth } from "@clerk/nextjs";
 import { apiClient, ApiClientError } from "@/lib/api/client";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Clock, X, Loader2 } from "lucide-react";
@@ -51,7 +52,6 @@ export function TrialBanner({
   className = "",
 }: TrialBannerProps) {
   const { isSignedIn } = useAuth();
-  const router = useRouter();
   const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -79,10 +79,6 @@ export function TrialBanner({
   const handleDismiss = () => {
     setIsDismissed(true);
     onDismiss?.();
-  };
-
-  const handleUpgrade = () => {
-    router.push("/pricing");
   };
 
   // Don't show if loading, dismissed, not authenticated, or no active trial
@@ -138,12 +134,12 @@ export function TrialBanner({
             </div>
 
             <div className="flex items-center gap-3">
-              <button
-                onClick={handleUpgrade}
+              <Link
+                href="/pricing"
                 className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 Upgrade Now
-              </button>
+              </Link>
 
               {dismissable && (
                 <button

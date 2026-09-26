@@ -32,6 +32,9 @@ export function ReferencesInput({
       {references.map((ref, index) => (
         <div key={index} className="flex gap-2 mb-2">
           <input
+            aria-label={`Reference ${index + 1} title`}
+            name="title"
+            autoComplete="off"
             type="text"
             value={ref.title}
             onChange={(e) => onReferenceChange(index, "title", e.target.value)}
@@ -39,6 +42,10 @@ export function ReferencesInput({
             placeholder="Reference title"
           />
           <input
+            aria-label={`Reference ${index + 1} URL`}
+            name="url"
+            autoComplete="off"
+            spellCheck={false}
             type="url"
             value={ref.url || ""}
             onChange={(e) => onReferenceChange(index, "url", e.target.value)}

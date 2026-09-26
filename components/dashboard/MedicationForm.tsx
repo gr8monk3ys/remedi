@@ -64,6 +64,8 @@ export function MedicationForm({
               Name *
             </label>
             <input
+              name="name"
+              autoComplete="off"
               id="med-name"
               type="text"
               value={name}
@@ -82,10 +84,11 @@ export function MedicationForm({
               Type
             </label>
             <select
+              name="type"
               id="med-type"
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
+              className="w-full px-3 py-2 rounded-lg border bg-background text-sm text-foreground"
             >
               <option value="pharmaceutical">Pharmaceutical</option>
               <option value="supplement">Supplement</option>
@@ -101,6 +104,8 @@ export function MedicationForm({
               Dosage
             </label>
             <input
+              name="dosage"
+              autoComplete="off"
               id="med-dosage"
               type="text"
               value={dosage}
@@ -118,10 +123,11 @@ export function MedicationForm({
               Frequency
             </label>
             <select
+              name="frequency"
               id="med-frequency"
               value={frequency}
               onChange={(e) => setFrequency(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
+              className="w-full px-3 py-2 rounded-lg border bg-background text-sm text-foreground"
             >
               <option value="">Select frequency</option>
               <option value="daily">Daily</option>
@@ -139,6 +145,8 @@ export function MedicationForm({
               Notes
             </label>
             <textarea
+              name="notes"
+              autoComplete="off"
               id="med-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
