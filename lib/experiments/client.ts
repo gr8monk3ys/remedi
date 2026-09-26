@@ -1,3 +1,5 @@
+import { safeGetItem, safeSetItem } from "@/lib/safe-storage";
+
 /**
  * Lightweight client-side experiment assignment.
  */
@@ -11,7 +13,7 @@ export function getOrSetExperimentVariant(
   }
 
   const key = `exp_${experimentId}`;
-  const existing = window.localStorage.getItem(key);
+  const existing = safeGetItem(key);
 
   if (existing && variants.includes(existing)) {
     return existing;
@@ -22,6 +24,6 @@ export function getOrSetExperimentVariant(
     variants[0] ??
     "control";
 
-  window.localStorage.setItem(key, choice);
+  safeSetItem(key, choice);
   return choice;
 }
