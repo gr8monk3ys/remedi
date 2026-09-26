@@ -22,7 +22,7 @@ const STATUS_CONFIG: Record<
 > = {
   generating: {
     icon: Loader2,
-    label: "Generating...",
+    label: "Generating…",
     color: "text-amber-600 dark:text-amber-400",
   },
   complete: {

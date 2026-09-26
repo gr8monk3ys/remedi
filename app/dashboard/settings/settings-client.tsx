@@ -190,7 +190,7 @@ export function SettingsClient({
             {isSaving && (
               <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                Saving...
+                Saving…
               </span>
             )}
             {saveStatus === "saved" && (
@@ -289,7 +289,7 @@ export function SettingsClient({
               ) : (
                 <Download className="h-4 w-4" aria-hidden="true" />
               )}
-              {isExporting ? "Exporting..." : "Export JSON"}
+              {isExporting ? "Exporting…" : "Export JSON"}
             </button>
           </div>
         </CardContent>
