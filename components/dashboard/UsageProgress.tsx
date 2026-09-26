@@ -1,5 +1,3 @@
-"use client";
-
 import { cn, formatNumber } from "@/lib/utils";
 import type { UsageData } from "@/types/dashboard";
 

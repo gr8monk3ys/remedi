@@ -1,5 +1,3 @@
-"use client";
-
 import { Shield, Sparkles, Users, Zap } from "lucide-react";
 
 interface WelcomeStepProps {}
