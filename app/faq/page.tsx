@@ -146,7 +146,7 @@ export default function FAQPage() {
             <div>
               <h2 className="text-base font-semibold">Still have questions?</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Can&apos;t find what you&apos;re looking for? Reach out to our
+                Can&rsquo;t find what you&rsquo;re looking for? Reach out to our
                 support team.
               </p>
             </div>

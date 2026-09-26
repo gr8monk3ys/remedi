@@ -78,8 +78,8 @@ export function DemoSearchStep({
           <div className="flex items-center gap-2 text-primary">
             <Check className="w-5 h-5" />
             <span className="text-sm font-medium">
-              Great choice! You will see results for &quot;
-              {demoQuery}&quot; after completing the setup.
+              Great choice! You will see results for &ldquo;
+              {demoQuery}&rdquo; after completing the setup.
             </span>
           </div>
         </motion.div>
