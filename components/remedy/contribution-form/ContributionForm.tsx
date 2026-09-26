@@ -104,7 +104,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             onChange={(e) => setField("name", e.target.value)}
             required
             minLength={2}
-            className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             placeholder="e.g., Turmeric Extract"
           />
         </div>
@@ -121,7 +121,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             value={state.category}
             onChange={(e) => setField("category", e.target.value)}
             required
-            className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <option value="">Select a category</option>
             {CATEGORIES.map((cat) => (
@@ -148,7 +148,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
           required
           minLength={20}
           rows={3}
-          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none"
           placeholder="Describe the remedy and its traditional uses…"
         />
       </div>
@@ -191,7 +191,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             value={state.usage}
             onChange={(e) => setField("usage", e.target.value)}
             rows={2}
-            className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+            className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none"
             placeholder="How to use this remedy…"
           />
         </div>
@@ -208,7 +208,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             value={state.dosage}
             onChange={(e) => setField("dosage", e.target.value)}
             rows={2}
-            className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+            className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none"
             placeholder="Typical dosage recommendations…"
           />
         </div>
@@ -227,7 +227,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
           value={state.precautions}
           onChange={(e) => setField("precautions", e.target.value)}
           rows={2}
-          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none"
           placeholder="Any contraindications or warnings…"
         />
       </div>
@@ -245,7 +245,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
           value={state.scientificInfo}
           onChange={(e) => setField("scientificInfo", e.target.value)}
           rows={3}
-          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none"
           placeholder="Any scientific studies or evidence…"
         />
       </div>

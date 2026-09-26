@@ -116,7 +116,7 @@ export function ReviewForm({
               onClick={() => setRating(star)}
               onMouseEnter={() => setHoverRating(star)}
               onMouseLeave={() => setHoverRating(0)}
-              className="p-1 focus:outline-none focus:ring-2 focus:ring-primary rounded"
+              className="p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
             >
               <Star
                 className={`w-7 h-7 transition-colors ${
@@ -150,7 +150,7 @@ export function ReviewForm({
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Summarize your experience"
           maxLength={100}
-          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         />
       </div>
 
@@ -169,7 +169,7 @@ export function ReviewForm({
           placeholder="Share your experience with this remedy. What worked well? Any tips for others?"
           rows={4}
           minLength={10}
-          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none"
         />
         <p className="mt-1 text-xs text-muted-foreground">
           {comment.length}/10 minimum characters

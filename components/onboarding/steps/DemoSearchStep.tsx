@@ -29,7 +29,7 @@ export function DemoSearchStep({
       </p>
 
       <div className="relative">
-        <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2.5">
+        <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2.5 focus-within:ring-2 focus-within:ring-ring">
           <Search className="w-5 h-5 text-muted-foreground" />
           <input
             type="text"

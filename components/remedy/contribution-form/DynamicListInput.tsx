@@ -38,7 +38,7 @@ export function DynamicListInput({
             type="text"
             value={item}
             onChange={(e) => onItemChange(index, e.target.value)}
-            className="flex-1 px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="flex-1 px-4 py-2 border border-border rounded-lg bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             placeholder={placeholder}
           />
           {items.length > 1 && (
