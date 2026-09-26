@@ -350,7 +350,9 @@ export function SubscriptionClient({
               className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingAction === "manage" ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                <span className="inline-flex shrink-0 animate-spin">
+                  <Loader2 className="h-4 w-4" aria-hidden="true" />
+                </span>
               ) : (
                 <CreditCard className="h-4 w-4" aria-hidden="true" />
               )}

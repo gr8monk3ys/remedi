@@ -84,7 +84,9 @@ export function PricingCards({
             }
           >
             {loading === "basic" ? (
-              <Loader2 className="animate-spin" />
+              <span className="inline-flex shrink-0 animate-spin">
+                <Loader2 className="" />
+              </span>
             ) : currentPlan === "basic" ? (
               <>
                 <Check />
@@ -120,7 +122,9 @@ export function PricingCards({
                 disabled={loading === "trial"}
               >
                 {loading === "trial" ? (
-                  <Loader2 className="animate-spin" />
+                  <span className="inline-flex shrink-0 animate-spin">
+                    <Loader2 className="" />
+                  </span>
                 ) : (
                   <>
                     <Sparkles />
@@ -142,7 +146,9 @@ export function PricingCards({
               disabled={loading === "premium" || currentPlan === "premium"}
             >
               {loading === "premium" ? (
-                <Loader2 className="animate-spin" />
+                <span className="inline-flex shrink-0 animate-spin">
+                  <Loader2 className="" />
+                </span>
               ) : currentPlan === "premium" ? (
                 <>
                   <Check />

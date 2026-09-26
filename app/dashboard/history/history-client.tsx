@@ -131,7 +131,7 @@ export function HistoryPageClient({
               <Download className="h-4 w-4" />
               Export
             </button>
-            <div className="absolute right-0 mt-1 w-32 bg-card rounded-lg shadow-lg border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+            <div className="absolute right-0 mt-1 w-32 bg-card rounded-lg shadow-lg border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-[opacity,visibility] z-10">
               <button
                 onClick={() => handleExport("csv")}
                 className="block w-full px-4 py-2 text-sm text-left text-foreground hover:bg-muted"

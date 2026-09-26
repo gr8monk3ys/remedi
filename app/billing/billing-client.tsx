@@ -176,7 +176,9 @@ export function BillingClient({
             className="inline-flex items-center gap-2 px-6 py-3 bg-muted hover:bg-muted/80 text-foreground rounded-lg font-medium transition-colors disabled:opacity-50"
           >
             {loading === "manage" ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="inline-flex shrink-0 animate-spin">
+                <Loader2 className="w-5 h-5" />
+              </span>
             ) : (
               <CreditCard className="w-5 h-5" />
             )}
@@ -260,7 +262,9 @@ function PlanCard({
           }`}
         >
           {loading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <span className="inline-flex shrink-0 animate-spin">
+              <Loader2 className="w-5 h-5" />
+            </span>
           ) : isCurrentPlan ? (
             <>
               <Check className="w-5 h-5" />

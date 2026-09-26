@@ -297,7 +297,9 @@ export function StartTrialButton({
       className={`inline-flex items-center gap-2 rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
     >
       {isStarting ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <span className="inline-flex shrink-0 animate-spin">
+          <Loader2 className="w-4 h-4" />
+        </span>
       ) : (
         <Sparkles className="w-4 h-4" />
       )}
