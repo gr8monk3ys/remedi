@@ -189,7 +189,9 @@ export function SettingsClient({
             </div>
             {isSaving && (
               <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <span className="inline-flex shrink-0 animate-spin">
+                  <Loader2 className="h-3 w-3" />
+                </span>
                 Saving…
               </span>
             )}
@@ -285,7 +287,9 @@ export function SettingsClient({
               className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-muted transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isExporting ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                <span className="inline-flex shrink-0 animate-spin">
+                  <Loader2 className="h-4 w-4" aria-hidden="true" />
+                </span>
               ) : (
                 <Download className="h-4 w-4" aria-hidden="true" />
               )}

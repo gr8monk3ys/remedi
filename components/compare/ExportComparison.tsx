@@ -186,7 +186,9 @@ export function ExportComparison({
                 >
                   <div className="flex-shrink-0 mt-0.5">
                     {isLoading ? (
-                      <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                      <span className="inline-flex shrink-0 animate-spin">
+                        <Loader2 className="w-5 h-5 text-primary" />
+                      </span>
                     ) : isSuccess ? (
                       <Check className="w-5 h-5 text-green-500" />
                     ) : (

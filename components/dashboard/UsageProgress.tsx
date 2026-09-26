@@ -76,10 +76,10 @@ export function UsageProgress({
       >
         <div
           className={cn(
-            "h-full rounded-full transition-all duration-500 ease-out",
+            "h-full w-full origin-left rounded-full transition-transform duration-500 ease-out",
             getBarColor(),
           )}
-          style={{ width: `${percentage}%` }}
+          style={{ transform: `scaleX(${percentage / 100})` }}
         />
       </div>
 

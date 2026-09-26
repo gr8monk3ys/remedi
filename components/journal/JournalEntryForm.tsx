@@ -348,7 +348,9 @@ export function JournalEntryForm({
               className="flex-1 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {submitting && (
-                <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+                <span className="mr-2 inline-flex shrink-0 animate-spin">
+                  <Loader2 className="w-4 h-4 inline" />
+                </span>
               )}
               Log Entry
             </button>
