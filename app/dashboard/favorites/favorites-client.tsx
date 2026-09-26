@@ -267,7 +267,7 @@ export function FavoritesPageClient({
       {favorites.length === 0 && currentCollection && (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">
-            No favorites found in the &quot;{currentCollection}&quot;
+            No favorites found in the &ldquo;{currentCollection}&rdquo;
             collection.
           </p>
           <button

@@ -146,8 +146,8 @@ export default function DisclaimerPage() {
                 traditional use only
               </li>
               <li>
-                Even &quot;strong evidence&quot; does not mean a remedy is right
-                for you
+                Even &ldquo;strong evidence&rdquo; does not mean a remedy is
+                right for you
               </li>
             </ul>
           </section>

@@ -59,6 +59,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
       <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-8 text-center">
         <div className="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
           <svg
+            aria-hidden="true"
             className="w-8 h-8 text-green-600 dark:text-green-400"
             fill="none"
             stroke="currentColor"
@@ -77,7 +78,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
         </h3>
         <p className="text-green-700 dark:text-green-400 mb-4">
           Your remedy has been submitted and is pending review by our moderation
-          team. You&apos;ll be notified once it&apos;s approved.
+          team. You&rsquo;ll be notified once it&rsquo;s approved.
         </p>
         <button onClick={reset} className="text-primary hover:underline">
           Submit Another Remedy

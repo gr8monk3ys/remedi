@@ -56,7 +56,13 @@ export default function OGImage(): ImageResponse {
           marginBottom: "24px",
         }}
       >
-        <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+        <svg
+          aria-hidden="true"
+          width="72"
+          height="72"
+          viewBox="0 0 72 72"
+          fill="none"
+        >
           <path
             d="M36 8C36 8 56 16 56 36C56 56 36 64 36 64C36 64 16 56 16 36C16 16 36 8 36 8Z"
             fill="rgba(255,255,255,0.2)"
