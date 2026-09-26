@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { FileText, Loader2, CheckCircle, XCircle } from "lucide-react";
 

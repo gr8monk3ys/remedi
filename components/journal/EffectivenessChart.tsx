@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * Lightweight effectiveness chart using CSS-only rendering.
  * No heavy chart library required.

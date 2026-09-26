@@ -1,5 +1,3 @@
-"use client";
-
 import { formatDistanceToNow } from "date-fns";
 import { Search, Heart, Star, FileText, HeartOff } from "lucide-react";
 import { cn } from "@/lib/utils";
