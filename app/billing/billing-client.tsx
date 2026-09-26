@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Check, Loader2, CreditCard, Sparkles } from "lucide-react";
 import { PLANS, type PlanType } from "@/lib/stripe-config";
 import { createLogger } from "@/lib/logger";
+import { formatPrice } from "@/lib/utils";
 
 const logger = createLogger("billing");
 
@@ -238,12 +239,12 @@ function PlanCard({
 
         <div className="mb-6">
           <span className="tabular text-4xl font-semibold tracking-tight text-foreground">
-            ${price.toFixed(2)}
+            {formatPrice(price)}
           </span>
           <span className="text-muted-foreground">/month</span>
           {yearlyPrice && (
             <p className="text-sm text-muted-foreground mt-1">
-              Billed ${yearlyPrice.toFixed(2)}/year
+              Billed {formatPrice(yearlyPrice)}/year
             </p>
           )}
         </div>

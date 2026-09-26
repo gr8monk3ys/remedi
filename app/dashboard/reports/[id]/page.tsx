@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getReportById } from "@/lib/db";
 import { ReportViewer } from "@/components/reports/ReportViewer";
+import { formatDate } from "@/lib/utils";
 
 export const metadata = {
   title: "View Report | Remedi Dashboard",
@@ -27,7 +28,7 @@ export default async function ReportDetailPage({ params }: Props) {
       <div>
         <h1 className="text-2xl font-semibold">{report.title}</h1>
         <p className="text-muted-foreground mt-1">
-          Generated {new Date(report.createdAt).toLocaleDateString()}
+          Generated {formatDate(report.createdAt)}
         </p>
       </div>
 

@@ -8,6 +8,7 @@ import { UsageProgressList } from "@/components/dashboard/UsageProgress";
 import { PlanCard } from "@/components/dashboard/PlanCard";
 import type { PlanType } from "@/lib/stripe-config";
 import type { UsageData } from "@/types/dashboard";
+import { formatPrice } from "@/lib/utils";
 
 type InvoiceSummary = {
   id: string;
@@ -146,7 +147,7 @@ export function SubscriptionClient({
         currency: normalizedCurrency,
       }).format(cents / 100);
     } catch {
-      return `$${(cents / 100).toFixed(2)}`;
+      return formatPrice(cents / 100);
     }
   };
 
@@ -229,7 +230,7 @@ export function SubscriptionClient({
           <div className="flex flex-col items-start sm:items-end gap-1">
             {planConfig.price > 0 ? (
               <p className="text-2xl font-semibold text-foreground">
-                ${planConfig.price.toFixed(2)}
+                {formatPrice(planConfig.price)}
                 <span className="text-sm font-normal text-muted-foreground">
                   /mo
                 </span>

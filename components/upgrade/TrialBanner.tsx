@@ -15,6 +15,7 @@ import { logger } from "@/lib/logger";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Clock, X, Loader2 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 interface TrialStatus {
   isActive: boolean;
@@ -130,7 +131,7 @@ export function TrialBanner({
                 {trialStatus.endDate && (
                   <span className="flex items-center gap-1 font-mono text-xs text-muted-foreground">
                     <Clock className="w-3.5 h-3.5" />
-                    Ends {new Date(trialStatus.endDate).toLocaleDateString()}
+                    Ends {formatDate(trialStatus.endDate)}
                   </span>
                 )}
               </div>

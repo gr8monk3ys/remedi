@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Sparkles, Zap, Crown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import type { PlanType } from "@/lib/stripe-config";
 
 interface PlanCardProps {
@@ -109,14 +109,14 @@ export function PlanCard({
         ) : (
           <>
             <p className="tabular text-3xl font-semibold tracking-tight text-foreground">
-              ${monthlyEquivalent.toFixed(2)}
+              {formatPrice(monthlyEquivalent)}
               <span className="ml-1 text-sm font-normal text-muted-foreground">
                 /mo
               </span>
             </p>
             {interval === "yearly" && yearlyPrice && (
               <p className="mt-1 font-mono text-xs text-muted-foreground">
-                ${yearlyPrice.toFixed(2)} billed annually
+                {formatPrice(yearlyPrice)} billed annually
               </p>
             )}
           </>

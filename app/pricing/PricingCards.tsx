@@ -68,8 +68,8 @@ export function PricingCards({
         icon={Sparkles}
         name={PLANS.basic.name}
         description={PLANS.basic.description}
-        price={`$${basicDisplayPrice}`}
-        billedNote={isYearly ? `Billed $${basicYearlyBilled}/year` : undefined}
+        price={basicDisplayPrice}
+        billedNote={isYearly ? `Billed ${basicYearlyBilled}/year` : undefined}
         className="reveal-up reveal-delay-1"
         features={PLANS.basic.features}
         action={
@@ -106,10 +106,8 @@ export function PricingCards({
         icon={Crown}
         name={PLANS.premium.name}
         description={PLANS.premium.description}
-        price={`$${premiumDisplayPrice}`}
-        billedNote={
-          isYearly ? `Billed $${premiumYearlyBilled}/year` : undefined
-        }
+        price={premiumDisplayPrice}
+        billedNote={isYearly ? `Billed ${premiumYearlyBilled}/year` : undefined}
         className="reveal-up reveal-delay-2"
         highlighted
         features={PLANS.premium.features}
