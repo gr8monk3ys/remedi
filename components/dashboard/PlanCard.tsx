@@ -140,7 +140,7 @@ export function PlanCard({
           onManage ? (
             <button
               onClick={onManage}
-              className="w-full rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-border-strong hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="w-full rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-border-strong hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Manage Subscription
             </button>
@@ -154,7 +154,7 @@ export function PlanCard({
             onClick={onSelect}
             disabled={!onSelect}
             className={cn(
-              "w-full rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "w-full rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               plan === "free"
                 ? "border border-border bg-card text-foreground hover:bg-muted"
                 : "bg-primary text-primary-foreground hover:bg-primary/90",
