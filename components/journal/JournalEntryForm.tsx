@@ -125,6 +125,8 @@ export function JournalEntryForm({
                 Remedy Name *
               </label>
               <input
+                name="remedyName"
+                autoComplete="off"
                 id="j-remedy"
                 type="text"
                 value={remedyName}
@@ -145,6 +147,8 @@ export function JournalEntryForm({
                 Date
               </label>
               <input
+                name="date"
+                autoComplete="off"
                 id="j-date"
                 type="date"
                 value={date}
@@ -187,6 +191,8 @@ export function JournalEntryForm({
               Dosage Taken
             </label>
             <input
+              name="dosageTaken"
+              autoComplete="off"
               id="j-dosage"
               type="text"
               value={dosageTaken}
@@ -219,6 +225,9 @@ export function JournalEntryForm({
             </div>
             <div className="flex gap-2">
               <input
+                aria-label="Add symptom"
+                name="newSymptom"
+                autoComplete="off"
                 type="text"
                 value={newSymptom}
                 onChange={(e) => setNewSymptom(e.target.value)}
@@ -276,6 +285,9 @@ export function JournalEntryForm({
             </div>
             <div className="flex gap-2">
               <input
+                aria-label="Add side effect"
+                name="newSideEffect"
+                autoComplete="off"
                 type="text"
                 value={newSideEffect}
                 onChange={(e) => setNewSideEffect(e.target.value)}
@@ -328,6 +340,8 @@ export function JournalEntryForm({
               Notes
             </label>
             <textarea
+              name="notes"
+              autoComplete="off"
               id="j-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}

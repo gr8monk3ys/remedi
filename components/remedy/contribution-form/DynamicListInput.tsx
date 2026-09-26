@@ -35,6 +35,9 @@ export function DynamicListInput({
       {items.map((item, index) => (
         <div key={index} className="flex gap-2 mb-2">
           <input
+            aria-label={`${label} ${index + 1}`}
+            name="item"
+            autoComplete="off"
             type="text"
             value={item}
             onChange={(e) => onItemChange(index, e.target.value)}

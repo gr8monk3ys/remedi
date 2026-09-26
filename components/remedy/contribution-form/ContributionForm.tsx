@@ -98,6 +98,8 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             Remedy Name *
           </label>
           <input
+            name="name"
+            autoComplete="off"
             type="text"
             id="name"
             value={state.name}
@@ -117,6 +119,7 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             Category *
           </label>
           <select
+            name="category"
             id="category"
             value={state.category}
             onChange={(e) => setField("category", e.target.value)}
@@ -142,6 +145,8 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
           Description *
         </label>
         <textarea
+          name="description"
+          autoComplete="off"
           id="description"
           value={state.description}
           onChange={(e) => setField("description", e.target.value)}
@@ -187,6 +192,8 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             Usage Instructions
           </label>
           <textarea
+            name="usage"
+            autoComplete="off"
             id="usage"
             value={state.usage}
             onChange={(e) => setField("usage", e.target.value)}
@@ -204,6 +211,8 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
             Recommended Dosage
           </label>
           <textarea
+            name="dosage"
+            autoComplete="off"
             id="dosage"
             value={state.dosage}
             onChange={(e) => setField("dosage", e.target.value)}
@@ -223,6 +232,8 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
           Precautions & Warnings
         </label>
         <textarea
+          name="precautions"
+          autoComplete="off"
           id="precautions"
           value={state.precautions}
           onChange={(e) => setField("precautions", e.target.value)}
@@ -241,6 +252,8 @@ export function ContributionForm({ onSuccess }: ContributionFormProps) {
           Scientific Information
         </label>
         <textarea
+          name="scientificInfo"
+          autoComplete="off"
           id="scientificInfo"
           value={state.scientificInfo}
           onChange={(e) => setField("scientificInfo", e.target.value)}

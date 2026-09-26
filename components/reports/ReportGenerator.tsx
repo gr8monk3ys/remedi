@@ -75,6 +75,8 @@ export function ReportGenerator({
               Report Title *
             </label>
             <input
+              name="title"
+              autoComplete="off"
               id="r-title"
               type="text"
               value={title}
@@ -90,10 +92,11 @@ export function ReportGenerator({
               Report Type
             </label>
             <select
+              name="queryType"
               id="r-type"
               value={queryType}
               onChange={(e) => setQueryType(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
+              className="w-full px-3 py-2 rounded-lg border bg-background text-sm text-foreground"
             >
               <option value="condition">
                 Natural remedies for a condition
@@ -115,6 +118,8 @@ export function ReportGenerator({
               *
             </label>
             <input
+              name="queryInput"
+              autoComplete="off"
               id="r-query"
               type="text"
               value={queryInput}

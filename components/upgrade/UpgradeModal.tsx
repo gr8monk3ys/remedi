@@ -7,7 +7,8 @@
  * Shows what features they're missing and provides upgrade options.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Zap, Sparkles, Loader2 } from "lucide-react";
@@ -112,11 +113,6 @@ export function UpgradeModal({
       setLoadingCheckout(null);
     }
   };
-
-  const handleViewPricing = useCallback(() => {
-    onClose();
-    router.push("/pricing");
-  }, [onClose, router]);
 
   const message = TRIGGER_MESSAGES[triggerReason];
 
@@ -295,12 +291,13 @@ export function UpgradeModal({
                   </button>
                 )}
 
-                <button
-                  onClick={handleViewPricing}
+                <Link
+                  href="/pricing"
+                  onClick={onClose}
                   className="text-muted-foreground hover:text-foreground text-sm"
                 >
                   View full pricing details
-                </button>
+                </Link>
               </div>
             </div>
           </motion.div>

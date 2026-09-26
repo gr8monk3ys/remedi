@@ -97,6 +97,8 @@ export function SearchInput({
           aria-hidden="true"
         />
         <Input
+          name="query"
+          autoComplete="off"
           type="search"
           aria-label="Search for pharmaceuticals or natural remedies"
           data-search-input

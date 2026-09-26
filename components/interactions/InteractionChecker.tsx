@@ -86,6 +86,8 @@ export function InteractionChecker(): React.ReactElement {
           {/* Add substance input */}
           <div className="flex gap-2">
             <Input
+              name="inputValue"
+              autoComplete="off"
               type="text"
               placeholder="Enter a medication or supplement name…"
               value={inputValue}

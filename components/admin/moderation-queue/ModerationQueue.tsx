@@ -159,11 +159,26 @@ export function ModerationQueue({
                       <span className="px-2 py-1 text-xs bg-muted rounded">
                         {item.category}
                       </span>
-                      {expandedItem === item.id ? (
-                        <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                      )}
+                      {/* The row's onClick is a pointer convenience; this
+                          button is the keyboard/screen-reader toggle. */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedItem(
+                            expandedItem === item.id ? null : item.id,
+                          );
+                        }}
+                        aria-expanded={expandedItem === item.id}
+                        aria-label={`${expandedItem === item.id ? "Collapse" : "Expand"} ${item.name}`}
+                        className="rounded-sm p-1 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {expandedItem === item.id ? (
+                          <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                        )}
+                      </button>
                     </div>
                   </div>
 
@@ -230,6 +245,9 @@ export function ModerationQueue({
                       {/* Moderation Actions */}
                       <div className="pt-4 border-t border-border">
                         <textarea
+                          aria-label="Moderator note"
+                          name="moderatorNote"
+                          autoComplete="off"
                           value={moderatorNote}
                           onChange={(e) => setModeratorNote(e.target.value)}
                           placeholder="Moderator note (required for rejection)"

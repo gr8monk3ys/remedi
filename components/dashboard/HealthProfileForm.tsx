@@ -171,6 +171,9 @@ export function HealthProfileForm({
         </div>
         <div className="flex gap-2">
           <input
+            aria-label="Add allergy"
+            name="newAllergy"
+            autoComplete="off"
             type="text"
             value={newAllergy}
             onChange={(e) => setNewAllergy(e.target.value)}
@@ -219,6 +222,9 @@ export function HealthProfileForm({
         </div>
         <div className="flex gap-2">
           <input
+            aria-label="Add condition"
+            name="newCondition"
+            autoComplete="off"
             type="text"
             value={newCondition}
             onChange={(e) => setNewCondition(e.target.value)}
@@ -279,6 +285,9 @@ export function HealthProfileForm({
         </div>
         <div className="flex gap-2">
           <input
+            aria-label="Add dietary preference"
+            name="newPref"
+            autoComplete="off"
             type="text"
             value={newPref}
             onChange={(e) => setNewPref(e.target.value)}
