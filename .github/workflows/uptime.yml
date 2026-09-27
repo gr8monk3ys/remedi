@@ -64,6 +64,8 @@ jobs:
         if: steps.probe.outputs.ok == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
+          # No checkout in this job, so gh cannot infer the repo from .git.
+          GH_REPO: ${{ github.repository }}
           CODE: ${{ steps.probe.outputs.code }}
           STATUS: ${{ steps.probe.outputs.status }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
