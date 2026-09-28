@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, X, Plus, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { apiClient } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
@@ -87,7 +88,9 @@ export function HealthProfileForm({
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch {
-      // Silently fail to match previous behavior
+      // Allergies and conditions are safety-relevant: a failed save must not
+      // look like a successful one.
+      toast.error("Could not save your health profile. Please try again.");
     } finally {
       setSaving(false);
     }

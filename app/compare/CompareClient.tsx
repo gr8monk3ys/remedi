@@ -441,9 +441,21 @@ export function CompareClient({
                     remedies={remedies}
                     minColumnWidth={minColumnWidthPx}
                     renderCell={(remedy) => (
+                      // The comparison payload does not carry recorded Drug
+                      // Interactions, so a missing value here means "not
+                      // loaded", never "none". Point to where they are shown.
                       <p className="text-sm text-foreground">
-                        {remedy.interactions ||
-                          "No known interactions documented"}
+                        {remedy.interactions || (
+                          <>
+                            Not shown in this comparison.{" "}
+                            <Link
+                              href={`/remedy/${remedy.id}`}
+                              className="text-primary underline underline-offset-2"
+                            >
+                              See {remedy.name}&rsquo;s interaction warnings
+                            </Link>
+                          </>
+                        )}
                       </p>
                     )}
                   />

@@ -141,6 +141,18 @@ describe("/api/reports", () => {
       expect(mockGetUserReports).toHaveBeenCalledWith("user-123", 2, 5);
     });
 
+    it("never passes NaN or fractions through to the query", async () => {
+      mockGetUserReports.mockResolvedValue({ reports: [], total: 0 });
+      const { GET } = await import("@/app/api/reports/route");
+      const request = new NextRequest(
+        "http://localhost:3000/api/reports?page=abc&pageSize=2.5",
+      );
+      const response = await GET(request);
+
+      expect(response.status).toBe(200);
+      expect(mockGetUserReports).toHaveBeenCalledWith("user-123", 1, 2);
+    });
+
     it("should return 500 on server error", async () => {
       mockGetUserReports.mockRejectedValue(new Error("Database error"));
       const { GET } = await import("@/app/api/reports/route");

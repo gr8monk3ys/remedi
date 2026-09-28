@@ -15,7 +15,7 @@ import { ENTITLING_STATUSES } from "@/lib/subscription-status";
 import { BillingClient } from "./billing-client";
 
 export const metadata: Metadata = {
-  title: "Billing & Subscription | Remedi",
+  title: "Billing & Subscription",
   description: "Manage your Remedi subscription and billing settings",
 };
 
