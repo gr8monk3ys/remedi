@@ -107,6 +107,37 @@ describe("MedicationCabinetList interaction check", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("drops an all-clear once the cabinet it was checked against changes", async () => {
+    const third = {
+      ...MEDICATIONS[0],
+      id: "3",
+      name: "Ibuprofen",
+    };
+    render(
+      <MedicationCabinetList initialMedications={[...MEDICATIONS, third]} />,
+    );
+
+    respondWith({ success: true, data: { interactions: [], count: 0 } });
+    await clickCheck();
+    await waitFor(() =>
+      expect(
+        screen.getByText(/No known interactions were found/i),
+      ).toBeInTheDocument(),
+    );
+
+    respondWith({ success: true, data: null });
+    await userEvent.click(
+      screen.getByRole("button", { name: /Remove Ibuprofen/i }),
+    );
+
+    await waitFor(() =>
+      expect(screen.queryByText("Ibuprofen")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByText(/No known interactions were found/i),
+    ).not.toBeInTheDocument();
+  });
+
   it("renders the interactions it finds", async () => {
     respondWith({
       success: true,
