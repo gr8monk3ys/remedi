@@ -4,7 +4,7 @@ import { getTrackedRemedies, getJournalEntries } from "@/lib/db";
 import { JournalOverview } from "@/components/journal/JournalOverview";
 
 export const metadata = {
-  title: "Remedy Journal | Remedi Dashboard",
+  title: "Remedy Journal",
   description: "Track your remedy effectiveness over time",
 };
 
