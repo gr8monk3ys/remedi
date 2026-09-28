@@ -64,7 +64,9 @@ export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
   if (report.status === "generating") {
     return (
       <div className="rounded-lg border border-border bg-card p-12 text-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+        <span className="mx-auto mb-4 flex w-fit shrink-0 animate-spin">
+          <Loader2 className="w-8 h-8 text-primary" />
+        </span>
         <h3 className="text-lg font-semibold mb-2">Generating Your Report</h3>
         <p className="text-sm text-muted-foreground">
           This may take a minute. Refresh the page to check for updates.

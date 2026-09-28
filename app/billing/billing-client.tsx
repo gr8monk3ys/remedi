@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Check, Loader2, CreditCard, Sparkles } from "lucide-react";
 import { PLANS, type PlanType } from "@/lib/stripe-config";
 import { createLogger } from "@/lib/logger";
+import { formatPrice } from "@/lib/utils";
 
 const logger = createLogger("billing");
 
@@ -176,7 +177,9 @@ export function BillingClient({
             className="inline-flex items-center gap-2 px-6 py-3 bg-muted hover:bg-muted/80 text-foreground rounded-lg font-medium transition-colors disabled:opacity-50"
           >
             {loading === "manage" ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="inline-flex shrink-0 animate-spin">
+                <Loader2 className="w-5 h-5" />
+              </span>
             ) : (
               <CreditCard className="w-5 h-5" />
             )}
@@ -236,12 +239,12 @@ function PlanCard({
 
         <div className="mb-6">
           <span className="tabular text-4xl font-semibold tracking-tight text-foreground">
-            ${price.toFixed(2)}
+            {formatPrice(price)}
           </span>
           <span className="text-muted-foreground">/month</span>
           {yearlyPrice && (
             <p className="text-sm text-muted-foreground mt-1">
-              Billed ${yearlyPrice.toFixed(2)}/year
+              Billed {formatPrice(yearlyPrice)}/year
             </p>
           )}
         </div>
@@ -260,7 +263,9 @@ function PlanCard({
           }`}
         >
           {loading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <span className="inline-flex shrink-0 animate-spin">
+              <Loader2 className="w-5 h-5" />
+            </span>
           ) : isCurrentPlan ? (
             <>
               <Check className="w-5 h-5" />

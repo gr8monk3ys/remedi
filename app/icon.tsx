@@ -16,7 +16,13 @@ export default function Icon(): ImageResponse {
         borderRadius: "6px",
       }}
     >
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <svg
+        aria-hidden="true"
+        width="22"
+        height="22"
+        viewBox="0 0 22 22"
+        fill="none"
+      >
         <path
           d="M11 2C11 2 19 5 19 11C19 17 11 20 11 20C11 20 3 17 3 11C3 5 11 2 11 2Z"
           fill="rgba(255,255,255,0.9)"

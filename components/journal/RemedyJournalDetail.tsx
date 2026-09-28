@@ -1,5 +1,3 @@
-"use client";
-
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { EffectivenessChart } from "./EffectivenessChart";
 import { JournalEntryCard } from "./JournalEntryCard";

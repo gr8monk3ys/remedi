@@ -171,6 +171,9 @@ export function HealthProfileForm({
         </div>
         <div className="flex gap-2">
           <input
+            aria-label="Add allergy"
+            name="newAllergy"
+            autoComplete="off"
             type="text"
             value={newAllergy}
             onChange={(e) => setNewAllergy(e.target.value)}
@@ -180,7 +183,7 @@ export function HealthProfileForm({
                 addToList(allergies, setAllergies, newAllergy, setNewAllergy);
               }
             }}
-            placeholder="Add allergy..."
+            placeholder="Add allergy…"
             className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm"
           />
           <button
@@ -219,6 +222,9 @@ export function HealthProfileForm({
         </div>
         <div className="flex gap-2">
           <input
+            aria-label="Add condition"
+            name="newCondition"
+            autoComplete="off"
             type="text"
             value={newCondition}
             onChange={(e) => setNewCondition(e.target.value)}
@@ -233,7 +239,7 @@ export function HealthProfileForm({
                 );
               }
             }}
-            placeholder="Add condition..."
+            placeholder="Add condition…"
             className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm"
           />
           <button
@@ -279,6 +285,9 @@ export function HealthProfileForm({
         </div>
         <div className="flex gap-2">
           <input
+            aria-label="Add dietary preference"
+            name="newPref"
+            autoComplete="off"
             type="text"
             value={newPref}
             onChange={(e) => setNewPref(e.target.value)}
@@ -288,7 +297,7 @@ export function HealthProfileForm({
                 addToList(dietaryPrefs, setDietaryPrefs, newPref, setNewPref);
               }
             }}
-            placeholder="Add preference (e.g. vegan, gluten-free)..."
+            placeholder="Add preference (e.g. vegan, gluten-free)…"
             className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm"
           />
           <button
@@ -312,9 +321,11 @@ export function HealthProfileForm({
           className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
         >
           {saving ? (
-            <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+            <span className="mr-2 inline-flex shrink-0 animate-spin">
+              <Loader2 className="w-4 h-4 inline" />
+            </span>
           ) : null}
-          {saving ? "Saving..." : "Save Profile"}
+          {saving ? "Saving…" : "Save Profile"}
         </button>
         {saved && (
           <span className="text-sm text-green-600 dark:text-green-400">

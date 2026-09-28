@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { Search, Heart, FileText, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";

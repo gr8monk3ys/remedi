@@ -176,8 +176,8 @@ export default function TermsOfServicePage() {
               9. Disclaimer of Warranties
             </h2>
             <p className="mb-4 leading-relaxed text-muted-foreground">
-              THE SERVICE IS PROVIDED &quot;AS IS&quot; AND &quot;AS
-              AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
+              THE SERVICE IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS
+              AVAILABLE&rdquo; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
               IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF
               MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
               NON-INFRINGEMENT.
