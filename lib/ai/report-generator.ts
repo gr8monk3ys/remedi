@@ -40,6 +40,12 @@ interface ReportContent {
     description: string;
     recommendation: string;
   }>;
+  /**
+   * Whether the Medication Cabinet was checked. An empty `interactionWarnings`
+   * only means "none found" when this is "checked"; "unavailable" means the
+   * check failed and must be shown as a failure, never as an all-clear.
+   */
+  interactionCheck?: "checked" | "unavailable";
   journalInsights?: {
     trackedRemedies: number;
     topRatedRemedy?: string;
@@ -115,6 +121,7 @@ export async function generateRemedyReport(
 
     // 2. Check cabinet interactions if requested
     let interactionWarnings: ReportContent["interactionWarnings"] = [];
+    let interactionCheck: ReportContent["interactionCheck"];
     if (includeCabinetInteractions) {
       try {
         const { checkCabinetInteractions } =
@@ -128,7 +135,9 @@ export async function generateRemedyReport(
           recommendation:
             i.recommendation ?? "Consult your healthcare provider",
         }));
+        interactionCheck = "checked";
       } catch {
+        interactionCheck = "unavailable";
         logger.warn("Failed to check cabinet interactions for report");
       }
     }
@@ -184,6 +193,8 @@ export async function generateRemedyReport(
         userPrompt += `- ${w.substanceA} + ${w.substanceB}: ${w.severity} - ${w.description}\n`;
       }
       userPrompt += `\nPlease factor these interactions into your recommendations.\n\n`;
+    } else if (interactionCheck === "unavailable") {
+      userPrompt += `The user's medication cabinet could not be checked for interactions. Do not say that no interactions exist.\n\n`;
     }
 
     if (journalInsights) {
@@ -204,6 +215,7 @@ export async function generateRemedyReport(
         queryInput,
         remedyContext,
         interactionWarnings,
+        interactionCheck,
         journalInsights,
       );
     }
@@ -231,8 +243,10 @@ export async function generateRemedyReport(
       summary: parsed.summary ?? `Report on ${queryInput}`,
       recommendations: parsed.recommendations ?? [],
       interactionWarnings,
+      interactionCheck,
       journalInsights,
-      sources: parsed.sources ?? ["Remedi Database", "OpenFDA", "PubMed"],
+      // No invented citations: if the model names none, the report lists none.
+      sources: parsed.sources ?? [],
       disclaimer:
         "This report is for informational purposes only. Always consult a healthcare professional before making changes to your health regimen.",
     };
@@ -251,6 +265,7 @@ function buildFallbackReport(
   queryInput: string,
   remedyContext: string,
   interactionWarnings: ReportContent["interactionWarnings"],
+  interactionCheck: ReportContent["interactionCheck"],
   journalInsights?: ReportContent["journalInsights"],
 ): Record<string, unknown> {
   const recommendations = remedyContext
@@ -274,8 +289,9 @@ function buildFallbackReport(
     summary: `Natural remedy recommendations for "${queryInput}". AI analysis was unavailable; recommendations are based on database matches.`,
     recommendations,
     interactionWarnings,
+    interactionCheck,
     journalInsights,
-    sources: ["Remedi Database", "OpenFDA"],
+    sources: ["Remedi Database"],
     disclaimer:
       "This report is for informational purposes only. Always consult a healthcare professional before making changes to your health regimen.",
   };

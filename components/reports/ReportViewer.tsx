@@ -9,6 +9,7 @@ import {
   Star,
 } from "lucide-react";
 import { getEvidenceMeta, UNCLASSIFIED_EVIDENCE } from "@/lib/evidence-levels";
+import { severityPresentation } from "@/components/interactions/interaction.types";
 
 /**
  * Evidence colours come from the shared config so a "Moderate" remedy does not
@@ -19,25 +20,33 @@ function evidenceClasses(level?: string | null): string {
   return `${meta.bgClassName} ${meta.textClassName}`;
 }
 
+/**
+ * The shape `lib/ai/report-generator.ts` stores. Keep the two in step: a field
+ * read here that the generator never writes renders as nothing, silently.
+ */
 interface ReportContent {
   summary?: string;
   recommendations?: Array<{
     name: string;
-    description: string;
+    category?: string;
     evidenceLevel?: string;
+    reasoning?: string;
     dosage?: string;
-    precautions?: string[];
+    warnings?: string[];
   }>;
+  /**
+   * Whether the Medication Cabinet was checked. Absent on reports that did not
+   * ask for it, and on reports generated before this field existed.
+   */
+  interactionCheck?: "checked" | "unavailable";
   interactionWarnings?: Array<{
-    substance: string;
-    medication: string;
+    substanceA: string;
+    substanceB: string;
     severity: string;
     description: string;
+    recommendation?: string;
   }>;
-  sources?: Array<{
-    title: string;
-    url?: string;
-  }>;
+  sources?: Array<string | { title: string; url?: string }>;
 }
 
 interface Report {
@@ -53,12 +62,6 @@ interface Report {
 interface ReportViewerProps {
   report: Report;
 }
-
-const SEVERITY_COLORS: Record<string, string> = {
-  high: "border-destructive/30 bg-destructive/5 text-destructive",
-  moderate: "border-warning/30 bg-warning/5 text-warning",
-  low: "border-primary/30 bg-primary/5 text-primary",
-};
 
 export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
   if (report.status === "generating") {
@@ -112,32 +115,83 @@ export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
       )}
 
       {/* Interaction Warnings */}
+      {content.interactionCheck === "unavailable" && (
+        <div
+          role="alert"
+          className="rounded-lg border border-warning/30 bg-warning/5 p-6"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle
+              aria-hidden="true"
+              className="h-5 w-5 text-warning"
+            />
+            <h3 className="text-lg font-semibold text-foreground">
+              Interactions Not Checked
+            </h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            We could not check your medication cabinet for interactions when
+            this report was generated. This is not a confirmation that none
+            exist. Use the interaction checker or ask a pharmacist.
+          </p>
+        </div>
+      )}
+
+      {content.interactionCheck === "checked" &&
+        (content.interactionWarnings?.length ?? 0) === 0 && (
+          <div className="rounded-lg border border-border bg-card p-6">
+            <h3 className="text-lg font-semibold mb-2">Interaction Warnings</h3>
+            <p className="text-sm text-muted-foreground">
+              No known interactions were found between the medications in your
+              cabinet in our database. This does not guarantee the absence of
+              interactions.
+            </p>
+          </div>
+        )}
+
       {content.interactionWarnings &&
         content.interactionWarnings.length > 0 && (
           <div className="rounded-lg border border-warning/30 bg-warning/5 p-6">
             <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle className="h-5 w-5 text-warning" />
+              <AlertTriangle
+                aria-hidden="true"
+                className="h-5 w-5 text-warning"
+              />
               <h3 className="text-lg font-semibold text-foreground">
                 Interaction Warnings
               </h3>
             </div>
             <div className="space-y-3">
-              {content.interactionWarnings.map((warning, i) => (
-                <div
-                  key={i}
-                  className={`rounded-lg border p-4 ${SEVERITY_COLORS[warning.severity] ?? SEVERITY_COLORS.moderate}`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-sm">
-                      {warning.substance} + {warning.medication}
-                    </span>
-                    <span className="text-xs font-medium uppercase">
-                      {warning.severity}
-                    </span>
+              {content.interactionWarnings.map((warning, i) => {
+                const severity = severityPresentation(warning.severity);
+                return (
+                  <div
+                    key={i}
+                    className={`rounded-lg border p-4 ${severity.borderColor} ${severity.bgColor}`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-medium text-sm">
+                        {warning.substanceA} + {warning.substanceB}
+                      </span>
+                      <span
+                        className={`inline-flex items-center gap-1 text-xs font-medium ${severity.color}`}
+                      >
+                        <severity.icon
+                          aria-hidden="true"
+                          className="h-3.5 w-3.5"
+                        />
+                        {severity.label}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {warning.description}
+                    </p>
+                    {warning.recommendation && (
+                      <p className="text-sm mt-2">{warning.recommendation}</p>
+                    )}
                   </div>
-                  <p className="text-sm opacity-80">{warning.description}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -162,19 +216,21 @@ export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground mt-2 ml-7">
-                  {rec.description}
-                </p>
+                {rec.reasoning && (
+                  <p className="text-sm text-muted-foreground mt-2 ml-7">
+                    {rec.reasoning}
+                  </p>
+                )}
                 {rec.dosage && (
                   <p className="text-sm mt-2 ml-7">
                     <span className="font-medium">Dosage:</span> {rec.dosage}
                   </p>
                 )}
-                {rec.precautions && rec.precautions.length > 0 && (
+                {rec.warnings && rec.warnings.length > 0 && (
                   <div className="mt-2 ml-7">
-                    <span className="text-sm font-medium">Precautions:</span>
+                    <span className="text-sm font-medium">Warnings:</span>
                     <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
-                      {rec.precautions.map((p, j) => (
+                      {rec.warnings.map((p, j) => (
                         <li key={j}>{p}</li>
                       ))}
                     </ul>
@@ -191,24 +247,35 @@ export function ReportViewer({ report }: ReportViewerProps): React.JSX.Element {
         <div className="rounded-lg border border-border bg-card p-6">
           <h3 className="text-lg font-semibold mb-3">Sources</h3>
           <ul className="space-y-2">
-            {content.sources.map((source, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm">
-                <Star className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                {source.url ? (
-                  <a
-                    href={source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline inline-flex items-center gap-1"
-                  >
-                    {source.title}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                ) : (
-                  <span className="text-muted-foreground">{source.title}</span>
-                )}
-              </li>
-            ))}
+            {content.sources.map((entry, i) => {
+              const source =
+                typeof entry === "string"
+                  ? { title: entry, url: undefined }
+                  : entry;
+              return (
+                <li key={i} className="flex items-start gap-2 text-sm">
+                  <Star
+                    aria-hidden="true"
+                    className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0"
+                  />
+                  {source.url ? (
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      {source.title}
+                      <ExternalLink aria-hidden="true" className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      {source.title}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
