@@ -4,7 +4,7 @@ import { getUserReports } from "@/lib/db";
 import { ReportsOverview } from "@/components/reports/ReportsOverview";
 
 export const metadata = {
-  title: "AI Reports | Remedi Dashboard",
+  title: "AI Reports",
   description: "AI-generated remedy reports tailored to your health profile",
 };
 
