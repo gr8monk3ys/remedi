@@ -52,21 +52,25 @@ export default async function ProductionReadinessPage() {
 
   const required = checkEnvStatus(REQUIRED_ENV);
   const recommended = checkEnvStatus(RECOMMENDED_ENV);
-  const dbOk = await isConnected();
   const sentryOk = isSentryConfigured();
   const stripeMode = getStripeMode();
-  const webhookStatus = await prisma.webhookStatus.findUnique({
-    where: { provider: "stripe" },
-    select: { lastReceivedAt: true, lastEventType: true },
-  });
-  const stripeOk = await (async () => {
-    try {
-      await getStripe().products.list({ limit: 1 });
-      return true;
-    } catch {
-      return false;
-    }
-  })();
+  // Independent checks, one of them a Stripe network call: run them together
+  // so the page costs the slowest check rather than the sum of all three.
+  const [dbOk, webhookStatus, stripeOk] = await Promise.all([
+    isConnected(),
+    prisma.webhookStatus.findUnique({
+      where: { provider: "stripe" },
+      select: { lastReceivedAt: true, lastEventType: true },
+    }),
+    (async () => {
+      try {
+        await getStripe().products.list({ limit: 1 });
+        return true;
+      } catch {
+        return false;
+      }
+    })(),
+  ]);
 
   let remediesTotal = 0;
   let remediesMissingSourceUrl = 0;
