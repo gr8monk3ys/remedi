@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser, isAdmin, isModerator } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
 export const metadata = {
-  title: "Admin Dashboard | Remedi",
+  title: "Admin Dashboard",
   description: "Remedi administration panel",
   robots: "noindex, nofollow",
 };
@@ -14,11 +14,10 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const user = await getCurrentUser();
-  const userIsAdmin = await isAdmin();
-  const userIsModerator = await isModerator();
 
-  // Redirect non-admin users
-  if (!user || (!userIsAdmin && !userIsModerator)) {
+  // Redirect anyone who is not an admin or moderator. The role comes from the
+  // same DB record, so there is no need to look the user up three times.
+  if (!user || (user.role !== "admin" && user.role !== "moderator")) {
     redirect("/");
   }
 
