@@ -140,11 +140,17 @@ export async function startTrial(userId: string): Promise<{
   // guard a paying Basic subscriber could call /api/trial/start and be moved
   // to Premium on a trial — and worse, processExpiredTrials would later reset
   // them to "free", silently cancelling a customer who was still paying.
-  const paid = await prisma.subscription.findUnique({
+  //
+  // A { plan: "free", status: "active" } row is not a subscription: it is what
+  // getOrCreateStripeCustomer writes to remember a Stripe customer id, so it
+  // must not block the trial.
+  const existing = await prisma.subscription.findUnique({
     where: { userId },
-    select: { status: true },
+    select: { plan: true, status: true },
   });
-  if (paid?.status === "active" || paid?.status === "trialing") {
+  const isPaidActive =
+    existing?.status === "active" && existing.plan !== "free";
+  if (isPaidActive || existing?.status === "trialing") {
     throw new Error("User already has an active subscription");
   }
 
