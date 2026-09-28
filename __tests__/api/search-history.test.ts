@@ -118,6 +118,27 @@ describe("/api/search-history", () => {
       expect(mockVerifyOwnership).not.toHaveBeenCalled();
     });
 
+    it.each([
+      ["1000000", 20],
+      ["abc", 5],
+      ["0", 1],
+      ["-3", 1],
+    ])(
+      "caps the public popular-searches limit (limit=%s -> %i)",
+      async (limitParam, expected) => {
+        mockGetPopularSearches.mockResolvedValue([]);
+
+        const response = await GET(
+          new NextRequest(
+            `http://localhost:3000/api/search-history?popular=true&limit=${limitParam}`,
+          ),
+        );
+
+        expect(response.status).toBe(200);
+        expect(mockGetPopularSearches).toHaveBeenCalledWith(expected);
+      },
+    );
+
     it("should forbid session-based history retrieval (paid feature)", async () => {
       mockGetSearchHistory.mockResolvedValue([]);
 
