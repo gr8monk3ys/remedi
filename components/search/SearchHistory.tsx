@@ -25,10 +25,12 @@ export const SearchHistory = memo(function SearchHistory({
       <div className="mb-6">
         <h3 className="eyebrow eyebrow-muted mb-3">Recent Searches</h3>
         <div className="flex items-center justify-center py-4">
-          <Loader2
-            className="h-5 w-5 animate-spin text-muted-foreground"
-            aria-label="Loading search history"
-          />
+          <span role="status" className="inline-flex animate-spin">
+            <Loader2
+              className="h-5 w-5 text-muted-foreground"
+              aria-label="Loading search history"
+            />
+          </span>
         </div>
       </div>
     );

@@ -40,7 +40,7 @@ export function HealthStatus() {
   if (loading) {
     return (
       <div className="rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground">
-        Loading /api/health status...
+        Loading /api/health status…
       </div>
     );
   }

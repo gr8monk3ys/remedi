@@ -52,8 +52,8 @@ export function RemedyHero({
             <div className="flex items-center gap-2">
               <div className="h-1 w-24 overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{ width: `${scorePercent}%` }}
+                  className="h-full w-full origin-left rounded-full bg-primary transition-transform"
+                  style={{ transform: `scaleX(${scorePercent / 100})` }}
                 />
               </div>
               <span className="tabular font-mono text-xs font-medium">

@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { createLogger } from "@/lib/logger";
+import { safeGetItem, safeSetItem, safeRemoveItem } from "@/lib/safe-storage";
 
 const logger = createLogger("onboarding");
 
@@ -124,33 +125,30 @@ export function OnboardingProvider({
     const loadState = (): void => {
       try {
         const welcomeCompleted =
-          localStorage.getItem(STORAGE_KEYS.WELCOME_COMPLETED) === "true";
+          safeGetItem(STORAGE_KEYS.WELCOME_COMPLETED) === "true";
         const tourCompleted =
-          localStorage.getItem(STORAGE_KEYS.TOUR_COMPLETED) === "true";
+          safeGetItem(STORAGE_KEYS.TOUR_COMPLETED) === "true";
         const firstSearchCompleted =
-          localStorage.getItem(STORAGE_KEYS.FIRST_SEARCH_COMPLETED) === "true";
+          safeGetItem(STORAGE_KEYS.FIRST_SEARCH_COMPLETED) === "true";
         const signupPromptDismissed =
-          localStorage.getItem(STORAGE_KEYS.SIGNUP_PROMPT_DISMISSED) === "true";
+          safeGetItem(STORAGE_KEYS.SIGNUP_PROMPT_DISMISSED) === "true";
         const premiumUpsellDismissed =
-          localStorage.getItem(STORAGE_KEYS.PREMIUM_UPSELL_DISMISSED) ===
-          "true";
+          safeGetItem(STORAGE_KEYS.PREMIUM_UPSELL_DISMISSED) === "true";
         const dontShowWelcome =
-          localStorage.getItem(STORAGE_KEYS.DONT_SHOW_WELCOME) === "true";
+          safeGetItem(STORAGE_KEYS.DONT_SHOW_WELCOME) === "true";
         const dontShowTour =
-          localStorage.getItem(STORAGE_KEYS.DONT_SHOW_TOUR) === "true";
+          safeGetItem(STORAGE_KEYS.DONT_SHOW_TOUR) === "true";
         const currentWelcomeStep = parseInt(
-          localStorage.getItem(STORAGE_KEYS.ONBOARDING_STEP) || "0",
+          safeGetItem(STORAGE_KEYS.ONBOARDING_STEP) || "0",
           10,
         );
         const guestSearchCount = parseInt(
-          localStorage.getItem(STORAGE_KEYS.GUEST_SEARCH_COUNT) || "0",
+          safeGetItem(STORAGE_KEYS.GUEST_SEARCH_COUNT) || "0",
           10,
         );
 
         let healthInterests: HealthInterests | null = null;
-        const storedInterests = localStorage.getItem(
-          STORAGE_KEYS.HEALTH_INTERESTS,
-        );
+        const storedInterests = safeGetItem(STORAGE_KEYS.HEALTH_INTERESTS);
         if (storedInterests) {
           try {
             healthInterests = JSON.parse(storedInterests) as HealthInterests;
@@ -184,62 +182,59 @@ export function OnboardingProvider({
 
   // Action creators
   const completeWelcome = useCallback((): void => {
-    localStorage.setItem(STORAGE_KEYS.WELCOME_COMPLETED, "true");
+    safeSetItem(STORAGE_KEYS.WELCOME_COMPLETED, "true");
     setState((prev) => ({ ...prev, welcomeCompleted: true }));
   }, []);
 
   const completeTour = useCallback((): void => {
-    localStorage.setItem(STORAGE_KEYS.TOUR_COMPLETED, "true");
+    safeSetItem(STORAGE_KEYS.TOUR_COMPLETED, "true");
     setState((prev) => ({ ...prev, tourCompleted: true }));
   }, []);
 
   const completeFirstSearch = useCallback((): void => {
-    localStorage.setItem(STORAGE_KEYS.FIRST_SEARCH_COMPLETED, "true");
+    safeSetItem(STORAGE_KEYS.FIRST_SEARCH_COMPLETED, "true");
     setState((prev) => ({ ...prev, firstSearchCompleted: true }));
   }, []);
 
   const dismissSignupPrompt = useCallback((): void => {
-    localStorage.setItem(STORAGE_KEYS.SIGNUP_PROMPT_DISMISSED, "true");
+    safeSetItem(STORAGE_KEYS.SIGNUP_PROMPT_DISMISSED, "true");
     setState((prev) => ({ ...prev, signupPromptDismissed: true }));
   }, []);
 
   const dismissPremiumUpsell = useCallback((): void => {
-    localStorage.setItem(STORAGE_KEYS.PREMIUM_UPSELL_DISMISSED, "true");
+    safeSetItem(STORAGE_KEYS.PREMIUM_UPSELL_DISMISSED, "true");
     setState((prev) => ({ ...prev, premiumUpsellDismissed: true }));
   }, []);
 
   const setWelcomeStep = useCallback((step: number): void => {
-    localStorage.setItem(STORAGE_KEYS.ONBOARDING_STEP, step.toString());
+    safeSetItem(STORAGE_KEYS.ONBOARDING_STEP, step.toString());
     setState((prev) => ({ ...prev, currentWelcomeStep: step }));
   }, []);
 
   const setHealthInterests = useCallback((interests: HealthInterests): void => {
-    localStorage.setItem(
-      STORAGE_KEYS.HEALTH_INTERESTS,
-      JSON.stringify(interests),
-    );
+    safeSetItem(STORAGE_KEYS.HEALTH_INTERESTS, JSON.stringify(interests));
     setState((prev) => ({ ...prev, healthInterests: interests }));
   }, []);
 
   const incrementSearchCount = useCallback((): void => {
     const newCount = state.guestSearchCount + 1;
-    localStorage.setItem(STORAGE_KEYS.GUEST_SEARCH_COUNT, newCount.toString());
+    safeSetItem(STORAGE_KEYS.GUEST_SEARCH_COUNT, newCount.toString());
     setState((prev) => ({ ...prev, guestSearchCount: newCount }));
   }, [state.guestSearchCount]);
 
   const setDontShowWelcome = useCallback((value: boolean): void => {
-    localStorage.setItem(STORAGE_KEYS.DONT_SHOW_WELCOME, value.toString());
+    safeSetItem(STORAGE_KEYS.DONT_SHOW_WELCOME, value.toString());
     setState((prev) => ({ ...prev, dontShowWelcome: value }));
   }, []);
 
   const setDontShowTour = useCallback((value: boolean): void => {
-    localStorage.setItem(STORAGE_KEYS.DONT_SHOW_TOUR, value.toString());
+    safeSetItem(STORAGE_KEYS.DONT_SHOW_TOUR, value.toString());
     setState((prev) => ({ ...prev, dontShowTour: value }));
   }, []);
 
   const resetOnboarding = useCallback((): void => {
     Object.values(STORAGE_KEYS).forEach((key) => {
-      localStorage.removeItem(key);
+      safeRemoveItem(key);
     });
     setState({ ...defaultState, featureFlags: stableFeatureFlags });
   }, [stableFeatureFlags]);

@@ -191,6 +191,7 @@ export function PWARegister() {
               aria-label="Close"
             >
               <svg
+                aria-hidden="true"
                 className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
@@ -233,6 +234,7 @@ export function PWARegister() {
               aria-label="Close"
             >
               <svg
+                aria-hidden="true"
                 className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"

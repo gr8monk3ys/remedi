@@ -29,13 +29,16 @@ export function DemoSearchStep({
       </p>
 
       <div className="relative">
-        <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2.5">
+        <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2.5 focus-within:ring-2 focus-within:ring-ring">
           <Search className="w-5 h-5 text-muted-foreground" />
           <input
+            aria-label="Search for a remedy"
+            name="demoQuery"
+            autoComplete="off"
             type="text"
             value={demoQuery}
             onChange={(e) => setDemoQuery(e.target.value)}
-            placeholder="Try searching for a remedy..."
+            placeholder="Try searching for a remedy…"
             className="flex-1 bg-transparent border-none outline-none text-foreground placeholder-muted-foreground"
             onKeyDown={(e) => {
               if (e.key === "Enter" && demoQuery.trim()) {
@@ -75,8 +78,8 @@ export function DemoSearchStep({
           <div className="flex items-center gap-2 text-primary">
             <Check className="w-5 h-5" />
             <span className="text-sm font-medium">
-              Great choice! You will see results for &quot;
-              {demoQuery}&quot; after completing the setup.
+              Great choice! You will see results for &ldquo;
+              {demoQuery}&rdquo; after completing the setup.
             </span>
           </div>
         </motion.div>

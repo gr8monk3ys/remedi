@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { FileText, Loader2, CheckCircle, XCircle } from "lucide-react";
 
@@ -22,7 +20,7 @@ const STATUS_CONFIG: Record<
 > = {
   generating: {
     icon: Loader2,
-    label: "Generating...",
+    label: "Generating…",
     color: "text-amber-600 dark:text-amber-400",
   },
   complete: {
@@ -71,11 +69,13 @@ export function ReportCard({ report }: ReportCardProps): React.JSX.Element {
               {QUERY_TYPE_LABELS[report.queryType] ?? report.queryType}
             </span>
             <div className={`flex items-center gap-1 text-xs ${status.color}`}>
-              <StatusIcon
-                className={`w-3.5 h-3.5 ${
+              <span
+                className={`inline-flex ${
                   report.status === "generating" ? "animate-spin" : ""
                 }`}
-              />
+              >
+                <StatusIcon className="w-3.5 h-3.5" />
+              </span>
               {status.label}
             </div>
             <span className="text-xs text-muted-foreground">{dateStr}</span>
