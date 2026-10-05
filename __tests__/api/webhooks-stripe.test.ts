@@ -52,7 +52,9 @@ vi.mock("@/lib/stripe", () => ({
   }),
 }));
 
-// Mock Prisma
+// Mock the lib/db domain functions the route calls (route DB access is
+// routed entirely through lib/db, never through prisma/@prisma/client
+// directly — see issue #77).
 const mockFindUnique = vi.fn();
 const mockUpsert = vi.fn();
 const mockUpdate = vi.fn();
@@ -65,24 +67,65 @@ const mockWebhookEventUpsert = vi
 const mockWebhookEventUpdate = vi.fn().mockResolvedValue({});
 
 vi.mock("@/lib/db", () => ({
-  prisma: {
-    subscription: {
-      findUnique: (...args: unknown[]) => mockFindUnique(...args),
-      upsert: (...args: unknown[]) => mockUpsert(...args),
-      update: (...args: unknown[]) => mockUpdate(...args),
-    },
-    webhookStatus: {
-      upsert: (...args: unknown[]) => mockWebhookStatusUpsert(...args),
-    },
-    webhookEvent: {
-      upsert: (...args: unknown[]) => mockWebhookEventUpsert(...args),
-      update: (...args: unknown[]) => mockWebhookEventUpdate(...args),
-    },
-    user: {
-      findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
-      update: (...args: unknown[]) => mockUserUpdate(...args),
-    },
-  },
+  findSubscriptionByStripeId: (...args: unknown[]) => mockFindUnique(...args),
+  findSubscriptionByUserId: (...args: unknown[]) => mockFindUnique(...args),
+  upsertSubscriptionForCheckout: (userId: string, data: unknown) =>
+    mockUpsert({ where: { userId }, create: { userId, ...(data as object) } }),
+  markUserTrialUsed: (
+    userId: string,
+    trial: { trialStartDate?: Date; trialEndDate?: Date },
+  ) =>
+    mockUserUpdate({
+      where: { id: userId },
+      data: {
+        hasUsedTrial: true,
+        ...(trial.trialStartDate && { trialStartDate: trial.trialStartDate }),
+        ...(trial.trialEndDate && { trialEndDate: trial.trialEndDate }),
+      },
+    }),
+  updateSubscriptionFromStripe: (id: string, data: unknown) =>
+    mockUpdate({ where: { id }, data }),
+  downgradeSubscriptionToFree: (id: string) =>
+    mockUpdate({
+      where: { id },
+      data: { plan: "free", status: "cancelled" },
+    }),
+  setSubscriptionStatus: (id: string, status: string) =>
+    mockUpdate({ where: { id }, data: { status } }),
+  getUserContactInfo: (...args: unknown[]) => mockUserFindUnique(...args),
+  recordWebhookEventAttempt: (event: {
+    id: string;
+    type: string;
+    payload: unknown;
+  }) =>
+    mockWebhookEventUpsert({
+      where: { stripeEventId: event.id },
+      create: {
+        stripeEventId: event.id,
+        type: event.type,
+        payload: event.payload,
+        status: "pending",
+        attempts: 1,
+      },
+      update: {
+        status: "pending",
+        attempts: { increment: 1 },
+        lastError: null,
+      },
+      select: { id: true, attempts: true },
+    }),
+  markWebhookEventProcessed: (id: string) =>
+    mockWebhookEventUpdate({
+      where: { id },
+      data: { status: "processed", processedAt: new Date() },
+    }),
+  markWebhookEventFailed: (id: string, lastError: string) =>
+    mockWebhookEventUpdate({
+      where: { id },
+      data: { status: "failed", lastError },
+    }),
+  recordWebhookReceived: (...args: unknown[]) =>
+    mockWebhookStatusUpsert(...args),
 }));
 
 // Mock logger
