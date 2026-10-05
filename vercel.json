@@ -8,5 +8,11 @@
       "path": "/api/cron/reconcile-subscriptions",
       "schedule": "0 4 * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "**": false,
+      "main": true
+    }
+  }
 }
