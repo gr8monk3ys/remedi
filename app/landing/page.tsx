@@ -70,7 +70,7 @@ export default function LandingPage() {
             aria-hidden="true"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-              <span className="eyebrow eyebrow-muted">Search</span>
+              <span className="eyebrow eyebrow-muted">Example search</span>
               <span className="font-mono text-xs text-foreground">
                 ibuprofen
               </span>
@@ -104,7 +104,8 @@ export default function LandingPage() {
               ))}
             </ul>
             <div className="border-t border-border px-4 py-2.5 font-mono text-[11px] text-muted-foreground">
-              Relevance is informational, not a measure of effectiveness.
+              Illustrative example, not a live result. Relevance is
+              informational, not a measure of effectiveness.
             </div>
           </div>
         </section>

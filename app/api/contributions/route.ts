@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { intParam } from "@/lib/api/query-params";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
@@ -100,11 +101,12 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
-    const page = Math.max(parseInt(searchParams.get("page") || "1"), 1);
-    const limit = Math.min(
-      Math.max(parseInt(searchParams.get("limit") || "10"), 1),
-      100,
-    );
+    const page = intParam(searchParams.get("page"), { fallback: 1, min: 1 });
+    const limit = intParam(searchParams.get("limit"), {
+      fallback: 10,
+      min: 1,
+      max: 100,
+    });
     const skip = (page - 1) * limit;
 
     const validStatuses = ["pending", "approved", "rejected"] as const;

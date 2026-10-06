@@ -81,8 +81,10 @@ async function getRecentActivity(): Promise<RecentActivity> {
 }
 
 export default async function AdminDashboard() {
-  const stats = await getStats();
-  const activity = await getRecentActivity();
+  const [stats, activity] = await Promise.all([
+    getStats(),
+    getRecentActivity(),
+  ]);
 
   const statCards = [
     {

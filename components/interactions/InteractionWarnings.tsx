@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   AlertTriangle,
   Shield,
@@ -35,6 +35,7 @@ function WarningItem({
   remedyName: string;
 }): React.ReactElement {
   const [expanded, setExpanded] = useState(false);
+  const detailsId = useId();
   const config = severityPresentation(interaction.severity);
 
   // Determine the "other" substance (the one that isn't this remedy)
@@ -72,18 +73,20 @@ function WarningItem({
           size="sm"
           className="shrink-0 h-7 w-7 p-0"
           onClick={() => setExpanded(!expanded)}
+          aria-expanded={expanded}
+          aria-controls={expanded ? detailsId : undefined}
           aria-label={expanded ? "Collapse details" : "Expand details"}
         >
           {expanded ? (
-            <ChevronUp className="h-3.5 w-3.5" />
+            <ChevronUp aria-hidden="true" className="h-3.5 w-3.5" />
           ) : (
-            <ChevronDown className="h-3.5 w-3.5" />
+            <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
           )}
         </Button>
       </div>
 
       {expanded && (
-        <div className="mt-3 space-y-3 border-t pt-3">
+        <div id={detailsId} className="mt-3 space-y-3 border-t pt-3">
           {interaction.mechanism && (
             <div>
               <h5 className="text-xs font-medium mb-0.5">Mechanism</h5>

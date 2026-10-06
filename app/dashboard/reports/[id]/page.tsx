@@ -4,7 +4,7 @@ import { getReportById } from "@/lib/db";
 import { ReportViewer } from "@/components/reports/ReportViewer";
 
 export const metadata = {
-  title: "View Report | Remedi Dashboard",
+  title: "View Report",
 };
 
 interface Props {

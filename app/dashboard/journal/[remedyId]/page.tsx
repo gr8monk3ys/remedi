@@ -4,7 +4,7 @@ import { getRemedyInsights, getJournalEntries } from "@/lib/db";
 import { RemedyJournalDetail } from "@/components/journal/RemedyJournalDetail";
 
 export const metadata = {
-  title: "Remedy Details | Remedi Journal",
+  title: "Remedy Journal Details",
 };
 
 interface Props {

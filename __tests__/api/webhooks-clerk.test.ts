@@ -356,6 +356,41 @@ describe("/api/webhooks/clerk", () => {
       });
     });
 
+    it("verifies the raw body bytes, not a re-serialisation of them", async () => {
+      // Svix signs the bytes it sent. Whitespace and escapes such as &
+      // do not survive JSON.parse -> JSON.stringify, so re-serialising the
+      // body before verifying rejects genuinely signed events.
+      mockUserFindUnique.mockResolvedValue(null);
+      mockUserCreate.mockResolvedValue(mockDbUser);
+      const { POST } = await import("@/app/api/webhooks/clerk/route");
+
+      const raw = `{ "type": "user.created", "data": ${JSON.stringify(
+        createClerkUserPayload(),
+      )}, "note": "a \\u0026 b" }`;
+      await POST(
+        new Request("http://localhost:3000/api/webhooks/clerk", {
+          method: "POST",
+          body: raw,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      expect(mockVerify).toHaveBeenCalledWith(raw, expect.any(Object));
+    });
+
+    it("rejects a body that is not JSON with a 400", async () => {
+      const { POST } = await import("@/app/api/webhooks/clerk/route");
+
+      const response = await POST(
+        new Request("http://localhost:3000/api/webhooks/clerk", {
+          method: "POST",
+          body: "not json",
+        }),
+      );
+
+      expect(response.status).toBe(400);
+    });
+
     // ------------------------------------------------------------------
     // user.created Event
     // ------------------------------------------------------------------
