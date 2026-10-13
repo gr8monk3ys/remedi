@@ -11,9 +11,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import Stripe from "stripe";
 import { stripe, getPlanByPriceId, PLANS } from "@/lib/stripe";
-import { prisma } from "@/lib/db";
+import {
+  findSubscriptionByStripeId,
+  findSubscriptionByUserId,
+  upsertSubscriptionForCheckout,
+  markUserTrialUsed,
+  updateSubscriptionFromStripe,
+  downgradeSubscriptionToFree,
+  setSubscriptionStatus,
+  getUserContactInfo,
+  recordWebhookEventAttempt,
+  markWebhookEventProcessed,
+  markWebhookEventFailed,
+  recordWebhookReceived,
+} from "@/lib/db";
 import { subscriptionStatusFor } from "@/lib/subscription-status";
-import { Prisma } from "@prisma/client";
 import { createLogger } from "@/lib/logger";
 import {
   sendSubscriptionConfirmation,
@@ -60,9 +72,7 @@ async function handleCheckoutSessionCompleted(
   }
 
   // Idempotency check: skip if already processed
-  const existing = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: subscriptionId },
-  });
+  const existing = await findSubscriptionByStripeId(subscriptionId);
   if (existing && existing.status === "active") {
     log.info("Subscription already processed, skipping", { subscriptionId });
     return;
@@ -116,45 +126,25 @@ async function handleCheckoutSessionCompleted(
   if (stripeSubscription.status === "trialing") {
     const trialStart = stripeSubscription.trial_start;
     const trialEnd = stripeSubscription.trial_end;
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        hasUsedTrial: true,
-        ...(trialStart && { trialStartDate: new Date(trialStart * 1000) }),
-        ...(trialEnd && { trialEndDate: new Date(trialEnd * 1000) }),
-      },
+    await markUserTrialUsed(userId, {
+      trialStartDate: trialStart ? new Date(trialStart * 1000) : undefined,
+      trialEndDate: trialEnd ? new Date(trialEnd * 1000) : undefined,
     });
   }
 
   // Update subscription in database
-  await prisma.subscription.upsert({
-    where: { userId },
-    create: {
-      userId,
-      stripeSubscriptionId: subscriptionId,
-      customerId,
-      priceId,
-      plan: plan || "basic",
-      status,
-      interval: subscriptionItem?.price.recurring?.interval || "month",
-      currentPeriodStart,
-      currentPeriodEnd,
-      startedAt: new Date(
-        (stripeSubscription.start_date ?? Date.now() / 1000) * 1000,
-      ),
-    },
-    update: {
-      stripeSubscriptionId: subscriptionId,
-      customerId,
-      priceId,
-      plan: plan || "basic",
-      status,
-      interval: subscriptionItem?.price.recurring?.interval || "month",
-      currentPeriodStart,
-      currentPeriodEnd,
-      cancelledAt: null,
-      cancelAtPeriodEnd: false,
-    },
+  await upsertSubscriptionForCheckout(userId, {
+    stripeSubscriptionId: subscriptionId,
+    customerId,
+    priceId,
+    plan: plan || "basic",
+    status,
+    interval: subscriptionItem?.price.recurring?.interval || "month",
+    currentPeriodStart,
+    currentPeriodEnd,
+    startedAt: new Date(
+      (stripeSubscription.start_date ?? Date.now() / 1000) * 1000,
+    ),
   });
 
   log.info("Subscription created", {
@@ -165,10 +155,7 @@ async function handleCheckoutSessionCompleted(
 
   // Send confirmation email (fire and forget - don't fail webhook if email fails)
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true, name: true },
-    });
+    const user = await getUserContactInfo(userId);
 
     if (user?.email) {
       const planKey = (plan || "basic") as keyof typeof PLANS;
@@ -208,14 +195,10 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const subscriptionId = subscription.id;
 
   // Find subscription by Stripe subscription ID if no userId in metadata
-  let dbSubscription = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: subscriptionId },
-  });
+  let dbSubscription = await findSubscriptionByStripeId(subscriptionId);
 
   if (!dbSubscription && userId) {
-    dbSubscription = await prisma.subscription.findUnique({
-      where: { userId },
-    });
+    dbSubscription = await findSubscriptionByUserId(userId);
   }
 
   if (!dbSubscription) {
@@ -252,21 +235,18 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   // was "active". One mapper now serves both handlers.
   const status = subscriptionStatusFor(subscription.status);
 
-  await prisma.subscription.update({
-    where: { id: dbSubscription.id },
-    data: {
-      plan: plan || dbSubscription.plan,
-      status,
-      priceId,
-      interval:
-        subscriptionItem?.price.recurring?.interval || dbSubscription.interval,
-      currentPeriodStart,
-      currentPeriodEnd,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
-      cancelledAt: subscription.canceled_at
-        ? new Date(subscription.canceled_at * 1000)
-        : null,
-    },
+  await updateSubscriptionFromStripe(dbSubscription.id, {
+    plan: plan || dbSubscription.plan,
+    status,
+    priceId,
+    interval:
+      subscriptionItem?.price.recurring?.interval || dbSubscription.interval,
+    currentPeriodStart,
+    currentPeriodEnd,
+    cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    cancelledAt: subscription.canceled_at
+      ? new Date(subscription.canceled_at * 1000)
+      : null,
   });
 
   log.info("Subscription updated", {
@@ -282,9 +262,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   const subscriptionId = subscription.id;
 
-  const dbSubscription = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: subscriptionId },
-  });
+  const dbSubscription = await findSubscriptionByStripeId(subscriptionId);
 
   if (!dbSubscription) {
     log.warn("No subscription found", { subscriptionId });
@@ -292,28 +270,13 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   }
 
   // Downgrade to free plan
-  await prisma.subscription.update({
-    where: { id: dbSubscription.id },
-    data: {
-      plan: "free",
-      status: "cancelled",
-      stripeSubscriptionId: null,
-      priceId: null,
-      currentPeriodStart: null,
-      currentPeriodEnd: null,
-      expiresAt: new Date(),
-      cancelledAt: new Date(),
-    },
-  });
+  await downgradeSubscriptionToFree(dbSubscription.id);
 
   log.info("Subscription deleted", { subscriptionId });
 
   // Send cancellation email (fire and forget - don't fail webhook if email fails)
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: dbSubscription.userId },
-      select: { email: true, name: true },
-    });
+    const user = await getUserContactInfo(dbSubscription.userId);
 
     if (user?.email) {
       // Get the previous plan name for the email
@@ -402,17 +365,10 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
   if (!subscriptionId) return;
 
-  const dbSubscription = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: subscriptionId },
-  });
+  const dbSubscription = await findSubscriptionByStripeId(subscriptionId);
 
   if (dbSubscription) {
-    await prisma.subscription.update({
-      where: { id: dbSubscription.id },
-      data: {
-        status: "active",
-      },
-    });
+    await setSubscriptionStatus(dbSubscription.id, "active");
   }
 
   log.info("Payment succeeded", { subscriptionId });
@@ -426,17 +382,10 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 
   if (!subscriptionId) return;
 
-  const dbSubscription = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: subscriptionId },
-  });
+  const dbSubscription = await findSubscriptionByStripeId(subscriptionId);
 
   if (dbSubscription) {
-    await prisma.subscription.update({
-      where: { id: dbSubscription.id },
-      data: {
-        status: "expired",
-      },
-    });
+    await setSubscriptionStatus(dbSubscription.id, "expired");
   }
 
   log.warn("Payment failed", { subscriptionId });
@@ -470,23 +419,10 @@ export async function POST(request: NextRequest) {
     // -------------------------------------------------------------------------
     let webhookEventRecord: { id: string; attempts: number } | null = null;
     try {
-      webhookEventRecord = await prisma.webhookEvent.upsert({
-        where: { stripeEventId: event.id },
-        create: {
-          stripeEventId: event.id,
-          type: event.type,
-          payload: event as unknown as Prisma.InputJsonValue,
-          status: "pending",
-          attempts: 1,
-        },
-        update: {
-          // Increment attempts on each retry so we can see how many times
-          // Stripe (or our own replay logic) has attempted delivery.
-          status: "pending",
-          attempts: { increment: 1 },
-          lastError: null,
-        },
-        select: { id: true, attempts: true },
+      webhookEventRecord = await recordWebhookEventAttempt({
+        id: event.id,
+        type: event.type,
+        payload: event,
       });
     } catch (dlqWriteError) {
       // If we cannot write to the DLQ we still want to attempt processing
@@ -549,13 +485,10 @@ export async function POST(request: NextRequest) {
     if (webhookEventRecord) {
       try {
         if (handlerError) {
-          await prisma.webhookEvent.update({
-            where: { id: webhookEventRecord.id },
-            data: {
-              status: "failed",
-              lastError: handlerError.message,
-            },
-          });
+          await markWebhookEventFailed(
+            webhookEventRecord.id,
+            handlerError.message,
+          );
 
           // Alert via Sentry (routed through log.error → Sentry captureException)
           log.error(
@@ -569,13 +502,7 @@ export async function POST(request: NextRequest) {
             },
           );
         } else {
-          await prisma.webhookEvent.update({
-            where: { id: webhookEventRecord.id },
-            data: {
-              status: "processed",
-              processedAt: new Date(),
-            },
-          });
+          await markWebhookEventProcessed(webhookEventRecord.id);
         }
       } catch (dlqUpdateError) {
         // DLQ status update failed — log loudly but do not change the HTTP
@@ -591,20 +518,7 @@ export async function POST(request: NextRequest) {
     // Update the lightweight WebhookStatus health-check record (last-seen).
     // -------------------------------------------------------------------------
     try {
-      await prisma.webhookStatus.upsert({
-        where: { provider: "stripe" },
-        create: {
-          provider: "stripe",
-          lastReceivedAt: new Date(),
-          lastEventType: event.type,
-          lastEventId: event.id,
-        },
-        update: {
-          lastReceivedAt: new Date(),
-          lastEventType: event.type,
-          lastEventId: event.id,
-        },
-      });
+      await recordWebhookReceived("stripe", event.type, event.id);
     } catch (error) {
       log.warn("Failed to update webhook status", { error });
     }
