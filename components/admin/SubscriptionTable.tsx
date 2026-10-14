@@ -7,6 +7,7 @@ import { MoreVertical, RefreshCw, XCircle, ArrowUp } from "lucide-react";
 import { createLogger } from "@/lib/logger";
 import { toast } from "sonner";
 import { apiClient, ApiClientError } from "@/lib/api/client";
+import { formatDate } from "@/lib/utils";
 
 const logger = createLogger("admin-subscriptions");
 
@@ -173,9 +174,7 @@ export function SubscriptionTable({ subscriptions }: SubscriptionTableProps) {
                     {sub.interval || "One-time"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    {sub.expiresAt
-                      ? new Date(sub.expiresAt).toLocaleDateString()
-                      : "Never"}
+                    {sub.expiresAt ? formatDate(sub.expiresAt) : "Never"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="relative">

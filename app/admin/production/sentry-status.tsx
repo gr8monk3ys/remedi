@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/utils";
 
 type SentryStats = {
   ok: boolean;
@@ -40,7 +41,7 @@ export function SentryStatus() {
   if (loading) {
     return (
       <div className="rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground">
-        Loading Sentry stats...
+        Loading Sentry stats…
       </div>
     );
   }
@@ -63,7 +64,7 @@ export function SentryStatus() {
           </p>
           {data?.lastEventAt && (
             <p className="text-xs text-muted-foreground">
-              Last event: {new Date(data.lastEventAt).toLocaleString()}
+              Last event: {formatDate(data.lastEventAt, "mediumWithTime")}
             </p>
           )}
         </div>

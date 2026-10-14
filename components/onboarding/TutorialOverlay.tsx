@@ -88,7 +88,7 @@ export function TutorialOverlay({ onComplete, onSkip }: TutorialOverlayProps) {
   useEffect(() => {
     updateHighlight();
     window.addEventListener("resize", updateHighlight);
-    window.addEventListener("scroll", updateHighlight);
+    window.addEventListener("scroll", updateHighlight, { passive: true });
 
     return () => {
       window.removeEventListener("resize", updateHighlight);

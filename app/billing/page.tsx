@@ -13,6 +13,7 @@ import { prisma } from "@/lib/db";
 import { PLANS, parsePlanType } from "@/lib/stripe";
 import { ENTITLING_STATUSES } from "@/lib/subscription-status";
 import { BillingClient } from "./billing-client";
+import { formatDate } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Billing & Subscription | Remedi",
@@ -129,7 +130,7 @@ export default async function BillingPage({
                   Next billing date
                 </p>
                 <p className="text-lg font-medium text-foreground">
-                  {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                  {formatDate(subscription.currentPeriodEnd)}
                 </p>
               </div>
             )}

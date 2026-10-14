@@ -1,3 +1,4 @@
+import { formatNumber } from "@/lib/utils";
 export function CohortHeatCell({ percent }: { percent: number }) {
   const clamped = Math.min(100, Math.max(0, percent));
   const opacity = clamped / 100;
@@ -8,7 +9,7 @@ export function CohortHeatCell({ percent }: { percent: number }) {
         backgroundColor: `rgba(59, 130, 246, ${0.15 + opacity * 0.75})`,
       }}
     >
-      {percent.toFixed(1)}%
+      {formatNumber(percent, 1)}%
     </div>
   );
 }

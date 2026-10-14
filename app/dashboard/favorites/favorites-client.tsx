@@ -178,7 +178,7 @@ export function FavoritesPageClient({
                 <SlidersHorizontal className="h-4 w-4" />
                 {currentCollection || "All Collections"}
               </button>
-              <div className="absolute right-0 mt-1 w-48 bg-card rounded-lg shadow-lg border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+              <div className="absolute right-0 mt-1 w-48 bg-card rounded-lg shadow-lg border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-[opacity,visibility] z-10">
                 <button
                   onClick={() => handleCollectionChange(null)}
                   className={`block w-full px-4 py-2 text-sm text-left transition-colors ${
@@ -214,7 +214,7 @@ export function FavoritesPageClient({
             >
               {SORT_LABELS[currentSort as FavoritesSortOption] || "Sort"}
             </button>
-            <div className="absolute right-0 mt-1 w-40 bg-card rounded-lg shadow-lg border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+            <div className="absolute right-0 mt-1 w-40 bg-card rounded-lg shadow-lg border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-[opacity,visibility] z-10">
               {(
                 Object.entries(SORT_LABELS) as [FavoritesSortOption, string][]
               ).map(([value, label]) => (
@@ -267,7 +267,7 @@ export function FavoritesPageClient({
       {favorites.length === 0 && currentCollection && (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">
-            No favorites found in the &quot;{currentCollection}&quot;
+            No favorites found in the &ldquo;{currentCollection}&rdquo;
             collection.
           </p>
           <button

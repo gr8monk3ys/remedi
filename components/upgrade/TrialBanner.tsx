@@ -12,9 +12,11 @@ import { useAuth } from "@clerk/nextjs";
 import { apiClient, ApiClientError } from "@/lib/api/client";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Clock, X, Loader2 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 interface TrialStatus {
   isActive: boolean;
@@ -50,7 +52,6 @@ export function TrialBanner({
   className = "",
 }: TrialBannerProps) {
   const { isSignedIn } = useAuth();
-  const router = useRouter();
   const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -78,10 +79,6 @@ export function TrialBanner({
   const handleDismiss = () => {
     setIsDismissed(true);
     onDismiss?.();
-  };
-
-  const handleUpgrade = () => {
-    router.push("/pricing");
   };
 
   // Don't show if loading, dismissed, not authenticated, or no active trial
@@ -130,19 +127,19 @@ export function TrialBanner({
                 {trialStatus.endDate && (
                   <span className="flex items-center gap-1 font-mono text-xs text-muted-foreground">
                     <Clock className="w-3.5 h-3.5" />
-                    Ends {new Date(trialStatus.endDate).toLocaleDateString()}
+                    Ends {formatDate(trialStatus.endDate)}
                   </span>
                 )}
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <button
-                onClick={handleUpgrade}
+              <Link
+                href="/pricing"
                 className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 Upgrade Now
-              </button>
+              </Link>
 
               {dismissable && (
                 <button
@@ -297,7 +294,9 @@ export function StartTrialButton({
       className={`inline-flex items-center gap-2 rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
     >
       {isStarting ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <span className="inline-flex shrink-0 animate-spin">
+          <Loader2 className="w-4 h-4" />
+        </span>
       ) : (
         <Sparkles className="w-4 h-4" />
       )}

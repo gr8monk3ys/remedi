@@ -97,14 +97,16 @@ export function SearchInput({
           aria-hidden="true"
         />
         <Input
+          name="query"
+          autoComplete="off"
           type="search"
           aria-label="Search for pharmaceuticals or natural remedies"
           data-search-input
           className="h-12 pl-10 pr-28 text-base md:text-[15px]"
           placeholder={
             useAiSearch
-              ? "Describe your needs naturally..."
-              : "Search a drug or remedy..."
+              ? "Describe your needs naturally…"
+              : "Search a drug or remedy…"
           }
           value={query}
           onChange={(e) => setQuery(e.target.value)}

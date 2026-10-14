@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
-import { ContributionForm } from "@/components/remedy";
+import { ContributionForm } from "@/components/remedy/ContributionForm";
 import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = pageMetadata({
