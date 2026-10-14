@@ -32,6 +32,7 @@ interface SearchResultsProps {
    * failure this shape exists to prevent.
    */
   status: SearchStatus;
+  /** The query these results answer, not the live input text. */
   query: string;
   showFilters: boolean;
   categoryOptions: FilterOption[];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Plus,
   Trash2,
@@ -65,6 +65,16 @@ export function MedicationCabinetList({
     useState<InteractionOutcome<Interaction[]> | null>(null);
   const [loadingInteractions, setLoadingInteractions] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Bumped whenever the cabinet changes. A check result belongs to the list it
+  // was run against: once that list changes, an all-clear no longer covers
+  // what is on screen, and a response still in flight must not land.
+  const cabinetVersion = useRef(0);
+
+  function invalidateInteractionCheck(): void {
+    cabinetVersion.current += 1;
+    setInteractionOutcome(null);
+    setLoadingInteractions(false);
+  }
 
   async function handleAdd(data: Record<string, unknown>): Promise<void> {
     try {
@@ -72,7 +82,8 @@ export function MedicationCabinetList({
         "/api/medication-cabinet",
         data,
       );
-      setMedications([...medications, result.medication]);
+      setMedications((prev) => [...prev, result.medication]);
+      invalidateInteractionCheck();
       setShowForm(false);
     } catch {
       toast.error("Could not add that medication. Please try again.");
@@ -82,8 +93,11 @@ export function MedicationCabinetList({
   async function handleDelete(id: string): Promise<void> {
     setDeletingId(id);
     try {
-      await apiClient.delete(`/api/medication-cabinet?id=${id}`);
-      setMedications(medications.filter((m) => m.id !== id));
+      await apiClient.delete(
+        `/api/medication-cabinet?id=${encodeURIComponent(id)}`,
+      );
+      setMedications((prev) => prev.filter((m) => m.id !== id));
+      invalidateInteractionCheck();
     } catch {
       toast.error("Could not remove that medication. Please try again.");
     } finally {
@@ -92,8 +106,11 @@ export function MedicationCabinetList({
   }
 
   async function checkInteractions(): Promise<void> {
+    const version = cabinetVersion.current;
     setLoadingInteractions(true);
-    setInteractionOutcome(await readCabinetInteractions());
+    const outcome = await readCabinetInteractions();
+    if (version !== cabinetVersion.current) return;
+    setInteractionOutcome(outcome);
     setLoadingInteractions(false);
   }
 
@@ -215,6 +232,7 @@ export function MedicationCabinetList({
                   type="button"
                   onClick={() => handleDelete(med.id)}
                   disabled={deletingId === med.id}
+                  aria-label={`Remove ${med.name}`}
                   className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-muted-foreground hover:text-red-600 transition-colors"
                 >
                   {deletingId === med.id ? (

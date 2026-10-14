@@ -5,7 +5,7 @@ import { HealthProfileForm } from "@/components/dashboard/HealthProfileForm";
 import { MedicationCabinetList } from "@/components/dashboard/MedicationCabinetList";
 
 export const metadata = {
-  title: "Health Profile | Remedi Dashboard",
+  title: "Health Profile",
   description: "Manage your health profile and medication cabinet",
 };
 

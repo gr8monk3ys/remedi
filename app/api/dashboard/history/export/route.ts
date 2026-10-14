@@ -21,7 +21,11 @@ import { withRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 type ExportFormat = "csv" | "json";
 
 function csvEscape(value: string): string {
-  const escaped = value.replace(/"/g, '""');
+  // A leading = + - @ (or tab/CR) makes spreadsheets evaluate the cell as a
+  // formula. Queries can be planted in a user's history by a cross-site link,
+  // so prefix those with an apostrophe (OWASP CSV injection guidance).
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  const escaped = safe.replace(/"/g, '""');
   if (/[",\n\r]/.test(escaped)) {
     return `"${escaped}"`;
   }
