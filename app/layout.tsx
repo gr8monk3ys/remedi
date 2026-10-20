@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     "natural remedy",
     "remedy mapping",
     "drug interactions",
-    "evidence-based remedies",
+    "remedy evidence levels",
     "herbal remedies",
     "natural health",
     "nutrition",

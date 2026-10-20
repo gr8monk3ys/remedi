@@ -23,7 +23,7 @@ Response Format (JSON):
     {
       "remedyName": "Turmeric",
       "confidence": 0.85,
-      "reasoning": "Contains curcumin with proven anti-inflammatory properties...",
+      "reasoning": "Contains curcumin, studied for anti-inflammatory effects (moderate evidence)...",
       "warnings": ["May interact with blood thinners"],
       "interactions": ["warfarin", "aspirin"]
     }

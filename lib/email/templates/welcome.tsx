@@ -42,8 +42,9 @@ export function WelcomeEmail({
       </Text>
 
       <Text style={styles.paragraph}>
-        Our platform provides evidence-based information about natural remedies,
-        helping you make informed decisions about your health journey.
+        Our platform provides information about natural remedies, each rated by
+        evidence level, helping you make informed decisions about your health
+        journey.
       </Text>
 
       <Section style={styles.featuresSection}>

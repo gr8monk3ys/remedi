@@ -17,10 +17,10 @@ export function WelcomeStep(_props: WelcomeStepProps): React.ReactNode {
         <div className="rounded-md border border-border bg-background p-4">
           <Shield className="mb-3 h-5 w-5 text-primary" />
           <h3 className="text-sm font-semibold text-foreground">
-            Evidence-Based
+            Evidence Levels
           </h3>
           <p className="text-sm text-muted-foreground">
-            All remedies backed by research
+            Each remedy shows its evidence level
           </p>
         </div>
         <div className="rounded-md border border-border bg-background p-4">
@@ -34,7 +34,7 @@ export function WelcomeStep(_props: WelcomeStepProps): React.ReactNode {
           <Users className="mb-3 h-5 w-5 text-primary" />
           <h3 className="text-sm font-semibold text-foreground">Community</h3>
           <p className="text-sm text-muted-foreground">
-            Join 10,000+ wellness seekers
+            Share reviews and suggest remedies
           </p>
         </div>
         <div className="rounded-md border border-border bg-background p-4">
