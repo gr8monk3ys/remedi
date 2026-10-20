@@ -39,7 +39,7 @@ const STATUS_CONFIG: Record<
 
 const QUERY_TYPE_LABELS: Record<string, string> = {
   condition: "Condition",
-  drug_alternative: "Drug Alternative",
+  drug_alternative: "Drug & natural remedies",
   custom: "Custom",
 };
 

@@ -5,7 +5,7 @@ import { Check, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const SAMPLE_SEARCHES = [
-  "Natural alternatives to ibuprofen",
+  "Herbs that interact with ibuprofen",
   "Herbal sleep aids",
   "Natural anti-inflammatory",
   "Vitamin supplements",

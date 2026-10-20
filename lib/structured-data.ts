@@ -22,7 +22,7 @@ export function generateOrganizationSchema() {
     url: baseUrl,
     logo: `${baseUrl}/logo.png`,
     description:
-      "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.",
+      "Evidence-rated information on natural remedies and how they relate to and interact with pharmaceutical drugs and supplements.",
     sameAs: [
       // Add social media profiles when available
       // 'https://twitter.com/remedi',
@@ -43,7 +43,7 @@ export function generateWebSiteSchema() {
     name: "Remedi",
     url: baseUrl,
     description:
-      "Discover evidence-based natural remedies and alternatives to pharmaceutical drugs and supplements.",
+      "Evidence-rated information on natural remedies and how they relate to and interact with pharmaceutical drugs and supplements.",
     potentialAction: {
       "@type": "SearchAction",
       target: {

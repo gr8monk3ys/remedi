@@ -28,9 +28,9 @@ export function FeaturesStep(_props: FeaturesStepProps): React.ReactNode {
               Smart Search
             </h3>
             <p className="text-sm text-muted-foreground">
-              Search any pharmaceutical or supplement to find natural
-              alternatives. Our database includes FDA-approved drugs and
-              evidence-based remedies.
+              Search any pharmaceutical or supplement to see related natural
+              remedies, their evidence levels and known interactions. Our
+              database includes FDA-approved drugs and evidence-based remedies.
             </p>
           </div>
         </motion.div>

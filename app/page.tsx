@@ -9,12 +9,12 @@ export const metadata: Metadata = pageMetadata({ path: "/" });
 
 const LABELS = [
   {
-    label: "Alternative",
-    body: "May stand in for the drug. The strongest claim, and the rarest — most medications never carry it.",
+    label: "Similar use",
+    body: "Studied or traditionally used for a similar purpose. Not a replacement for the drug. The strongest label, and the rarest — most medications never carry it.",
   },
   {
     label: "Complementary",
-    body: "May be taken alongside the drug, not instead of it.",
+    body: "Sometimes used alongside the drug, never instead of it. Check interactions first.",
   },
   {
     label: "Supportive",
@@ -58,8 +58,9 @@ export default function Home() {
               </span>
             </h1>
             <p className="reveal-up reveal-delay-1 mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-              Every mapping is labelled Alternative, Complementary or
-              Supportive, so you can see what it is actually claiming. Some
+              Every mapping is labelled Similar use, Complementary or
+              Supportive, so you can see what it is actually claiming. None of
+              them is a replacement for a prescribed medication. Some
               medications carry no mappings at all — that is a decision, not a
               gap.
             </p>
@@ -138,6 +139,8 @@ export default function Home() {
               This application is for informational purposes only and is not a
               substitute for professional medical advice. Always consult a
               healthcare provider before making changes to your treatment plan.
+              Never stop or change a prescribed medication without talking to
+              your doctor or pharmacist.
             </p>
           </section>
         </div>

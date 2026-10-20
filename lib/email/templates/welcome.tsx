@@ -28,7 +28,7 @@ export function WelcomeEmail({
 
   return (
     <BaseLayout
-      preview={`Welcome to ${EMAIL_BRAND.name}, ${name}! Start exploring natural alternatives.`}
+      preview={`Welcome to ${EMAIL_BRAND.name}, ${name}! Start exploring natural remedies.`}
       unsubscribeUrl={userId ? getUnsubscribeUrl(userId, "welcome") : undefined}
     >
       <Heading style={styles.heading}>Welcome to {EMAIL_BRAND.name}!</Heading>
@@ -37,7 +37,8 @@ export function WelcomeEmail({
 
       <Text style={styles.paragraph}>
         Thank you for joining {EMAIL_BRAND.name}! We are excited to help you
-        discover natural alternatives to pharmaceutical drugs.
+        learn about natural remedies, the evidence behind them, and how they
+        interact with medications.
       </Text>
 
       <Text style={styles.paragraph}>
@@ -49,7 +50,8 @@ export function WelcomeEmail({
         <Text style={styles.featuresTitle}>Here is what you can do:</Text>
         <ul style={styles.featuresList}>
           <li style={styles.featureItem}>
-            Search for natural alternatives to common medications
+            See natural remedies related to common medications, with evidence
+            levels and known interactions
           </li>
           <li style={styles.featureItem}>
             View detailed information about remedies and their benefits

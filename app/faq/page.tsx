@@ -19,17 +19,17 @@ const faqSections = [
       {
         question: "What is Remedi?",
         answer:
-          "Remedi is a platform that helps you discover natural alternatives to pharmaceuticals and supplements. We use data from the FDA, scientific research, and traditional medicine to provide evidence-based recommendations for natural remedies.",
+          "Remedi is an information service about natural remedies (herbs, vitamins, minerals, foods) and how they relate to pharmaceuticals and supplements. We use data from the FDA, scientific research, and traditional medicine to show what each remedy is used for, how strong the evidence is, and known interactions with medications. It never suggests replacing a medication.",
       },
       {
         question: "Is Remedi a replacement for medical advice?",
         answer:
-          "No. Remedi is for informational purposes only and should not be used as a substitute for professional medical advice, diagnosis, or treatment. Always consult with a qualified healthcare provider before making changes to your medication or health regimen.",
+          "No. Remedi is for informational purposes only and should not be used as a substitute for professional medical advice, diagnosis, or treatment. Always consult with a qualified healthcare provider before making changes to your medication or health regimen. Never stop or change a prescribed medication without talking to your doctor or pharmacist.",
       },
       {
         question: "How does Remedi work?",
         answer:
-          "Simply search for a pharmaceutical or supplement you're interested in, and Remedi will show you natural alternatives that have similar benefits. Each recommendation includes information about the remedy, its benefits, dosage guidelines, and the level of scientific evidence supporting its use.",
+          "Search for a pharmaceutical or supplement you're interested in, and Remedi will show natural remedies related to it, each labelled with what that relationship does and does not mean. Each entry includes information about the remedy, its reported benefits, dosage guidelines, the level of scientific evidence, and known interactions. None is presented as a replacement for a medication.",
       },
     ],
   },
@@ -39,7 +39,7 @@ const faqSections = [
       {
         question: "How do you match pharmaceuticals to natural remedies?",
         answer:
-          "We use a combination of ingredient analysis, therapeutic benefit comparison, and AI-powered matching to find natural alternatives. Our system considers the active ingredients, intended uses, and mechanisms of action to find the most relevant natural remedies.",
+          "We use a combination of ingredient analysis, therapeutic benefit comparison, and AI-powered matching to find natural remedies related to a pharmaceutical. Our system considers the active ingredients, intended uses, and mechanisms of action. Related means overlapping, not interchangeable.",
       },
       {
         question: "What does the AI search feature do?",

@@ -16,12 +16,18 @@ const HEALTH_CATEGORIES = [
   "Joint Health",
 ];
 
+// `value` is what is stored on the profile, so goals people already saved stay
+// selected; `label` is what they read. The old wording ("Reduce pharmaceutical
+// use", "Research alternatives") framed a remedy as a way off a prescription.
 const HEALTH_GOALS = [
-  "Reduce pharmaceutical use",
-  "Try natural options first",
-  "Complement existing treatments",
-  "Research alternatives",
-  "Preventive health",
+  { value: "Reduce pharmaceutical use", label: "Understand my medications" },
+  { value: "Try natural options first", label: "Learn about natural remedies" },
+  {
+    value: "Complement existing treatments",
+    label: "Check interactions with my medications",
+  },
+  { value: "Research alternatives", label: "Research the evidence" },
+  { value: "Preventive health", label: "Preventive health" },
 ];
 
 interface HealthProfileFormProps {
@@ -130,20 +136,20 @@ export function HealthProfileForm({
           Your Goals
         </h3>
         <div className="space-y-2">
-          {HEALTH_GOALS.map((goal) => (
+          {HEALTH_GOALS.map(({ value, label }) => (
             <button
-              key={goal}
+              key={value}
               type="button"
-              onClick={() => setGoals(toggleItem(goals, goal))}
+              onClick={() => setGoals(toggleItem(goals, value))}
               className={cn(
                 "w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-left",
-                goals.includes(goal)
+                goals.includes(value)
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80",
               )}
             >
-              {goal}
-              {goals.includes(goal) && <Check className="w-4 h-4" />}
+              {label}
+              {goals.includes(value) && <Check className="w-4 h-4" />}
             </button>
           ))}
         </div>

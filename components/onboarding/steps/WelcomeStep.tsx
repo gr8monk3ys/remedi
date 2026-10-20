@@ -8,9 +8,9 @@ export function WelcomeStep(_props: WelcomeStepProps): React.ReactNode {
   return (
     <div className="space-y-6">
       <p className="text-base leading-relaxed text-muted-foreground">
-        Discover natural alternatives to pharmaceuticals and supplements. Our
-        platform helps you find evidence-based natural remedies tailored to your
-        needs.
+        Learn about natural remedies and how they relate to pharmaceuticals and
+        supplements: what they are used for, how strong the evidence is, and
+        known interactions. Remedi is information, not medical advice.
       </p>
 
       <div className="grid grid-cols-2 gap-3">
@@ -43,7 +43,7 @@ export function WelcomeStep(_props: WelcomeStepProps): React.ReactNode {
             Instant Results
           </h3>
           <p className="text-sm text-muted-foreground">
-            Find alternatives in seconds
+            Look things up in seconds
           </p>
         </div>
       </div>
