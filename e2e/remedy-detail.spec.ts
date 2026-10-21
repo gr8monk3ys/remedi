@@ -172,7 +172,10 @@ test.describe("Remedy Detail Page", () => {
       page.getByRole("heading", { name: /Medical Disclaimer/i }),
     ).toBeVisible();
     await expect(
-      page.getByText(/not intended as a substitute for medical advice/i),
+      page.getByText(/not a replacement for a prescribed medication/i),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/never stop or change a prescribed medication/i),
     ).toBeVisible();
   });
 

@@ -183,10 +183,12 @@ export function SearchResults({
       {!isLoading && filteredResults.length > 0 && (
         <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
           <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-200">
-            <strong>These are not medical advice.</strong> Remedi maps published
-            ingredient and property data; it does not know your history. Never
-            stop or change a prescribed medication without talking to your
-            prescriber or pharmacist first.
+            <strong>These results are not medical advice.</strong> They are
+            information about natural products, their evidence levels and known
+            interactions, mapped from published ingredient and property data;
+            Remedi does not know your history. No result is a replacement for a
+            prescribed medication. Never stop or change a prescribed medication
+            without talking to your doctor or pharmacist.
           </p>
         </div>
       )}

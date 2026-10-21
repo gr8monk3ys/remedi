@@ -54,10 +54,11 @@ export default function TermsOfServicePage() {
               2. Description of Service
             </h2>
             <p className="mb-4 leading-relaxed text-muted-foreground">
-              Remedi is an informational platform that helps users discover
-              natural alternatives to pharmaceutical drugs and supplements. We
-              provide information based on publicly available data and
-              AI-powered recommendations.
+              Remedi is an informational platform that provides information
+              about natural remedies and how they relate to, and interact with,
+              pharmaceutical drugs and supplements. It does not recommend
+              replacing any medication. We provide information based on publicly
+              available data and AI-powered recommendations.
             </p>
           </section>
 

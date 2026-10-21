@@ -79,7 +79,7 @@ export function ReportGenerator({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Natural alternatives for joint pain"
+              placeholder="e.g. Evidence on natural remedies for joint pain"
               className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
               required
             />
@@ -99,7 +99,7 @@ export function ReportGenerator({
                 Natural remedies for a condition
               </option>
               <option value="drug_alternative">
-                Natural alternatives to a drug
+                Natural remedies related to a drug
               </option>
               <option value="custom">Custom query</option>
             </select>

@@ -21,13 +21,13 @@ const tutorialSteps: TutorialStep[] = [
     id: "welcome",
     title: "Welcome to Remedi!",
     description:
-      "Let's take a quick tour of the features that will help you find natural alternatives to pharmaceuticals.",
+      "Let's take a quick tour of the features that will help you research natural remedies and their interactions with medications.",
   },
   {
     id: "search",
     title: "Search for Remedies",
     description:
-      "Enter the name of any pharmaceutical or supplement in the search bar to find natural alternatives. Try searching for 'ibuprofen' or 'vitamin D'.",
+      "Enter the name of any pharmaceutical or supplement in the search bar to see related natural remedies, their evidence and known interactions. Try searching for 'ibuprofen' or 'vitamin D'.",
     targetSelector: "[data-search-input]",
     position: "bottom",
   },
@@ -59,7 +59,7 @@ const tutorialSteps: TutorialStep[] = [
     id: "complete",
     title: "You're All Set!",
     description:
-      "You now know the basics of Remedi. Start exploring natural alternatives and take control of your wellness journey!",
+      "You now know the basics of Remedi. Start exploring, and talk to your doctor or pharmacist before changing anything you take.",
   },
 ];
 

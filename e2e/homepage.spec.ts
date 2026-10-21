@@ -37,7 +37,7 @@ test.describe("Homepage", () => {
   test("should display the hero subtitle", async ({ page }) => {
     await expect(
       page.getByText(
-        /Every mapping is labelled Alternative, Complementary or Supportive/i,
+        /Every mapping is labelled Similar use, Complementary or Supportive/i,
       ),
     ).toBeVisible();
   });
@@ -85,9 +85,11 @@ test.describe("Homepage", () => {
     await expect(
       page.getByText("What a label is allowed to claim"),
     ).toBeVisible();
-    await expect(page.getByText("May stand in for the drug")).toBeVisible();
     await expect(
-      page.getByText("May be taken alongside the drug"),
+      page.getByText("Studied or traditionally used for a similar purpose"),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Sometimes used alongside the drug, never instead of it"),
     ).toBeVisible();
     await expect(page.getByText("Offers general support only")).toBeVisible();
   });

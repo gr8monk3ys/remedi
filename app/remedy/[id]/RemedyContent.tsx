@@ -146,10 +146,11 @@ export function RemedyContent({
           {/* A peer of the h3 card sections above it, not a child of them. */}
           <AlertTitle level={3}>Medical Disclaimer</AlertTitle>
           <AlertDescription>
-            This information is for educational purposes only and is not
-            intended as a substitute for medical advice. Always consult a
-            qualified healthcare provider before using any natural remedy or
-            making changes to your treatment plan.
+            This information is for educational purposes only and is not medical
+            advice. A natural remedy is not a replacement for a prescribed
+            medication. Never stop or change a prescribed medication without
+            talking to your doctor or pharmacist. Always consult a qualified
+            healthcare provider before using any natural remedy.
           </AlertDescription>
         </Alert>
 

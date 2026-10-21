@@ -2,9 +2,13 @@
 
 ![CI](https://github.com/gr8monk3ys/remedi/actions/workflows/ci.yml/badge.svg)
 
-Search a pharmaceutical, get the natural remedies that are honestly related to
-it, with the relationship labelled: **Alternative**, **Complementary** or
-**Supportive**. Live at https://remedi.vivancedata.com.
+Search a pharmaceutical and get information on the natural remedies related to
+it: what each is used for, how strong the evidence is, and known interactions
+with medications. Each relationship is labelled **Similar use**,
+**Complementary** or **Supportive**, and none is presented as a replacement
+for a prescribed medication. Live at https://remedi.vivancedata.com.
+
+Remedi is information, not medical advice. Never stop or change a prescribed medication without talking to your doctor or pharmacist.
 
 The interesting part is not the search; it is what the data is not allowed to
 say. The seed set (85 drugs, 488 remedies, 235 mappings in
@@ -14,7 +18,8 @@ pharmacological invariants by
 so a careless edit fails CI instead of shipping:
 
 - Rescue inhalers, opioids, seizure medication, antibiotics, GLP-1s and
-  hormonal contraceptives can never carry an "Alternative" label. Supportive
+  hormonal contraceptives can never carry the strongest label (stored as
+  `Alternative`, shown as "Similar use"). Supportive
   entries are allowed; a substitute is a test failure.
 - Anticoagulants and antiplatelets (warfarin, apixaban, rivaroxaban,
   dabigatran, clopidogrel) and quetiapine have **zero** mappings on purpose.

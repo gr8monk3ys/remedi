@@ -151,7 +151,7 @@ export function WeeklyDigestEmail({
         <Section style={styles.remediesSection}>
           <Text style={styles.sectionTitle}>New Remedies Added</Text>
           <Text style={styles.sectionSubtitle}>
-            Check out these newly added natural alternatives:
+            Check out these newly added natural remedies:
           </Text>
           {newRemedies.slice(0, 5).map((remedy, index) => (
             <div key={index} style={styles.remedyItem}>
