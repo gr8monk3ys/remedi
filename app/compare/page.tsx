@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
-import { ComparisonSkeleton } from "@/components/compare";
+import { ComparisonSkeleton } from "@/components/compare/ComparisonSkeleton";
 import { getCurrentUser } from "@/lib/auth";
 import { getEffectivePlanLimits } from "@/lib/trial";
 import { CompareClient } from "./CompareClient";

@@ -190,8 +190,7 @@ describe("TrialBanner", () => {
     });
   });
 
-  it("navigates to pricing when Upgrade Now is clicked", async () => {
-    const user = userEvent.setup();
+  it("links Upgrade Now to the pricing page", async () => {
     mockApiGet.mockResolvedValue({
       isActive: true,
       isEligible: false,
@@ -205,8 +204,11 @@ describe("TrialBanner", () => {
       expect(screen.getByText("Upgrade Now")).toBeInTheDocument();
     });
 
-    await user.click(screen.getByText("Upgrade Now"));
-    expect(mockRouterPush).toHaveBeenCalledWith("/pricing");
+    // A real link (Cmd/Ctrl+click, middle-click), not router.push in onClick.
+    expect(screen.getByRole("link", { name: "Upgrade Now" })).toHaveAttribute(
+      "href",
+      "/pricing",
+    );
   });
 
   it("hides when dismissed", async () => {

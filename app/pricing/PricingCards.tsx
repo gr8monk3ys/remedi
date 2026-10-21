@@ -68,8 +68,8 @@ export function PricingCards({
         icon={Sparkles}
         name={PLANS.basic.name}
         description={PLANS.basic.description}
-        price={`$${basicDisplayPrice}`}
-        billedNote={isYearly ? `Billed $${basicYearlyBilled}/year` : undefined}
+        price={basicDisplayPrice}
+        billedNote={isYearly ? `Billed ${basicYearlyBilled}/year` : undefined}
         className="reveal-up reveal-delay-1"
         features={PLANS.basic.features}
         action={
@@ -84,7 +84,9 @@ export function PricingCards({
             }
           >
             {loading === "basic" ? (
-              <Loader2 className="animate-spin" />
+              <span className="inline-flex shrink-0 animate-spin">
+                <Loader2 className="" />
+              </span>
             ) : currentPlan === "basic" ? (
               <>
                 <Check />
@@ -104,10 +106,8 @@ export function PricingCards({
         icon={Crown}
         name={PLANS.premium.name}
         description={PLANS.premium.description}
-        price={`$${premiumDisplayPrice}`}
-        billedNote={
-          isYearly ? `Billed $${premiumYearlyBilled}/year` : undefined
-        }
+        price={premiumDisplayPrice}
+        billedNote={isYearly ? `Billed ${premiumYearlyBilled}/year` : undefined}
         className="reveal-up reveal-delay-2"
         highlighted
         features={PLANS.premium.features}
@@ -120,7 +120,9 @@ export function PricingCards({
                 disabled={loading === "trial"}
               >
                 {loading === "trial" ? (
-                  <Loader2 className="animate-spin" />
+                  <span className="inline-flex shrink-0 animate-spin">
+                    <Loader2 className="" />
+                  </span>
                 ) : (
                   <>
                     <Sparkles />
@@ -142,7 +144,9 @@ export function PricingCards({
               disabled={loading === "premium" || currentPlan === "premium"}
             >
               {loading === "premium" ? (
-                <Loader2 className="animate-spin" />
+                <span className="inline-flex shrink-0 animate-spin">
+                  <Loader2 className="" />
+                </span>
               ) : currentPlan === "premium" ? (
                 <>
                   <Check />

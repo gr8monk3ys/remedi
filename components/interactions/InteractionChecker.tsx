@@ -86,8 +86,10 @@ export function InteractionChecker(): React.ReactElement {
           {/* Add substance input */}
           <div className="flex gap-2">
             <Input
+              name="inputValue"
+              autoComplete="off"
               type="text"
-              placeholder="Enter a medication or supplement name..."
+              placeholder="Enter a medication or supplement name…"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -142,7 +144,7 @@ export function InteractionChecker(): React.ReactElement {
             className="w-full sm:w-auto"
           >
             <Search className="h-4 w-4" />
-            {loading ? "Checking..." : "Check Interactions"}
+            {loading ? "Checking…" : "Check Interactions"}
           </Button>
         </CardContent>
       </Card>
