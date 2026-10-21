@@ -48,6 +48,7 @@ export function InteractionCard({
             variant="ghost"
             size="sm"
             onClick={() => setExpanded(!expanded)}
+            aria-expanded={expanded}
             aria-label={expanded ? "Collapse details" : "Expand details"}
           >
             {expanded ? (

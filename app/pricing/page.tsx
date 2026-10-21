@@ -7,7 +7,6 @@ export const dynamic = "force-dynamic";
  * - Visual plan comparison
  * - Annual billing discount (20% off)
  * - FAQ section
- * - Testimonials
  * - Money-back guarantee badge
  */
 
@@ -167,11 +166,11 @@ export default async function PricingPage() {
           <div className="premium-gradient-panel flex flex-col items-start gap-6 rounded-lg p-8 text-white md:flex-row md:items-center md:justify-between md:p-10">
             <div className="max-w-xl">
               <h2 className="text-2xl font-semibold md:text-3xl">
-                Ready to look at your options?
+                Ready to start researching?
               </h2>
               <p className="mt-2 leading-relaxed text-white/80">
-                Search FDA drug data and evidence-rated natural alternatives,
-                then talk it through with your healthcare provider.
+                Search FDA drug data and evidence-rated information on natural
+                remedies, then talk it through with your doctor or pharmacist.
               </p>
             </div>
             {/*
@@ -305,8 +304,6 @@ const featureComparison = [
   { name: "Priority support", free: false, basic: false, premium: true },
 ];
 
-// Testimonials data
-
 // FAQ data
 const faqs = [
   {
@@ -332,7 +329,7 @@ const faqs = [
   {
     question: "How does the annual billing discount work?",
     answer:
-      "When you choose annual billing, you get 20% off compared to monthly billing. This means you pay for 10 months and get 12 months of access.",
+      "When you choose annual billing, you get 20% off compared to monthly billing.",
   },
   {
     question: "Do you offer refunds?",
@@ -346,7 +343,6 @@ const faqs = [
   },
   {
     question: "Can I use Remedi for professional/commercial purposes?",
-    answer:
-      "Yes, our Premium plan includes commercial use rights. Many healthcare practitioners, researchers, and content creators use Remedi in their professional work.",
+    answer: "Yes, our Premium plan includes commercial use rights.",
   },
 ];

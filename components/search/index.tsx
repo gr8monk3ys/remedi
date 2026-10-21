@@ -143,6 +143,10 @@ export function SearchComponent({
   const [results, setResults] = useState<SearchResult[]>([]);
   const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // The query the results on screen answer. `query` is the live input text,
+  // so gating "No results found for …" on it announced an empty result for
+  // text that had not been searched yet (a single character never is).
+  const [answeredQuery, setAnsweredQuery] = useState<string | null>(null);
 
   // UI state
   const [activeTab, setActiveTab] = useState<"results" | "history">("results");
@@ -353,6 +357,7 @@ export function SearchComponent({
 
           if (isStale()) return;
           setAiInsights({ intent, extractedInfo, recommendations });
+          setAnsweredQuery(queryToSearch);
           setResults(aiResults);
           setFilteredResults(aiResults);
           if (onSearch) onSearch(aiResults);
@@ -391,6 +396,7 @@ export function SearchComponent({
             return;
           }
 
+          setAnsweredQuery(queryToSearch);
           setResults(remedies);
           setFilteredResults(remedies);
           if (onSearch) onSearch(remedies);
@@ -518,7 +524,7 @@ export function SearchComponent({
             onPageChange={handlePageChange}
             isLoading={isLoading}
             status={toSearchStatus({ error, refusal })}
-            query={query}
+            query={answeredQuery ?? ""}
             showFilters={showFilters}
             categoryOptions={categoryOptions}
             nutrientOptions={nutrientOptions}

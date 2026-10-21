@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Star, ThumbsUp, MessageSquare } from "lucide-react";
+import { formatNumber, formatDate } from "@/lib/utils";
 
 interface Review {
   id: string;
@@ -39,13 +40,24 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
+  // Page changes and refreshes can overlap; only the newest request may
+  // write state, so a slow earlier page cannot replace a later one.
+  const requestIdRef = useRef(0);
+
   const fetchReviews = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
+    const isStale = (): boolean => requestIdRef.current !== requestId;
     try {
       setLoading(true);
-      const response = await fetch(
-        `/api/reviews?remedyId=${remedyId}&page=${page}&limit=5`,
-      );
+      setError(null);
+      const params = new URLSearchParams({
+        remedyId,
+        page: String(page),
+        limit: "5",
+      });
+      const response = await fetch(`/api/reviews?${params.toString()}`);
       const result = await response.json();
+      if (isStale()) return;
 
       if (!result.success) {
         setError(result.error?.message || "Failed to load reviews");
@@ -54,9 +66,9 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
 
       setData(result.data);
     } catch {
-      setError("Failed to load reviews");
+      if (!isStale()) setError("Failed to load reviews");
     } finally {
-      setLoading(false);
+      if (!isStale()) setLoading(false);
     }
   }, [remedyId, page]);
 
@@ -130,7 +142,7 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
       <div className="flex items-center gap-4 mb-6 pb-4 border-b border-border">
         <div className="text-center">
           <div className="text-4xl font-semibold text-foreground">
-            {data.averageRating.toFixed(1)}
+            {formatNumber(data.averageRating, 1)}
           </div>
           {renderStars(Math.round(data.averageRating))}
         </div>
@@ -181,7 +193,7 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
                 <div className="flex items-center gap-2 mb-2">
                   {renderStars(review.rating)}
                   <span className="text-xs text-muted-foreground">
-                    {new Date(review.createdAt).toLocaleDateString()}
+                    {formatDate(review.createdAt)}
                   </span>
                 </div>
 

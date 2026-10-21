@@ -7,7 +7,8 @@
  * Shows what features they're missing and provides upgrade options.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Zap, Sparkles, Loader2 } from "lucide-react";
@@ -113,11 +114,6 @@ export function UpgradeModal({
     }
   };
 
-  const handleViewPricing = useCallback(() => {
-    onClose();
-    router.push("/pricing");
-  }, [onClose, router]);
-
   const message = TRIGGER_MESSAGES[triggerReason];
 
   return (
@@ -171,9 +167,9 @@ export function UpgradeModal({
                     </div>
                     <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-white rounded-full transition-all"
+                        className="h-full w-full origin-left bg-white rounded-full transition-transform"
                         style={{
-                          width: `${Math.min(100, (currentUsage / limit) * 100)}%`,
+                          transform: `scaleX(${Math.min(1, currentUsage / limit)})`,
                         }}
                       />
                     </div>
@@ -217,7 +213,9 @@ export function UpgradeModal({
                     className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-border bg-card text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {loadingCheckout === "basic" ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="inline-flex shrink-0 animate-spin">
+                        <Loader2 className="w-4 h-4" />
+                      </span>
                     ) : currentPlan === "basic" ? (
                       "Current Plan"
                     ) : (
@@ -259,7 +257,9 @@ export function UpgradeModal({
                     className="flex h-9 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {loadingCheckout === "premium" ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="inline-flex shrink-0 animate-spin">
+                        <Loader2 className="w-4 h-4" />
+                      </span>
                     ) : currentPlan === "premium" ? (
                       "Current Plan"
                     ) : (
@@ -281,7 +281,9 @@ export function UpgradeModal({
                     className="flex items-center gap-2 font-medium text-primary hover:underline"
                   >
                     {isStartingTrial ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="inline-flex shrink-0 animate-spin">
+                        <Loader2 className="w-4 h-4" />
+                      </span>
                     ) : (
                       <Sparkles className="w-4 h-4" />
                     )}
@@ -289,12 +291,13 @@ export function UpgradeModal({
                   </button>
                 )}
 
-                <button
-                  onClick={handleViewPricing}
+                <Link
+                  href="/pricing"
+                  onClick={onClose}
                   className="text-muted-foreground hover:text-foreground text-sm"
                 >
                   View full pricing details
-                </button>
+                </Link>
               </div>
             </div>
           </motion.div>

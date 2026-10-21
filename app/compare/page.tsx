@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
-import { ComparisonSkeleton } from "@/components/compare";
+import { ComparisonSkeleton } from "@/components/compare/ComparisonSkeleton";
 import { getCurrentUser } from "@/lib/auth";
 import { getEffectivePlanLimits } from "@/lib/trial";
 import { CompareClient } from "./CompareClient";
@@ -133,7 +133,8 @@ export default async function ComparePage({
               <strong>Disclaimer:</strong> This comparison is for informational
               purposes only and should not be considered medical advice. Always
               consult with a qualified healthcare professional before making
-              changes to your health regimen.
+              changes to your health regimen. Never stop or change a prescribed
+              medication without talking to your doctor or pharmacist.
             </p>
           </div>
         </div>

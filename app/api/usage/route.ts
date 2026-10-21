@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { intParam } from "@/lib/api/query-params";
 import { getCurrentUser } from "@/lib/auth";
 import { z } from "zod";
 import { createLogger } from "@/lib/logger";
@@ -48,7 +49,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const includeHistory = searchParams.get("history") === "true";
     const includeAggregate = searchParams.get("aggregate") === "true";
-    const days = parseInt(searchParams.get("days") || "30", 10);
+    const days = intParam(searchParams.get("days"), {
+      fallback: 30,
+      min: 1,
+      max: 365,
+    });
 
     // Get usage summary
     const summary = await getUsageSummary(user.id);

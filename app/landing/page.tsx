@@ -6,9 +6,9 @@ import { LandingClient } from "./landing-client";
 
 export const metadata: Metadata = pageMetadata({
   path: "/landing",
-  title: "Natural Remedies, Backed by Science",
+  title: "Natural Remedies: Evidence and Interactions",
   description:
-    "Discover natural alternatives to common pharmaceuticals. Personalized search, evidence-backed recommendations, and a clear path to safer choices.",
+    "Look up natural remedies related to common pharmaceuticals: what they are used for, how strong the evidence is, and known interactions with medications. Information only, not medical advice.",
 });
 
 const FEATURES = [
@@ -38,7 +38,7 @@ const SAMPLE_RESULTS = [
 const CHECKLIST = [
   "Clear evidence levels on every remedy",
   "Drug and supplement interaction checks",
-  "Side-by-side comparison of your options",
+  "Side-by-side comparison of natural remedies",
 ] as const;
 
 export default function LandingPage() {
@@ -52,12 +52,14 @@ export default function LandingPage() {
           <div className="reveal-up">
             <p className="eyebrow">Early access</p>
             <h1 className="mt-4 text-4xl font-semibold leading-[1.08] md:text-5xl">
-              Natural alternatives that are practical, safe, and evidence-based.
+              Clear information on natural remedies, their evidence, and their
+              interactions.
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
-              Remedi helps people compare pharmaceuticals with natural options,
-              understand the risks, and make informed decisions fast. Built for
-              everyday users and professionals.
+              Remedi shows how natural remedies relate to the pharmaceuticals
+              you take, how strong the evidence is, and where they interact, so
+              you can have a better-informed conversation with your doctor or
+              pharmacist. Built for everyday users and professionals.
             </p>
             <div className="mt-8">
               <LandingClient />
@@ -70,7 +72,7 @@ export default function LandingPage() {
             aria-hidden="true"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-              <span className="eyebrow eyebrow-muted">Search</span>
+              <span className="eyebrow eyebrow-muted">Example search</span>
               <span className="font-mono text-xs text-foreground">
                 ibuprofen
               </span>
@@ -104,7 +106,8 @@ export default function LandingPage() {
               ))}
             </ul>
             <div className="border-t border-border px-4 py-2.5 font-mono text-[11px] text-muted-foreground">
-              Relevance is informational, not a measure of effectiveness.
+              Illustrative example, not a live result. Relevance is
+              informational, not a measure of effectiveness.
             </div>
           </div>
         </section>

@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { intParam } from "@/lib/api/query-params";
 import { getCurrentUser } from "@/lib/auth";
 import {
   saveSearchHistory,
@@ -30,6 +31,9 @@ import { createLogger } from "@/lib/logger";
 import { getEffectivePlanLimits } from "@/lib/trial";
 
 const logger = createLogger("api-search-history");
+
+const DEFAULT_POPULAR_LIMIT = 5;
+const MAX_POPULAR_LIMIT = 20;
 
 /**
  * GET /api/search-history
@@ -56,7 +60,14 @@ export async function GET(request: NextRequest) {
 
     // If requesting popular searches (public data, no auth needed)
     if (showPopular) {
-      const limit = limitParam ? parseInt(limitParam, 10) : 5;
+      // Public and unauthenticated, so the limit is clamped: an unbounded one
+      // would page out every distinct query anyone has searched, and NaN
+      // would reach Prisma's `take` and 500.
+      const limit = intParam(limitParam, {
+        fallback: DEFAULT_POPULAR_LIMIT,
+        min: 1,
+        max: MAX_POPULAR_LIMIT,
+      });
       const popularSearches = await getPopularSearches(limit);
 
       return NextResponse.json(

@@ -7,19 +7,17 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, Share2, ArrowLeft, AlertCircle } from "lucide-react";
 import { useCompare } from "@/lib/context/CompareContext";
-import {
-  ExportComparison,
-  MobileComparisonSwiper,
-  ComparisonHistory,
-  ExpandableSection,
-  EvidenceBadge,
-  BulletList,
-  ComparisonRow,
-  AddRemedySlot,
-  ComparisonSkeleton,
-  saveComparisonToHistory,
-} from "@/components/compare";
-import type { CompareRemedy } from "@/components/compare";
+import { ExportComparison } from "@/components/compare/ExportComparison";
+import { MobileComparisonSwiper } from "@/components/compare/MobileComparisonSwiper";
+import { ComparisonHistory } from "@/components/compare/ComparisonHistory";
+import { ExpandableSection } from "@/components/compare/ExpandableSection";
+import { EvidenceBadge } from "@/components/compare/EvidenceBadge";
+import { BulletList } from "@/components/compare/BulletList";
+import { ComparisonRow } from "@/components/compare/ComparisonRow";
+import { AddRemedySlot } from "@/components/compare/AddRemedySlot";
+import { ComparisonSkeleton } from "@/components/compare/ComparisonSkeleton";
+import { saveComparisonToHistory } from "@/components/compare/saveComparisonToHistory";
+import type { CompareRemedy } from "@/components/compare/compare.types";
 import { ReplacementTypeBadge } from "@/components/remedy/ReplacementTypeBadge";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -441,9 +439,21 @@ export function CompareClient({
                     remedies={remedies}
                     minColumnWidth={minColumnWidthPx}
                     renderCell={(remedy) => (
+                      // The comparison payload does not carry recorded Drug
+                      // Interactions, so a missing value here means "not
+                      // loaded", never "none". Point to where they are shown.
                       <p className="text-sm text-foreground">
-                        {remedy.interactions ||
-                          "No known interactions documented"}
+                        {remedy.interactions || (
+                          <>
+                            Not shown in this comparison.{" "}
+                            <Link
+                              href={`/remedy/${remedy.id}`}
+                              className="text-primary underline underline-offset-2"
+                            >
+                              See {remedy.name}&rsquo;s interaction warnings
+                            </Link>
+                          </>
+                        )}
                       </p>
                     )}
                   />

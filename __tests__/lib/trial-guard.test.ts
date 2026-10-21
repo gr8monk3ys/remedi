@@ -31,7 +31,10 @@ describe("startTrial", () => {
     // /api/trial/start, be moved to Premium on a trial, and later be reset to
     // "free" by processExpiredTrials — cancelling a paying customer.
     mockUserFindUnique.mockResolvedValue({ hasUsedTrial: false });
-    mockSubscriptionFindUnique.mockResolvedValue({ status: "active" });
+    mockSubscriptionFindUnique.mockResolvedValue({
+      plan: "basic",
+      status: "active",
+    });
 
     const { startTrial } = await import("@/lib/trial");
 
@@ -42,13 +45,37 @@ describe("startTrial", () => {
 
   it("refuses a user mid-trial rather than extending it", async () => {
     mockUserFindUnique.mockResolvedValue({ hasUsedTrial: false });
-    mockSubscriptionFindUnique.mockResolvedValue({ status: "trialing" });
+    mockSubscriptionFindUnique.mockResolvedValue({
+      plan: "premium",
+      status: "trialing",
+    });
 
     const { startTrial } = await import("@/lib/trial");
 
     await expect(startTrial("user-1")).rejects.toThrow(
       /already has an active subscription/i,
     );
+  });
+
+  it("lets a free user whose row exists only for a Stripe customer start a trial", async () => {
+    // getOrCreateStripeCustomer writes { plan: "free", status: "active" } the
+    // first time someone opens checkout. That row is not a paid subscription,
+    // and treating it as one made /api/trial/start 500 while
+    // /api/trial/check kept offering the trial.
+    mockUserFindUnique.mockResolvedValue({ hasUsedTrial: false });
+    mockSubscriptionFindUnique.mockResolvedValue({
+      plan: "free",
+      status: "active",
+    });
+    const { prisma } = await import("@/lib/db");
+    vi.mocked(prisma.$transaction).mockResolvedValue(undefined);
+
+    const { startTrial } = await import("@/lib/trial");
+
+    await expect(startTrial("user-1")).resolves.toMatchObject({
+      success: true,
+    });
+    expect(prisma.$transaction).toHaveBeenCalled();
   });
 
   it("still refuses a user who has already used their trial", async () => {

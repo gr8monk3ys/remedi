@@ -1,7 +1,7 @@
 {
-  "name": "Remedi - Natural Health Alternatives",
+  "name": "Remedi - Natural Remedy Information",
   "short_name": "Remedi",
-  "description": "Discover natural alternatives to pharmaceuticals and supplements. Find evidence-based remedies for your health needs.",
+  "description": "Information on natural remedies: what they are used for, how strong the evidence is, and how they interact with medications. Not medical advice.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -42,7 +42,7 @@
     {
       "name": "Search Remedies",
       "short_name": "Search",
-      "description": "Search for natural health alternatives",
+      "description": "Search natural remedies and interactions",
       "url": "/search"
     },
     {

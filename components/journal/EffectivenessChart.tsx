@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * Lightweight effectiveness chart using CSS-only rendering.
  * No heavy chart library required.
@@ -55,7 +53,7 @@ export function EffectivenessChart({
                 className="flex-1 flex flex-col items-center justify-end h-full group relative"
               >
                 <div
-                  className={`w-full min-w-[4px] rounded-t ${color} transition-all hover:opacity-80`}
+                  className={`w-full min-w-[4px] rounded-t ${color} transition-opacity hover:opacity-80`}
                   style={{ height: `${height}%` }}
                 />
                 {/* Tooltip */}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, X, Plus, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { apiClient } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
@@ -16,12 +17,18 @@ const HEALTH_CATEGORIES = [
   "Joint Health",
 ];
 
+// `value` is what is stored on the profile, so goals people already saved stay
+// selected; `label` is what they read. The old wording ("Reduce pharmaceutical
+// use", "Research alternatives") framed a remedy as a way off a prescription.
 const HEALTH_GOALS = [
-  "Reduce pharmaceutical use",
-  "Try natural options first",
-  "Complement existing treatments",
-  "Research alternatives",
-  "Preventive health",
+  { value: "Reduce pharmaceutical use", label: "Understand my medications" },
+  { value: "Try natural options first", label: "Learn about natural remedies" },
+  {
+    value: "Complement existing treatments",
+    label: "Check interactions with my medications",
+  },
+  { value: "Research alternatives", label: "Research the evidence" },
+  { value: "Preventive health", label: "Preventive health" },
 ];
 
 interface HealthProfileFormProps {
@@ -87,7 +94,9 @@ export function HealthProfileForm({
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch {
-      // Silently fail to match previous behavior
+      // Allergies and conditions are safety-relevant: a failed save must not
+      // look like a successful one.
+      toast.error("Could not save your health profile. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -130,20 +139,20 @@ export function HealthProfileForm({
           Your Goals
         </h3>
         <div className="space-y-2">
-          {HEALTH_GOALS.map((goal) => (
+          {HEALTH_GOALS.map(({ value, label }) => (
             <button
-              key={goal}
+              key={value}
               type="button"
-              onClick={() => setGoals(toggleItem(goals, goal))}
+              onClick={() => setGoals(toggleItem(goals, value))}
               className={cn(
                 "w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-left",
-                goals.includes(goal)
+                goals.includes(value)
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80",
               )}
             >
-              {goal}
-              {goals.includes(goal) && <Check className="w-4 h-4" />}
+              {label}
+              {goals.includes(value) && <Check className="w-4 h-4" />}
             </button>
           ))}
         </div>
@@ -171,6 +180,9 @@ export function HealthProfileForm({
         </div>
         <div className="flex gap-2">
           <input
+            aria-label="Add allergy"
+            name="newAllergy"
+            autoComplete="off"
             type="text"
             value={newAllergy}
             onChange={(e) => setNewAllergy(e.target.value)}
@@ -180,7 +192,7 @@ export function HealthProfileForm({
                 addToList(allergies, setAllergies, newAllergy, setNewAllergy);
               }
             }}
-            placeholder="Add allergy..."
+            placeholder="Add allergy…"
             className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm"
           />
           <button
@@ -219,6 +231,9 @@ export function HealthProfileForm({
         </div>
         <div className="flex gap-2">
           <input
+            aria-label="Add condition"
+            name="newCondition"
+            autoComplete="off"
             type="text"
             value={newCondition}
             onChange={(e) => setNewCondition(e.target.value)}
@@ -233,7 +248,7 @@ export function HealthProfileForm({
                 );
               }
             }}
-            placeholder="Add condition..."
+            placeholder="Add condition…"
             className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm"
           />
           <button
@@ -279,6 +294,9 @@ export function HealthProfileForm({
         </div>
         <div className="flex gap-2">
           <input
+            aria-label="Add dietary preference"
+            name="newPref"
+            autoComplete="off"
             type="text"
             value={newPref}
             onChange={(e) => setNewPref(e.target.value)}
@@ -288,7 +306,7 @@ export function HealthProfileForm({
                 addToList(dietaryPrefs, setDietaryPrefs, newPref, setNewPref);
               }
             }}
-            placeholder="Add preference (e.g. vegan, gluten-free)..."
+            placeholder="Add preference (e.g. vegan, gluten-free)…"
             className="flex-1 px-3 py-2 rounded-lg border bg-background text-sm"
           />
           <button
@@ -312,9 +330,11 @@ export function HealthProfileForm({
           className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
         >
           {saving ? (
-            <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+            <span className="mr-2 inline-flex shrink-0 animate-spin">
+              <Loader2 className="w-4 h-4 inline" />
+            </span>
           ) : null}
-          {saving ? "Saving..." : "Save Profile"}
+          {saving ? "Saving…" : "Save Profile"}
         </button>
         {saved && (
           <span className="text-sm text-green-600 dark:text-green-400">

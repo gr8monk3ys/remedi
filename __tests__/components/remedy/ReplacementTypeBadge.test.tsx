@@ -30,8 +30,26 @@ describe("ReplacementTypeBadge", () => {
   it("warns against stopping a prescription on the Alternative label", () => {
     render(<ReplacementTypeBadge type="Alternative" />);
     expect(
-      screen.getByLabelText(/never stop a prescribed medication/i),
+      screen.getByLabelText(/never stop or change a prescribed medication/i),
     ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/not a replacement for this medication/i),
+    ).toBeInTheDocument();
+  });
+
+  it("never shows the word Alternative to the reader", () => {
+    // The stored value is "Alternative"; the reader sees "Similar use". The
+    // stored word reads as "use this instead of your prescription".
+    render(<ReplacementTypeBadge type="Alternative" />);
+    expect(screen.getByText("Similar use")).toBeInTheDocument();
+    expect(screen.queryByText(/alternative/i)).not.toBeInTheDocument();
+    for (const type of ["Alternative", "Complementary", "Supportive"]) {
+      const { container, unmount } = render(
+        <ReplacementTypeBadge type={type} />,
+      );
+      expect(container.innerHTML).not.toMatch(/alternative/i);
+      unmount();
+    }
   });
 
   it("renders nothing rather than guessing when the label is missing", () => {

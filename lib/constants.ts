@@ -199,7 +199,7 @@ export const APP_METADATA = {
   VERSION: "0.1.0",
   API_VERSION: "v1",
   DESCRIPTION:
-    "Find natural alternatives to pharmaceutical drugs and supplements",
+    "Information on natural remedies, their evidence, and their interactions with medications",
   AUTHOR: "Remedi Team",
 } as const;
 

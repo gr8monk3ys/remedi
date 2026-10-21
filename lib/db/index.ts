@@ -106,3 +106,27 @@ export {
   deleteReport,
   countMonthlyReports,
 } from "./reports";
+
+// Subscription operations
+export {
+  findSubscriptionByStripeId,
+  findSubscriptionByUserId,
+  upsertSubscriptionForCheckout,
+  markUserTrialUsed,
+  updateSubscriptionFromStripe,
+  downgradeSubscriptionToFree,
+  setSubscriptionStatus,
+  getUserContactInfo,
+} from "./subscriptions";
+export type {
+  CheckoutSubscriptionData,
+  StripeSubscriptionUpdate,
+} from "./subscriptions";
+
+// Webhook delivery operations
+export {
+  recordWebhookEventAttempt,
+  markWebhookEventProcessed,
+  markWebhookEventFailed,
+  recordWebhookReceived,
+} from "./webhook-events";

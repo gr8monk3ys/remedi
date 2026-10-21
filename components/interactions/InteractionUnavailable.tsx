@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * The single rendering of "we could not check for interactions".
  *

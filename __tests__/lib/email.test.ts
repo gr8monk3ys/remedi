@@ -213,7 +213,9 @@ describe("Email Config", () => {
     const { EMAIL_BRAND } = await import("@/lib/email/config");
 
     expect(EMAIL_BRAND.name).toBe("Remedi");
-    expect(EMAIL_BRAND.tagline).toBe("Natural Alternatives to Pharmaceuticals");
+    expect(EMAIL_BRAND.tagline).toBe(
+      "Natural Remedies, Evidence and Interactions",
+    );
     expect(EMAIL_BRAND.primaryColor).toBe("#10B981");
   });
 
@@ -864,7 +866,7 @@ describe("Email Templates", () => {
 
       expect(html).toContain("Test preview text");
       expect(html).toContain("Remedi");
-      expect(html).toContain("Natural Alternatives to Pharmaceuticals");
+      expect(html).toContain("Natural Remedies, Evidence and Interactions");
       expect(html).toContain("Test content");
     });
 

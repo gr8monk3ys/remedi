@@ -18,7 +18,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/about",
   title: "About",
   description:
-    "Learn how Remedi helps you discover evidence-based natural alternatives to pharmaceutical drugs and supplements.",
+    "Learn how Remedi gives you information on natural remedies: what they are used for, how strong the evidence is, and how they interact with medications.",
 });
 
 const SEARCH_STEPS = [
@@ -41,7 +41,7 @@ const SEARCH_STEPS = [
     icon: Cpu,
     title: "Smart Matching",
     description:
-      "Our algorithm maps pharmaceutical ingredients to natural alternatives using similarity scoring.",
+      "Our algorithm scores how a natural remedy's ingredients and uses overlap with a pharmaceutical's. Overlap is information, not a recommendation to switch.",
   },
 ] as const;
 
@@ -87,17 +87,19 @@ export default function AboutPage(): React.JSX.Element {
         <main className="pb-16">
           <Section index={1} title="Our Mission">
             <p className="text-base leading-relaxed text-muted-foreground">
-              Remedi helps you discover evidence-based natural alternatives to
-              pharmaceutical drugs and supplements. We believe everyone deserves
-              clear, honest information about natural health options, including
-              where the evidence is thin.
+              Remedi gives you evidence-rated information on natural remedies
+              and how they relate to, and interact with, pharmaceutical drugs
+              and supplements. We believe everyone deserves clear, honest
+              information about natural health options, including where the
+              evidence is thin.
             </p>
           </Section>
 
           <Section index={2} title="How It Works">
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Remedi uses a three-tier search strategy to find the most relevant
-              natural alternatives for any pharmaceutical.
+              Remedi uses a three-tier search strategy to find the natural
+              remedies most related to any pharmaceutical, with their evidence
+              levels and known interactions.
             </p>
             <ol className="mt-6 divide-y divide-border border-y border-border">
               {SEARCH_STEPS.map(({ step, icon: Icon, title, description }) => (
@@ -171,7 +173,9 @@ export default function AboutPage(): React.JSX.Element {
               <AlertDescription>
                 Remedi is for informational purposes only and should not replace
                 professional medical advice. Always consult with a healthcare
-                provider before making changes to your health regimen.
+                provider before making changes to your health regimen. Never
+                stop or change a prescribed medication without talking to your
+                doctor or pharmacist.
               </AlertDescription>
             </Alert>
           </Section>

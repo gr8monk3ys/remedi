@@ -16,7 +16,13 @@ export default function AppleIcon(): ImageResponse {
         borderRadius: "20%",
       }}
     >
-      <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+      <svg
+        aria-hidden="true"
+        width="120"
+        height="120"
+        viewBox="0 0 120 120"
+        fill="none"
+      >
         <path
           d="M60 12C60 12 100 28 100 60C100 92 60 108 60 108C60 108 20 92 20 60C20 28 60 12 60 12Z"
           fill="rgba(255,255,255,0.9)"

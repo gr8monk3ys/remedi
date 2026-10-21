@@ -54,10 +54,11 @@ export default function TermsOfServicePage() {
               2. Description of Service
             </h2>
             <p className="mb-4 leading-relaxed text-muted-foreground">
-              Remedi is an informational platform that helps users discover
-              natural alternatives to pharmaceutical drugs and supplements. We
-              provide information based on publicly available data and
-              AI-powered recommendations.
+              Remedi is an informational platform that provides information
+              about natural remedies and how they relate to, and interact with,
+              pharmaceutical drugs and supplements. It does not recommend
+              replacing any medication. We provide information based on publicly
+              available data and AI-powered recommendations.
             </p>
           </section>
 
@@ -176,8 +177,8 @@ export default function TermsOfServicePage() {
               9. Disclaimer of Warranties
             </h2>
             <p className="mb-4 leading-relaxed text-muted-foreground">
-              THE SERVICE IS PROVIDED &quot;AS IS&quot; AND &quot;AS
-              AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
+              THE SERVICE IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS
+              AVAILABLE&rdquo; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
               IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF
               MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
               NON-INFRINGEMENT.

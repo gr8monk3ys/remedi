@@ -43,9 +43,11 @@ How strongly a Natural Remedy overlaps a Pharmaceutical, from 0 to 1. Below the
 display floor a Remedy Mapping is not shown at all.
 
 **Replacement Type**:
-What a Remedy Mapping is allowed to claim: **Alternative** (may stand in for
-the drug), **Complementary** (may be taken alongside), or **Supportive**
-(neither — offers general support only).
+What a Remedy Mapping is allowed to claim: **Alternative** (shown to people as
+"Similar use": studied or traditionally used for a similar purpose, never
+presented as a replacement for the drug), **Complementary** (may be taken
+alongside), or **Supportive** (neither — offers general support only). The
+stored value stays `Alternative`; only the displayed label differs.
 _Avoid_: category, strength, tier
 
 **Forced Supportive**:

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { MessageSquare, PenSquare } from "lucide-react";
-import { ReviewForm, ReviewsList } from "@/components/remedy";
+import { ReviewForm } from "@/components/remedy/ReviewForm";
+import { ReviewsList } from "@/components/remedy/ReviewsList";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 

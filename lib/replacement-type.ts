@@ -15,7 +15,13 @@
 import type { ReplacementType } from "@/lib/types";
 
 export interface ReplacementTypeMeta {
-  label: ReplacementType;
+  /**
+   * What the badge says. Deliberately not the stored value: the stored
+   * "Alternative" reads as "use this instead of your prescription", which is
+   * a claim this product never makes. The stored value, and every safety rule
+   * keyed on it, is unchanged.
+   */
+  label: string;
   /** Plain-language meaning. Must reach the user, not only a mouse tooltip. */
   description: string;
   badgeClassName: string;
@@ -26,15 +32,16 @@ export const REPLACEMENT_TYPE_META: Record<
   ReplacementTypeMeta
 > = {
   Alternative: {
-    label: "Alternative",
+    label: "Similar use",
     description:
-      "May serve a similar purpose. Never stop a prescribed medication without talking to your provider.",
+      "Studied or traditionally used for a similar purpose. Not a replacement for this medication. Never stop or change a prescribed medication without talking to your doctor or pharmacist.",
     badgeClassName:
       "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-200",
   },
   Complementary: {
     label: "Complementary",
-    description: "Sometimes used alongside conventional treatment.",
+    description:
+      "Sometimes used alongside conventional treatment, never instead of it. Ask your doctor or pharmacist about interactions first.",
     badgeClassName:
       "border-sky-300 bg-sky-50 text-sky-900 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-200",
   },

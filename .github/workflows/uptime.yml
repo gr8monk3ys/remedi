@@ -8,13 +8,16 @@
 #
 # This is not a replacement for a real uptime service. GitHub delays and drops
 # scheduled runs under load, so treat a missing run as unknown rather than
-# healthy. It is, however, the difference between an outage being noticed in
-# minutes and being noticed by a customer.
+# healthy. It is, however, the difference between an outage being noticed
+# within the hour and being noticed by a customer.
+#
+# Hourly, at an off-the-hour minute. It ran every 10 minutes (~1,400 Actions
+# runs a month) for a check that only needs to catch an outage the same hour.
 name: uptime
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -64,6 +67,8 @@ jobs:
         if: steps.probe.outputs.ok == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
+          # No checkout in this job, so gh cannot infer the repo from .git.
+          GH_REPO: ${{ github.repository }}
           CODE: ${{ steps.probe.outputs.code }}
           STATUS: ${{ steps.probe.outputs.status }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

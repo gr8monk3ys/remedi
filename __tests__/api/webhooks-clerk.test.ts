@@ -31,8 +31,10 @@ vi.mock("svix", () => {
       constructor(_secret: string) {
         // no-op
       }
-      verify(body: string, headers: Record<string, string>) {
-        return mockVerify(body, headers);
+      // svix 2.x verify() returns nothing: it throws on a bad signature and
+      // the route reads the event from the body it verified.
+      verify(body: string, headers: Record<string, string>): undefined {
+        mockVerify(body, headers);
       }
     },
   };
@@ -352,6 +354,41 @@ describe("/api/webhooks/clerk", () => {
         "svix-timestamp": SVIX_HEADERS["svix-timestamp"],
         "svix-signature": SVIX_HEADERS["svix-signature"],
       });
+    });
+
+    it("verifies the raw body bytes, not a re-serialisation of them", async () => {
+      // Svix signs the bytes it sent. Whitespace and escapes such as &
+      // do not survive JSON.parse -> JSON.stringify, so re-serialising the
+      // body before verifying rejects genuinely signed events.
+      mockUserFindUnique.mockResolvedValue(null);
+      mockUserCreate.mockResolvedValue(mockDbUser);
+      const { POST } = await import("@/app/api/webhooks/clerk/route");
+
+      const raw = `{ "type": "user.created", "data": ${JSON.stringify(
+        createClerkUserPayload(),
+      )}, "note": "a \\u0026 b" }`;
+      await POST(
+        new Request("http://localhost:3000/api/webhooks/clerk", {
+          method: "POST",
+          body: raw,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      expect(mockVerify).toHaveBeenCalledWith(raw, expect.any(Object));
+    });
+
+    it("rejects a body that is not JSON with a 400", async () => {
+      const { POST } = await import("@/app/api/webhooks/clerk/route");
+
+      const response = await POST(
+        new Request("http://localhost:3000/api/webhooks/clerk", {
+          method: "POST",
+          body: "not json",
+        }),
+      );
+
+      expect(response.status).toBe(400);
     });
 
     // ------------------------------------------------------------------

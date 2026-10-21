@@ -1,6 +1,4 @@
-"use client";
-
-import { cn } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import type { UsageData } from "@/types/dashboard";
 
 interface UsageProgressProps {
@@ -51,7 +49,7 @@ export function UsageProgress({
             <span className="text-primary font-medium">Unlimited</span>
           ) : (
             <>
-              {current.toLocaleString()} / {limit.toLocaleString()}
+              {formatNumber(current)} / {formatNumber(limit)}
               {unit && ` ${unit}`}
               {showPercentage && (
                 <span className="ml-2 text-xs">
@@ -76,10 +74,10 @@ export function UsageProgress({
       >
         <div
           className={cn(
-            "h-full rounded-full transition-all duration-500 ease-out",
+            "h-full w-full origin-left rounded-full transition-transform duration-500 ease-out",
             getBarColor(),
           )}
-          style={{ width: `${percentage}%` }}
+          style={{ transform: `scaleX(${percentage / 100})` }}
         />
       </div>
 

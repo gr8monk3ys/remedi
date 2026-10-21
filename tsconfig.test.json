@@ -11,7 +11,7 @@
   // Run by `bun run type-check:tests`.
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "types": ["vitest/globals", "@testing-library/jest-dom/vitest"],
     // Tests legitimately declare fixtures they use in only some cases.
     "noUnusedLocals": false,
     "noUnusedParameters": false

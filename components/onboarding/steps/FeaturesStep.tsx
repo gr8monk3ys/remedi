@@ -28,9 +28,10 @@ export function FeaturesStep(_props: FeaturesStepProps): React.ReactNode {
               Smart Search
             </h3>
             <p className="text-sm text-muted-foreground">
-              Search any pharmaceutical or supplement to find natural
-              alternatives. Our database includes FDA-approved drugs and
-              evidence-based remedies.
+              Search any pharmaceutical or supplement to see related natural
+              remedies, their evidence levels and known interactions. Our
+              database includes FDA-approved drugs and remedies rated by
+              evidence level.
             </p>
           </div>
         </motion.div>
@@ -50,8 +51,8 @@ export function FeaturesStep(_props: FeaturesStepProps): React.ReactNode {
             </h3>
             <p className="text-sm text-muted-foreground">
               Describe your symptoms in natural language. Our AI understands
-              queries like &quot;I have trouble sleeping&quot; or &quot;natural
-              pain relief.&quot;
+              queries like &ldquo;I have trouble sleeping&rdquo; or
+              &ldquo;natural pain relief.&rdquo;
             </p>
           </div>
         </motion.div>

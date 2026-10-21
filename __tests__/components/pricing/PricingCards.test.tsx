@@ -60,10 +60,10 @@ const defaultProps = {
   trialEligible: false,
   onCheckout: vi.fn(),
   onStartTrial: vi.fn(),
-  basicDisplayPrice: "9.99",
-  basicYearlyBilled: "95.90",
-  premiumDisplayPrice: "19.99",
-  premiumYearlyBilled: "191.90",
+  basicDisplayPrice: "$9.99",
+  basicYearlyBilled: "$95.90",
+  premiumDisplayPrice: "$19.99",
+  premiumYearlyBilled: "$191.90",
 };
 
 describe("PricingCards", () => {
