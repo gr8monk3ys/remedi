@@ -75,11 +75,13 @@ export function ReportGenerator({
               Report Title *
             </label>
             <input
+              name="title"
+              autoComplete="off"
               id="r-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Natural alternatives for joint pain"
+              placeholder="e.g. Evidence on natural remedies for joint pain"
               className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
               required
             />
@@ -90,16 +92,17 @@ export function ReportGenerator({
               Report Type
             </label>
             <select
+              name="queryType"
               id="r-type"
               value={queryType}
               onChange={(e) => setQueryType(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
+              className="w-full px-3 py-2 rounded-lg border bg-background text-sm text-foreground"
             >
               <option value="condition">
                 Natural remedies for a condition
               </option>
               <option value="drug_alternative">
-                Natural alternatives to a drug
+                Natural remedies related to a drug
               </option>
               <option value="custom">Custom query</option>
             </select>
@@ -115,6 +118,8 @@ export function ReportGenerator({
               *
             </label>
             <input
+              name="queryInput"
+              autoComplete="off"
               id="r-query"
               type="text"
               value={queryInput}
@@ -180,7 +185,9 @@ export function ReportGenerator({
               className="flex-1 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {submitting ? (
-                <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+                <span className="mr-2 inline-flex shrink-0 animate-spin">
+                  <Loader2 className="w-4 h-4 inline" />
+                </span>
               ) : (
                 <Sparkles className="w-4 h-4 inline mr-2" />
               )}

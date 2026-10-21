@@ -203,7 +203,7 @@ export function Header() {
                   Remedi
                 </SheetTitle>
                 <SheetDescription className="text-sm">
-                  Natural alternatives to pharmaceuticals
+                  Natural remedies, evidence and interactions
                 </SheetDescription>
               </SheetHeader>
               <nav className="mt-6 flex flex-col gap-1">

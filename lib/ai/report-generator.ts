@@ -178,7 +178,7 @@ export async function generateRemedyReport(
       queryType === "condition"
         ? "natural remedies for the condition"
         : queryType === "drug_alternative"
-          ? "natural alternatives to the drug"
+          ? "natural remedies related to (never replacements for) the drug"
           : "natural remedy recommendations for";
 
     let userPrompt = `Create a comprehensive report on ${queryTypeLabel}: "${queryInput}"\n\n`;

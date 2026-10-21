@@ -15,10 +15,10 @@ const HEALTH_CATEGORIES = [
 ] as const;
 
 const HEALTH_GOALS = [
-  { id: "reduce-pharma", label: "Reduce pharmaceutical use" },
-  { id: "natural-first", label: "Try natural options first" },
-  { id: "complement", label: "Complement existing treatments" },
-  { id: "research", label: "Research alternatives" },
+  { id: "reduce-pharma", label: "Understand my medications" },
+  { id: "natural-first", label: "Learn about natural remedies" },
+  { id: "complement", label: "Check interactions with my medications" },
+  { id: "research", label: "Research the evidence" },
   { id: "prevention", label: "Preventive health" },
 ] as const;
 

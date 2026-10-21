@@ -1,5 +1,3 @@
-"use client";
-
 import { Shield, Sparkles, Users, Zap } from "lucide-react";
 
 interface WelcomeStepProps {}
@@ -8,19 +6,19 @@ export function WelcomeStep(_props: WelcomeStepProps): React.ReactNode {
   return (
     <div className="space-y-6">
       <p className="text-base leading-relaxed text-muted-foreground">
-        Discover natural alternatives to pharmaceuticals and supplements. Our
-        platform helps you find evidence-based natural remedies tailored to your
-        needs.
+        Learn about natural remedies and how they relate to pharmaceuticals and
+        supplements: what they are used for, how strong the evidence is, and
+        known interactions. Remedi is information, not medical advice.
       </p>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-md border border-border bg-background p-4">
           <Shield className="mb-3 h-5 w-5 text-primary" />
           <h3 className="text-sm font-semibold text-foreground">
-            Evidence-Based
+            Evidence Levels
           </h3>
           <p className="text-sm text-muted-foreground">
-            Every remedy shows its evidence level
+            Each remedy shows its evidence level
           </p>
         </div>
         <div className="rounded-md border border-border bg-background p-4">
@@ -34,7 +32,7 @@ export function WelcomeStep(_props: WelcomeStepProps): React.ReactNode {
           <Users className="mb-3 h-5 w-5 text-primary" />
           <h3 className="text-sm font-semibold text-foreground">Community</h3>
           <p className="text-sm text-muted-foreground">
-            Reviews and contributions from other people
+            Share reviews and suggest remedies
           </p>
         </div>
         <div className="rounded-md border border-border bg-background p-4">
@@ -43,7 +41,7 @@ export function WelcomeStep(_props: WelcomeStepProps): React.ReactNode {
             Instant Results
           </h3>
           <p className="text-sm text-muted-foreground">
-            Find alternatives in seconds
+            Look things up in seconds
           </p>
         </div>
       </div>

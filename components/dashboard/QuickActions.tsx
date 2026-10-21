@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { Search, Heart, FileText, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,7 +14,7 @@ const defaultActions: QuickAction[] = [
   {
     href: "/",
     label: "Search Remedies",
-    description: "Find natural alternatives",
+    description: "Look up natural remedies",
     icon: Search,
     color: "bg-primary/10 text-primary",
   },

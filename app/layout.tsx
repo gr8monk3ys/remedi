@@ -44,14 +44,14 @@ export const metadata: Metadata = {
     template: "%s | Remedi",
   },
   description:
-    "Search a drug and see the Natural Remedies that honestly relate to it. Every mapping is labelled Alternative, Complementary or Supportive, and some drugs carry none at all.",
+    "Search a drug and see information on natural remedies related to it: evidence levels and known interactions with medications. Not medical advice, and never a replacement for a prescribed medication.",
   keywords: [
     "natural remedies",
     "herbal medicine",
     "natural remedy",
     "remedy mapping",
     "drug interactions",
-    "evidence-based remedies",
+    "remedy evidence levels",
     "herbal remedies",
     "natural health",
     "nutrition",
@@ -76,13 +76,13 @@ export const metadata: Metadata = {
     siteName: "Remedi",
     title: "Remedi - What honestly relates to your medication",
     description:
-      "Search a drug and see the Natural Remedies that honestly relate to it. Every mapping is labelled Alternative, Complementary or Supportive, and some drugs carry none at all.",
+      "Search a drug and see information on natural remedies related to it: evidence levels and known interactions with medications. Not medical advice, and never a replacement for a prescribed medication.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Remedi - What honestly relates to your medication",
     description:
-      "Search a drug and see the Natural Remedies that honestly relate to it. Every mapping is labelled Alternative, Complementary or Supportive, and some drugs carry none at all.",
+      "Search a drug and see information on natural remedies related to it: evidence levels and known interactions with medications. Not medical advice, and never a replacement for a prescribed medication.",
     creator: "@remedi",
   },
   robots: {

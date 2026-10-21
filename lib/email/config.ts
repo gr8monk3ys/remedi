@@ -24,7 +24,7 @@ export const EMAIL_RATE_LIMITS = {
  */
 export const EMAIL_BRAND = {
   name: "Remedi",
-  tagline: "Natural Alternatives to Pharmaceuticals",
+  tagline: "Natural Remedies, Evidence and Interactions",
   logoUrl: "https://remedi.com/logo.png",
   primaryColor: "#10B981", // Emerald green
   secondaryColor: "#059669",

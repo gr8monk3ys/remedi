@@ -128,14 +128,14 @@ test.describe("Loading States", () => {
 
     await checkButton.click();
 
-    // Button text changes to "Checking..." during loading
-    await expect(page.getByText("Checking...")).toBeVisible({ timeout: 3000 });
+    // Button text changes to "Checking…" during loading
+    await expect(page.getByText("Checking…")).toBeVisible({ timeout: 3000 });
 
     // Ensure the mocked API call completed before asserting final UI.
     await checkResponsePromise;
 
     // After API resolves, loading text should disappear
-    await expect(page.getByText("Checking...")).not.toBeVisible({
+    await expect(page.getByText("Checking…")).not.toBeVisible({
       timeout: 5000,
     });
 

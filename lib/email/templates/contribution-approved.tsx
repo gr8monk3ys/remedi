@@ -41,7 +41,7 @@ export function ContributionApprovedEmail({
         <Text style={styles.successIcon}>&#10003;</Text>
         <Text style={styles.successTitle}>{remedyName} is now live</Text>
         <Text style={styles.successText}>
-          Your contribution helps others find natural alternatives. Thank you
+          Your contribution helps others learn about natural remedies. Thank you
           for being part of our community!
         </Text>
       </Section>

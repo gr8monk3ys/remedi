@@ -21,8 +21,9 @@ moderators/admins reviewing community contributions (`UserRole` of `user`,
 ## Product Purpose
 
 Remedi maps a Pharmaceutical to the Natural Remedies honestly related to it, and
-labels what each relationship is allowed to claim: **Alternative**,
-**Complementary**, or **Supportive**. It also checks interactions between the
+labels what each relationship is allowed to claim: **Similar use** (stored as
+`Alternative`), **Complementary**, or **Supportive**. No label presents a
+remedy as a replacement for a prescribed medication. It also checks interactions between the
 Substances a person takes.
 
 Success is a person getting an answer they can trust the shape of — including

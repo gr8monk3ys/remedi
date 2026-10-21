@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Clock,
 } from "lucide-react";
+import { formatNumber, formatDate } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 interface RecentSearch {
@@ -148,7 +149,7 @@ export default async function AdminDashboard() {
                 </div>
               </div>
               <p className="tabular mt-4 text-3xl font-semibold tracking-tight text-foreground">
-                {stat.value.toLocaleString()}
+                {formatNumber(stat.value)}
               </p>
             </div>
           );
@@ -183,7 +184,7 @@ export default async function AdminDashboard() {
                       </p>
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(search.createdAt).toLocaleTimeString()}
+                      {formatDate(search.createdAt, "time")}
                     </span>
                   </li>
                 ))}

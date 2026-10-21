@@ -166,11 +166,11 @@ export default async function PricingPage() {
           <div className="premium-gradient-panel flex flex-col items-start gap-6 rounded-lg p-8 text-white md:flex-row md:items-center md:justify-between md:p-10">
             <div className="max-w-xl">
               <h2 className="text-2xl font-semibold md:text-3xl">
-                Ready to look at your options?
+                Ready to start researching?
               </h2>
               <p className="mt-2 leading-relaxed text-white/80">
-                Search FDA drug data and evidence-rated natural alternatives,
-                then talk it through with your healthcare provider.
+                Search FDA drug data and evidence-rated information on natural
+                remedies, then talk it through with your doctor or pharmacist.
               </p>
             </div>
             {/*
