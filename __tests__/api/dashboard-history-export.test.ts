@@ -108,6 +108,33 @@ describe("/api/dashboard/history/export", () => {
     expect(mockIncrementUsage).toHaveBeenCalledWith("user-1", "exports", 1);
   });
 
+  it("neutralises queries a spreadsheet would run as formulas", async () => {
+    // A search query is attacker-influenced: a cross-site link to
+    // /api/search?query=... writes it into the victim's history.
+    mockFindMany.mockResolvedValue([
+      {
+        query: '=HYPERLINK("http://evil.example","x")',
+        resultsCount: 0,
+        createdAt: new Date("2026-01-01T00:00:00.000Z"),
+      },
+      {
+        query: "+1",
+        resultsCount: 0,
+        createdAt: new Date("2026-01-01T00:00:00.000Z"),
+      },
+    ]);
+    const { GET } = await import("@/app/api/dashboard/history/export/route");
+    const response = await GET(
+      new NextRequest("http://localhost:3000/api/dashboard/history/export"),
+    );
+    const lines = (await response.text()).split("\n").slice(1);
+
+    expect(lines[0]).toBe(
+      `"'=HYPERLINK(""http://evil.example"",""x"")",0,2026-01-01T00:00:00.000Z`,
+    );
+    expect(lines[1]).toBe("'+1,0,2026-01-01T00:00:00.000Z");
+  });
+
   it("exports JSON when format=json", async () => {
     const { GET } = await import("@/app/api/dashboard/history/export/route");
     const request = new NextRequest(

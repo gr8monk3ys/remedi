@@ -16,7 +16,7 @@ import { BillingClient } from "./billing-client";
 import { formatDate } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Billing & Subscription | Remedi",
+  title: "Billing & Subscription",
   description: "Manage your Remedi subscription and billing settings",
 };
 

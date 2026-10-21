@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { intParam } from "@/lib/api/query-params";
 import { getCurrentUser } from "@/lib/auth";
 import {
   getUserReports,
@@ -33,14 +34,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const page = Math.max(
-      Number(request.nextUrl.searchParams.get("page") || "1"),
-      1,
-    );
-    const pageSize = Math.min(
-      Math.max(Number(request.nextUrl.searchParams.get("pageSize") || "10"), 1),
-      50,
-    );
+    const { searchParams } = request.nextUrl;
+    const page = intParam(searchParams.get("page"), { fallback: 1, min: 1 });
+    const pageSize = intParam(searchParams.get("pageSize"), {
+      fallback: 10,
+      min: 1,
+      max: 50,
+    });
 
     const result = await getUserReports(user.id, page, pageSize);
 

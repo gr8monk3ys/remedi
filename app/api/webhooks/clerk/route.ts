@@ -128,9 +128,10 @@ export async function POST(req: Request): Promise<Response> {
     return new Response("Missing svix headers", { status: 400 });
   }
 
-  // Get the body
-  const payload = await req.json();
-  const body = JSON.stringify(payload);
+  // Svix signs the exact bytes it sent, so verify the raw body. Parsing and
+  // re-serialising it first changes whitespace and escapes and rejects
+  // genuinely signed events.
+  const body = await req.text();
 
   // Verify the webhook signature
   // svix 2.x's verify() only throws on a bad signature; it no longer returns
@@ -148,7 +149,12 @@ export async function POST(req: Request): Promise<Response> {
     return new Response("Webhook verification failed", { status: 400 });
   }
 
-  const evt = payload as WebhookEvent;
+  let evt: WebhookEvent;
+  try {
+    evt = JSON.parse(body) as WebhookEvent;
+  } catch {
+    return new Response("Invalid webhook payload", { status: 400 });
+  }
 
   // Handle events
   const eventType = evt.type;

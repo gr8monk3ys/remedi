@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { AlertTriangle, Plus, X, Search, Shield } from "lucide-react";
 import {
   checkInteractionsBetween,
@@ -22,6 +22,16 @@ export function InteractionChecker(): React.ReactElement {
   // Client-side input problems only. Anything the server says — including a
   // failed check — arrives as an outcome and is rendered by InteractionResults.
   const [error, setError] = useState<string | null>(null);
+  // Bumped whenever the list changes. An outcome answers for the list it was
+  // run against, so a change clears it and a response still in flight for the
+  // old list is dropped rather than shown under substances nobody checked.
+  const listVersion = useRef(0);
+
+  const invalidateCheck = useCallback(() => {
+    listVersion.current += 1;
+    setOutcome(null);
+    setLoading(false);
+  }, []);
 
   const addSubstance = useCallback(() => {
     const trimmed = inputValue.trim();
@@ -37,12 +47,16 @@ export function InteractionChecker(): React.ReactElement {
     setSubstances((prev) => [...prev, trimmed]);
     setInputValue("");
     setError(null);
-  }, [inputValue, substances]);
+    invalidateCheck();
+  }, [inputValue, substances, invalidateCheck]);
 
-  const removeSubstance = useCallback((index: number) => {
-    setSubstances((prev) => prev.filter((_, i) => i !== index));
-    setOutcome(null);
-  }, []);
+  const removeSubstance = useCallback(
+    (index: number) => {
+      setSubstances((prev) => prev.filter((_, i) => i !== index));
+      invalidateCheck();
+    },
+    [invalidateCheck],
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -60,11 +74,14 @@ export function InteractionChecker(): React.ReactElement {
       return;
     }
 
+    const version = listVersion.current;
     setLoading(true);
     setError(null);
     setOutcome(null);
 
-    setOutcome(await checkInteractionsBetween(substances));
+    const result = await checkInteractionsBetween(substances);
+    if (version !== listVersion.current) return;
+    setOutcome(result);
     setLoading(false);
   }, [substances]);
 

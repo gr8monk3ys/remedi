@@ -5,7 +5,7 @@ import { ReportViewer } from "@/components/reports/ReportViewer";
 import { formatDate } from "@/lib/utils";
 
 export const metadata = {
-  title: "View Report | Remedi Dashboard",
+  title: "View Report",
 };
 
 interface Props {

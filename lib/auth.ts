@@ -22,6 +22,7 @@ import {
   createClerkAuth,
   setClerkModule,
 } from "@gr8monk3ys/next-kit/auth/clerk";
+import { cache } from "react";
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -115,10 +116,15 @@ const clerkAuth = createClerkAuth<AuthUser>({
  * { id, name, email, image, role }
  *
  * Returns null if not authenticated or if no DB user record exists.
+ *
+ * Wrapped in React.cache so a layout, its page and the role checks below
+ * share one Clerk + database lookup per server request instead of each
+ * repeating it. Outside a React server render (route handlers, tests) the
+ * wrapper is a pass-through.
  */
-export async function getCurrentUser(): Promise<AuthUser | null> {
-  return clerkAuth.getUserOrNull();
-}
+export const getCurrentUser = cache(
+  async (): Promise<AuthUser | null> => clerkAuth.getUserOrNull(),
+);
 
 /**
  * Get the Clerk user ID directly (fast, no DB call).
@@ -147,10 +153,11 @@ export async function isAuthenticated(): Promise<boolean> {
 
 /**
  * Check if the current user has one of the specified roles.
- * Reads from the database User.role field.
+ * Reads from the database User.role field, via the cached current user.
  */
 export async function checkUserRole(allowedRoles: string[]): Promise<boolean> {
-  return clerkAuth.hasRole(allowedRoles);
+  const user = await getCurrentUser();
+  return user !== null && allowedRoles.includes(user.role);
 }
 
 /**
