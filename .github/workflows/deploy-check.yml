@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  statuses: read
 
 jobs:
   production-matches-main:
@@ -27,6 +28,7 @@ jobs:
         env:
           EXPECTED: ${{ github.sha }}
           HEALTH_URL: https://remedi.vivancedata.com/api/health
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
           # Vercel builds this project in roughly 1-2 minutes; 12 minutes of
@@ -43,6 +45,17 @@ jobs:
 
             if [ -n "$seen" ] && [ "$seen" = "$EXPECTED" ]; then
               echo "production is serving ${EXPECTED}"
+              exit 0
+            fi
+
+            # vercel.json's ignoreCommand skips commits that change only docs,
+            # tests or CI files; production then keeps the previous build on
+            # purpose. Vercel says so in the commit's Vercel status.
+            vercel=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${EXPECTED}/status" \
+              --jq '[.statuses[] | select(.context | startswith("Vercel")) | .description] | join(" ")' \
+              2>/dev/null || true)
+            if printf '%s' "$vercel" | grep -qi 'ignored build step'; then
+              echo "Vercel skipped ${EXPECTED} (Ignored Build Step); production keeps the previous build."
               exit 0
             fi
 
