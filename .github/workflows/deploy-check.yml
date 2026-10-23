@@ -31,10 +31,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
-          # Vercel builds this project in roughly 1-2 minutes; 12 minutes of
-          # polling is generous enough that a slow build is not reported as a
-          # missing one.
-          deadline=$(( SECONDS + 720 ))
+          # Vercel builds this project in roughly 1-2 minutes, but on
+          # 2026-10-21 it queued builds long enough that deploys finished 14
+          # and 19 minutes after the push, past the old 12-minute window.
+          # 30 minutes keeps a slow queue from looking like a missing deploy.
+          deadline=$(( SECONDS + 1800 ))
           seen=""
 
           while [ "$SECONDS" -lt "$deadline" ]; do
@@ -46,6 +47,18 @@ jobs:
             if [ -n "$seen" ] && [ "$seen" = "$EXPECTED" ]; then
               echo "production is serving ${EXPECTED}"
               exit 0
+            fi
+
+            # Vercel builds only the newest commit of a burst of pushes, so a
+            # commit can go live only as part of a later one (82d4159 on
+            # 2026-10-21). Production serving a descendant includes this commit.
+            if [ -n "$seen" ] && [ "$seen" != "$EXPECTED" ]; then
+              ahead=$(gh api "repos/${GITHUB_REPOSITORY}/compare/${EXPECTED}...${seen}" \
+                --jq '.status' 2>/dev/null || true)
+              if [ "$ahead" = "ahead" ]; then
+                echo "production is serving ${seen}, which includes ${EXPECTED}"
+                exit 0
+              fi
             fi
 
             # vercel.json's ignoreCommand skips commits that change only docs,
