@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.0](https://github.com/gr8monk3ys/remedi/compare/v1.4.0...v1.5.0) (2026-10-27)
+
+
+### Features
+
+* route Stripe webhook database access through lib/db ([#179](https://github.com/gr8monk3ys/remedi/issues/179)) ([29e42e6](https://github.com/gr8monk3ys/remedi/commit/29e42e6af7d4e0544ce254a6f67559600cf814e3))
+* **search:** enforce the daily search allowance that already existed in the plans ([#143](https://github.com/gr8monk3ys/remedi/issues/143)) ([d7b1c40](https://github.com/gr8monk3ys/remedi/commit/d7b1c407f6fb1734ef65bc0d7124750530897faa))
+
+
+### Bug Fixes
+
+* **copy:** present remedies as information, never as alternatives to prescriptions ([#184](https://github.com/gr8monk3ys/remedi/issues/184)) ([7794c9a](https://github.com/gr8monk3ys/remedi/commit/7794c9a638f382595f2cd34c80c09d47e8597a9e))
+* Vercel agent-skills audit (react-best-practices + web-design-guidelines) ([#175](https://github.com/gr8monk3ys/remedi/issues/175)) ([82d4159](https://github.com/gr8monk3ys/remedi/commit/82d415970d138b1016cf68e69197eeb8da85093a))
+
 ## [1.4.0](https://github.com/gr8monk3ys/remedi/compare/v1.3.0...v1.4.0) (2026-10-13)
 
 
