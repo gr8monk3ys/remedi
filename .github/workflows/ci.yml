@@ -95,7 +95,9 @@ jobs:
 
   e2e:
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest is now 26.04 and this repo's Playwright has no browser
+    # build for it. Go back to ubuntu-latest after a Playwright upgrade (1.64.1 works).
+    runs-on: ubuntu-24.04
     needs: test
     services:
       postgres:
