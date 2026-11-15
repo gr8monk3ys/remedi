@@ -8,7 +8,9 @@
  * @see https://docs.sentry.io/platforms/javascript/guides/nextjs/
  */
 
-import * as Sentry from "@sentry/nextjs";
+import { browserTracingIntegration, init } from "@sentry/nextjs";
+
+export { captureException, captureRouterTransitionStart } from "@sentry/nextjs";
 
 import { sentryEnabled, sentryEnvironmentTag } from "./lib/sentry-gate";
 
@@ -26,7 +28,7 @@ const DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 const SENTRY_ENABLED = sentryEnabled(DSN);
 
 if (SENTRY_ENABLED) {
-  Sentry.init({
+  init({
     dsn: DSN,
 
     // Environment detection: "production" or "preview" from Vercel, so the two
@@ -49,7 +51,7 @@ if (SENTRY_ENABLED) {
     // not here: see loadFeedbackWidget below.
     integrations: [
       // Browser Tracing for performance monitoring
-      Sentry.browserTracingIntegration({
+      browserTracingIntegration({
         // Track navigation and page load performance
         enableInp: true,
       }),
@@ -145,8 +147,9 @@ if (SENTRY_ENABLED) {
  * `integrations`, making Sentry the largest script on the home route. Nobody
  * files feedback in the first seconds of a page load, so the widget is pulled
  * in via a dynamic import once the browser is idle. Error and performance
- * monitoring above are untouched by this: `Sentry.init` still runs at module
- * evaluation with the same sample rates, and only the widget's UI code moves.
+ * monitoring above are untouched by this: `init` runs as soon as this module
+ * evaluates (lib/sentry-client.ts decides when), and only the widget's UI code
+ * waits for a further idle period.
  *
  * Not `Sentry.lazyLoadIntegration`: that fetches the integration from Sentry's
  * CDN, which the CSP does not allow and which would add a third-party script

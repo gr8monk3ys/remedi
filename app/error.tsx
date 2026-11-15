@@ -9,7 +9,7 @@
  * @see https://nextjs.org/docs/app/building-your-application/routing/error-handling
  */
 
-import * as Sentry from "@sentry/nextjs";
+import { captureException } from "@/lib/sentry-client";
 import { useEffect } from "react";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
@@ -27,7 +27,7 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log the error to Sentry
-    Sentry.captureException(error);
+    captureException(error);
     logger.error("Route error", error);
   }, [error]);
 

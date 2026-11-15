@@ -10,7 +10,7 @@
  * @see https://nextjs.org/docs/app/building-your-application/routing/error-handling
  */
 
-import * as Sentry from "@sentry/nextjs";
+import { captureException } from "@/lib/sentry-client";
 import { useEffect } from "react";
 import "./globals.css";
 
@@ -23,7 +23,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     // Log the error to Sentry
-    Sentry.captureException(error);
+    captureException(error);
   }, [error]);
 
   return (

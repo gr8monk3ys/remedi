@@ -1,20 +1,39 @@
 /**
  * Browser instrumentation.
  *
- * Sentry v9+ loads its browser SDK from this file. The project had
- * sentry.client.config.ts — the v8 filename — which nothing imported, so
- * `Sentry.init` never ran in the browser and no client-side error was ever
- * reported.
- *
- * Note what that means for Session Replay: the masking settings in
- * sentry.client.config.ts were never active, so no replays were captured. They
- * become active the moment this file exists, which is precisely why the
- * masking had to be correct first.
+ * Next runs this file before the app hydrates. It no longer imports the Sentry
+ * SDK: that is loaded once the browser is idle, through lib/sentry-client.ts,
+ * so it stays out of the JavaScript every page needs before it is interactive.
  */
 
-import * as Sentry from "@sentry/nextjs";
+import type { captureRouterTransitionStart } from "@sentry/nextjs";
 
-export * from "./sentry.client.config";
+import { loadSentry } from "./lib/sentry-client";
 
-/** Report client-side navigations so traces are not truncated at the route. */
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+type SentryClient = Awaited<NonNullable<ReturnType<typeof loadSentry>>>;
+
+let sentry: SentryClient | null = null;
+
+if (typeof window !== "undefined") {
+  const load = (): void => {
+    void loadSentry()?.then((loaded) => {
+      sentry = loaded;
+    });
+  };
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(load, { timeout: 2000 });
+  } else {
+    // Safari has no requestIdleCallback.
+    setTimeout(load, 0);
+  }
+}
+
+/**
+ * Report client-side navigations so traces are not truncated at the route.
+ * Navigations before the SDK has loaded are not traced.
+ */
+export const onRouterTransitionStart: typeof captureRouterTransitionStart = (
+  ...args
+) => {
+  sentry?.captureRouterTransitionStart(...args);
+};
