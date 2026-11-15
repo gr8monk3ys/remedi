@@ -46,27 +46,16 @@ jobs:
         run: bunx prisma generate
       - name: Migrate + seed
         run: bunx prisma migrate dev && SEED_DEMO=true bunx prisma db seed
-      - name: DB verify
-        run: bun run db:verify
-      - name: Data integrity checks
-        run: bun run db:integrity
-      - name: Format check
-        run: bun run format:check
-      - name: Lint
-        run: bun run lint
-      - name: Type check
-        run: bun run type-check
-      - name: Type check tests
-        run: bun run type-check:tests
-      - name: Dead code check
-        run: bun run knip
-      - name: Unit tests
-        run: bun run test:run
-      # These exercise the real database rather than a mock. They existed for
-      # months without a runner: no script, no CI step, so a whole file had
-      # rotted against the current getFavorites signature unnoticed.
-      - name: Integration tests
-        run: bun run test:integration
+      # db:verify, db:integrity, format, lint, type-check (app + tests), knip,
+      # unit tests, then the integration tests that exercise the real database
+      # rather than a mock (they once rotted unnoticed for months with no runner).
+      - name: Verify (checks, unit + integration tests)
+        run: bun run verify:check
+      - name: Test-count evidence
+        if: ${{ !cancelled() }}
+        run: |
+          python3 scripts/verify_summary.py unit reports/unit.json
+          python3 scripts/verify_summary.py integration reports/integration.json
 
   # Guards the exact failure that shipped an unstyled site: a production build
   # whose only stylesheet contained custom properties and no Tailwind utilities.
@@ -88,10 +77,8 @@ jobs:
         run: bun install
       - name: Prisma generate
         run: bunx prisma generate
-      - name: Next build
-        run: bunx next build
-      - name: Built CSS has Tailwind utilities
-        run: bun run check:css
+      - name: Next build + built CSS has Tailwind utilities
+        run: bun run verify:build
 
   e2e:
     timeout-minutes: 30
@@ -131,7 +118,25 @@ jobs:
       - name: Migrate + seed
         run: bunx prisma migrate dev && SEED_DEMO=true bunx prisma db seed
       - name: Run E2E tests
-        run: bun run test:e2e
+        run: bun run verify:e2e
+      - name: Test-count evidence
+        if: ${{ !cancelled() }}
+        run: python3 scripts/verify_summary.py e2e reports/e2e.json
+      - name: Upload UI evidence (screenshots + traces)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: ui-evidence
+          path: test-results
+          if-no-files-found: error
+      - name: List UI evidence in the job summary
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo "### ui-evidence artifact"
+            echo
+            find test-results -type f \( -name '*.png' -o -name 'trace.zip' \) | sort | sed 's/^/- /'
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

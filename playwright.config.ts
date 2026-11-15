@@ -46,6 +46,8 @@ export default defineConfig({
   reporter: [
     ["html", { open: "never" }],
     process.env.CI ? ["github"] : ["list"],
+    // Read by scripts/verify_summary.py for the VERIFY evidence line.
+    ["json", { outputFile: "reports/e2e.json" }],
   ],
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -53,11 +55,10 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL,
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: "on-first-retry",
-
-    /* Screenshot on failure */
-    screenshot: "only-on-failure",
+    /* CI keeps a trace and a screenshot of every test as the ui-evidence
+       artifact; locally only on retry/failure. See https://playwright.dev/docs/trace-viewer */
+    trace: process.env.CI ? "on" : "on-first-retry",
+    screenshot: process.env.CI ? "on" : "only-on-failure",
 
     /* Video on failure */
     video: "retain-on-failure",

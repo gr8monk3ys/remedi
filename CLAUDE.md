@@ -12,13 +12,22 @@ https://remedi.vivancedata.com.
     bun install && bun run init          # prisma generate + migrate + seed
     bun run dev                          # http://localhost:3000
 
-## Check (all of these gate CI, `.github/workflows/ci.yml`)
+## Checks
 
-    bun run format:check && bun run lint && bun run type-check && bun run knip
-    bun run type-check:tests             # tsconfig.json excludes __tests__; this covers it
-    bun run test:run                     # vitest, __tests__/
-    bun run test:e2e                     # playwright, e2e/ (needs DB)
-    bun run db:verify && bun run db:integrity && bun run prod:check
+Run `bun run verify` before opening a PR (needs the local Postgres, migrated and
+seeded). It is what CI runs, stage by stage:
+
+    bun run verify:check   # job test: db:verify, db:integrity, format, lint, type-check (+ tests), knip, unit + integration tests
+    bun run verify:build   # job build: next build + Tailwind-in-CSS check
+    bun run verify:e2e     # job e2e: playwright, e2e/
+    bun run prod:check     # job readiness
+
+Paste the evidence lines into the PR body under "Evidence":
+`python3 scripts/verify_summary.py unit reports/unit.json` (likewise
+`integration`, and `e2e reports/e2e.json`). CI writes the same `VERIFY stage=...`
+lines to its job summaries and uploads Playwright screenshots + traces as the
+`ui-evidence` artifact. The Lighthouse job (`bun run lighthouse:ci` against a
+running build) is not part of `verify`.
 
 ## Where things live
 
