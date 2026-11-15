@@ -47,7 +47,11 @@
     "predeploy": "bun run format:check && bun run lint && bun run type-check && bun run test:run && bun run db:verify && bun run db:integrity && bun run prod:check",
     "quality:check": "bun run format:check && bun run lint && bun run type-check && bun run test:run && bun run test:e2e && bun run db:verify && bun run db:integrity && bun run prod:check",
     "prepare": "husky",
-    "db:migrate:deploy": "bun run scripts/migrate-on-deploy.ts"
+    "db:migrate:deploy": "bun run scripts/migrate-on-deploy.ts",
+    "verify": "bun run verify:check && bun run verify:build && bun run verify:e2e && bun run prod:check",
+    "verify:check": "bun run db:verify && bun run db:integrity && bun run format:check && bun run lint && bun run type-check && bun run type-check:tests && bun run knip && bun run test:run --reporter=default --reporter=json --outputFile.json=reports/unit.json && bun run test:integration --reporter=default --reporter=json --outputFile.json=reports/integration.json",
+    "verify:build": "bunx next build && bun run check:css",
+    "verify:e2e": "playwright test"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.3",
