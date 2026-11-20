@@ -87,7 +87,7 @@ The product's voice is plainly stated and non-promotional. Its own README leads
 with the constraint rather than the feature, and that restraint is the identity:
 the product is trustworthy because it says less than it could.
 
-Domain vocabulary is binding and defined in `CONTEXT.md`, including terms this
+Domain vocabulary is binding and defined in `GLOSSARY.md`, including terms this
 product deliberately avoids (`supplement`, `natural alternative`,
 `recommendation`, `contraindication` as a synonym for interaction). Copy uses the
 glossary's words.

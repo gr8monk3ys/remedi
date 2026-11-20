@@ -248,7 +248,7 @@ describe("the policy drops a forbidden pair before scoring it", () => {
   });
 
   it("reads which side is the remedy from the row, not from its order", () => {
-    // CONTEXT.md: "Records are directionless: the pair is the unit, not the
+    // GLOSSARY.md: "Records are directionless: the pair is the unit, not the
     // order." Reading substanceA as the remedy regardless happened to work
     // only because all 43 seeded rows are written that way.
     const swapped = forbiddenRemedyGroupsFor(cipro, [
