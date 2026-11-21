@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/gr8monk3ys/remedi/compare/v1.5.0...v1.5.1) (2026-11-21)
+
+
+### Performance Improvements
+
+* **sentry:** load the browser SDK when idle, not on first load ([#192](https://github.com/gr8monk3ys/remedi/issues/192)) ([e5ad7d5](https://github.com/gr8monk3ys/remedi/commit/e5ad7d5978917570c70b5ae44eb6b0fc2d119d83))
+
 ## [1.5.0](https://github.com/gr8monk3ys/remedi/compare/v1.4.0...v1.5.0) (2026-11-10)
 
 
