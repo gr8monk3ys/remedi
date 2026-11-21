@@ -584,7 +584,7 @@ export const FORBIDDING_INTERACTIONS_QUERY = {
 /**
  * Which side of a row names the remedy and which names the drug.
  *
- * `CONTEXT.md`: "Records are directionless: the pair is the unit, not the
+ * `GLOSSARY.md`: "Records are directionless: the pair is the unit, not the
  * order." The row carries the answer in its type columns, and reading
  * `substanceA` as the remedy regardless happened to work only because all 43
  * seeded rows are written that way — a curator entering the next one the other

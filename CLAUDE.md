@@ -64,10 +64,12 @@ running build) is not part of `verify`.
 
 ### Issue tracker
 
-Issues live as GitHub issues in `gr8monk3ys/remedi`, driven by the `gh` CLI.
-See `docs/agents/issue-tracker.md`.
+GitHub Issues on `gr8monk3ys/remedi`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical roles, label string equal to role name. See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Single-context: one `CONTEXT.md` at the repo root, ADRs in `docs/adr/`.
-See `docs/agents/domain.md`.
+Single-context: `GLOSSARY.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
