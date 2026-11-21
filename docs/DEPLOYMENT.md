@@ -39,7 +39,7 @@ These must be set for the application to function:
 | Variable              | Description                               | Example                          |
 | --------------------- | ----------------------------------------- | -------------------------------- |
 | `DATABASE_URL`        | PostgreSQL connection string with pooling | `postgresql://...`               |
-| `NEXT_PUBLIC_APP_URL` | Production URL                            | `https://remedi.vivancedata.com` |
+| `NEXT_PUBLIC_APP_URL` | Production URL                            | `https://remedi.lscaturchio.xyz` |
 
 ### Authentication Variables
 

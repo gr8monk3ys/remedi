@@ -36,7 +36,7 @@ describe("getBaseUrl", () => {
     process.env.VERCEL_ENV = "production";
     process.env.VERCEL_URL = "remedi-abc123.vercel.app";
     expect(getBaseUrl()).toBe(PRODUCTION_URL);
-    expect(PRODUCTION_URL).toBe("https://remedi.vivancedata.com");
+    expect(PRODUCTION_URL).toBe("https://remedi.lscaturchio.xyz");
   });
 
   it("keeps the deployment URL for preview deployments", () => {
