@@ -6,7 +6,7 @@
  */
 
 /** The canonical production origin (custom domain). */
-export const PRODUCTION_URL = "https://remedi.vivancedata.com";
+export const PRODUCTION_URL = "https://remedi.lscaturchio.xyz";
 
 /**
  * Get the application base URL.

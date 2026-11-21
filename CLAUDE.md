@@ -3,7 +3,7 @@
 Remedi: Next.js 16 (App Router, React 19, TypeScript strict) app that maps
 pharmaceuticals to natural remedies. Bun, Prisma 7 + PostgreSQL, Tailwind 4,
 Better Auth, Stripe, Resend, OpenAI (optional), Sentry. Live at
-https://remedi.vivancedata.com.
+https://remedi.lscaturchio.xyz.
 
 ## Run
 

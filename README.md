@@ -6,7 +6,7 @@ Search a pharmaceutical and get information on the natural remedies related to
 it: what each is used for, how strong the evidence is, and known interactions
 with medications. Each relationship is labelled **Similar use**,
 **Complementary** or **Supportive**, and none is presented as a replacement
-for a prescribed medication. Live at https://remedi.vivancedata.com.
+for a prescribed medication. Live at https://remedi.lscaturchio.xyz.
 
 Remedi is information, not medical advice. Never stop or change a prescribed medication without talking to your doctor or pharmacist.
 

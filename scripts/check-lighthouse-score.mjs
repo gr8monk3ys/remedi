@@ -16,7 +16,7 @@ import { spawnSync } from "node:child_process";
 //
 // Runs with `--preset=desktop`: mobile devtools throttling is too noisy on
 // shared GitHub runners to hold a floor. Production mobile numbers are
-// measured separately against https://remedi.vivancedata.com and are not what
+// measured separately against https://remedi.lscaturchio.xyz and are not what
 // this script gates.
 //
 // Floors are MEASURED, not aspirational: performance sits 2 below the minimum
@@ -146,7 +146,7 @@ try {
  * `canonicalURL.origin === baseURL.origin`, and this job used to build with
  * NEXT_PUBLIC_APP_URL=http://localhost:3000 while Lighthousing
  * http://127.0.0.1:3000. Different origins, check skipped, SEO 100 — while
- * production served `<link rel="canonical" href="https://remedi.vivancedata.com"/>`
+ * production served `<link rel="canonical" href="https://remedi.lscaturchio.xyz"/>`
  * on every page and scored SEO 92 on /pricing. The origins now match (see the
  * lighthouse job in ci.yml), so the audit fires too; this assertion is the part
  * that does not depend on getting that pairing right.

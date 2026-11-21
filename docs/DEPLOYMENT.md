@@ -39,7 +39,7 @@ These must be set for the application to function:
 | Variable              | Description                               | Example                          |
 | --------------------- | ----------------------------------------- | -------------------------------- |
 | `DATABASE_URL`        | PostgreSQL connection string with pooling | `postgresql://...`               |
-| `NEXT_PUBLIC_APP_URL` | Production URL                            | `https://remedi.vivancedata.com` |
+| `NEXT_PUBLIC_APP_URL` | Production URL                            | `https://remedi.lscaturchio.xyz` |
 
 ### Authentication Variables
 
@@ -51,7 +51,7 @@ auth service to configure.
 | Variable             | Description                                                                        |
 | -------------------- | ---------------------------------------------------------------------------------- |
 | `BETTER_AUTH_SECRET` | Signs session cookies and tokens. 32+ random characters: `openssl rand -base64 32` |
-| `BETTER_AUTH_URL`    | Public origin, e.g. `https://remedi.vivancedata.com`; links in auth emails use it  |
+| `BETTER_AUTH_URL`    | Public origin, e.g. `https://remedi.lscaturchio.xyz`; links in auth emails use it  |
 | `RESEND_API_KEY`     | Required in production: verification and password-reset emails are sent via Resend |
 | `EMAIL_FROM`         | Sender address on a domain verified in Resend (recommended)                        |
 | `AUTH_SECRET`        | Extra secret used for hashing/analytics salt (recommended)                         |

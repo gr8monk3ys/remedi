@@ -81,7 +81,7 @@ and filter preferences all work without an account.
 
 ## Brand Commitments
 
-Name: **Remedi**. Live at https://remedi.vivancedata.com.
+Name: **Remedi**. Live at https://remedi.lscaturchio.xyz.
 
 The product's voice is plainly stated and non-promotional. Its own README leads
 with the constraint rather than the feature, and that restraint is the identity:
