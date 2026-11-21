@@ -5,8 +5,7 @@
  * - Unauthenticated requests are denied (401/403/404) or redirected to sign-in
  * - Validation of input fields
  *
- * Note: In Clerk dev mode, protected API requests may redirect to /sign-in.
- * When redirects are followed, this can appear as a final 200 response.
+ * Note: the proxy answers protected API requests without a session with 401.
  */
 
 import { test, expect } from "@playwright/test";

@@ -1,66 +1,22 @@
 /**
- * Clerk Authentication Utilities
+ * Authentication helpers for server code.
  *
- * Thin app-specific layer over `@gr8monk3ys/next-kit/auth/clerk`. The kit owns
- * the Clerk plumbing and the guard semantics; this module owns what is remedi's:
- * which columns make up a user, the E2E local-auth bypass, and the exported
- * function names.
+ * Reads the Better Auth session (lib/better-auth.ts) for the current request.
+ * The session's user is the Prisma `User` row, so `user.id` is the database id.
  *
- * Maintains the same exported function signatures as the previous NextAuth.js
- * implementation so all downstream imports continue to work unchanged.
+ * The throwing guards (`requireUser`, `requireRole`) are for route handlers:
+ * pair them with {@link authErrorResponse}. In a Server Component use
+ * `getCurrentUser()` and `redirect()` instead — an uncaught throw there renders
+ * the error boundary, not a sign-in prompt.
  *
- * IMPORTANT: This module is server-only (uses Prisma and auth secrets).
- *
- * @see https://clerk.com/docs/references/nextjs/overview
+ * IMPORTANT: This module is server-only.
  */
 
 import "server-only";
-import {
-  ForbiddenError,
-  UnauthorizedError,
-  authErrorResponse,
-  createClerkAuth,
-  setClerkModule,
-} from "@gr8monk3ys/next-kit/auth/clerk";
 import { cache } from "react";
-import { auth } from "@clerk/nextjs/server";
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/db";
-
-// Hand Clerk to the kit rather than letting it resolve `@clerk/nextjs/server`
-// itself: this import is what next.config.ts swaps for the E2E mock, and a
-// dynamic specifier inside the package would sidestep that alias.
-setClerkModule({ auth });
-
-const E2E_AUTH_COOKIE_NAMES = ["e2e_auth", "__session"] as const;
-const E2E_LOCAL_USER_EMAIL = "e2e-user@remedi.local";
-const E2E_LOCAL_USER_NAME = "E2E Local User";
-
-const USER_SELECT = {
-  id: true,
-  name: true,
-  email: true,
-  image: true,
-  role: true,
-} as const;
-
-function isE2ELocalAuthEnabled(): boolean {
-  return process.env.E2E_LOCAL_AUTH === "true";
-}
-
-async function hasE2EAuthCookie(): Promise<boolean> {
-  if (!isE2ELocalAuthEnabled()) return false;
-
-  try {
-    const cookieStore = await cookies();
-    return E2E_AUTH_COOKIE_NAMES.some((name) =>
-      Boolean(cookieStore.get(name)?.value),
-    );
-  } catch {
-    return false;
-  }
-}
+import { auth } from "@/lib/better-auth";
 
 type AuthUser = {
   id: string;
@@ -70,85 +26,26 @@ type AuthUser = {
   role: string;
 };
 
-async function getOrCreateE2ELocalUser(): Promise<AuthUser> {
-  const existingUser = await prisma.user.findUnique({
-    where: { email: E2E_LOCAL_USER_EMAIL },
-    select: USER_SELECT,
-  });
-
-  if (existingUser) return existingUser;
-
-  const firstUser = await prisma.user.findFirst({
-    orderBy: { createdAt: "asc" },
-    select: USER_SELECT,
-  });
-
-  if (firstUser) return firstUser;
-
-  return prisma.user.upsert({
-    where: { email: E2E_LOCAL_USER_EMAIL },
-    update: { name: E2E_LOCAL_USER_NAME },
-    create: {
-      email: E2E_LOCAL_USER_EMAIL,
-      name: E2E_LOCAL_USER_NAME,
-    },
-    select: USER_SELECT,
-  });
-}
-
-const clerkAuth = createClerkAuth<AuthUser>({
-  resolveUser: (clerkId) =>
-    prisma.user.findUnique({ where: { clerkId }, select: USER_SELECT }),
-  // Consulted before Clerk. When E2E local auth is off this is a no-op; when it
-  // is on and no cookie is present we fall through to the aliased Clerk mock,
-  // whose auth() reports no user — the same "signed out" answer.
-  fallback: {
-    enabled: isE2ELocalAuthEnabled,
-    resolve: async () =>
-      (await hasE2EAuthCookie()) ? getOrCreateE2ELocalUser() : null,
-  },
-});
-
 /**
- * Get current authenticated user from Clerk + DB.
- *
- * Returns a user object with shape compatible with the old NextAuth getCurrentUser():
- * { id, name, email, image, role }
- *
- * Returns null if not authenticated or if no DB user record exists.
+ * The signed-in user, or null.
  *
  * Wrapped in React.cache so a layout, its page and the role checks below
- * share one Clerk + database lookup per server request instead of each
- * repeating it. Outside a React server render (route handlers, tests) the
- * wrapper is a pass-through.
+ * share one session lookup per server request. Outside a React server render
+ * (route handlers, tests) the wrapper is a pass-through.
  */
-export const getCurrentUser = cache(
-  async (): Promise<AuthUser | null> => clerkAuth.getUserOrNull(),
-);
+export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return null;
 
-/**
- * Get the Clerk user ID directly (fast, no DB call).
- * Returns null if not authenticated.
- */
-export async function getClerkUserId(): Promise<string | null> {
-  if (isE2ELocalAuthEnabled()) {
-    return (await hasE2EAuthCookie()) ? "e2e-local-user" : null;
-  }
-
-  const { userId } = await auth();
-  return userId;
-}
+  const { id, name, email, image, role } = session.user;
+  return { id, name, email, image: image ?? null, role: role ?? "user" };
+});
 
 /**
  * Check if the current request is authenticated.
  */
 export async function isAuthenticated(): Promise<boolean> {
-  if (isE2ELocalAuthEnabled()) {
-    return hasE2EAuthCookie();
-  }
-
-  const { userId } = await auth();
-  return !!userId;
+  return (await getCurrentUser()) !== null;
 }
 
 /**
@@ -187,21 +84,48 @@ export async function requireAdminPage(): Promise<void> {
   }
 }
 
-/**
- * Require an authenticated user, or throw.
- *
- * The kit builds these alongside getUserOrNull, and this module previously
- * surfaced only the nullable variant — so all 33 route handlers hand-wrote
- * `if (!user) return 401` instead. Pair them with {@link authErrorResponse},
- * which maps UnauthorizedError to 401 and ForbiddenError to 403.
- */
+/** Thrown when no user is signed in. Carries HTTP 401. */
+export class UnauthorizedError extends Error {
+  readonly status = 401;
+  constructor(message = "Unauthorized") {
+    super(message);
+    this.name = "UnauthorizedError";
+  }
+}
+
+/** Thrown when a user is signed in but lacks the required role. Carries 403. */
+export class ForbiddenError extends Error {
+  readonly status = 403;
+  constructor(message = "Forbidden") {
+    super(message);
+    this.name = "ForbiddenError";
+  }
+}
+
+/** Require an authenticated user, or throw {@link UnauthorizedError}. */
 export async function requireUser(): Promise<AuthUser> {
-  return clerkAuth.requireUser();
+  const user = await getCurrentUser();
+  if (!user) throw new UnauthorizedError();
+  return user;
 }
 
 /** Require one of these roles, or throw ForbiddenError. See {@link requireUser}. */
 export async function requireRole(roles: string | string[]): Promise<AuthUser> {
-  return clerkAuth.requireRole(roles);
+  const user = await requireUser();
+  const allowed = Array.isArray(roles) ? roles : [roles];
+  if (!allowed.includes(user.role)) {
+    throw new ForbiddenError(`Requires one of: ${allowed.join(", ")}`);
+  }
+  return user;
 }
 
-export { authErrorResponse, ForbiddenError, UnauthorizedError };
+/** Map an {@link UnauthorizedError} / {@link ForbiddenError} to a JSON response. */
+export function authErrorResponse(error: unknown): Response | null {
+  if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+    return new Response(
+      JSON.stringify({ error: error.message, statusCode: error.status }),
+      { status: error.status, headers: { "Content-Type": "application/json" } },
+    );
+  }
+  return null;
+}

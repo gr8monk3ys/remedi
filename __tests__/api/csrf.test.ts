@@ -83,8 +83,8 @@ describe("shouldSkipCSRF", () => {
     expect(shouldSkipCSRF("/api/webhooks/stripe")).toBe(true);
   });
 
-  it("should skip Clerk webhook path", () => {
-    expect(shouldSkipCSRF("/api/webhooks/clerk")).toBe(true);
+  it("should skip Better Auth endpoints (they check Origin themselves)", () => {
+    expect(shouldSkipCSRF("/api/auth/sign-in/email")).toBe(true);
   });
 
   it("should NOT skip regular API routes", () => {
@@ -167,8 +167,8 @@ describe("csrfMiddleware", () => {
     expect(csrfMiddleware(request)).toBeNull();
   });
 
-  it("should return null for Clerk webhook POST (skipped path)", () => {
-    const request = makeRequest("POST", "/api/webhooks/clerk");
+  it("should return null for Better Auth POST (skipped path)", () => {
+    const request = makeRequest("POST", "/api/auth/sign-up/email");
     expect(csrfMiddleware(request)).toBeNull();
   });
 

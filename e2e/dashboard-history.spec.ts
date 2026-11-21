@@ -9,6 +9,7 @@
  */
 
 import { test, expect } from "@playwright/test";
+import { signIn } from "./session";
 
 test.describe("Dashboard Search History", () => {
   test.beforeEach(async ({ page }) => {
@@ -37,16 +38,7 @@ test.describe("Dashboard Search History", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     await page.route("**/api/search-history**", (route) => {
       route.fulfill({
@@ -83,16 +75,7 @@ test.describe("Dashboard Search History", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     await page.route("**/api/search-history**", (route) => {
       route.fulfill({

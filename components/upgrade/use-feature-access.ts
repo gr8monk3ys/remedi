@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuthState } from "@/lib/auth-client";
 import { type PlanType, PLAN_LIMITS } from "@/lib/stripe-config";
 import { apiClient } from "@/lib/api/client";
 import { logger } from "@/lib/logger";
@@ -32,7 +32,7 @@ export function useFeatureAccess(feature: FeatureKey): {
   isLoading: boolean;
   currentPlan: PlanType;
 } {
-  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
+  const { isLoaded: isAuthLoaded, isSignedIn } = useAuthState();
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [currentPlan, setCurrentPlan] = useState<PlanType>("free");
   const [isLoading, setIsLoading] = useState(true);

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { signIn } from "./session";
 
 test.describe("Admin Panel", () => {
   test.beforeEach(async ({ page }) => {
@@ -34,16 +35,7 @@ test.describe("Admin Panel", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-admin-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     let moderationApiCalled = false;
     await page.route("**/api/admin/moderation**", (route) => {
@@ -81,16 +73,7 @@ test.describe("Admin Panel", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-admin-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     await page.route("**/api/admin/users**", (route) => {
       route.fulfill({
@@ -122,16 +105,7 @@ test.describe("Admin Panel", () => {
   });
 
   test("admin dashboard does not crash on load", async ({ page, context }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-admin-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     // Mock all admin API endpoints
     await page.route("**/api/admin/**", (route) => {

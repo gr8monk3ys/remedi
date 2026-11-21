@@ -1,37 +1,31 @@
 /**
- * Hook to access the database user ID from Clerk's publicMetadata.
+ * The signed-in user's database id and role, for client components.
  *
- * Clerk's user.id is a Clerk-specific ID (user_xxx).
- * The Prisma database uses its own UUID as the primary key.
- * During webhook sync, the Prisma UUID is stored in Clerk's
- * publicMetadata.dbUserId so client components can access it.
+ * The Better Auth session user is the Prisma `User` row, so its id is the
+ * database id API calls expect.
  */
 
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useAuthState } from "@/lib/auth-client";
 
 interface DbUserInfo {
-  /** The Prisma UUID for this user (not Clerk's ID) */
+  /** The Prisma UUID for this user */
   dbUserId: string | undefined;
-  /** The user's role from Clerk publicMetadata */
+  /** The user's role (User.role) */
   role: string;
-  /** Whether Clerk has finished loading user data */
+  /** Whether the session has finished loading */
   isLoaded: boolean;
   /** Whether the user is signed in */
-  isSignedIn: boolean | undefined;
+  isSignedIn: boolean;
 }
 
-/**
- * Get the database user ID and role from Clerk's publicMetadata.
- * Use this in client components that need the Prisma user ID for API calls.
- */
 export function useDbUser(): DbUserInfo {
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded, isSignedIn } = useAuthState();
 
   return {
-    dbUserId: (user?.publicMetadata?.dbUserId as string) || undefined,
-    role: (user?.publicMetadata?.role as string) || "user",
+    dbUserId: user?.id,
+    role: user?.role ?? "user",
     isLoaded,
     isSignedIn,
   };

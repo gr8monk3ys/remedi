@@ -18,17 +18,9 @@ import { TrialBanner, TrialBadge } from "@/components/upgrade/TrialBanner";
 // Track the mock return values so we can change them per test
 const mockUseAuth = vi.fn();
 
-// Mock Clerk — override the global setup mock
-vi.mock("@clerk/nextjs", () => ({
-  useUser: vi.fn(() => ({ user: null, isLoaded: true, isSignedIn: false })),
-  useAuth: (...args: unknown[]) => mockUseAuth(...args),
-  useClerk: vi.fn(() => ({ signOut: vi.fn() })),
-  ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
-  SignedIn: () => null,
-  SignedOut: ({ children }: { children: React.ReactNode }) => children,
-  SignInButton: () => null,
-  SignUpButton: () => null,
-  UserButton: () => null,
+// Override the global signed-out auth mock
+vi.mock("@/lib/auth-client", () => ({
+  useAuthState: (...args: unknown[]) => mockUseAuth(...args),
 }));
 
 const mockApiGet = vi.fn();

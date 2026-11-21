@@ -76,7 +76,7 @@ and filter preferences all work without an account.
 - Three plans: **Free** (5 searches/day, 3 favourites, 3 medications, no AI, no
   compare, no export, no history), **Basic**, and **Premium**.
 - Stack is set by the existing codebase: Next.js 16 App Router, React 19,
-  TypeScript strict, Bun, Prisma 7 + PostgreSQL, Tailwind 4, Clerk, Stripe,
+  TypeScript strict, Bun, Prisma 7 + PostgreSQL, Tailwind 4, Better Auth, Stripe,
   Resend, OpenAI (optional), Sentry.
 
 ## Brand Commitments

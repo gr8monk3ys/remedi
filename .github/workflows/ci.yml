@@ -38,6 +38,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://remedi:remedi_dev@localhost:5432/remedi?schema=public
       AUTH_SECRET: ci-auth-secret
+      BETTER_AUTH_SECRET: ci-better-auth-secret-at-least-32-chars
       NEXT_PUBLIC_APP_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -77,8 +78,9 @@ jobs:
       DATABASE_URL: postgresql://remedi:remedi_dev@localhost:5432/remedi?schema=public
       AUTH_SECRET: ci-auth-secret
       NEXT_PUBLIC_APP_URL: http://localhost:3000
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci
-      CLERK_SECRET_KEY: sk_test_ci
+      BETTER_AUTH_SECRET: ci-better-auth-secret-at-least-32-chars
+      BETTER_AUTH_URL: http://localhost:3000
+      RESEND_API_KEY: re_ci
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
@@ -114,6 +116,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://remedi:remedi_dev@localhost:5432/remedi?schema=public
       AUTH_SECRET: ci-auth-secret
+      BETTER_AUTH_SECRET: ci-better-auth-secret-at-least-32-chars
       NEXT_PUBLIC_APP_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -184,8 +187,9 @@ jobs:
       DATABASE_URL: postgresql://remedi:remedi_dev@localhost:5432/remedi?schema=public
       AUTH_SECRET: ci-auth-secret
       NEXT_PUBLIC_APP_URL: http://localhost:3000
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci
-      CLERK_SECRET_KEY: sk_test_ci
+      BETTER_AUTH_SECRET: ci-better-auth-secret-at-least-32-chars
+      BETTER_AUTH_URL: http://localhost:3000
+      RESEND_API_KEY: re_ci
       STRIPE_SECRET_KEY: sk_test_ci
       STRIPE_PUBLISHABLE_KEY: pk_test_ci
       STRIPE_WEBHOOK_SECRET: whsec_ci
@@ -241,15 +245,10 @@ jobs:
       # The localhost/127.0.0.1 split silently disabled that check, and a
       # site-wide canonical pointing at the homepage sailed through this job.
       NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci
-      CLERK_SECRET_KEY: sk_test_ci
-      # The same Clerk stub the e2e job runs under: clerkMiddleware refuses
-      # the placeholder keys above, and a real key would load Clerk's runtime
-      # from a domain this runner cannot reach. SKIP_ENV_VALIDATION is what
-      # lets the stub run against a production build.
-      E2E_LOCAL_AUTH: "true"
+      BETTER_AUTH_SECRET: ci-better-auth-secret-at-least-32-chars
+      BETTER_AUTH_URL: http://127.0.0.1:3000
+      RESEND_API_KEY: re_ci
       E2E_DISABLE_SENTRY: "true"
-      SKIP_ENV_VALIDATION: "true"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6

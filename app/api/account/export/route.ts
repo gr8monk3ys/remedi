@@ -105,7 +105,6 @@ export async function GET(request: NextRequest): Promise<Response> {
       where: { id: user.id },
       select: {
         id: true,
-        clerkId: true,
         email: true,
         name: true,
         role: true,

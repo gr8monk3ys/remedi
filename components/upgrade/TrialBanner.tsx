@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuthState } from "@/lib/auth-client";
 import { apiClient, ApiClientError } from "@/lib/api/client";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
@@ -51,7 +51,7 @@ export function TrialBanner({
   onDismiss,
   className = "",
 }: TrialBannerProps) {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn } = useAuthState();
   const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -162,7 +162,7 @@ export function TrialBanner({
  * Compact trial badge for headers/navbars
  */
 export function TrialBadge({ className = "" }: { className?: string }) {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn } = useAuthState();
   const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -218,7 +218,7 @@ export function StartTrialButton({
   variant?: "primary" | "secondary" | "outline";
   size?: "sm" | "md" | "lg";
 }) {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn } = useAuthState();
   const router = useRouter();
   const [isEligible, setIsEligible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

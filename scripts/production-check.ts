@@ -15,8 +15,10 @@ const { prisma, pool } = createClient();
 
 const REQUIRED_ENV = [
   "DATABASE_URL",
-  "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
-  "CLERK_SECRET_KEY",
+  "BETTER_AUTH_SECRET",
+  "BETTER_AUTH_URL",
+  // Sign-in requires a verified email, so without Resend nobody can sign up.
+  "RESEND_API_KEY",
   "NEXT_PUBLIC_APP_URL",
   "STRIPE_SECRET_KEY",
   "STRIPE_PUBLISHABLE_KEY",
@@ -28,7 +30,6 @@ const REQUIRED_ENV = [
 ];
 
 const RECOMMENDED_ENV = [
-  "CLERK_WEBHOOK_SECRET",
   "AUTH_SECRET",
   "OPENAI_API_KEY",
   "OPENFDA_API_KEY",
@@ -39,7 +40,6 @@ const RECOMMENDED_ENV = [
   "SENTRY_PROJECT",
   "UPSTASH_REDIS_REST_URL",
   "UPSTASH_REDIS_REST_TOKEN",
-  "RESEND_API_KEY",
   "EMAIL_FROM",
   "ANALYTICS_IP_SALT",
 ];

@@ -9,6 +9,7 @@
  */
 
 import { test, expect } from "@playwright/test";
+import { signIn } from "./session";
 
 test.describe("Favorites", () => {
   test.beforeEach(async ({ page }) => {
@@ -31,16 +32,7 @@ test.describe("Favorites", () => {
   });
 
   test("authenticated user sees favorites page", async ({ page, context }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     // Mock the favorites API
     await page.route("**/api/favorites**", (route) => {
@@ -85,16 +77,7 @@ test.describe("Favorites", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     await page.route("**/api/favorites**", (route) => {
       route.fulfill({

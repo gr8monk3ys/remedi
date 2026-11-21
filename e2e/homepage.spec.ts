@@ -160,13 +160,11 @@ test.describe("Homepage", () => {
 
     await page.goto("/");
 
-    // Filter out known acceptable errors (third-party, Clerk, hydration warnings)
+    // Filter out known acceptable errors (third-party, hydration warnings)
     const criticalErrors = errors.filter(
       (error) =>
         !error.includes("third-party") &&
         !error.includes("warning") &&
-        !error.includes("clerk") &&
-        !error.includes("Clerk") &&
         !error.includes("hydrat") &&
         !error.includes("Failed to fetch"),
     );

@@ -40,7 +40,7 @@ a safety checker must never give ([#69](https://github.com/gr8monk3ys/remedi/pul
 ## Stack
 
 Next.js 16 (App Router, React 19), TypeScript, Bun, Prisma 7 + PostgreSQL,
-Tailwind 4, Clerk auth, Stripe, Resend, Sentry. OpenAI is optional and only
+Tailwind 4, Better Auth, Stripe, Resend, Sentry. OpenAI is optional and only
 powers `/api/ai-search`.
 
 ## Run locally

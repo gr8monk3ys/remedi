@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { signIn } from "./session";
 
 test.describe("Contribute Remedy", () => {
   test.beforeEach(async ({ page }) => {
@@ -54,16 +55,7 @@ test.describe("Contribute Remedy", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     await page.goto("/contribute");
     await page.waitForLoadState("domcontentloaded");
@@ -76,16 +68,7 @@ test.describe("Contribute Remedy", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     await page.route("**/api/contributions**", (route) => {
       if (route.request().method() === "POST") {
@@ -132,16 +115,7 @@ test.describe("Contribute Remedy", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     await page.route("**/api/contributions**", (route) => {
       if (route.request().method() === "POST") {

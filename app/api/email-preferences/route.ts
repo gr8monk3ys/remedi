@@ -4,7 +4,7 @@
  * GET  /api/email-preferences - Fetch current user's email preferences
  * PATCH /api/email-preferences - Update current user's email preferences
  *
- * Requires authentication via Clerk.
+ * Requires authentication.
  */
 
 import { NextRequest, NextResponse } from "next/server";

@@ -1,7 +1,7 @@
 /**
  * Password Reset Email Template
  *
- * Sent when a user requests a password reset (for future email auth).
+ * Sent when a user requests a password reset.
  */
 
 import { Button, Heading, Section, Text } from "@react-email/components";

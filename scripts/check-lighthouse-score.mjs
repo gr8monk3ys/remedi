@@ -19,11 +19,6 @@ import { spawnSync } from "node:child_process";
 // measured separately against https://remedi.vivancedata.com and are not what
 // this script gates.
 //
-// The app is built with E2E_LOCAL_AUTH=true in CI (the same Clerk stub the
-// e2e job uses) because Clerk's real middleware refuses the placeholder keys.
-// Clerk's own runtime script therefore does not load here; every other byte
-// on the page is the production bundle.
-//
 // Floors are MEASURED, not aspirational: performance sits 2 below the minimum
 // observed across repeated runs, the others at their observed value. A floor
 // that flakes gets bypassed; a floor that never fails is useless. Raise a
