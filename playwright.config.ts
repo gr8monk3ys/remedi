@@ -30,7 +30,7 @@ export default defineConfig({
   // to reduce false failures from startup and transient I/O slowness.
   timeout: 45_000,
 
-  /* Tests can run in parallel by default with local E2E auth mode enabled. */
+  /* Tests can run in parallel; they share one E2E user session. */
   fullyParallel: true,
 
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -66,9 +66,12 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // Creates the E2E user and its session (e2e/auth.setup.ts).
+    { name: "setup", testMatch: /auth\.setup\.ts/ },
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup"],
     },
 
     // Uncomment to test on more browsers
@@ -107,7 +110,7 @@ export default defineConfig({
   webServer: {
     command:
       process.env.PLAYWRIGHT_WEBSERVER_COMMAND ||
-      `export PORT=${playwrightPort} E2E_LOCAL_AUTH=true E2E_DISABLE_SENTRY=true; npm run dev -- --webpack --port ${playwrightPort}`,
+      `export PORT=${playwrightPort} BETTER_AUTH_URL=${baseURL} E2E_DISABLE_SENTRY=true; npm run dev -- --webpack --port ${playwrightPort}`,
     url: baseURL,
     cwd: process.cwd(),
     reuseExistingServer: true,

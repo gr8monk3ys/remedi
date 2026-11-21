@@ -1,16 +1,12 @@
 "use client";
 
-import { Component, useState, type ReactNode } from "react";
-import { ClerkProvider } from "@clerk/nextjs";
+import { useState, type ReactNode } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CompareProvider } from "@/lib/context/CompareContext";
 import { OnboardingProvider } from "@/lib/context/OnboardingContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { Toaster } from "@/components/ui/toaster";
-import { createLogger } from "@/lib/logger";
-
-const logger = createLogger("providers");
 
 const ComparisonBar = dynamic(
   () =>
@@ -26,50 +22,12 @@ interface ProvidersProps {
   children: ReactNode;
 }
 
-interface ErrorBoundaryProps {
-  children: ReactNode;
-  fallback: ReactNode;
-}
-
-interface ErrorBoundaryState {
-  hasError: boolean;
-}
-
 /**
- * Error boundary that catches Clerk loading failures
- * and renders a fallback (children without auth) so the app still works
+ * Combined providers for the application: React Query, theme, onboarding and
+ * compare state. Auth needs no provider; components read the session with
+ * useAuthState() from lib/auth-client.
  */
-class ClerkErrorBoundary extends Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(): ErrorBoundaryState {
-    return { hasError: true };
-  }
-
-  override componentDidCatch(error: Error): void {
-    logger.warn("Clerk failed to load, app will render without auth", {
-      error: error.message,
-    });
-  }
-
-  override render(): ReactNode {
-    if (this.state.hasError) {
-      return this.props.fallback;
-    }
-    return this.props.children;
-  }
-}
-
-/**
- * Inner providers that wrap the app content regardless of auth state
- */
-function AppProviders({ children, nonce }: ProvidersProps): ReactNode {
+export function Providers({ children, nonce }: ProvidersProps): ReactNode {
   // useState ensures a single QueryClient per app lifetime (standard Next.js pattern)
   const [queryClient] = useState(
     () =>
@@ -102,24 +60,5 @@ function AppProviders({ children, nonce }: ProvidersProps): ReactNode {
         <Toaster />
       </ThemeProvider>
     </QueryClientProvider>
-  );
-}
-
-/**
- * Combined providers for the application
- * Includes Clerk authentication, ThemeProvider, CompareProvider, and OnboardingProvider
- *
- * ClerkProvider is wrapped in an error boundary so if Clerk JS fails to load
- * (e.g. CSP blocks it, network issue), the rest of the app still renders.
- */
-export function Providers({ children, nonce }: ProvidersProps) {
-  return (
-    <ClerkErrorBoundary
-      fallback={<AppProviders nonce={nonce}>{children}</AppProviders>}
-    >
-      <ClerkProvider>
-        <AppProviders nonce={nonce}>{children}</AppProviders>
-      </ClerkProvider>
-    </ClerkErrorBoundary>
   );
 }

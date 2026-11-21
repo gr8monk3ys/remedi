@@ -12,15 +12,6 @@ if (process.env.TEST_DATABASE_URL) {
 
 // Mock server-only FIRST before any imports that use it
 vi.mock("server-only", () => ({}));
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn().mockResolvedValue({ userId: null }),
-  currentUser: vi.fn().mockResolvedValue(null),
-  clerkClient: vi
-    .fn()
-    .mockResolvedValue({ users: { updateUserMetadata: vi.fn() } }),
-  clerkMiddleware: vi.fn(),
-  createRouteMatcher: vi.fn(() => () => false),
-}));
 vi.mock("@/lib/email", () => ({
   sendContributionApproved: vi.fn().mockResolvedValue(undefined),
   sendContributionRejected: vi.fn().mockResolvedValue(undefined),

@@ -1,11 +1,11 @@
 "use client";
 
-import { Component, type ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
-import { useUser, SignInButton, UserButton } from "@clerk/nextjs";
 import { GitCompare, Leaf, Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useCompare } from "@/lib/context/CompareContext";
+import { useAuthState } from "@/lib/auth-client";
+import { UserButton } from "@/components/auth/user-button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,72 +20,19 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-/**
- * Error boundary for auth section -- if Clerk hooks throw,
- * fall back to a simple sign-in link.
- */
-class AuthErrorBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean }
-> {
-  constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(): { hasError: boolean } {
-    return { hasError: true };
-  }
-
-  override render(): ReactNode {
-    if (this.state.hasError) {
-      return (
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/sign-in">Sign In</Link>
-        </Button>
-      );
-    }
-    return this.props.children;
-  }
-}
-
-function AuthSection(): ReactNode {
-  const { isLoaded, isSignedIn } = useUser();
-  const [showFallbackSignIn, setShowFallbackSignIn] = useState(false);
-
-  useEffect(() => {
-    if (isLoaded) {
-      setShowFallbackSignIn(false);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setShowFallbackSignIn(true);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [isLoaded]);
+function AuthSection() {
+  const { isLoaded, user } = useAuthState();
 
   if (!isLoaded) {
-    if (showFallbackSignIn) {
-      return (
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/sign-in">Sign In</Link>
-        </Button>
-      );
-    }
-
     return <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />;
   }
 
-  return isSignedIn ? (
-    <UserButton />
+  return user ? (
+    <UserButton name={user.name} email={user.email} />
   ) : (
-    <SignInButton mode="modal">
-      <Button variant="outline" size="sm">
-        Sign In
-      </Button>
-    </SignInButton>
+    <Button variant="outline" size="sm" asChild>
+      <Link href="/sign-in">Sign In</Link>
+    </Button>
   );
 }
 
@@ -180,9 +127,7 @@ export function Header() {
           <ThemeToggle />
 
           <div className="ml-1">
-            <AuthErrorBoundary>
-              <AuthSection />
-            </AuthErrorBoundary>
+            <AuthSection />
           </div>
         </nav>
 
@@ -235,9 +180,7 @@ export function Header() {
                 <Separator className="my-2" />
 
                 <div className="px-3 py-2">
-                  <AuthErrorBoundary>
-                    <AuthSection />
-                  </AuthErrorBoundary>
+                  <AuthSection />
                 </div>
               </nav>
             </SheetContent>

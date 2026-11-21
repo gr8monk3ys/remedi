@@ -3,7 +3,7 @@
 import { apiClient, ApiClientError } from "@/lib/api/client";
 import { useState } from "react";
 import { Star, Send, X } from "lucide-react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuthState } from "@/lib/auth-client";
 import Link from "next/link";
 
 interface ReviewFormProps {
@@ -19,7 +19,7 @@ export function ReviewForm({
   onReviewSubmitted,
   onCancel,
 }: ReviewFormProps) {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuthState();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState("");

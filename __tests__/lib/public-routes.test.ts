@@ -4,7 +4,7 @@
  * `(.*)` in path-to-regexp binds to the preceding characters, not to a path
  * segment. So `/api/health(.*)` silently also matched `/api/health-profile`,
  * putting an endpoint that returns someone's health profile into the list of
- * routes Clerk does not protect. It was not exploitable — that route checks
+ * routes the proxy does not protect. It was not exploitable — that route checks
  * auth itself — but the middleware layer was gone and nothing reported it.
  *
  * This walks every real route against every pattern, so the next over-broad
@@ -14,15 +14,7 @@
 import { describe, it, expect } from "vitest";
 import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { createRequire } from "node:module";
-import { PUBLIC_ROUTE_PATTERNS } from "@/lib/public-routes";
-
-// Next bundles path-to-regexp without type declarations. Using the same
-// implementation Clerk's createRouteMatcher uses matters here — the whole
-// point is to test the real matching semantics, not an approximation.
-const { pathToRegexp } = createRequire(import.meta.url)(
-  "next/dist/compiled/path-to-regexp",
-) as { pathToRegexp: (p: string) => { regexp?: RegExp } | RegExp };
+import { PUBLIC_ROUTE_PATTERNS, isPublicPath } from "@/lib/public-routes";
 
 /** Every API route path that exists, with dynamic segments normalised. */
 function apiRoutes(dir = "app/api", acc: string[] = []): string[] {
@@ -36,13 +28,13 @@ function apiRoutes(dir = "app/api", acc: string[] = []): string[] {
   return acc;
 }
 
-const matches = (pattern: string, path: string): boolean => {
-  const compiled = pathToRegexp(pattern) as { regexp?: RegExp } | RegExp;
-  const re = (compiled as { regexp?: RegExp }).regexp ?? (compiled as RegExp);
-  return re.test(path);
-};
+/** Same rule as isPublicPath, for one pattern at a time. */
+const matches = (pattern: string, path: string): boolean =>
+  pattern.endsWith("(.*)")
+    ? path.startsWith(pattern.slice(0, -"(.*)".length))
+    : path === pattern;
 
-/** Routes that must never be reachable without Clerk protecting them. */
+/** Routes that must never be reachable without a session. */
 const MUST_BE_PROTECTED = [
   "/api/health-profile",
   "/api/journal",
@@ -54,6 +46,12 @@ const MUST_BE_PROTECTED = [
   "/api/checkout",
   "/api/billing-portal",
   "/api/trial/start",
+  "/user-profile",
+  "/dashboard",
+  "/admin",
+  // Prefix lookalikes of public pages.
+  "/sign-in-as-admin",
+  "/api/authz",
 ];
 
 /**
@@ -65,8 +63,12 @@ const MUST_BE_PROTECTED = [
 const MUST_BE_PUBLIC = [
   "/",
   "/sign-in",
-  "/sign-in/factor-one",
   "/sign-up",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/api/auth/sign-in/email",
+  "/api/auth/verify-email",
   "/pricing",
   "/about",
   "/faq",
@@ -84,13 +86,11 @@ const MUST_BE_PUBLIC = [
 
 describe("public route allowlist", () => {
   it.each(MUST_BE_PUBLIC)("keeps %s reachable without auth", (route) => {
-    const matching = PUBLIC_ROUTE_PATTERNS.filter((p) => matches(p, route));
-    expect(matching.length).toBeGreaterThan(0);
+    expect(isPublicPath(route)).toBe(true);
   });
 
   it.each(MUST_BE_PROTECTED)("does not expose %s", (route) => {
-    const matching = PUBLIC_ROUTE_PATTERNS.filter((p) => matches(p, route));
-    expect(matching).toEqual([]);
+    expect(isPublicPath(route)).toBe(false);
   });
 
   it("every pattern matches at least one real route", () => {

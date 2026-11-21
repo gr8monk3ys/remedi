@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { signIn } from "./session";
 
 test.describe("Remedy Journal", () => {
   test.beforeEach(async ({ page }) => {
@@ -23,16 +24,7 @@ test.describe("Remedy Journal", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     await page.route("**/api/journal**", (route) => {
       route.fulfill({
@@ -69,16 +61,7 @@ test.describe("Remedy Journal", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     await page.route("**/api/journal**", (route) => {
       route.fulfill({
@@ -102,16 +85,7 @@ test.describe("Remedy Journal", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     let insightsCalled = false;
     await page.route("**/api/journal/insights**", (route) => {

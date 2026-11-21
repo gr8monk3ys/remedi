@@ -47,7 +47,7 @@ vi.stubEnv("STRIPE_BASIC_YEARLY_PRICE_ID", "price_basic_yearly");
 vi.stubEnv("STRIPE_PREMIUM_MONTHLY_PRICE_ID", "price_premium_monthly");
 vi.stubEnv("STRIPE_PREMIUM_YEARLY_PRICE_ID", "price_premium_yearly");
 
-// Mock auth - Clerk-based getCurrentUser()
+// Mock auth - getCurrentUser()
 interface MockUser {
   id: string;
   name: string | null;

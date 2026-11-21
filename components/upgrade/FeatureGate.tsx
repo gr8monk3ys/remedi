@@ -9,7 +9,7 @@
 
 import { useState, useEffect, type ReactNode } from "react";
 import { Lock, Sparkles, Loader2 } from "lucide-react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuthState } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { type PlanType, PLAN_LIMITS } from "@/lib/stripe-config";
@@ -112,7 +112,7 @@ export function FeatureGate({
   onUpgradeClick,
   className = "",
 }: FeatureGateProps) {
-  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
+  const { isLoaded: isAuthLoaded, isSignedIn } = useAuthState();
   const router = useRouter();
   const [gate, setGate] = useState<GateState>({ kind: "checking" });
   const [attempt, setAttempt] = useState(0);

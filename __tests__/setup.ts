@@ -114,33 +114,23 @@ vi.mock("next/navigation", () => ({
   useParams: vi.fn(() => ({})),
 }));
 
-// Mock Clerk client-side
-vi.mock("@clerk/nextjs", () => ({
-  useUser: vi.fn(() => ({ user: null, isLoaded: true, isSignedIn: false })),
-  useAuth: vi.fn(() => ({
-    userId: null,
+// Auth: signed out unless a test overrides these.
+vi.mock("@/lib/auth-client", () => ({
+  useAuthState: vi.fn(() => ({
     isLoaded: true,
     isSignedIn: false,
-    signOut: vi.fn(),
+    user: null,
   })),
-  useClerk: vi.fn(() => ({ signOut: vi.fn() })),
-  ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
-  SignedIn: (_props: { children: React.ReactNode }) => null,
-  SignedOut: ({ children }: { children: React.ReactNode }) => children,
-  SignInButton: () => null,
-  SignUpButton: () => null,
-  UserButton: () => null,
+  authClient: {},
 }));
-
-// Mock Clerk server-side
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn().mockResolvedValue({ userId: null }),
-  currentUser: vi.fn().mockResolvedValue(null),
-  clerkMiddleware: vi.fn((handler: (...args: unknown[]) => unknown) => handler),
-  createRouteMatcher: vi.fn(() => () => false),
-  clerkClient: vi.fn().mockResolvedValue({
-    users: { updateUserMetadata: vi.fn() },
-  }),
+vi.mock("@/lib/better-auth", () => ({
+  auth: { api: { getSession: vi.fn().mockResolvedValue(null) } },
+}));
+// lib/auth reads the session from the request headers; outside a request
+// scope the real headers() throws.
+vi.mock("next/headers", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/headers")>()),
+  headers: vi.fn(async () => new Headers()),
 }));
 
 // Mock server-only (allows importing server-only modules in tests)

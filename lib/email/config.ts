@@ -77,6 +77,7 @@ export const EMAIL_SUBJECTS = {
   subscription_expiring: "Your Remedi Subscription Expires Soon",
   weekly_digest: "Your Weekly Remedi Digest",
   password_reset: "Reset Your Remedi Password",
+  email_verification: "Verify Your Remedi Email Address",
   contribution_approved: "Your Remedy Contribution Has Been Approved!",
   contribution_rejected: "Update on Your Remedy Contribution",
 } as const;

@@ -10,6 +10,7 @@
  */
 
 import { test, expect } from "@playwright/test";
+import { signIn } from "./session";
 
 test.describe("Billing", () => {
   test.beforeEach(async ({ page }) => {
@@ -37,16 +38,7 @@ test.describe("Billing", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     // Mock subscription and plan APIs
     await page.route("**/api/subscription**", (route) => {
@@ -101,16 +93,7 @@ test.describe("Billing", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     await page.route("**/api/subscription**", (route) => {
       route.fulfill({
@@ -140,16 +123,7 @@ test.describe("Billing", () => {
     page,
     context,
   }) => {
-    await context.addCookies([
-      {
-        name: "__session",
-        value: "mock-session-token",
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    await signIn(context);
 
     let checkoutCalled = false;
     await page.route("**/api/checkout**", (route) => {

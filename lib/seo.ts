@@ -10,8 +10,8 @@ import type { Metadata } from "next";
  * layout declared `canonical: "/"` (and `openGraph.url: "/"`), so every page
  * on the site shipped the homepage as its canonical URL:
  *
- *     https://remedi.vivancedata.com/pricing
- *       -> <link rel="canonical" href="https://remedi.vivancedata.com"/>
+ *     https://remedi.lscaturchio.xyz/pricing
+ *       -> <link rel="canonical" href="https://remedi.lscaturchio.xyz"/>
  *
  * That is not cosmetic. It asks Google to drop /pricing, /about, /faq and
  * /compare from the index in favour of the homepage, and Lighthouse scores it

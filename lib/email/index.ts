@@ -23,6 +23,7 @@ import type {
   SubscriptionExpiringData,
   WeeklyDigestData,
   PasswordResetData,
+  VerifyEmailData,
   ContributionApprovedData,
   ContributionRejectedData,
 } from "./types";
@@ -34,6 +35,7 @@ import { SubscriptionCancelledEmail } from "./templates/subscription-cancelled";
 import { SubscriptionExpiringEmail } from "./templates/subscription-expiring";
 import { WeeklyDigestEmail } from "./templates/weekly-digest";
 import { PasswordResetEmail } from "./templates/password-reset";
+import { VerifyEmailEmail } from "./templates/verify-email";
 import { ContributionApprovedEmail } from "./templates/contribution-approved";
 import { ContributionRejectedEmail } from "./templates/contribution-rejected";
 
@@ -380,14 +382,16 @@ export async function sendWeeklyDigest(
 }
 
 /**
- * Send password reset email (for future email auth)
+ * Send password reset email
  *
  * @param email - User's email address
  * @param data - Reset link details
+ * @param userId - User ID, for the EmailLog row
  */
 export async function sendPasswordReset(
   email: string,
   data: PasswordResetData,
+  userId?: string,
 ): Promise<EmailSendResult> {
   const html = await render(PasswordResetEmail(data));
 
@@ -396,6 +400,30 @@ export async function sendPasswordReset(
     EMAIL_SUBJECTS.password_reset,
     html,
     "password_reset",
+    userId,
+  );
+}
+
+/**
+ * Send email address verification
+ *
+ * @param email - Address to verify
+ * @param data - Verification link details
+ * @param userId - User ID, for the EmailLog row
+ */
+export async function sendEmailVerification(
+  email: string,
+  data: VerifyEmailData,
+  userId?: string,
+): Promise<EmailSendResult> {
+  const html = await render(VerifyEmailEmail(data));
+
+  return sendEmail(
+    email,
+    EMAIL_SUBJECTS.email_verification,
+    html,
+    "email_verification",
+    userId,
   );
 }
 

@@ -99,7 +99,8 @@ export function requiresCSRFValidation(method: string): boolean {
  */
 export function shouldSkipCSRF(pathname: string): boolean {
   const skipPaths = [
-    "/api/webhooks/clerk", // Clerk webhooks are signed, not browser-initiated
+    // Better Auth rejects state-changing requests whose Origin is not trusted.
+    "/api/auth/",
     "/api/webhooks/stripe", // Stripe webhooks are signed, not browser-initiated
   ];
 

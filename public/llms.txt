@@ -21,14 +21,14 @@ know.
 
 ## Pages
 
-- [Home](https://remedi.vivancedata.com/): search a medication
-- [Interaction checker](https://remedi.vivancedata.com/interactions): check substances against each other
-- [Compare](https://remedi.vivancedata.com/compare): compare remedies side by side
-- [Pricing](https://remedi.vivancedata.com/pricing)
-- [FAQ](https://remedi.vivancedata.com/faq)
-- [Medical disclaimer](https://remedi.vivancedata.com/legal/disclaimer)
-- [Privacy policy](https://remedi.vivancedata.com/legal/privacy)
-- [Terms](https://remedi.vivancedata.com/legal/terms)
+- [Home](https://remedi.lscaturchio.xyz/): search a medication
+- [Interaction checker](https://remedi.lscaturchio.xyz/interactions): check substances against each other
+- [Compare](https://remedi.lscaturchio.xyz/compare): compare remedies side by side
+- [Pricing](https://remedi.lscaturchio.xyz/pricing)
+- [FAQ](https://remedi.lscaturchio.xyz/faq)
+- [Medical disclaimer](https://remedi.lscaturchio.xyz/legal/disclaimer)
+- [Privacy policy](https://remedi.lscaturchio.xyz/legal/privacy)
+- [Terms](https://remedi.lscaturchio.xyz/legal/terms)
 
 ## Please note
 
