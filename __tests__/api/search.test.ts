@@ -7,6 +7,7 @@
  * 3. Mock data fallback
  */
 
+import { fromAny, fromPartial } from "@total-typescript/shoehorn";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
@@ -339,24 +340,28 @@ describe("GET /api/search", () => {
       // Anticoagulants and SSRIs carry no mappings on purpose. Shipping that
       // as `[]` reads as "there are no natural remedies for warfarin", which
       // is the confusion the mapping policy exists to prevent.
-      vi.mocked(searchPharmaceuticals).mockResolvedValue([
-        {
-          id: "p-warfarin",
-          fdaId: "fda-w",
-          name: "Warfarin",
-          description: "",
-          category: "Anticoagulant",
-          ingredients: ["warfarin sodium"],
-          benefits: [],
-        },
-      ] as never);
+      vi.mocked(searchPharmaceuticals).mockResolvedValue(
+        fromAny([
+          {
+            id: "p-warfarin",
+            fdaId: "fda-w",
+            name: "Warfarin",
+            description: "",
+            category: "Anticoagulant",
+            ingredients: ["warfarin sodium"],
+            benefits: [],
+          },
+        ]),
+      );
       vi.mocked(getNaturalRemediesForPharmaceutical).mockResolvedValue([]);
-      vi.mocked(generateRemedyMappingsForPharmaceutical).mockResolvedValue({
-        kind: "unknown",
-        reason: "never-mapped",
-        message:
-          "Warfarin is an anticoagulant; even a supportive addition alters bleeding risk.",
-      } as never);
+      vi.mocked(generateRemedyMappingsForPharmaceutical).mockResolvedValue(
+        fromAny({
+          kind: "unknown",
+          reason: "never-mapped",
+          message:
+            "Warfarin is an anticoagulant; even a supportive addition alters bleeding risk.",
+        }),
+      );
 
       const request = new NextRequest(
         "http://localhost:3000/api/search?query=warfarin",
@@ -509,13 +514,13 @@ describe("GET /api/search", () => {
       };
 
       vi.mocked(searchPharmaceuticals).mockResolvedValue([
-        {
+        fromPartial<SearchPharmaceuticalsResult[number]>({
           id: "1",
           name: "Test",
           category: "Test",
           ingredients: [],
           benefits: [],
-        } as unknown as SearchPharmaceuticalsResult[number],
+        }),
       ]);
       vi.mocked(getNaturalRemediesForPharmaceutical).mockResolvedValue([
         mockRemedy,

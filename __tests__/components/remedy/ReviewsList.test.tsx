@@ -3,13 +3,14 @@
  * screen gives way to the reviews.
  */
 
+import { fromPartial } from "@total-typescript/shoehorn";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ReviewsList } from "@/components/remedy/ReviewsList";
 
 function jsonResponse(body: unknown): Response {
-  return { json: async () => body } as unknown as Response;
+  return fromPartial<Response>({ json: async () => body });
 }
 
 afterEach(() => {

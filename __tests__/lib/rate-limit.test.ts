@@ -2,6 +2,7 @@
  * Unit Tests for Rate Limiting Utilities
  */
 
+import { fromPartial } from "@total-typescript/shoehorn";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 import {
@@ -14,11 +15,11 @@ import {
 
 // Mock NextRequest for testing
 function createMockRequest(headers: Record<string, string> = {}): NextRequest {
-  return {
+  return fromPartial<NextRequest>({
     headers: new Headers(headers),
     url: "http://localhost:3000/api/test",
     nextUrl: new URL("http://localhost:3000/api/test"),
-  } as unknown as NextRequest;
+  });
 }
 
 describe("Rate Limiting Utilities", () => {

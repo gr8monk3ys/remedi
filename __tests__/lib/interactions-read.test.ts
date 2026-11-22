@@ -6,6 +6,7 @@
  * anything that reaches it without a successful response is a safety defect.
  */
 
+import { fromPartial } from "@total-typescript/shoehorn";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   readInteractionsFor,
@@ -14,12 +15,14 @@ import {
 } from "@/lib/interactions/read";
 
 function respondWith(body: unknown, contentType = "application/json") {
-  global.fetch = vi.fn().mockResolvedValue({
-    ok: true,
-    status: 200,
-    headers: new Headers({ "content-type": contentType }),
-    json: async () => body,
-  } as unknown as Response);
+  global.fetch = vi.fn().mockResolvedValue(
+    fromPartial<Response>({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "content-type": contentType }),
+      json: async () => body,
+    }),
+  );
 }
 
 function respondWithError(
@@ -112,14 +115,16 @@ describe("readInteractionsFor", () => {
   });
 
   it("returns unknown when the body cannot be parsed", async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => {
-        throw new Error("invalid json");
-      },
-    } as unknown as Response);
+    global.fetch = vi.fn().mockResolvedValue(
+      fromPartial<Response>({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => {
+          throw new Error("invalid json");
+        },
+      }),
+    );
 
     const outcome = await readInteractionsFor("Warfarin");
 

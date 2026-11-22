@@ -193,7 +193,7 @@ async function fetchFromFDA(
       );
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as FDAApiResponse;
     await delay(RATE_LIMIT_DELAY);
     return data;
   } catch (error) {
