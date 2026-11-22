@@ -112,9 +112,14 @@ describe("MedicationCabinetList interaction check", () => {
 
   it("drops an all-clear once the cabinet it was checked against changes", async () => {
     const third = {
-      ...MEDICATIONS[0],
       id: "3",
       name: "Ibuprofen",
+      type: "pharmaceutical",
+      dosage: null,
+      frequency: null,
+      startDate: null,
+      notes: null,
+      isActive: true,
     };
     render(
       <MedicationCabinetList initialMedications={[...MEDICATIONS, third]} />,

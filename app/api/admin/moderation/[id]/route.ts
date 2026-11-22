@@ -60,7 +60,10 @@ export async function PATCH(
 
     if (!validation.success) {
       return NextResponse.json(
-        errorResponse("INVALID_INPUT", validation.error.issues[0].message),
+        errorResponse(
+          "INVALID_INPUT",
+          validation.error.issues[0]?.message ?? "Invalid input",
+        ),
         { status: 400 },
       );
     }

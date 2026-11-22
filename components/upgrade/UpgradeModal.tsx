@@ -16,20 +16,16 @@ import { PLANS, type PlanType } from "@/lib/stripe-config";
 import { apiClient, ApiClientError } from "@/lib/api/client";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
-import { TRIGGER_MESSAGES } from "./upgrade-modal.constants";
+import {
+  TRIGGER_MESSAGES,
+  type TriggerReason,
+} from "./upgrade-modal.constants";
 import { PlanComparisonTable } from "./PlanComparisonTable";
 
 interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  triggerReason?:
-    | "search_limit"
-    | "ai_search_limit"
-    | "favorite_limit"
-    | "compare_limit"
-    | "export"
-    | "history"
-    | "feature";
+  triggerReason?: TriggerReason;
   currentPlan?: PlanType;
   featureName?: string;
   currentUsage?: number;

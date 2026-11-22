@@ -133,10 +133,10 @@ function parseArgs(): ImportConfig {
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
       case "--limit":
-        config.limit = parseInt(args[++i], 10);
+        config.limit = parseInt(args[++i] ?? "", 10);
         break;
       case "--skip":
-        config.skip = parseInt(args[++i], 10);
+        config.skip = parseInt(args[++i] ?? "", 10);
         break;
       case "--dataset":
         config.dataset = args[++i] as ImportConfig["dataset"];

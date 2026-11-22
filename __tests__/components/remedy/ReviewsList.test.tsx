@@ -60,7 +60,7 @@ describe("ReviewsList", () => {
     render(<ReviewsList remedyId="a&b" />);
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
-    expect(vi.mocked(global.fetch).mock.calls[0][0]).toContain(
+    expect(vi.mocked(global.fetch).mock.calls[0]?.[0]).toContain(
       "remedyId=a%26b",
     );
   });

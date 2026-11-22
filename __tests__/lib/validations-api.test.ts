@@ -54,7 +54,7 @@ describe("API Validation Schemas", () => {
       const result = searchQuerySchema.safeParse({ query: longQuery });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain("too long");
+        expect(result.error.issues[0]?.message).toContain("too long");
       }
     });
 
@@ -64,7 +64,7 @@ describe("API Validation Schemas", () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain("invalid characters");
+        expect(result.error.issues[0]?.message).toContain("invalid characters");
       }
     });
 

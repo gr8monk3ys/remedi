@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, assert } from "vitest";
 import { prisma, createTestUser } from "../setup/setup";
 import {
   saveSearchHistory,
@@ -28,8 +28,8 @@ describe("Search History DB Integration", () => {
 
     const history = await getSearchHistory(undefined, testUserId);
     expect(history).toHaveLength(1);
-    expect(history[0].query).toBe("ibuprofen");
-    expect(history[0].resultsCount).toBe(5);
+    expect(history[0]?.query).toBe("ibuprofen");
+    expect(history[0]?.resultsCount).toBe(5);
   });
 
   it("saveSearchHistory creates a record with sessionId only", async () => {
@@ -37,8 +37,8 @@ describe("Search History DB Integration", () => {
 
     const history = await getSearchHistory(sessionId);
     expect(history).toHaveLength(1);
-    expect(history[0].query).toBe("aspirin");
-    expect(history[0].resultsCount).toBe(3);
+    expect(history[0]?.query).toBe("aspirin");
+    expect(history[0]?.resultsCount).toBe(3);
   });
 
   it("getSearchHistory returns records by userId", async () => {
@@ -57,7 +57,7 @@ describe("Search History DB Integration", () => {
 
     const history = await getSearchHistory(sessionId);
     expect(history).toHaveLength(1);
-    expect(history[0].query).toBe("turmeric");
+    expect(history[0]?.query).toBe("turmeric");
   });
 
   it("getSearchHistory returns empty when no identifier provided", async () => {
@@ -89,9 +89,10 @@ describe("Search History DB Integration", () => {
 
     expect(result.length).toBeGreaterThanOrEqual(1);
     // The most popular query should have the highest count
-    expect(result[0].count).toBeGreaterThanOrEqual(
-      result[result.length - 1].count,
-    );
+    const [top] = result;
+    const last = result.at(-1);
+    assert(top && last);
+    expect(top.count).toBeGreaterThanOrEqual(last.count);
     expect(result[0]).toHaveProperty("query");
     expect(result[0]).toHaveProperty("count");
 

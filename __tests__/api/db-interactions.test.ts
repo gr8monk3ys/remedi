@@ -124,9 +124,9 @@ describe("lib/db/interactions", () => {
 
       const results = await findInteractionsBySubstance("Test");
 
-      expect(results[0].severity).toBe("contraindicated");
-      expect(results[1].severity).toBe("severe");
-      expect(results[2].severity).toBe("mild");
+      expect(results[0]?.severity).toBe("contraindicated");
+      expect(results[1]?.severity).toBe("severe");
+      expect(results[2]?.severity).toBe("mild");
     });
 
     it("should return empty array when no interactions found", async () => {
@@ -148,8 +148,8 @@ describe("lib/db/interactions", () => {
       const results = await findInteractionsBySubstance("Test");
 
       // Severe (rank 1) should come before unknown (rank 99)
-      expect(results[0].severity).toBe("severe");
-      expect(results[1].severity).toBe("unknown_severity");
+      expect(results[0]?.severity).toBe("severe");
+      expect(results[1]?.severity).toBe("unknown_severity");
     });
   });
 
@@ -273,7 +273,7 @@ describe("lib/db/interactions", () => {
       ]);
 
       // For 3 substances, there are C(3,2)=3 pairs, each checked in both orderings = 6 OR conditions
-      const callArgs = mockFindMany.mock.calls[0][0];
+      const callArgs = mockFindMany.mock.calls[0]?.[0];
       expect(callArgs.where.OR).toHaveLength(6);
     });
 
@@ -286,9 +286,9 @@ describe("lib/db/interactions", () => {
 
       const results = await checkMultipleInteractions(["A", "B", "C"]);
 
-      expect(results[0].severity).toBe("contraindicated");
-      expect(results[1].severity).toBe("severe");
-      expect(results[2].severity).toBe("mild");
+      expect(results[0]?.severity).toBe("contraindicated");
+      expect(results[1]?.severity).toBe("severe");
+      expect(results[2]?.severity).toBe("mild");
     });
   });
 
@@ -313,7 +313,7 @@ describe("lib/db/interactions", () => {
         }),
       );
       expect(results).toHaveLength(1);
-      expect(results[0].substanceB).toBe("Ginger");
+      expect(results[0]?.substanceB).toBe("Ginger");
     });
   });
 });

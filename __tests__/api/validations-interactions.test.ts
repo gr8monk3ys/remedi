@@ -193,7 +193,7 @@ describe("interactionsCheckMultipleSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toContain("At least two");
+      expect(result.error.issues[0]?.message).toContain("At least two");
     }
   });
 
@@ -212,7 +212,7 @@ describe("interactionsCheckMultipleSchema", () => {
     const result = interactionsCheckMultipleSchema.safeParse({ substances });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toContain("20");
+      expect(result.error.issues[0]?.message).toContain("20");
     }
   });
 

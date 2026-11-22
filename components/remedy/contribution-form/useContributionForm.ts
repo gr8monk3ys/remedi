@@ -50,11 +50,10 @@ function formReducer(state: FormState, action: FormAction): FormState {
       };
 
     case "SET_REFERENCE": {
+      const current = state.references[action.index];
+      if (!current) return state;
       const references = [...state.references];
-      references[action.index] = {
-        ...references[action.index],
-        [action.field]: action.value,
-      };
+      references[action.index] = { ...current, [action.field]: action.value };
       return { ...state, references };
     }
 

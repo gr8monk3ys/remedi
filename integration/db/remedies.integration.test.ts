@@ -93,9 +93,9 @@ describe("Remedies DB Integration", () => {
       await getNaturalRemediesForPharmaceutical(pharmaceuticalId);
 
     expect(remedies).toHaveLength(1);
-    expect(remedies[0].id).toBe(remedyId);
-    expect(remedies[0].similarityScore).toBe(0.85);
-    expect(remedies[0].matchingNutrients).toContain("chamomile");
+    expect(remedies[0]?.id).toBe(remedyId);
+    expect(remedies[0]?.similarityScore).toBe(0.85);
+    expect(remedies[0]?.matchingNutrients).toContain("chamomile");
   });
 
   it("getNaturalRemediesForPharmaceutical returns empty for no mappings", async () => {
