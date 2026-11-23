@@ -72,7 +72,7 @@ export function TutorialOverlay({ onComplete, onSkip }: TutorialOverlayProps) {
   const isLastStep = currentStep === tutorialSteps.length - 1;
 
   const updateHighlight = useCallback(() => {
-    if (step.targetSelector) {
+    if (step?.targetSelector) {
       const element = document.querySelector(step.targetSelector);
       if (element) {
         const rect = element.getBoundingClientRect();
@@ -83,7 +83,7 @@ export function TutorialOverlay({ onComplete, onSkip }: TutorialOverlayProps) {
     } else {
       setHighlightRect(null);
     }
-  }, [step.targetSelector]);
+  }, [step?.targetSelector]);
 
   useEffect(() => {
     updateHighlight();
@@ -95,6 +95,8 @@ export function TutorialOverlay({ onComplete, onSkip }: TutorialOverlayProps) {
       window.removeEventListener("scroll", updateHighlight);
     };
   }, [updateHighlight]);
+
+  if (!step) return null;
 
   const handleNext = () => {
     if (isLastStep) {

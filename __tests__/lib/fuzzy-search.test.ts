@@ -80,8 +80,8 @@ describe("fuzzySearch", () => {
     const results = fuzzySearch("ibuprofen", testItems, (item) => item.name);
 
     expect(results.length).toBeGreaterThan(0);
-    expect(results[0].name).toBe("Ibuprofen");
-    expect(results[0].similarityScore).toBeGreaterThan(0.9);
+    expect(results[0]?.name).toBe("Ibuprofen");
+    expect(results[0]?.similarityScore).toBeGreaterThan(0.9);
   });
 
   it("should find fuzzy matches", () => {
@@ -92,14 +92,14 @@ describe("fuzzySearch", () => {
     );
 
     expect(results.length).toBeGreaterThan(0);
-    expect(results[0].name).toBe("Ibuprofen");
+    expect(results[0]?.name).toBe("Ibuprofen");
   });
 
   it("should be case-insensitive", () => {
     const results = fuzzySearch("VITAMIN", testItems, (item) => item.name);
 
     expect(results.length).toBeGreaterThan(0);
-    expect(results[0].name).toBe("Vitamin D");
+    expect(results[0]?.name).toBe("Vitamin D");
   });
 
   it("should filter out low-score matches", () => {
@@ -127,13 +127,8 @@ describe("fuzzySearch", () => {
   it("should sort results by score descending", () => {
     const results = fuzzySearch("mel", testItems, (item) => item.name);
 
-    if (results.length > 1) {
-      for (let i = 0; i < results.length - 1; i++) {
-        expect(results[i].similarityScore).toBeGreaterThanOrEqual(
-          results[i + 1].similarityScore,
-        );
-      }
-    }
+    const scores = results.map((r) => r.similarityScore);
+    expect(scores).toEqual([...scores].sort((a, b) => b - a));
   });
 
   it("should handle empty query", () => {
@@ -162,7 +157,7 @@ describe("fuzzySearch", () => {
     const results = fuzzySearch("ibuprofen", items, (item) => item.name);
 
     // Exact substring match should score higher
-    expect(results[0].name).toBe("Ibuprofen Plus");
+    expect(results[0]?.name).toBe("Ibuprofen Plus");
   });
 
   it("tolerates typos against long records", () => {
@@ -183,7 +178,7 @@ describe("fuzzySearch", () => {
     const results = fuzzySearch("ibuprofn", items, (i) => i.text);
 
     expect(results.length).toBeGreaterThan(0);
-    expect(results[0].name).toBe("Ibuprofen");
+    expect(results[0]?.name).toBe("Ibuprofen");
   });
 
   it("still rejects unrelated queries", () => {

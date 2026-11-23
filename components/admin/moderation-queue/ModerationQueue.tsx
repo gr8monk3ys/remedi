@@ -28,7 +28,9 @@ function normalizeList(value: string[] | string | null | undefined): string[] {
 
   try {
     const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed)
+      ? parsed.filter((v) => typeof v === "string")
+      : [];
   } catch {
     return [];
   }

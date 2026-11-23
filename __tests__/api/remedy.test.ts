@@ -8,6 +8,7 @@
  * DB and fall through to mock data — exercised explicitly below.
  */
 
+import { fromAny } from "@total-typescript/shoehorn";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
@@ -75,8 +76,6 @@ vi.mock("@/lib/analytics/user-events", () => ({
 import { GET } from "@/app/api/remedy/[id]/route";
 import { getNaturalRemedyById } from "@/lib/db";
 
-type RemedyLookupResult = Awaited<ReturnType<typeof getNaturalRemedyById>>;
-
 // Valid UUID-shaped IDs for tests that exercise the database path.
 const REMEDY_ID = "11111111-1111-4111-8111-111111111111";
 const FULL_REMEDY_ID = "22222222-2222-4222-8222-222222222222";
@@ -124,9 +123,7 @@ describe("GET /api/remedy/[id]", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(getNaturalRemedyById).mockResolvedValue(
-        mockRemedy as unknown as RemedyLookupResult,
-      );
+      vi.mocked(getNaturalRemedyById).mockResolvedValue(fromAny(mockRemedy));
 
       const request = new NextRequest(
         `http://localhost:3000/api/remedy/${REMEDY_ID}`,
@@ -166,9 +163,7 @@ describe("GET /api/remedy/[id]", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(getNaturalRemedyById).mockResolvedValue(
-        mockRemedy as unknown as RemedyLookupResult,
-      );
+      vi.mocked(getNaturalRemedyById).mockResolvedValue(fromAny(mockRemedy));
 
       const request = new NextRequest(
         `http://localhost:3000/api/remedy/${FULL_REMEDY_ID}`,
@@ -324,9 +319,7 @@ describe("GET /api/remedy/[id]", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(getNaturalRemedyById).mockResolvedValue(
-        mockRemedy as unknown as RemedyLookupResult,
-      );
+      vi.mocked(getNaturalRemedyById).mockResolvedValue(fromAny(mockRemedy));
 
       const request = new NextRequest(
         `http://localhost:3000/api/remedy/${STRUCTURE_REMEDY_ID}`,
@@ -345,16 +338,18 @@ describe("GET /api/remedy/[id]", () => {
     });
 
     it("should include proper content-type header", async () => {
-      vi.mocked(getNaturalRemedyById).mockResolvedValue({
-        id: CONTENT_TYPE_REMEDY_ID,
-        name: "Test",
-        description: "Test",
-        category: "Test",
-        ingredients: [],
-        benefits: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      } as unknown as RemedyLookupResult);
+      vi.mocked(getNaturalRemedyById).mockResolvedValue(
+        fromAny({
+          id: CONTENT_TYPE_REMEDY_ID,
+          name: "Test",
+          description: "Test",
+          category: "Test",
+          ingredients: [],
+          benefits: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+      );
 
       const request = new NextRequest(
         `http://localhost:3000/api/remedy/${CONTENT_TYPE_REMEDY_ID}`,
@@ -394,9 +389,7 @@ describe("GET /api/remedy/[id]", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(getNaturalRemedyById).mockResolvedValue(
-        mockRemedy as unknown as RemedyLookupResult,
-      );
+      vi.mocked(getNaturalRemedyById).mockResolvedValue(fromAny(mockRemedy));
 
       const request = new NextRequest(
         `http://localhost:3000/api/remedy/${RELATED_REMEDY_ID}`,
@@ -438,9 +431,7 @@ describe("GET /api/remedy/[id]", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(getNaturalRemedyById).mockResolvedValue(
-        mockRemedy as unknown as RemedyLookupResult,
-      );
+      vi.mocked(getNaturalRemedyById).mockResolvedValue(fromAny(mockRemedy));
 
       const request = new NextRequest(
         `http://localhost:3000/api/remedy/${SCIENTIFIC_REMEDY_ID}`,

@@ -12,9 +12,9 @@ for (const file of envFiles) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
     const match = trimmed.match(/^([A-Za-z0-9_.-]+)=(.*)$/);
-    if (!match) continue;
-    const key = match[1];
-    let value = match[2].trim();
+    const [, key, rawValue] = match ?? [];
+    if (key === undefined || rawValue === undefined) continue;
+    let value = rawValue.trim();
     if (
       (value.startsWith('"') && value.endsWith('"')) ||
       (value.startsWith("'") && value.endsWith("'"))

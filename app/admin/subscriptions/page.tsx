@@ -31,9 +31,9 @@ async function getSubscriptions() {
       acc: Record<string, { total: number; active: number }>,
       s: SubscriptionGroupStat,
     ) => {
-      if (!acc[s.plan]) acc[s.plan] = { total: 0, active: 0 };
-      acc[s.plan].total += s._count.plan;
-      if (s.status === "active") acc[s.plan].active += s._count.plan;
+      const entry = (acc[s.plan] ??= { total: 0, active: 0 });
+      entry.total += s._count.plan;
+      if (s.status === "active") entry.active += s._count.plan;
       return acc;
     },
     {} as Record<string, { total: number; active: number }>,

@@ -213,7 +213,7 @@ export async function searchFdaDrugs(
         );
       }
 
-      const data: DrugSearchResult = await response.json();
+      const data = (await response.json()) as DrugSearchResult;
 
       const processed = processFdaResults(data.results);
 
@@ -271,7 +271,7 @@ export async function getFdaDrugById(
         );
       }
 
-      const data: DrugSearchResult = await response.json();
+      const data = (await response.json()) as DrugSearchResult;
 
       if (data.results.length === 0) {
         return known<ProcessedDrug | null, FdaRefusal>(null);

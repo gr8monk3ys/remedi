@@ -157,8 +157,9 @@ export async function getOrCreateStripeCustomer(
     limit: 1,
   });
 
-  if (existingCustomers.data.length > 0) {
-    const customerId = existingCustomers.data[0].id;
+  const [existingCustomer] = existingCustomers.data;
+  if (existingCustomer) {
+    const customerId = existingCustomer.id;
 
     // Store the customer ID
     await prisma.subscription.upsert({

@@ -24,5 +24,7 @@
     ".next/dev/types/**/*.ts"
   ],
   // Playwright specs run under a different runner with its own globals.
-  "exclude": ["node_modules", "e2e"]
+  // ts-reset types Response.json() as unknown. The suites read untyped HTTP
+  // bodies in hundreds of assertions, so they keep the stock lib types.
+  "exclude": ["node_modules", "e2e", "types/reset.d.ts"]
 }

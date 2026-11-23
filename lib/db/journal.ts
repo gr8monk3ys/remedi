@@ -158,7 +158,8 @@ export async function getRemedyInsights(userId: string, remedyId: string) {
     take: 365,
   });
 
-  if (entries.length === 0) {
+  const [firstEntry] = entries;
+  if (!firstEntry) {
     return null;
   }
 
@@ -192,7 +193,7 @@ export async function getRemedyInsights(userId: string, remedyId: string) {
 
   // Rating history for chart
   const ratingHistory = entries.map((e) => ({
-    date: e.date.toISOString().split("T")[0],
+    date: e.date.toISOString().slice(0, 10),
     rating: e.rating,
     mood: e.mood,
     energyLevel: e.energyLevel,
@@ -201,7 +202,7 @@ export async function getRemedyInsights(userId: string, remedyId: string) {
 
   return {
     remedyId,
-    remedyName: entries[0].remedyName,
+    remedyName: firstEntry.remedyName,
     totalEntries: entries.length,
     avgRating: Math.round(avgRating * 10) / 10,
     trend,

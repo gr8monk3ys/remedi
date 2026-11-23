@@ -8,7 +8,15 @@
  * - Users with no digest data (buildDigestData returns null) are skipped
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  assert,
+} from "vitest";
 
 // Mock logger
 vi.mock("@/lib/logger", () => ({
@@ -194,11 +202,13 @@ describe("/api/cron/weekly-digest", () => {
         sharedData,
       );
 
-      const sentFns = mockSendBatchEmails.mock.calls[0][0] as Array<
+      const sentFns = mockSendBatchEmails.mock.calls[0]?.[0] as Array<
         () => unknown
       >;
       expect(sentFns).toHaveLength(2);
-      await sentFns[0]();
+      const [sendFirst] = sentFns;
+      assert(sendFirst);
+      await sendFirst();
       expect(mockSendWeeklyDigest).toHaveBeenCalledWith(
         "one@example.com",
         expect.objectContaining({ name: "user-1" }),

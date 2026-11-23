@@ -117,8 +117,8 @@ describe("db module", () => {
       expect(mockQueryRaw).toHaveBeenCalled();
 
       expect(results).toHaveLength(1);
-      expect(results[0].ingredients).toEqual(["ibuprofen"]);
-      expect(results[0].benefits).toEqual(["pain relief"]);
+      expect(results[0]?.ingredients).toEqual(["ibuprofen"]);
+      expect(results[0]?.benefits).toEqual(["pain relief"]);
     });
 
     it("should return empty array when no results", async () => {

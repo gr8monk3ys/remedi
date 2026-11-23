@@ -56,7 +56,11 @@ export function ReviewsList({ remedyId, refreshTrigger }: ReviewsListProps) {
         limit: "5",
       });
       const response = await fetch(`/api/reviews?${params.toString()}`);
-      const result = await response.json();
+      const result = (await response.json()) as {
+        success: boolean;
+        data: ReviewsData;
+        error?: { message?: string };
+      };
       if (isStale()) return;
 
       if (!result.success) {

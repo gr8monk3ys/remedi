@@ -99,7 +99,11 @@ export function CompareClient({
       const response = await fetch(
         `/api/remedies/compare?ids=${ids.join(",")}`,
       );
-      const data = await response.json();
+      const data = (await response.json()) as {
+        success: boolean;
+        data: { remedies?: CompareRemedy[] };
+        error?: { message?: string };
+      };
 
       if (!response.ok || !data.success) {
         throw new Error(data.error?.message || "Failed to fetch remedies");

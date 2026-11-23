@@ -4,18 +4,19 @@
  * checked, and a response still in flight must not land on the new list.
  */
 
+import { fromPartial } from "@total-typescript/shoehorn";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { InteractionChecker } from "@/components/interactions/InteractionChecker";
 
 function jsonResponse(body: unknown): Response {
-  return {
+  return fromPartial<Response>({
     ok: true,
     status: 200,
     headers: new Headers({ "content-type": "application/json" }),
     json: async () => body,
-  } as unknown as Response;
+  });
 }
 
 const EMPTY_CHECK = {

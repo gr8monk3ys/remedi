@@ -7,6 +7,7 @@
  * it threw raw TypeErrors that every `instanceof ApiClientError` check missed.
  */
 
+import { fromPartial } from "@total-typescript/shoehorn";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { apiClient, ApiClientError } from "@/lib/api/client";
 
@@ -20,15 +21,17 @@ function respond(
   } = {},
 ) {
   const status = init.status ?? 200;
-  global.fetch = vi.fn().mockResolvedValue({
-    ok: init.ok ?? status < 400,
-    status,
-    headers: new Headers({
-      "content-type": init.contentType ?? "application/json",
-      ...init.headers,
+  global.fetch = vi.fn().mockResolvedValue(
+    fromPartial<Response>({
+      ok: init.ok ?? status < 400,
+      status,
+      headers: new Headers({
+        "content-type": init.contentType ?? "application/json",
+        ...init.headers,
+      }),
+      json: async () => body,
     }),
-    json: async () => body,
-  } as unknown as Response);
+  );
 }
 
 afterEach(() => {
@@ -85,14 +88,16 @@ describe("malformed failures still produce an ApiClientError", () => {
   });
 
   it("handles a body that fails to parse", async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => {
-        throw new Error("Unexpected end of JSON input");
-      },
-    } as unknown as Response);
+    global.fetch = vi.fn().mockResolvedValue(
+      fromPartial<Response>({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => {
+          throw new Error("Unexpected end of JSON input");
+        },
+      }),
+    );
 
     await expect(apiClient.get("/api/x")).rejects.toBeInstanceOf(
       ApiClientError,

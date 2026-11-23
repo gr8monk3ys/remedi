@@ -47,8 +47,12 @@ export function JournalOverview({
       remedyName: String(entry.remedyName ?? ""),
       date: entry.date instanceof Date ? entry.date : new Date(),
       rating: Number(entry.rating ?? 0),
-      symptoms: Array.isArray(entry.symptoms) ? entry.symptoms : [],
-      sideEffects: Array.isArray(entry.sideEffects) ? entry.sideEffects : [],
+      symptoms: Array.isArray(entry.symptoms)
+        ? entry.symptoms.filter((s) => typeof s === "string")
+        : [],
+      sideEffects: Array.isArray(entry.sideEffects)
+        ? entry.sideEffects.filter((s) => typeof s === "string")
+        : [],
       dosageTaken:
         typeof entry.dosageTaken === "string" ? entry.dosageTaken : null,
       notes: typeof entry.notes === "string" ? entry.notes : null,

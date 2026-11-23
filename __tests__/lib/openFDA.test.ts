@@ -9,7 +9,15 @@
  * - Response processing
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  assert,
+} from "vitest";
 import type { MockedFunction } from "vitest";
 import { mockFdaApiResponse } from "@/__tests__/mocks";
 import type { Outcome } from "@/lib/outcome";
@@ -73,7 +81,7 @@ describe("OpenFDA API Integration", () => {
       const results = dataOf(await searchFdaDrugs("ibuprofen"));
 
       expect(mockFetch).toHaveBeenCalled();
-      const calledUrl = mockFetch.mock.calls[0][0];
+      const calledUrl = mockFetch.mock.calls[0]?.[0];
       expect(calledUrl).toContain("api.fda.gov");
       expect(calledUrl).toContain("ibuprofen");
       expect(calledUrl).toContain("limit=5");
@@ -93,7 +101,7 @@ describe("OpenFDA API Integration", () => {
       const { searchFdaDrugs } = await getModule();
       await searchFdaDrugs("aspirin");
 
-      const calledUrl = mockFetch.mock.calls[0][0];
+      const calledUrl = mockFetch.mock.calls[0]?.[0];
       expect(calledUrl).toContain("api_key=test-api-key");
     });
 
@@ -144,7 +152,7 @@ describe("OpenFDA API Integration", () => {
       const { searchFdaDrugs } = await getModule();
       await searchFdaDrugs("ibuprofen", 10);
 
-      const calledUrl = mockFetch.mock.calls[0][0];
+      const calledUrl = mockFetch.mock.calls[0]?.[0];
       expect(calledUrl).toContain("limit=10");
     });
 
@@ -154,7 +162,7 @@ describe("OpenFDA API Integration", () => {
       const { searchFdaDrugs } = await getModule();
       await searchFdaDrugs("pain + relief");
 
-      const calledUrl = mockFetch.mock.calls[0][0];
+      const calledUrl = mockFetch.mock.calls[0]?.[0];
       expect(calledUrl).toContain("pain%20%2B%20relief");
     });
 
@@ -202,14 +210,14 @@ describe("OpenFDA API Integration", () => {
       const { searchFdaDrugs } = await getModule();
       const results = dataOf(await searchFdaDrugs("advil"));
 
-      expect(results[0].name).toBe("Advil");
-      expect(results[0].fdaId).toBe("fda-123");
+      expect(results[0]?.name).toBe("Advil");
+      expect(results[0]?.fdaId).toBe("fda-123");
       // Category comes from product_type if available, or route otherwise
-      expect(results[0].category).toBeDefined();
-      expect(results[0].ingredients).toEqual(["IBUPROFEN 200 MG"]);
-      expect(results[0].usage).toBe("Take 1-2 tablets");
-      expect(results[0].warnings).toBe("Do not exceed dose");
-      expect(results[0].interactions).toBe("Avoid with aspirin");
+      expect(results[0]?.category).toBeDefined();
+      expect(results[0]?.ingredients).toEqual(["IBUPROFEN 200 MG"]);
+      expect(results[0]?.usage).toBe("Take 1-2 tablets");
+      expect(results[0]?.warnings).toBe("Do not exceed dose");
+      expect(results[0]?.interactions).toBe("Avoid with aspirin");
     });
   });
 
@@ -221,7 +229,7 @@ describe("OpenFDA API Integration", () => {
       const result = dataOf(await getFdaDrugById("fda-123"));
 
       expect(mockFetch).toHaveBeenCalled();
-      const calledUrl = mockFetch.mock.calls[0][0];
+      const calledUrl = mockFetch.mock.calls[0]?.[0];
       expect(calledUrl).toContain("id:fda-123");
 
       expect(result).not.toBeNull();
@@ -277,7 +285,7 @@ describe("OpenFDA API Integration", () => {
       const { searchFdaDrugs } = await getModule();
       const results = dataOf(await searchFdaDrugs("acetaminophen"));
 
-      expect(results[0].name).toBe("ACETAMINOPHEN");
+      expect(results[0]?.name).toBe("ACETAMINOPHEN");
     });
 
     it('should default to "Unknown Drug" when no name available', async () => {
@@ -296,7 +304,7 @@ describe("OpenFDA API Integration", () => {
       const { searchFdaDrugs } = await getModule();
       const results = dataOf(await searchFdaDrugs("unknown"));
 
-      expect(results[0].name).toBe("Unknown Drug");
+      expect(results[0]?.name).toBe("Unknown Drug");
     });
 
     it("should determine category from route of administration", async () => {
@@ -326,7 +334,7 @@ describe("OpenFDA API Integration", () => {
         const { searchFdaDrugs } = await getModule();
         const results = dataOf(await searchFdaDrugs("test"));
 
-        expect(results[0].category).toBe(testCase.expected);
+        expect(results[0]?.category).toBe(testCase.expected);
       }
     });
 
@@ -350,7 +358,7 @@ describe("OpenFDA API Integration", () => {
       const { searchFdaDrugs } = await getModule();
       const results = dataOf(await searchFdaDrugs("sleep"));
 
-      expect(results[0].category).toBe("Sleep Aid");
+      expect(results[0]?.category).toBe("Sleep Aid");
     });
 
     it("should truncate long descriptions", async () => {
@@ -370,8 +378,8 @@ describe("OpenFDA API Integration", () => {
       const { searchFdaDrugs } = await getModule();
       const results = dataOf(await searchFdaDrugs("test"));
 
-      expect(results[0].description.length).toBeLessThanOrEqual(203); // 200 + '...'
-      expect(results[0].description.endsWith("...")).toBe(true);
+      expect(results[0]?.description.length).toBeLessThanOrEqual(203); // 200 + '...'
+      expect(results[0]?.description.endsWith("...")).toBe(true);
     });
   });
 
@@ -419,7 +427,7 @@ describe("OpenFDA API Integration", () => {
       const { searchFdaDrugs } = await getModule();
       await searchFdaDrugs("ibuprofen");
 
-      const calledUrl = String(mockFetch.mock.calls[0][0]);
+      const calledUrl = String(mockFetch.mock.calls[0]?.[0]);
       const decoded = decodeURIComponent(calledUrl);
       // Unqualified searches match warnings/interactions text too, which let an
       // unrelated label become the cached answer for a drug.
@@ -477,7 +485,7 @@ describe("OpenFDA API Integration", () => {
       const { searchFdaDrugs } = await getModule();
       await searchFdaDrugs('ibuprofen" OR x:"y');
 
-      const decoded = decodeURIComponent(String(mockFetch.mock.calls[0][0]));
+      const decoded = decodeURIComponent(String(mockFetch.mock.calls[0]?.[0]));
       expect(decoded).not.toContain('OR x:"y"');
     });
   });
@@ -509,6 +517,7 @@ describe("substance identity survives label processing", () => {
     const { searchFdaDrugs } = await import("@/lib/openFDA");
 
     const [drug] = dataOf(await searchFdaDrugs("coumadin"));
+    assert(drug);
 
     // The brand still leads, because that is what a person searched for.
     expect(drug.name).toBe("COUMADIN");
@@ -521,6 +530,7 @@ describe("substance identity survives label processing", () => {
     const { searchFdaDrugs } = await import("@/lib/openFDA");
 
     const [drug] = dataOf(await searchFdaDrugs("coumadin"));
+    assert(drug);
 
     expect(drug.rxcui).toEqual(["855288", "855296"]);
     expect(drug.unii).toEqual(["6153CWM0CL"]);
@@ -542,6 +552,7 @@ describe("substance identity survives label processing", () => {
     const { searchFdaDrugs } = await import("@/lib/openFDA");
 
     const [drug] = dataOf(await searchFdaDrugs("mystery"));
+    assert(drug);
 
     expect(drug.genericName).toBeUndefined();
     expect(drug.rxcui).toEqual([]);

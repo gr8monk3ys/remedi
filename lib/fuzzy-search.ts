@@ -2,39 +2,38 @@
  * Fuzzy search utility functions
  */
 
+function cell(row: readonly number[], index: number): number {
+  const value = row[index];
+  if (value === undefined) {
+    throw new RangeError(`Levenshtein row index ${index} out of bounds`);
+  }
+  return value;
+}
+
 /**
  * Calculate the Levenshtein distance between two strings
  * This measures how many character changes are needed to transform one string into another
  */
 export function levenshteinDistance(a: string, b: string): number {
-  const matrix: number[][] = [];
+  let previous = Array.from({ length: a.length + 1 }, (_, j) => j);
 
-  // Increment along the first column of each row
-  for (let i = 0; i <= b.length; i++) {
-    matrix[i] = [i];
-  }
-
-  // Increment each column in the first row
-  for (let j = 0; j <= a.length; j++) {
-    matrix[0][j] = j;
-  }
-
-  // Fill in the rest of the matrix
   for (let i = 1; i <= b.length; i++) {
+    const current = [i];
     for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1, // substitution
-          matrix[i][j - 1] + 1, // insertion
-          matrix[i - 1][j] + 1, // deletion
-        );
-      }
+      current.push(
+        b.charAt(i - 1) === a.charAt(j - 1)
+          ? cell(previous, j - 1)
+          : Math.min(
+              cell(previous, j - 1) + 1, // substitution
+              cell(current, j - 1) + 1, // insertion
+              cell(previous, j) + 1, // deletion
+            ),
+      );
     }
+    previous = current;
   }
 
-  return matrix[b.length][a.length];
+  return cell(previous, a.length);
 }
 
 /**

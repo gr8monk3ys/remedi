@@ -13,6 +13,7 @@
  *    badge at all, the least cautious presentation available.
  */
 
+import { fromAny } from "@total-typescript/shoehorn";
 import { describe, it, expect } from "vitest";
 import {
   buildRemedyMappingsFor,
@@ -80,7 +81,7 @@ describe("a refusal is not an empty result", () => {
     );
 
     expect(outcome.kind).toBe("known");
-    expect(dataOr(outcome, [{ id: "sentinel" }] as never)).toEqual([]);
+    expect(dataOr(outcome, fromAny([{ id: "sentinel" }]))).toEqual([]);
   });
 
   it("distinguishes the two arms — the whole point", () => {
