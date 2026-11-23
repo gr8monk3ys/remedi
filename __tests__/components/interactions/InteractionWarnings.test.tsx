@@ -6,6 +6,7 @@
  * false medical all-clear.
  */
 
+import { fromPartial } from "@total-typescript/shoehorn";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { InteractionWarnings } from "@/components/interactions/InteractionWarnings";
@@ -16,10 +17,12 @@ const REMEDY = "St. John's Wort";
 // parsing, so a stubbed Response needs headers. The assertions below are
 // unchanged: they are the regression guard for this component.
 function mockFetchOnce(response: Partial<Response> & { json: () => unknown }) {
-  global.fetch = vi.fn().mockResolvedValue({
-    headers: new Headers({ "content-type": "application/json" }),
-    ...response,
-  } as unknown as Response);
+  global.fetch = vi.fn().mockResolvedValue(
+    fromPartial<Response>({
+      headers: new Headers({ "content-type": "application/json" }),
+      ...response,
+    }),
+  );
 }
 
 describe("InteractionWarnings", () => {

@@ -1,0 +1,172 @@
+[
+  {
+    "type": "dependency",
+    "from": "__tests__/lib/clerk-nextjs-mock-server.test.ts",
+    "to": "lib/e2e/clerk-nextjs-mock/server.ts",
+    "unresolvedTo": "@/lib/e2e/clerk-nextjs-mock/server",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "entrypoint-boundary-from-app"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "__tests__/lib/email.test.ts",
+    "to": "lib/email/templates/base-layout.tsx",
+    "unresolvedTo": "@/lib/email/templates/base-layout",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "dynamic-import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "entrypoint-boundary-from-app"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "__tests__/lib/email.test.ts",
+    "to": "lib/email/templates/contribution-approved.tsx",
+    "unresolvedTo": "@/lib/email/templates/contribution-approved",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "dynamic-import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "entrypoint-boundary-from-app"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "__tests__/lib/email.test.ts",
+    "to": "lib/email/templates/contribution-rejected.tsx",
+    "unresolvedTo": "@/lib/email/templates/contribution-rejected",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "dynamic-import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "entrypoint-boundary-from-app"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "__tests__/lib/email.test.ts",
+    "to": "lib/email/templates/password-reset.tsx",
+    "unresolvedTo": "@/lib/email/templates/password-reset",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "dynamic-import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "entrypoint-boundary-from-app"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "__tests__/lib/email.test.ts",
+    "to": "lib/email/templates/subscription-cancelled.tsx",
+    "unresolvedTo": "@/lib/email/templates/subscription-cancelled",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "dynamic-import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "entrypoint-boundary-from-app"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "__tests__/lib/email.test.ts",
+    "to": "lib/email/templates/subscription-confirmed.tsx",
+    "unresolvedTo": "@/lib/email/templates/subscription-confirmed",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "dynamic-import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "entrypoint-boundary-from-app"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "__tests__/lib/email.test.ts",
+    "to": "lib/email/templates/subscription-expiring.tsx",
+    "unresolvedTo": "@/lib/email/templates/subscription-expiring",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "dynamic-import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "entrypoint-boundary-from-app"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "__tests__/lib/email.test.ts",
+    "to": "lib/email/templates/weekly-digest.tsx",
+    "unresolvedTo": "@/lib/email/templates/weekly-digest",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "dynamic-import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "entrypoint-boundary-from-app"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "__tests__/lib/email.test.ts",
+    "to": "lib/email/templates/welcome.tsx",
+    "unresolvedTo": "@/lib/email/templates/welcome",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "dynamic-import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "entrypoint-boundary-from-app"
+    }
+  }
+]

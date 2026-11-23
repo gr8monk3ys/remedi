@@ -73,3 +73,7 @@ The five canonical roles, label string equal to role name. See `docs/agents/tria
 ### Domain docs
 
 Single-context: `GLOSSARY.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+## Module boundaries
+
+Folders under `lib/` are deep modules: see [lib/README.md](./lib/README.md) before importing from a subfolder.

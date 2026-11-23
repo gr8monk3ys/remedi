@@ -88,11 +88,11 @@ export function MobileComparisonSwiper({
     }
   };
 
-  if (remedies.length === 0) {
+  const currentRemedy = remedies[currentIndex];
+
+  if (!currentRemedy) {
     return null;
   }
-
-  const currentRemedy = remedies[currentIndex];
 
   return (
     <div className={`relative ${className}`}>

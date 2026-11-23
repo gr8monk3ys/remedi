@@ -227,7 +227,7 @@ export function useComparisonHistory() {
       try {
         const stored = localStorage.getItem(HISTORY_KEY);
         if (stored) {
-          setHistory(JSON.parse(stored));
+          setHistory(JSON.parse(stored) as ComparisonEntry[]);
         }
       } catch (error) {
         logger.error("Failed to load comparison history", error);

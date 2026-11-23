@@ -14,20 +14,25 @@ interface ReportCardProps {
   report: Report;
 }
 
-const STATUS_CONFIG: Record<
-  string,
-  { icon: typeof FileText; label: string; color: string }
-> = {
+interface StatusEntry {
+  icon: typeof FileText;
+  label: string;
+  color: string;
+}
+
+const COMPLETE_STATUS: StatusEntry = {
+  icon: CheckCircle,
+  label: "Complete",
+  color: "text-green-600 dark:text-green-400",
+};
+
+const STATUS_CONFIG: Record<string, StatusEntry> = {
   generating: {
     icon: Loader2,
     label: "Generating…",
     color: "text-amber-600 dark:text-amber-400",
   },
-  complete: {
-    icon: CheckCircle,
-    label: "Complete",
-    color: "text-green-600 dark:text-green-400",
-  },
+  complete: COMPLETE_STATUS,
   failed: {
     icon: XCircle,
     label: "Failed",
@@ -42,7 +47,7 @@ const QUERY_TYPE_LABELS: Record<string, string> = {
 };
 
 export function ReportCard({ report }: ReportCardProps): React.JSX.Element {
-  const status = STATUS_CONFIG[report.status] ?? STATUS_CONFIG.complete;
+  const status = STATUS_CONFIG[report.status] ?? COMPLETE_STATUS;
   const StatusIcon = status.icon;
   const dateStr = new Date(report.createdAt).toLocaleDateString("en-US", {
     month: "short",

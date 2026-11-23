@@ -40,7 +40,7 @@ describe("Logger", () => {
 
       expect(console.warn).toHaveBeenCalled();
       const logOutput = (console.warn as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+        .calls[0]?.[0];
       expect(logOutput).toContain("[WARN]");
       expect(logOutput).toContain("Warning message");
     });
@@ -49,7 +49,7 @@ describe("Logger", () => {
       logger.warn("Rate limit approaching", { remaining: 5 });
 
       const logOutput = (console.warn as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+        .calls[0]?.[0];
       expect(logOutput).toContain("remaining");
       expect(logOutput).toContain("5");
     });
@@ -61,7 +61,7 @@ describe("Logger", () => {
 
       expect(console.error).toHaveBeenCalled();
       const logOutput = (console.error as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+        .calls[0]?.[0];
       expect(logOutput).toContain("[ERROR]");
       expect(logOutput).toContain("Error occurred");
     });
@@ -71,7 +71,7 @@ describe("Logger", () => {
       logger.error("Database error", error);
 
       const logOutput = (console.error as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+        .calls[0]?.[0];
       expect(logOutput).toContain("Error");
       expect(logOutput).toContain("Test error");
     });
@@ -81,7 +81,7 @@ describe("Logger", () => {
       logger.error("Database error", error, { database: "main", attempt: 3 });
 
       const logOutput = (console.error as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+        .calls[0]?.[0];
       expect(logOutput).toContain("database");
       expect(logOutput).toContain("main");
       expect(logOutput).toContain("attempt");
@@ -94,7 +94,7 @@ describe("Logger", () => {
       log.warn("Search warning", { query: "ibuprofen" });
 
       const logOutput = (console.warn as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+        .calls[0]?.[0];
       expect(logOutput).toContain("[search-api]");
       expect(logOutput).toContain("Search warning");
       expect(logOutput).toContain("ibuprofen");
@@ -117,9 +117,9 @@ describe("Logger", () => {
       log.error("Event failed");
 
       const warnOutput = (console.warn as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+        .calls[0]?.[0];
       const errorOutput = (console.error as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+        .calls[0]?.[0];
 
       expect(warnOutput).toContain("[stripe-webhook]");
       expect(errorOutput).toContain("[stripe-webhook]");
@@ -146,7 +146,7 @@ describe("Logger", () => {
 
       expect(console.error).toHaveBeenCalled();
       const logOutput = (console.error as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+        .calls[0]?.[0];
       expect(logOutput).toContain("500");
     });
 
@@ -155,7 +155,7 @@ describe("Logger", () => {
 
       expect(console.warn).toHaveBeenCalled();
       const logOutput = (console.warn as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+        .calls[0]?.[0];
       expect(logOutput).toContain("404");
     });
   });
@@ -179,7 +179,7 @@ describe("Logger", () => {
       logger.warn("Test message");
 
       const logOutput = (console.warn as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+        .calls[0]?.[0];
       // Timestamp format: [2024-01-15T10:30:00.000Z]
       expect(logOutput).toMatch(
         /\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z\]/,
@@ -190,7 +190,7 @@ describe("Logger", () => {
       logger.warn("Test with context", { key: "value", count: 42 });
 
       const logOutput = (console.warn as ReturnType<typeof vi.fn>).mock
-        .calls[0][0];
+        .calls[0]?.[0];
       expect(logOutput).toContain('"key"');
       expect(logOutput).toContain('"value"');
       expect(logOutput).toContain("42");

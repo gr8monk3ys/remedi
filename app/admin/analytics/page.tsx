@@ -207,19 +207,20 @@ async function getAnalytics(): Promise<Analytics> {
       return { start, end };
     });
 
-    const [week0, week1, week2, week3, week4] = await Promise.all(
-      ranges.map(async ({ start, end }) => {
-        if (userIds.length === 0) return 0;
-        const active = await prisma.userEvent.groupBy({
-          by: ["userId"],
-          where: {
-            userId: { in: userIds },
-            createdAt: { gte: start, lt: end },
-          },
-        });
-        return active.length;
-      }),
-    );
+    const [week0 = 0, week1 = 0, week2 = 0, week3 = 0, week4 = 0] =
+      await Promise.all(
+        ranges.map(async ({ start, end }) => {
+          if (userIds.length === 0) return 0;
+          const active = await prisma.userEvent.groupBy({
+            by: ["userId"],
+            where: {
+              userId: { in: userIds },
+              createdAt: { gte: start, lt: end },
+            },
+          });
+          return active.length;
+        }),
+      );
 
     const signups = userIds.length;
     const pct = (value: number) =>

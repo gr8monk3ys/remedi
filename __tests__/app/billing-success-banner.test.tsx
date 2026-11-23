@@ -9,6 +9,7 @@
  * visiting the URL directly.
  */
 
+import { fromAny } from "@total-typescript/shoehorn";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
@@ -38,9 +39,11 @@ const renderPage = async (
   subscription: unknown,
 ): Promise<void> => {
   mockFindUnique.mockResolvedValue(subscription);
-  const ui = await BillingPage({
-    searchParams: Promise.resolve(params),
-  } as never);
+  const ui = await BillingPage(
+    fromAny({
+      searchParams: Promise.resolve(params),
+    }),
+  );
   render(ui as React.ReactElement);
 };
 

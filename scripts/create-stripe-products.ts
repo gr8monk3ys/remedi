@@ -92,7 +92,9 @@ async function main() {
   const mode = secretKey.startsWith("sk_test_") ? "test" : "live";
   console.log(`Stripe mode detected: ${mode}`);
 
-  const results: Record<string, { monthly: string; yearly: string }> = {};
+  const results: Partial<
+    Record<keyof typeof PRICING, { monthly: string; yearly: string }>
+  > = {};
 
   for (const plan of Object.keys(PRICING) as Array<keyof typeof PRICING>) {
     const config = PRICING[plan];
@@ -123,10 +125,11 @@ async function main() {
   }
 
   console.log("\nAdd these to your environment variables:");
-  console.log(`STRIPE_BASIC_MONTHLY_PRICE_ID=${results.basic.monthly}`);
-  console.log(`STRIPE_BASIC_YEARLY_PRICE_ID=${results.basic.yearly}`);
-  console.log(`STRIPE_PREMIUM_MONTHLY_PRICE_ID=${results.premium.monthly}`);
-  console.log(`STRIPE_PREMIUM_YEARLY_PRICE_ID=${results.premium.yearly}`);
+  for (const [plan, ids] of Object.entries(results)) {
+    const prefix = `STRIPE_${plan.toUpperCase()}`;
+    console.log(`${prefix}_MONTHLY_PRICE_ID=${ids.monthly}`);
+    console.log(`${prefix}_YEARLY_PRICE_ID=${ids.yearly}`);
+  }
 }
 
 main().catch((error) => {

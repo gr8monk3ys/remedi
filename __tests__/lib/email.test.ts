@@ -984,7 +984,7 @@ describe("Email Service", () => {
 
       expect(result.success).toBe(true);
       // The html should contain "there" as fallback
-      const sentHtml = mockEmailsSend.mock.calls[0][0].html;
+      const sentHtml = mockEmailsSend.mock.calls[0]?.[0].html;
       expect(sentHtml).toContain("there");
     });
   });
@@ -1027,7 +1027,7 @@ describe("Email Service", () => {
         nextBillingDate: "Apr 1, 2026",
       });
 
-      const sentHtml = mockEmailsSend.mock.calls[0][0].html;
+      const sentHtml = mockEmailsSend.mock.calls[0]?.[0].html;
       expect(sentHtml).toContain("/settings/subscription");
     });
   });
@@ -1199,7 +1199,7 @@ describe("Email Service", () => {
         remedyName: "Unknown Herb",
       });
 
-      const sentHtml = mockEmailsSend.mock.calls[0][0].html;
+      const sentHtml = mockEmailsSend.mock.calls[0]?.[0].html;
       expect(sentHtml).toContain("/contribute");
     });
   });
@@ -1536,10 +1536,10 @@ describe("Digest Builder", () => {
       const data = await fetchSharedDigestData();
 
       expect(data.newRemedies).toHaveLength(2);
-      expect(data.newRemedies[0].name).toBe("Turmeric");
+      expect(data.newRemedies[0]?.name).toBe("Turmeric");
       expect(data.topSearches).toHaveLength(2);
-      expect(data.topSearches[0].query).toBe("headache");
-      expect(data.topSearches[0].count).toBe(42);
+      expect(data.topSearches[0]?.query).toBe("headache");
+      expect(data.topSearches[0]?.count).toBe(42);
       expect(data.periodStart).toBeDefined();
       expect(data.periodEnd).toBeDefined();
       expect(data.weekAgo).toBeInstanceOf(Date);
@@ -1591,7 +1591,7 @@ describe("Digest Builder", () => {
       expect(result!.savedRemedies).toBe(3);
       expect(result!.searchCount).toBe(7);
       expect(result!.newRemedies).toHaveLength(1);
-      expect(result!.newRemedies[0].name).toBe("Turmeric");
+      expect(result!.newRemedies[0]?.name).toBe("Turmeric");
       expect(result!.topSearches).toHaveLength(1);
       // Free tier should NOT have personalized remedies or interaction alerts
       expect(result!.personalizedRemedies).toBeUndefined();
@@ -1645,8 +1645,8 @@ describe("Digest Builder", () => {
 
       expect(result!.personalizedRemedies).toBeDefined();
       expect(result!.personalizedRemedies).toHaveLength(1);
-      expect(result!.personalizedRemedies![0].name).toBe("Valerian");
-      expect(result!.personalizedRemedies![0].matchReason).toContain("Sleep");
+      expect(result!.personalizedRemedies![0]?.name).toBe("Valerian");
+      expect(result!.personalizedRemedies![0]?.matchReason).toContain("Sleep");
     });
 
     it("should include interaction alerts for basic tier with medications", async () => {
@@ -1678,8 +1678,8 @@ describe("Digest Builder", () => {
 
       expect(result!.interactionAlerts).toBeDefined();
       expect(result!.interactionAlerts).toHaveLength(1);
-      expect(result!.interactionAlerts![0].medication).toBe("Aspirin");
-      expect(result!.interactionAlerts![0].substance).toBe("Ginkgo Biloba");
+      expect(result!.interactionAlerts![0]?.medication).toBe("Aspirin");
+      expect(result!.interactionAlerts![0]?.substance).toBe("Ginkgo Biloba");
     });
 
     it("should skip personalized remedies when profile has no categories", async () => {
@@ -1799,7 +1799,7 @@ describe("Digest Builder", () => {
 
       const result = await buildDigestData("user-1", "free", sharedData);
 
-      expect(result!.newRemedies[0].category).toBe("General");
+      expect(result!.newRemedies[0]?.category).toBe("General");
     });
 
     it("should format remedy URLs correctly", async () => {
@@ -1815,7 +1815,7 @@ describe("Digest Builder", () => {
 
       const result = await buildDigestData("user-1", "free", sharedData);
 
-      expect(result!.newRemedies[0].url).toContain("/remedy/rem-abc");
+      expect(result!.newRemedies[0]?.url).toContain("/remedy/rem-abc");
     });
   });
 });

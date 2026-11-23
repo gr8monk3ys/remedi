@@ -60,7 +60,16 @@ export const PLAN_COMPARISON: PlanComparisonRow[] = [
   },
 ];
 
-export const TRIGGER_MESSAGES: Record<string, TriggerMessage> = {
+export type TriggerReason =
+  | "search_limit"
+  | "ai_search_limit"
+  | "favorite_limit"
+  | "compare_limit"
+  | "export"
+  | "history"
+  | "feature";
+
+export const TRIGGER_MESSAGES: Record<TriggerReason, TriggerMessage> = {
   search_limit: {
     title: "You've reached your daily search limit",
     description: "Upgrade to get more searches and unlock powerful features.",

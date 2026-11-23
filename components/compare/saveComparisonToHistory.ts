@@ -15,7 +15,7 @@ export function saveComparisonToHistory(remedies: CompareRemedy[]): void {
   try {
     const existingHistory = JSON.parse(
       localStorage.getItem(HISTORY_KEY) || "[]",
-    );
+    ) as Array<{ remedyIds: string[] }>;
 
     const comparisonEntry = {
       id: Date.now().toString(),
@@ -26,7 +26,7 @@ export function saveComparisonToHistory(remedies: CompareRemedy[]): void {
 
     // Check if this exact comparison already exists
     const isDuplicate = existingHistory.some(
-      (entry: { remedyIds: string[] }) =>
+      (entry) =>
         entry.remedyIds.sort().join(",") ===
         comparisonEntry.remedyIds.sort().join(","),
     );

@@ -7,6 +7,7 @@
  * list.
  */
 
+import { fromPartial } from "@total-typescript/shoehorn";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -36,12 +37,14 @@ const MEDICATIONS = [
 ];
 
 function respondWith(body: unknown) {
-  global.fetch = vi.fn().mockResolvedValue({
-    ok: true,
-    status: 200,
-    headers: new Headers({ "content-type": "application/json" }),
-    json: async () => body,
-  } as unknown as Response);
+  global.fetch = vi.fn().mockResolvedValue(
+    fromPartial<Response>({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => body,
+    }),
+  );
 }
 
 async function clickCheck() {
@@ -109,9 +112,14 @@ describe("MedicationCabinetList interaction check", () => {
 
   it("drops an all-clear once the cabinet it was checked against changes", async () => {
     const third = {
-      ...MEDICATIONS[0],
       id: "3",
       name: "Ibuprofen",
+      type: "pharmaceutical",
+      dosage: null,
+      frequency: null,
+      startDate: null,
+      notes: null,
+      isActive: true,
     };
     render(
       <MedicationCabinetList initialMedications={[...MEDICATIONS, third]} />,

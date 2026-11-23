@@ -4,6 +4,7 @@
  * Tests additional Stripe helper functions not covered in api/stripe.test.ts.
  */
 
+import { fromAny } from "@total-typescript/shoehorn";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock Stripe module
@@ -100,12 +101,14 @@ describe("Stripe Utilities", () => {
   describe("getOrCreateStripeCustomer", () => {
     it("should return existing customer ID from database", async () => {
       const { prisma } = await import("@/lib/db");
-      vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        customerId: "cus_existing",
-        userId: "user-123",
-        plan: "basic",
-        status: "active",
-      } as never);
+      vi.mocked(prisma.subscription.findUnique).mockResolvedValue(
+        fromAny({
+          customerId: "cus_existing",
+          userId: "user-123",
+          plan: "basic",
+          status: "active",
+        }),
+      );
 
       const { getOrCreateStripeCustomer } = await import("@/lib/stripe");
 
@@ -121,7 +124,7 @@ describe("Stripe Utilities", () => {
     it("should find existing Stripe customer by email", async () => {
       const { prisma } = await import("@/lib/db");
       vi.mocked(prisma.subscription.findUnique).mockResolvedValue(null);
-      vi.mocked(prisma.subscription.upsert).mockResolvedValue({} as never);
+      vi.mocked(prisma.subscription.upsert).mockResolvedValue(fromAny({}));
 
       mockStripe.customers.list.mockResolvedValue({
         data: [{ id: "cus_found_by_email" }],
@@ -144,7 +147,7 @@ describe("Stripe Utilities", () => {
     it("should create new customer when not found", async () => {
       const { prisma } = await import("@/lib/db");
       vi.mocked(prisma.subscription.findUnique).mockResolvedValue(null);
-      vi.mocked(prisma.subscription.upsert).mockResolvedValue({} as never);
+      vi.mocked(prisma.subscription.upsert).mockResolvedValue(fromAny({}));
 
       mockStripe.customers.list.mockResolvedValue({ data: [] });
       mockStripe.customers.create.mockResolvedValue({ id: "cus_new" });

@@ -14,6 +14,7 @@ export default [
       "coverage/**",
       "*.config.js",
       "*.config.mjs",
+      ".dependency-cruiser.cjs",
       "prisma/seed*.js",
       "prisma/seed*.ts",
       "scripts/**",

@@ -120,7 +120,9 @@ export function SettingsClient({
       const response = await fetch(exportUrl);
 
       if (!response.ok) {
-        const payload = await response.json().catch(() => null);
+        const payload = (await response.json().catch(() => null)) as {
+          error?: { message?: string };
+        } | null;
         const message =
           payload?.error?.message || "Failed to export data. Please try again.";
         throw new Error(message);

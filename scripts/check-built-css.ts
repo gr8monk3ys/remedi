@@ -61,9 +61,10 @@ if (explicit) {
   } catch {
     fail(`${root} does not exist — run \`next build\` first.`);
   }
-  if (files.length === 0) fail(`no .css emitted under ${root}.`);
   files.sort((a, b) => statSync(b).size - statSync(a).size);
-  target = files[0];
+  const [largest] = files;
+  if (largest === undefined) fail(`no .css emitted under ${root}.`);
+  target = largest;
 }
 
 const bytes = statSync(target).size;

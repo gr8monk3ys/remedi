@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
           success: false,
           error: {
             code: "INVALID_INPUT",
-            message: parsed.error.issues[0].message,
+            message: parsed.error.issues[0]?.message ?? "Invalid input",
           },
         },
         { status: 400 },
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: {
             code: "VALIDATION_ERROR",
-            message: parsed.error.issues[0].message,
+            message: parsed.error.issues[0]?.message ?? "Invalid input",
           },
         },
         { status: 400 },
