@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.config.ts"
+  },
+  "mutate": [
+    "lib/remedy-matcher.ts",
+    "lib/search/**/*.ts",
+    "lib/fuzzy-search.ts"
+  ],
+  "coverageAnalysis": "perTest",
+  "reporters": ["clear-text", "progress", "html"],
+  "htmlReporter": {
+    "fileName": "reports/mutation/index.html"
+  },
+  "tempDirName": ".stryker-tmp",
+  "ignorePatterns": [
+    "/.next",
+    "/coverage",
+    "/reports",
+    "/playwright-report",
+    "/test-results",
+    "/e2e"
+  ]
+}

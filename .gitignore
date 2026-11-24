@@ -67,3 +67,6 @@ about-page.png
 artifacts/
 reports/
 /e2e/.auth/
+
+# Stryker mutation testing
+.stryker-tmp/
