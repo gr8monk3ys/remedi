@@ -68,3 +68,6 @@ about-page.png
 # Lighthouse reports written by scripts/check-lighthouse-score.mjs
 artifacts/
 reports/
+
+# Stryker mutation testing
+.stryker-tmp/
