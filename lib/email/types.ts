@@ -111,6 +111,15 @@ export interface PasswordResetData {
 }
 
 /**
+ * Email verification data
+ */
+export interface VerifyEmailData {
+  name: string;
+  verifyUrl: string;
+  expiresIn: string;
+}
+
+/**
  * Contribution approved email data
  */
 export interface ContributionApprovedData {
@@ -139,6 +148,7 @@ export type EmailType =
   | "subscription_expiring"
   | "weekly_digest"
   | "password_reset"
+  | "email_verification"
   | "contribution_approved"
   | "contribution_rejected";
 

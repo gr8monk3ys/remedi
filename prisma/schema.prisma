@@ -187,15 +187,18 @@ model FilterPreference {
 }
 
 // ============================================================================
-// Clerk Authentication & User Management
+// Authentication (Better Auth) & User Management
+//
+// User, Session, Account and Verification are Better Auth's core tables
+// (lib/better-auth.ts). Passwords live in Account.password, providerId
+// "credential".
 // ============================================================================
 
 model User {
   id            String    @id @default(uuid()) @db.Uuid
-  clerkId       String?   @unique // Clerk user ID (user_xxx)
   name          String?
   email         String    @unique
-  emailVerified DateTime? @db.Timestamptz
+  emailVerified Boolean   @default(false)
   image         String?
   role          UserRole  @default(user)
   bio           String?   @db.Text
@@ -221,10 +224,58 @@ model User {
   journalEntries     RemedyJournal[]
   reports            RemedyReport[]
 
+  sessions Session[]
+  accounts Account[]
+
   @@index([email])
   @@index([role])
-  @@index([clerkId])
   @@index([trialEndDate])
+}
+
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique
+  expiresAt DateTime @db.Timestamptz
+  ipAddress String?
+  userAgent String?
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(uuid()) @db.Uuid
+  accountId             String
+  providerId            String
+  userId                String    @db.Uuid
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime? @db.Timestamptz
+  refreshTokenExpiresAt DateTime? @db.Timestamptz
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @db.Timestamptz
+  updatedAt             DateTime  @updatedAt @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(uuid()) @db.Uuid
+  identifier String
+  value      String   @db.Text
+  expiresAt  DateTime @db.Timestamptz
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+
+  @@index([identifier])
 }
 
 // ============================================================================

@@ -20,29 +20,15 @@ const { mockIsPublicRoute } = vi.hoisted(() => ({
   mockIsPublicRoute: vi.fn(() => true),
 }));
 
-vi.mock("@clerk/nextjs/server", () => ({
-  clerkMiddleware: vi.fn((handler: (...args: unknown[]) => unknown) => handler),
-  createRouteMatcher: vi.fn(() => mockIsPublicRoute),
-  auth: vi.fn().mockResolvedValue({ userId: null }),
-  currentUser: vi.fn().mockResolvedValue(null),
-  clerkClient: vi.fn().mockResolvedValue({
-    users: { updateUserMetadata: vi.fn() },
-  }),
+vi.mock("@/lib/public-routes", () => ({
+  isPublicPath: mockIsPublicRoute,
 }));
 
 import middleware from "@/proxy";
 import { csrfMiddleware, generateCSRFToken, setCSRFCookie } from "@/lib/csrf";
 
-/**
- * Helper to create a mock Clerk auth object
- */
-function createMockAuthObj(options: { userId?: string | null } = {}) {
-  return {
-    userId: options.userId ?? null,
-    protect: vi.fn(),
-    redirectToSignIn: vi.fn(),
-  };
-}
+/** Better Auth's session cookie name outside production (no __Secure- prefix). */
+const SESSION_COOKIE = "better-auth.session_token";
 
 /**
  * Helper to create a NextRequest with optional headers, method, and cookies
@@ -69,21 +55,8 @@ function createRequest(
   return req;
 }
 
-/**
- * Call the middleware with a request and return the response.
- * The global mock makes clerkMiddleware return the inner handler,
- * so we call it directly with (authObj, req).
- */
-async function callMiddleware(
-  req: NextRequest,
-  authOptions: { userId?: string | null } = {},
-): Promise<NextResponse> {
-  const authObj = createMockAuthObj(authOptions);
-  const handler = middleware as unknown as (
-    authObj: ReturnType<typeof createMockAuthObj>,
-    req: NextRequest,
-  ) => Promise<NextResponse>;
-  return handler(authObj, req);
+async function callMiddleware(req: NextRequest): Promise<NextResponse> {
+  return middleware(req);
 }
 
 describe("Middleware", () => {
@@ -436,46 +409,44 @@ describe("Middleware", () => {
   // ==========================================================================
 
   describe("Route Protection", () => {
-    it("should NOT call protect() for public routes", async () => {
+    it("lets public routes through without a session", async () => {
       mockIsPublicRoute.mockReturnValue(true);
-      const authObj = createMockAuthObj();
-      const req = createRequest("/");
+      const res = await callMiddleware(createRequest("/"));
 
-      const handler = middleware as unknown as (
-        authObj: ReturnType<typeof createMockAuthObj>,
-        req: NextRequest,
-      ) => Promise<NextResponse>;
-      await handler(authObj, req);
-
-      expect(authObj.protect).not.toHaveBeenCalled();
+      expect(res.status).toBe(200);
     });
 
-    it("should call protect() for non-public routes", async () => {
+    it("redirects a page request without a session to /sign-in", async () => {
       mockIsPublicRoute.mockReturnValue(false);
-      const authObj = createMockAuthObj();
-      const req = createRequest("/dashboard");
+      const res = await callMiddleware(createRequest("/dashboard?tab=history"));
 
-      const handler = middleware as unknown as (
-        authObj: ReturnType<typeof createMockAuthObj>,
-        req: NextRequest,
-      ) => Promise<NextResponse>;
-      await handler(authObj, req);
-
-      expect(authObj.protect).toHaveBeenCalled();
+      expect(res.status).toBe(307);
+      const location = new URL(res.headers.get("location")!);
+      expect(location.pathname).toBe("/sign-in");
+      expect(location.searchParams.get("redirect_url")).toBe(
+        "/dashboard?tab=history",
+      );
     });
 
-    it("should call protect() for protected API routes", async () => {
+    it("answers a protected API request without a session with 401", async () => {
       mockIsPublicRoute.mockReturnValue(false);
-      const authObj = createMockAuthObj();
-      const req = createRequest("/api/contributions");
+      const res = await callMiddleware(createRequest("/api/contributions"));
 
-      const handler = middleware as unknown as (
-        authObj: ReturnType<typeof createMockAuthObj>,
-        req: NextRequest,
-      ) => Promise<NextResponse>;
-      await handler(authObj, req);
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.error.code).toBe("UNAUTHORIZED");
+    });
 
-      expect(authObj.protect).toHaveBeenCalled();
+    it("lets a protected route through when the session cookie is present", async () => {
+      // Presence only: the session itself is validated server-side (lib/auth).
+      mockIsPublicRoute.mockReturnValue(false);
+      const res = await callMiddleware(
+        createRequest("/dashboard", {
+          cookies: { [SESSION_COOKIE]: "token.signature" },
+        }),
+      );
+
+      expect(res.status).toBe(200);
     });
   });
 

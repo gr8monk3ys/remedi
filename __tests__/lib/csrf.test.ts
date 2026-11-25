@@ -62,8 +62,8 @@ describe("CSRF Protection Utilities", () => {
 
   describe("shouldSkipCSRF", () => {
     it("should skip webhook routes", () => {
-      expect(shouldSkipCSRF("/api/webhooks/clerk")).toBe(true);
       expect(shouldSkipCSRF("/api/webhooks/stripe")).toBe(true);
+      expect(shouldSkipCSRF("/api/auth/sign-in/email")).toBe(true);
     });
 
     it("should not skip regular API routes", () => {
@@ -208,7 +208,7 @@ describe("CSRF Protection Utilities", () => {
 
     it("should return null for webhook routes", () => {
       const request = new NextRequest(
-        "http://localhost:3000/api/webhooks/clerk",
+        "http://localhost:3000/api/webhooks/stripe",
         {
           method: "POST",
         },

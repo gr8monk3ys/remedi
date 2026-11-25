@@ -1,23 +1,6 @@
 [
   {
     "type": "dependency",
-    "from": "__tests__/lib/clerk-nextjs-mock-server.test.ts",
-    "to": "lib/e2e/clerk-nextjs-mock/server.ts",
-    "unresolvedTo": "@/lib/e2e/clerk-nextjs-mock/server",
-    "dependencyTypes": [
-      "aliased",
-      "aliased-tsconfig",
-      "aliased-tsconfig-paths",
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "entrypoint-boundary-from-app"
-    }
-  },
-  {
-    "type": "dependency",
     "from": "__tests__/lib/email.test.ts",
     "to": "lib/email/templates/base-layout.tsx",
     "unresolvedTo": "@/lib/email/templates/base-layout",

@@ -1,25 +1,21 @@
 /**
- * Next.js Middleware
+ * Next.js Proxy (middleware)
  *
- * Combines Clerk authentication with security headers, CORS, and maintenance mode.
+ * Security headers, CORS, maintenance mode, CSRF, and the first auth gate.
  *
- * Replaces both the old app/proxy.ts (security middleware) and adds Clerk auth.
+ * The auth gate only checks that a Better Auth session cookie is present; it
+ * cannot tell a valid session from a forged or expired one. The real check is
+ * server-side (lib/auth.ts), which every protected page and route performs.
  *
- * @see https://clerk.com/docs/references/nextjs/clerk-middleware
+ * @see https://www.better-auth.com/docs/integrations/next
  */
 
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { csrfMiddleware, generateCSRFToken, setCSRFCookie } from "@/lib/csrf";
-import { clerkFrontendOrigin, sentryIngestOrigin } from "@/lib/csp-origins";
-import { PUBLIC_ROUTE_PATTERNS } from "@/lib/public-routes";
-
-/**
- * Routes that are publicly accessible without authentication.
- * All other routes will require the user to be signed in.
- */
-const isPublicRoute = createRouteMatcher([...PUBLIC_ROUTE_PATTERNS]);
+import { sentryIngestOrigin } from "@/lib/csp-origins";
+import { isPublicPath } from "@/lib/public-routes";
 
 /**
  * User agents to block (scrapers, bots)
@@ -31,18 +27,6 @@ const BLOCKED_USER_AGENTS = [
   "gptbot",
   "claudebot",
 ];
-
-const E2E_AUTH_COOKIE_NAMES = ["e2e_auth", "__session"] as const;
-
-function isE2ELocalAuthEnabled(): boolean {
-  return process.env.E2E_LOCAL_AUTH === "true";
-}
-
-function isE2EAuthenticated(req: NextRequest): boolean {
-  return E2E_AUTH_COOKIE_NAMES.some((name) =>
-    Boolean(req.cookies.get(name)?.value),
-  );
-}
 
 /**
  * Generate a cryptographic nonce for CSP.
@@ -78,16 +62,6 @@ function addSecurityHeaders(response: NextResponse, nonce: string): void {
   response.headers.set("X-DNS-Prefetch-Control", "on");
 
   const isProduction = process.env.NODE_ENV === "production";
-  // Clerk's own hosts, plus this deployment's custom domain when it has one.
-  const clerkOrigin = clerkFrontendOrigin();
-  const clerkHosts = [
-    "https://*.clerk.accounts.dev",
-    "https://*.clerk.com",
-    ...(clerkOrigin && !clerkOrigin.endsWith(".clerk.com")
-      ? [clerkOrigin]
-      : []),
-  ].join(" ");
-  const clerkScriptSrc = clerkHosts;
   // Errors can only be reported to a host the policy allows to be contacted.
   const sentryOrigin = sentryIngestOrigin();
   const sentryConnectSrc = sentryOrigin ? ` ${sentryOrigin}` : "";
@@ -97,14 +71,14 @@ function addSecurityHeaders(response: NextResponse, nonce: string): void {
   const cspDirectives = [
     "default-src 'self'",
     isProduction
-      ? `script-src 'self' 'unsafe-inline' 'nonce-${nonce}' ${clerkScriptSrc}`
-      : `script-src 'self' 'unsafe-inline' 'unsafe-eval' 'nonce-${nonce}' ${clerkScriptSrc}`,
+      ? `script-src 'self' 'unsafe-inline' 'nonce-${nonce}'`
+      : `script-src 'self' 'unsafe-inline' 'unsafe-eval' 'nonce-${nonce}'`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' https://images.unsplash.com https://img.clerk.com https://*.clerk.com data: blob:",
+    "img-src 'self' https://images.unsplash.com data: blob:",
     "font-src 'self' data:",
-    `connect-src 'self' https://api.fda.gov https://api.openai.com https://api.clerk.com ${clerkHosts}${sentryConnectSrc}`,
-    `frame-src 'self' https://accounts.clerk.com ${clerkHosts}`,
-    // Sentry's Session Replay compressor and Clerk create Workers from blob:
+    `connect-src 'self' https://api.fda.gov https://api.openai.com${sentryConnectSrc}`,
+    "frame-src 'self'",
+    // Sentry's Session Replay compressor creates Workers from blob:
     // URLs; without worker-src the browser falls back to script-src and logs a
     // CSP violation on every page load.
     "worker-src 'self' blob:",
@@ -153,9 +127,8 @@ function getAllowedOrigins(): string[] {
   return origins;
 }
 
-export default clerkMiddleware(async (authObj, req: NextRequest) => {
+export default async function proxy(req: NextRequest): Promise<NextResponse> {
   const { pathname } = req.nextUrl;
-  const e2eLocalAuthEnabled = isE2ELocalAuthEnabled();
 
   // Block bots/scrapers
   const userAgent = req.headers.get("user-agent") || "";
@@ -217,31 +190,29 @@ export default clerkMiddleware(async (authObj, req: NextRequest) => {
     return NextResponse.redirect(url);
   }
 
-  // Protect non-public routes with Clerk
-  if (!isPublicRoute(req)) {
-    if (e2eLocalAuthEnabled) {
-      if (!isE2EAuthenticated(req)) {
-        if (pathname.startsWith("/api/")) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: {
-                code: "UNAUTHORIZED",
-                message: "Authentication required",
-              },
-            },
-            { status: 401 },
-          );
-        }
-
-        const signInUrl = req.nextUrl.clone();
-        signInUrl.pathname = "/sign-in";
-        signInUrl.searchParams.set("redirect_url", req.nextUrl.href);
-        return NextResponse.redirect(signInUrl);
-      }
-    } else {
-      await authObj.protect();
+  // Protect non-public routes: cookie presence only, see the header comment.
+  if (!isPublicPath(pathname) && !getSessionCookie(req)) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "UNAUTHORIZED",
+            message: "Authentication required",
+          },
+        },
+        { status: 401 },
+      );
     }
+
+    const signInUrl = req.nextUrl.clone();
+    signInUrl.pathname = "/sign-in";
+    signInUrl.search = "";
+    signInUrl.searchParams.set(
+      "redirect_url",
+      `${pathname}${req.nextUrl.search}`,
+    );
+    return NextResponse.redirect(signInUrl);
   }
 
   // CSRF validation for state-changing API requests
@@ -292,7 +263,7 @@ export default clerkMiddleware(async (authObj, req: NextRequest) => {
   }
 
   return response;
-});
+}
 
 export const config = {
   matcher: [

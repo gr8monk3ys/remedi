@@ -83,7 +83,6 @@ describe("/api/account/export", () => {
     // Default prisma responses
     mockPrisma.user.findUnique.mockResolvedValue({
       id: "user-1",
-      clerkId: "user_clerk",
       email: "test@example.com",
       name: "Test User",
       role: "user",

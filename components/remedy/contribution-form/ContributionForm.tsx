@@ -7,7 +7,7 @@
  * Uses extracted hook for state management and sub-components for reusable UI.
  */
 
-import { useAuth } from "@clerk/nextjs";
+import { useAuthState } from "@/lib/auth-client";
 import Link from "next/link";
 import { Send, AlertCircle } from "lucide-react";
 import { useContributionForm } from "./useContributionForm";
@@ -17,7 +17,7 @@ import { CATEGORIES } from "./types";
 import type { ContributionFormProps } from "./types";
 
 export function ContributionForm({ onSuccess }: ContributionFormProps) {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuthState();
   const {
     state,
     handleSubmit,

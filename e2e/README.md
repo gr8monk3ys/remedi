@@ -132,7 +132,8 @@ Key settings:
 - **Base URL**: `http://localhost:3000` (configurable via `PLAYWRIGHT_TEST_BASE_URL`)
 - **Test Directory**: `./e2e`
 - **Browsers**: Chromium (Firefox and WebKit available)
-- **Dev Server**: Automatically starts Next.js dev server with local E2E auth mode (`E2E_LOCAL_AUTH=true`) and uses `--webpack` for deterministic local/CI runs
+- **Dev Server**: Automatically starts the Next.js dev server (`--webpack`, for deterministic local/CI runs) with `BETTER_AUTH_URL` set to the test base URL
+- **Auth setup**: the `setup` project (`e2e/auth.setup.ts`) signs up the E2E user through Better Auth, marks its email verified in `DATABASE_URL`, and saves the session to `e2e/.auth/user.json`
 - **Retries**: 2 retries in CI, 0 in development
 - **Timeouts**: 120s for server startup
 - **Workers**: local default `4` (configurable via `PLAYWRIGHT_WORKERS`)
@@ -175,17 +176,8 @@ For tests requiring authentication:
 
 ```typescript
 test("authenticated test", async ({ page, context }) => {
-  // Local E2E auth mode treats __session as authenticated
-  await context.addCookies([
-    {
-      name: "__session",
-      value: "mock-session-token",
-      domain: "localhost",
-      path: "/",
-      httpOnly: true,
-      sameSite: "Lax",
-    },
-  ]);
+  // A real Better Auth session for the E2E user, created by auth.setup.ts
+  await signIn(context); // import { signIn } from "./session";
 
   await page.goto("/protected-route");
   // Continue test...

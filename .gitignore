@@ -44,8 +44,6 @@ next-env.d.ts
 playwright-report/
 test-results/
 
-# clerk configuration (can include secrets)
-/.clerk/
 .env*.local
 
 # tooling
@@ -68,6 +66,7 @@ about-page.png
 # Lighthouse reports written by scripts/check-lighthouse-score.mjs
 artifacts/
 reports/
+/e2e/.auth/
 
 # Stryker mutation testing
 .stryker-tmp/

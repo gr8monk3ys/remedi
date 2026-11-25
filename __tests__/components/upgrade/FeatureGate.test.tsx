@@ -62,8 +62,8 @@ vi.mock("@/lib/api/client", () => ({
   },
 }));
 
-vi.mock("@clerk/nextjs", () => ({
-  useAuth: () => ({ isLoaded: true, isSignedIn: true }),
+vi.mock("@/lib/auth-client", () => ({
+  useAuthState: () => ({ isLoaded: true, isSignedIn: true, user: null }),
 }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));

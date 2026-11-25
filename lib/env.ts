@@ -12,10 +12,9 @@ interface EnvSchema {
   // Database
   DATABASE_URL: string;
 
-  // Authentication (Clerk)
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?: string;
-  CLERK_SECRET_KEY?: string;
-  CLERK_WEBHOOK_SECRET?: string;
+  // Authentication (Better Auth)
+  BETTER_AUTH_SECRET?: string;
+  BETTER_AUTH_URL?: string;
 
   // Optional: Rate limiting (Upstash Redis)
   UPSTASH_REDIS_REST_URL?: string;
@@ -55,8 +54,6 @@ const OPTIONAL_WITH_WARNINGS: Partial<Record<keyof EnvSchema, string>> = {
   OPENAI_API_KEY:
     "OpenAI API key not set. AI-enhanced features will be disabled.",
   RESEND_API_KEY: "Resend API key not set. Email features will be disabled.",
-  CLERK_WEBHOOK_SECRET:
-    "Clerk webhook secret not set. Clerk webhooks will not be verified.",
 };
 
 /**
@@ -80,16 +77,6 @@ export function validateEnv(): void {
       "⚠️  SKIP_ENV_VALIDATION is active — environment variables are NOT being validated.",
     );
     return;
-  }
-
-  if (
-    process.env.E2E_LOCAL_AUTH === "true" &&
-    process.env.NODE_ENV === "production"
-  ) {
-    throw new EnvValidationError(
-      "E2E_LOCAL_AUTH must not be enabled in production. " +
-        "It bypasses Clerk authentication entirely.",
-    );
   }
 
   const missing: string[] = [];
@@ -117,13 +104,15 @@ export function validateEnv(): void {
     );
   }
 
-  // Enforce Clerk auth essentials in production
+  // Enforce auth essentials in production. Sign-in requires a verified
+  // email, so without Resend nobody can finish signing up.
   if (process.env.NODE_ENV === "production") {
-    if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
-      missing.push("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY");
-    }
-    if (!process.env.CLERK_SECRET_KEY) {
-      missing.push("CLERK_SECRET_KEY");
+    for (const key of [
+      "BETTER_AUTH_SECRET",
+      "BETTER_AUTH_URL",
+      "RESEND_API_KEY",
+    ]) {
+      if (!process.env[key]) missing.push(key);
     }
   }
 

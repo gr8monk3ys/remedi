@@ -6,7 +6,7 @@ Search a pharmaceutical and get information on the natural remedies related to
 it: what each is used for, how strong the evidence is, and known interactions
 with medications. Each relationship is labelled **Similar use**,
 **Complementary** or **Supportive**, and none is presented as a replacement
-for a prescribed medication. Live at https://remedi.vivancedata.com.
+for a prescribed medication. Live at https://remedi.lscaturchio.xyz.
 
 Remedi is information, not medical advice. Never stop or change a prescribed medication without talking to your doctor or pharmacist.
 
@@ -40,7 +40,7 @@ a safety checker must never give ([#69](https://github.com/gr8monk3ys/remedi/pul
 ## Stack
 
 Next.js 16 (App Router, React 19), TypeScript, Bun, Prisma 7 + PostgreSQL,
-Tailwind 4, Clerk auth, Stripe, Resend, Sentry. OpenAI is optional and only
+Tailwind 4, Better Auth, Stripe, Resend, Sentry. OpenAI is optional and only
 powers `/api/ai-search`.
 
 ## Run locally

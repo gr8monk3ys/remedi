@@ -21,7 +21,7 @@ Before deploying, ensure you have:
 
 - [ ] [Vercel account](https://vercel.com) with project created
 - [ ] PostgreSQL database (Vercel Postgres, Neon, Supabase, or similar)
-- [ ] [Clerk account](https://clerk.com) with a production application configured
+- [ ] [Resend account](https://resend.com) with a verified sending domain (sign-up needs email verification)
 - [ ] [Stripe account](https://stripe.com) with products/prices configured
 - [ ] [Sentry account](https://sentry.io) for error tracking
 - [ ] [Upstash account](https://upstash.com) for Redis (rate limiting)
@@ -39,16 +39,31 @@ These must be set for the application to function:
 | Variable              | Description                               | Example                          |
 | --------------------- | ----------------------------------------- | -------------------------------- |
 | `DATABASE_URL`        | PostgreSQL connection string with pooling | `postgresql://...`               |
-| `NEXT_PUBLIC_APP_URL` | Production URL                            | `https://remedi.vivancedata.com` |
+| `NEXT_PUBLIC_APP_URL` | Production URL                            | `https://remedi.lscaturchio.xyz` |
 
 ### Authentication Variables
 
-| Variable                            | Description                                                |
-| ----------------------------------- | ---------------------------------------------------------- |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key                                      |
-| `CLERK_SECRET_KEY`                  | Clerk secret key                                           |
-| `CLERK_WEBHOOK_SECRET`              | Clerk webhook signing secret (recommended)                 |
-| `AUTH_SECRET`                       | Extra secret used for hashing/analytics salt (recommended) |
+Auth is [Better Auth](https://www.better-auth.com) (email + password, required
+email verification, password reset), mounted at `/api/auth/*` and backed by the
+`User`, `Session`, `Account` and `Verification` tables. There is no external
+auth service to configure.
+
+| Variable             | Description                                                                        |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| `BETTER_AUTH_SECRET` | Signs session cookies and tokens. 32+ random characters: `openssl rand -base64 32` |
+| `BETTER_AUTH_URL`    | Public origin, e.g. `https://remedi.lscaturchio.xyz`; links in auth emails use it  |
+| `RESEND_API_KEY`     | Required in production: verification and password-reset emails are sent via Resend |
+| `EMAIL_FROM`         | Sender address on a domain verified in Resend (recommended)                        |
+| `AUTH_SECRET`        | Extra secret used for hashing/analytics salt (recommended)                         |
+
+Rotating `BETTER_AUTH_SECRET` signs everyone out and invalidates outstanding
+verification links.
+
+Moving from Clerk: migration `20261120000000_better_auth` drops `User.clerkId`,
+turns `emailVerified` into a boolean (a previously set timestamp becomes
+`true`) and adds the auth tables. Existing users keep their row, role and data
+but have no password yet; they set one through "Forgot your password?" on the
+sign-in page.
 
 ### Payment Variables (Stripe)
 
@@ -79,8 +94,6 @@ These must be set for the application to function:
 | `OPENFDA_API_KEY`          | FDA API for higher rate limits | 40 req/min |
 | `UPSTASH_REDIS_REST_URL`   | Redis for rate limiting        | Disabled   |
 | `UPSTASH_REDIS_REST_TOKEN` | Redis auth token               | -          |
-| `RESEND_API_KEY`           | Transactional emails (Resend)  | Disabled   |
-| `EMAIL_FROM`               | Sender email address           | -          |
 | `MAINTENANCE_MODE`         | Enable maintenance page        | `false`    |
 
 ---
@@ -208,7 +221,7 @@ Expected response:
 
 1. **Homepage loads** - Visit the main URL
 2. **Search works** - Try searching for "ibuprofen"
-3. **Auth works** - Sign in and sign out (Clerk)
+3. **Auth works** - Sign up, open the verification email, sign in, sign out
 4. **Database connected** - Check `/api/health?verbose=true`
 5. **Stripe connected** - Visit billing page
 6. **Sentry connected** - Check Sentry dashboard for test event
@@ -320,11 +333,14 @@ npx prisma migrate resolve --rolled-back MIGRATION_NAME
 2. Verify SSL mode (`?sslmode=require`)
 3. Check IP allowlist if using managed database
 
-#### Authentication Redirect Errors (Clerk)
+#### Authentication Errors
 
-1. Verify `NEXT_PUBLIC_APP_URL` matches your production domain
-2. Check Clerk Dashboard configuration (production instance, allowed origins, redirect URLs)
-3. Ensure Clerk keys are set (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`)
+1. Verify `BETTER_AUTH_URL` is exactly the production origin. Better Auth
+   rejects requests from other origins ("Invalid origin") and builds email
+   links from it.
+2. Ensure `BETTER_AUTH_SECRET` is set and unchanged between deploys.
+3. No verification email: check `RESEND_API_KEY`, `EMAIL_FROM`, and the
+   `EmailLog` table for the failed send.
 
 #### Stripe Webhook Failures
 
@@ -363,8 +379,8 @@ vercel logs --filter api
 Before going live:
 
 - [ ] All secrets are in environment variables, not code
-- [ ] Clerk production keys are set (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`)
-- [ ] Clerk webhook secret is configured (`CLERK_WEBHOOK_SECRET`) if using webhooks
+- [ ] `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` are set for production
+- [ ] `RESEND_API_KEY` is set and the `EMAIL_FROM` domain is verified in Resend
 - [ ] Stripe webhook secret is configured
 - [ ] Rate limiting is enabled (Upstash Redis configured)
 - [ ] Sentry is receiving errors
