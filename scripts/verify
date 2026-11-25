@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Fast gate Claude Code runs before a session can finish (see CLAUDE.md,
+# "How we work"). No database or browser needed. The full PR check is still
+# `bun run verify`, which CI runs stage by stage.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+bun install --frozen-lockfile
+bun run format:check
+bun run lint
+bun run type-check
+bun run test:run
